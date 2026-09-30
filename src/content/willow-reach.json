@@ -368,6 +368,29 @@
       }
     },
     {
+      "id": "heatPump",
+      "name": "Heat Pump",
+      "cost": 7,
+      "workers": 0,
+      "kind": "energy",
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland"],
+        "adjacentTo": ["river", "reservoir"],
+        "adjacentToBuildings": ["fishPond"]
+      },
+      "heatPump": { "heatPerEnergy": 2, "maxHeatPerSlot": 4 }
+    },
+    {
+      "id": "solarThermalCollector",
+      "name": "Solar Thermal Collector",
+      "cost": 4,
+      "workers": 0,
+      "kind": "energy",
+      "placement": { "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland"] },
+      "heatGeneration": { "day": [2, 3, 3, 2], "night": [0, 0, 0, 0] },
+      "shading": { "penaltyPerSlot": 1 }
+    },
+    {
       "id": "cellBank",
       "name": "Cell Bank",
       "cost": 5,

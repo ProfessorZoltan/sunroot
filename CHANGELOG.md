@@ -1,5 +1,20 @@
 # Changelog
 
+## Heat routes prototype
+
+- Design proposal in `docs/proposals/heat-routes.md`: several ways to make heat, each with its own
+  catch (placement, timing or a competing loop), rather than a ladder of efficiencies.
+- Two new draftable buildings in Willow Reach (beyond the design's 23):
+  - **Heat Pump** (7 materials): pays heat at 2 per energy, up to 4 heat per slot. Must touch the
+    river, a reservoir or a Fish Pond.
+  - **Solar Thermal Collector** (4 materials): 2 / 3 / 3 / 2 free heat by day, 1 less in shade.
+    The heat pays day heat demand or charges Heat Wells.
+- Heat is now settled in order: free heat, heat pumps, then direct energy; stored heat still covers
+  what is short. Season reports show the heat math per slot.
+- Blackouts recount demand after each shut-off, and a building shut off by day stays off at night.
+- The Year 1 golden test is unchanged and passes. Its setup moved to `tests/walkthrough.ts` so heat
+  tests can replay the same winter with the new buildings.
+
 ## Milestone 1: simulation core (headless)
 
 - A pure, deterministic simulation in `src/sim`: commands in, new state out, no clock, one seeded

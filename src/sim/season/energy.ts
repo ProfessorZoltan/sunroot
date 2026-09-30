@@ -1,11 +1,14 @@
 /**
  * Steps 5 to 7: flexible consumers, storage and demand, slot by slot.
  *
- * Storage first reserves the spare day energy it needs to cover a night
- * shortfall it can already see (covering demand is a need, not a spare);
- * flexible consumers then use what is spare; storage then charges from what is
- * still spare; demand is paid, storage discharges into shortfalls and any gap
- * left becomes a blackout, shutting buildings off lowest priority first.
+ * Heat demand is paid first by free heat (solar thermal), then by heat pumps
+ * (2 heat per energy), and the rest directly, 1 energy per heat.
+ *
+ * Storage first reserves the spare day energy (or free heat) it needs to cover
+ * a night shortfall it can already see (covering demand is a need, not a
+ * spare); flexible consumers then use what is spare; storage then charges from
+ * what is still spare; demand is paid, storage discharges into shortfalls and
+ * any gap left becomes a blackout, shutting buildings off lowest priority first.
  */
 import type { Slot } from '../content/schema';
 import { SLOTS } from '../content/schema';
@@ -16,25 +19,91 @@ import { addYield, explain, type SeasonContext } from './context';
 type PerSlot = Record<Slot, number>;
 const perSlot = (): PerSlot => ({ day: 0, night: 0 });
 
+interface Settlement {
+  /** Energy the buildings need once free heat and heat pumps have paid what they can. */
+  demand: number;
+  heat: number;
+  free: number;
+  pumped: number;
+  pumpEnergy: number;
+  /** Heat still to pay directly with energy. */
+  direct: number;
+  /** Heat paid and energy drawn, per heat pump uid. */
+  byPump: Record<string, { heat: number; energy: number }>;
+}
+
 export function resolveEnergy(ctx: SeasonContext): void {
   const { content, state, si, report } = ctx;
   const active = byPriority(state).filter((b) => ctx.active.has(b.uid));
 
-  const demandOf = (b: BuildingState, slot: Slot) => {
-    const d = defOf(content, b).demand;
-    return d ? d.energy[slot][si]! + d.heat[slot][si]! : 0;
+  const energyOf = (b: BuildingState, slot: Slot) =>
+    defOf(content, b).demand?.energy[slot][si] ?? 0;
+  const heatOf = (b: BuildingState, slot: Slot) => defOf(content, b).demand?.heat[slot][si] ?? 0;
+  const pumps = active.filter((b) => defOf(content, b).heatPump);
+  const freeHeat = perSlot();
+  for (const slot of SLOTS) {
+    freeHeat[slot] = Object.values(report.energy[slot].heat.bySource).reduce((a, b) => a + b, 0);
+  }
+
+  /** What the buildings that are still on need in a slot. */
+  const settle = (slot: Slot, off: Set<string>): Settlement => {
+    const on = active.filter((b) => !off.has(b.uid));
+    const energy = on.reduce((sum, b) => sum + energyOf(b, slot), 0);
+    const heat = on.reduce((sum, b) => sum + heatOf(b, slot), 0);
+    const free = Math.min(heat, freeHeat[slot]);
+    let rest = heat - free;
+    let pumped = 0;
+    let pumpEnergy = 0;
+    const byPump: Settlement['byPump'] = {};
+    for (const p of pumps) {
+      const hp = defOf(content, p).heatPump!;
+      const units = Math.min(
+        Math.floor(rest / hp.heatPerEnergy),
+        Math.floor(hp.maxHeatPerSlot / hp.heatPerEnergy),
+      );
+      if (units === 0) continue;
+      byPump[p.uid] = { heat: units * hp.heatPerEnergy, energy: units };
+      pumped += units * hp.heatPerEnergy;
+      pumpEnergy += units;
+      rest -= units * hp.heatPerEnergy;
+    }
+    return {
+      demand: energy + rest + pumpEnergy,
+      heat,
+      free,
+      pumped,
+      pumpEnergy,
+      direct: rest,
+      byPump,
+    };
   };
-  const heatDemandOf = (b: BuildingState, slot: Slot) =>
-    defOf(content, b).demand?.heat[slot][si] ?? 0;
 
   const spare = perSlot();
   const short = perSlot();
+  /** Heat still paid directly with energy: the part stored heat can cover. */
   const heatDemand = perSlot();
   const heatPaid = perSlot();
+  const spareHeat = perSlot();
   for (const slot of SLOTS) {
     const r = report.energy[slot];
-    r.demand = active.reduce((sum, b) => sum + demandOf(b, slot), 0);
-    heatDemand[slot] = active.reduce((sum, b) => sum + heatDemandOf(b, slot), 0);
+    const s = settle(slot, new Set());
+    r.demand = s.demand;
+    Object.assign(r.heat, {
+      demand: s.heat,
+      free: s.free,
+      pumped: s.pumped,
+      pumpEnergy: s.pumpEnergy,
+      direct: s.direct,
+    });
+    for (const [uid, paid] of Object.entries(s.byPump)) {
+      explain(
+        ctx,
+        state.buildings[uid]!,
+        `${slot}: paid ${paid.heat} heat with ${paid.energy} energy`,
+      );
+    }
+    heatDemand[slot] = s.direct;
+    spareHeat[slot] = freeHeat[slot] - s.free;
     spare[slot] = Math.max(0, r.supply - r.demand);
     short[slot] = Math.max(0, r.demand - r.supply);
   }
@@ -76,20 +145,35 @@ export function resolveEnergy(ctx: SeasonContext): void {
     }
   }
 
-  // Reserve spare day energy for the night shortfall: heat wells for heat, then energy storage.
-  for (const b of storages) {
-    if (short.night === 0 || spare.day === 0) break;
+  // Reserve for the night shortfall: heat wells take spare free heat, then spare day
+  // energy, for the heat part; energy storage takes spare day energy for the rest.
+  const heatFirst = [...storages].sort(
+    (a, b) => Number(storageDef(b).holds === 'heat') - Number(storageDef(a).holds === 'heat'),
+  );
+  for (const b of heatFirst) {
+    if (short.night === 0 || spare.day + spareHeat.day === 0) break;
     const s = storageDef(b);
     if (!s.chargesFrom.includes('day')) continue;
     if (s.holds === 'heat') {
-      const give = Math.min(short.night, heatDemand.night - heatPaid.night, room(b), spare.day);
+      const give = Math.min(
+        short.night,
+        heatDemand.night - heatPaid.night,
+        room(b),
+        spareHeat.day + spare.day,
+      );
       if (give <= 0) continue;
-      charge(b, 'day', give);
-      report.energy.day.reserved += give;
-      b.stored! -= give;
+      const fromHeat = Math.min(give, spareHeat.day);
+      spareHeat.day -= fromHeat;
+      report.energy.day.heat.stored += fromHeat;
+      if (give > fromHeat) {
+        charge(b, 'day', give - fromHeat);
+        report.energy.day.reserved += give - fromHeat;
+        b.stored! -= give - fromHeat;
+      }
       heatPaid.night += give;
       discharge('night', give);
     } else {
+      if (spare.day === 0) continue;
       const { numerator, denominator } = s.returns;
       const need = Math.ceil((short.night * denominator) / numerator);
       const amount = Math.min(need, room(b), spare.day);
@@ -144,28 +228,37 @@ export function resolveEnergy(ctx: SeasonContext): void {
     );
   }
 
-  // Storage charges from whatever is still spare.
+  // Storage charges from whatever is still spare: free heat first, then energy.
   for (const b of storages) {
     for (const slot of storageDef(b).chargesFrom) {
+      if (storageDef(b).holds === 'heat') {
+        const heat = Math.min(spareHeat[slot], room(b));
+        b.stored = (b.stored ?? 0) + heat;
+        spareHeat[slot] -= heat;
+        report.energy[slot].heat.stored += heat;
+      }
       const amount = Math.min(spare[slot], room(b));
       if (amount > 0) charge(b, slot, amount);
     }
   }
 
-  // Blackouts: shut buildings off, lowest priority first, until demand fits.
+  // Blackouts: shut buildings off, lowest priority first, until demand fits. Demand
+  // is worked out again after each one, since heat pumps save less as heat demand falls.
+  // A building shut off by day stays off at night.
   const off = new Set<string>();
   for (const slot of SLOTS) {
     const r = report.energy[slot];
     r.shortfall = short[slot];
     r.unused = spare[slot];
-    let gap = short[slot];
+    if (short[slot] === 0) continue;
+    const available = r.supply + r.storageDischarged;
+    let gap = settle(slot, off).demand - available;
     for (const b of [...active].reverse()) {
       if (gap <= 0) break;
-      const d = demandOf(b, slot);
-      if (d === 0 || off.has(b.uid)) continue;
+      if (off.has(b.uid) || energyOf(b, slot) + heatOf(b, slot) === 0) continue;
       off.add(b.uid);
       report.blackouts.push(b.uid);
-      gap -= d;
+      gap = settle(slot, off).demand - available;
       explain(ctx, b, `shut off in the ${slot} blackout`);
     }
   }

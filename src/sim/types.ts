@@ -110,12 +110,32 @@ export type Command =
 
 export type CommandResult = { ok: true; state: RunState } | { ok: false; error: string };
 
+export interface HeatReport {
+  /** Heat demanded by active buildings in this slot. */
+  demand: number;
+  /** Free heat generated (Solar Thermal Collectors), by source building type. */
+  bySource: Record<string, number>;
+  /** Free heat that paid heat demand directly. */
+  free: number;
+  /** Heat paid by heat pumps, and the energy they drew to do it. */
+  pumped: number;
+  pumpEnergy: number;
+  /** Heat left to pay directly with energy, 1 for 1. */
+  direct: number;
+  /** Free heat put into Heat Wells. */
+  stored: number;
+}
+
 export interface SlotReport {
   /** Energy generated, by source building type. */
   bySource: Record<string, number>;
   supply: number;
-  /** Energy plus heat demanded by active buildings. */
+  /**
+   * Energy the slot's buildings need: their energy demand, plus heat paid
+   * directly, plus the energy drawn by heat pumps.
+   */
   demand: number;
+  heat: HeatReport;
   /** Day energy set aside to charge storage that will cover a known shortfall. */
   reserved: number;
   /** Energy used by flexible consumers (workshop and kiln runs). */

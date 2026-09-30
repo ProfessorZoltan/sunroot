@@ -25,6 +25,7 @@ function emptySlot(): SlotReport {
     bySource: {},
     supply: 0,
     demand: 0,
+    heat: { demand: 0, bySource: {}, free: 0, pumped: 0, pumpEnergy: 0, direct: 0, stored: 0 },
     reserved: 0,
     sponges: 0,
     storageCharged: 0,
@@ -74,6 +75,12 @@ export function addYield(ctx: SeasonContext, b: BuildingState, res: Resource, am
 
 export function explain(ctx: SeasonContext, b: BuildingState, line: string) {
   (ctx.report.math[b.uid] ??= []).push(line);
+}
+
+export function addHeat(ctx: SeasonContext, slot: Slot, source: string, amount: number) {
+  if (amount <= 0) return;
+  const h = ctx.report.energy[slot].heat;
+  h.bySource[source] = (h.bySource[source] ?? 0) + amount;
 }
 
 export function addSupply(ctx: SeasonContext, slot: Slot, source: string, amount: number) {

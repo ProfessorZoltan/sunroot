@@ -21,13 +21,15 @@ describe('the draft', () => {
     }
   });
 
-  it('unlocks the 5 starred buildings and the Solar Canopy at the start; 17 come through the draft', () => {
+  it('unlocks the 5 starred buildings and the Solar Canopy at the start; the rest come through the draft', () => {
     const s = createRun(content, { seed: 'draft' });
     expect(s.unlocked.sort()).toEqual(
       ['composter', 'cottage', 'floodplainFarm', 'salvageYard', 'solarCanopy', 'workshop'].sort(),
     );
-    const draftable = content.buildings.filter((b) => b.draftable && !b.starter);
-    expect(draftable).toHaveLength(17);
+    // The design's 17, plus the Heat Pump and Solar Thermal Collector (docs/proposals/heat-routes.md).
+    const draftable = content.buildings.filter((b) => b.draftable && !b.starter).map((b) => b.id);
+    expect(draftable).toHaveLength(17 + 2);
+    expect(draftable).toEqual(expect.arrayContaining(['heatPump', 'solarThermalCollector']));
   });
 
   it('uses fixed offers in the guided first year, then random ones', () => {

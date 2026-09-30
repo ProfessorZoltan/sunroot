@@ -32,6 +32,10 @@ export function loadContent(raw: unknown): Content {
     b.neighborFoodBonus?.disabledNextTo.forEach((id) => known(id, `${b.id}.neighborFoodBonus`));
     b.harmonyPenalty?.cancelledByNeighbor.forEach((id) => known(id, `${b.id}.harmonyPenalty`));
     b.weir?.downstreamFoodPenalty.targets.forEach((id) => known(id, `${b.id}.weir`));
+    b.placement.adjacentToBuildings?.forEach((id) => known(id, `${b.id}.placement`));
+    if (b.placement.adjacentToBuildings && !b.placement.adjacentTo) {
+      problems.push(`${b.id}.placement.adjacentToBuildings needs adjacentTo`);
+    }
     if (b.recipes && !b.recipes.options.some((o) => o.id === b.recipes!.defaultRecipe)) {
       problems.push(`${b.id}.recipes.defaultRecipe is not one of its options`);
     }

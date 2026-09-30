@@ -2,12 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { loadContent } from '../src/sim';
 import willowReach from '../src/content/willow-reach.json';
 
+/** Buildings added by docs/proposals/heat-routes.md, beyond the design's 23. */
+const HEAT_PROPOSAL = ['heatPump', 'solarThermalCollector'];
+
 const clone = () => structuredClone(willowReach) as typeof willowReach;
 
 describe('content validation', () => {
-  it("loads Willow Reach: the camp plus the biome's 23 buildings", () => {
+  it("loads Willow Reach: the camp, the design's 23 buildings and 2 from the heat proposal", () => {
     const content = loadContent(willowReach);
-    expect(content.buildings.filter((b) => b.id !== content.campBuilding)).toHaveLength(23);
+    const buildings = content.buildings.filter((b) => b.id !== content.campBuilding);
+    expect(buildings.filter((b) => !HEAT_PROPOSAL.includes(b.id))).toHaveLength(23);
+    expect(HEAT_PROPOSAL.every((id) => content.byId[id])).toBe(true);
     expect(content.byId.floodplainFarm?.yields.food).toEqual([2, 4, 5, 0]);
   });
 

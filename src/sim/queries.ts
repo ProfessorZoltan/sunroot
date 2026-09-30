@@ -39,7 +39,16 @@ export function neighborBuildings(
   b: BuildingState,
   occ = occupancy(state),
 ): BuildingState[] {
-  return hexNeighbors(b.at)
+  return buildingsTouching(state, b.at, occ);
+}
+
+/** Buildings on the tiles next to a hex. */
+export function buildingsTouching(
+  state: RunState,
+  h: Hex,
+  occ = occupancy(state),
+): BuildingState[] {
+  return hexNeighbors(h)
     .map((n) => occ.get(hexKey(n)))
     .filter((x): x is BuildingState => x !== undefined);
 }

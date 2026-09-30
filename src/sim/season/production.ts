@@ -14,7 +14,7 @@ import {
   waterDistance,
 } from '../queries';
 import type { BuildingState } from '../types';
-import { addSupply, addYield, explain, type SeasonContext } from './context';
+import { addHeat, addSupply, addYield, explain, type SeasonContext } from './context';
 
 const EPSILON = 1e-9;
 
@@ -37,13 +37,18 @@ function activeInOrder(ctx: SeasonContext): BuildingState[] {
   return byPriority(ctx.state).filter((b) => ctx.active.has(b.uid));
 }
 
-/** Generators: the camp, solar, wheels and spires (digesters run later, on their inputs). */
+/**
+ * Generators: the camp, solar, wheels and spires, plus free heat from solar
+ * thermal collectors (digesters run later, on their inputs).
+ */
 export function generate(ctx: SeasonContext): void {
   const { content, state, si } = ctx;
   const occ = occupancy(state);
   for (const b of activeInOrder(ctx)) {
     const def = defOf(content, b);
-    if (!def.generation) continue;
+    const output = def.generation ?? def.heatGeneration;
+    if (!output) continue;
+    const makesHeat = !def.generation;
     const neighbors = neighborBuildings(state, b, occ);
     let adjust = 0;
     const notes: string[] = [];
@@ -71,14 +76,16 @@ export function generate(ctx: SeasonContext): void {
       }
     }
     for (const slot of SLOTS) {
-      const base = def.generation[slot][si]!;
+      const base = output[slot][si]!;
       // Adjustments apply only to slots where the source runs at all.
       const amount = base > 0 ? Math.max(0, base + adjust) : 0;
-      addSupply(ctx, slot, def.id, amount);
+      if (makesHeat) addHeat(ctx, slot, def.id, amount);
+      else addSupply(ctx, slot, def.id, amount);
+      const what = makesHeat ? 'heat' : 'energy';
       explain(
         ctx,
         b,
-        `${slot} energy ${base}${adjust ? ` ${adjust > 0 ? '+' : ''}${adjust}` : ''} = ${amount}`,
+        `${slot} ${what} ${base}${adjust ? ` ${adjust > 0 ? '+' : ''}${adjust}` : ''} = ${amount}`,
       );
     }
     notes.forEach((n) => explain(ctx, b, n));

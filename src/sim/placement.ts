@@ -1,6 +1,6 @@
 import type { Content } from './content/load';
 import { hexKey, type Hex } from './hex';
-import { neighborTiles, occupancy, tileAt } from './queries';
+import { buildingsTouching, neighborTiles, occupancy, tileAt } from './queries';
 import type { RunState } from './types';
 
 export type PlacementCheck = { ok: true } | { ok: false; reason: string };
@@ -26,9 +26,19 @@ export function canPlace(
   if (tile.type === 'ruin' && (tile.salvage ?? 0) <= 0) {
     return { ok: false, reason: 'the ruin is empty' };
   }
-  const adjacentTo = def.placement.adjacentTo;
-  if (adjacentTo && !neighborTiles(state, at).some((n) => adjacentTo.includes(n.type))) {
-    return { ok: false, reason: `${def.name} must be next to ${adjacentTo.join(' or ')}` };
+  const { adjacentTo, adjacentToBuildings = [] } = def.placement;
+  if (adjacentTo) {
+    const touchesTile = neighborTiles(state, at).some((n) => adjacentTo.includes(n.type));
+    const touchesBuilding = buildingsTouching(state, at).some((n) =>
+      adjacentToBuildings.includes(n.type),
+    );
+    if (!touchesTile && !touchesBuilding) {
+      const names = [
+        ...adjacentTo,
+        ...adjacentToBuildings.map((id) => content.byId[id]?.name ?? id),
+      ];
+      return { ok: false, reason: `${def.name} must be next to ${names.join(' or ')}` };
+    }
   }
   return { ok: true };
 }

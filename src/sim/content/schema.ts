@@ -89,8 +89,10 @@ export const BuildingSchema = z
     tall: z.boolean().default(false),
     placement: z.object({
       tiles: z.array(TileTypeSchema).min(1),
-      /** Must touch at least one tile of these types. */
+      /** Must touch at least one tile of these types (or a building from adjacentToBuildings). */
       adjacentTo: z.array(TileTypeSchema).optional(),
+      /** Buildings that also satisfy adjacentTo (a Fish Pond counts as water for a Heat Pump). */
+      adjacentToBuildings: z.array(z.string()).optional(),
     }),
     housing: nonNeg.default(0),
     foodStorage: nonNeg.default(0),
@@ -110,6 +112,10 @@ export const BuildingSchema = z
     /** Counts as a pond for the low-river rule. */
     waterBody: z.boolean().default(false),
     generation: SlotSeason.optional(),
+    /** Free heat made in each slot (Solar Thermal Collector); it can only pay heat or charge heat storage. */
+    heatGeneration: SlotSeason.optional(),
+    /** Pays heat demand at `heatPerEnergy` heat per energy, up to `maxHeatPerSlot` in each slot. */
+    heatPump: z.object({ heatPerEnergy: int.min(2), maxHeatPerSlot: int.min(1) }).optional(),
     demand: z
       .object({
         energy: SlotSeason.default({ day: zero4, night: zero4 }),
