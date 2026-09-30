@@ -41,6 +41,14 @@
     "compostPerTileStep": 2,
     "knowledge": { "reroll": 2, "extraCard": 3, "hint": 5 },
     "draftCards": 3,
+    "provisionalScore": {
+      "perSeasonSurvived": 1,
+      "perCitizen": 2,
+      "perHarmony": 1,
+      "wellbeingStep": 10,
+      "perWellbeingStep": 1,
+      "completeBonus": 20
+    },
     "mixedGrid": { "minSourceTypes": 3, "minShare": 0.15, "excludeSources": ["foundersCamp"] }
   },
   "map": {

@@ -156,7 +156,10 @@ export interface RunReport {
   energy: Record<Slot, number>;
 }
 
+export type WellbeingKind = 'needsMet' | 'hunger' | 'unpowered' | 'clutter' | 'greenery' | 'civic';
+
 export interface WellbeingLine {
+  kind: WellbeingKind;
   reason: string;
   amount: number;
 }

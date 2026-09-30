@@ -1,13 +1,69 @@
-import type { RunState, SeasonSnapshot } from './types';
+import type { BuildingState, MapState, RunState, SeasonSnapshot } from './types';
 
-/** A deep copy of the state without the undo bookkeeping. */
-export function snapshot(state: RunState): SeasonSnapshot {
-  const { seasonStart: _start, seasonCommands: _commands, ...rest } = state;
-  return structuredClone(rest);
+/**
+ * Copying states. Commands never mutate their input, so every command works on
+ * a copy. This is a hand-written deep copy (much faster than structuredClone
+ * for many small objects); it lists every field, so TypeScript rejects it if a
+ * field is added to the state and not copied here.
+ *
+ * Parts that are written once and then only replaced, never changed in place,
+ * are shared between copies: `lastReport`, `history`, `energyHistory`, the
+ * season-start snapshot, past commands, `options`, and the map's `river` and
+ * `floodOrder` lists. Code must never mutate those in place.
+ */
+export function snapshot(state: SeasonSnapshot): SeasonSnapshot {
+  const copy: SeasonSnapshot = {
+    version: state.version,
+    contentId: state.contentId,
+    options: state.options,
+    rng: { ...state.rng },
+    turn: state.turn,
+    year: state.year,
+    season: state.season,
+    era: state.era,
+    status: state.status,
+    map: copyMap(state.map),
+    buildings: copyBuildings(state.buildings),
+    nextUid: state.nextUid,
+    unlocked: [...state.unlocked],
+    stores: { ...state.stores },
+    citizens: state.citizens,
+    wellbeing: state.wellbeing,
+    harmony: state.harmony,
+    draft: { ...state.draft, offer: [...state.draft.offer] },
+    forecast: { ...state.forecast },
+    priority: [...state.priority],
+    energyHistory: state.energyHistory,
+    discoveries: [...state.discoveries],
+    notices: [...state.notices],
+    lastReport: state.lastReport,
+    history: state.history,
+  };
+  return copy;
 }
 
-/** A deep copy of a state that the caller may mutate. The season-start snapshot is shared, never mutated. */
+function copyMap(map: MapState): MapState {
+  const tiles: MapState['tiles'] = {};
+  for (const key in map.tiles) tiles[key] = { ...map.tiles[key]! };
+  return { ...map, tiles };
+}
+
+function copyBuildings(buildings: Record<string, BuildingState>): Record<string, BuildingState> {
+  const out: Record<string, BuildingState> = {};
+  for (const uid in buildings) {
+    const b = buildings[uid]!;
+    const c: BuildingState = { ...b, at: { ...b.at } };
+    if (b.damage) c.damage = { ...b.damage };
+    out[uid] = c;
+  }
+  return out;
+}
+
+/** A copy of a state that the caller may mutate (except the shared parts). */
 export function cloneState(state: RunState): RunState {
-  const { seasonStart, seasonCommands, ...rest } = state;
-  return { ...structuredClone(rest), seasonStart, seasonCommands: [...seasonCommands] };
+  return {
+    ...snapshot(state),
+    seasonStart: state.seasonStart,
+    seasonCommands: [...state.seasonCommands],
+  };
 }

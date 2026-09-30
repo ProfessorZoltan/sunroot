@@ -1,5 +1,28 @@
 # Changelog
 
+## Milestone 2: balance simulator
+
+- `npm run balance` plays 1,000 seeds with each of 4 bots (random, greedy food, greedy energy and
+  a balanced baseline) on all CPU cores, and writes `balance-out/runs.csv` (one row per run) and
+  `balance-out/report.md`.
+- The report covers score spread, completion, how runs end, card pick rates and early-pick lift,
+  idle seasons by era, blackouts by season, the energy mix, and answers to the design's balance
+  questions. The baseline report is kept in `docs/balance/baseline-report.md`.
+- Bots play only through player commands. They check fixes by peeking at how the season would end.
+- A provisional score (weights in the content file) until Milestone 7 decides the real one.
+- Wellbeing lines now have a `kind` (hunger, unpowered, clutter, ...).
+- Faster state copies: about twice as fast per run, with identical results.
+
+### What the first 4,000 runs say
+
+- Food is too easy after Year 1: bots make 1.37× what they eat and 25% rots. The rot feeds the
+  clutter spiral: 1,171 of 3,000 non-random runs collapse from clutter, none from hunger.
+- River Wheels make 61% of built-source energy in the top quarter of runs.
+- The draft runs out of blueprints after about 19 of 48 seasons.
+- The middle eras are the quietest: 3.6 idle seasons in Mend against 0.9 in Settle.
+- Winter blackouts are near-universal (85–99% of non-random runs); summer blackouts hit 67–75%
+  of wheel-heavy runs, when low river cuts wheels to 1 / 1.
+
 ## Heat routes prototype
 
 - Design proposal in `docs/proposals/heat-routes.md`: several ways to make heat, each with its own

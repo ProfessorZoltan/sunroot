@@ -19,10 +19,20 @@ export function tileAt(state: RunState, h: Hex): Tile | undefined {
   return state.map.tiles[hexKey(h)];
 }
 
+const occupancyCache = new WeakMap<object, { size: number; map: Map<string, BuildingState> }>();
+
+/**
+ * Buildings by tile key. Cached per buildings object: buildings are only ever
+ * added, never removed or moved, so the cache is valid while the count holds.
+ */
 export function occupancy(state: RunState): Map<string, BuildingState> {
-  const out = new Map<string, BuildingState>();
-  for (const b of Object.values(state.buildings)) out.set(hexKey(b.at), b);
-  return out;
+  const size = Object.keys(state.buildings).length;
+  const cached = occupancyCache.get(state.buildings);
+  if (cached && cached.size === size) return cached.map;
+  const map = new Map<string, BuildingState>();
+  for (const b of Object.values(state.buildings)) map.set(hexKey(b.at), b);
+  occupancyCache.set(state.buildings, { size, map });
+  return map;
 }
 
 export function buildingAt(state: RunState, h: Hex): BuildingState | undefined {

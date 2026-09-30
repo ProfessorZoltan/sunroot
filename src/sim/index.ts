@@ -18,5 +18,6 @@ export { applyCommand } from './commands';
 export { canPlace, type PlacementCheck } from './placement';
 export { generateMap } from './map';
 export { blueprintPool } from './draft';
+export { provisionalScore, type ScoreLine } from './score';
 export { computeHarmony, harmonyMultiplier, waterDistance } from './queries';
 export type * from './types';

@@ -98,6 +98,19 @@ walkthrough (the golden test) requires, and should be confirmed or changed in th
 | Camp             | On plain land 2 to 3 tiles from the river, in the middle rows.                                                                                                                   |
 | Randomness       | The map uses its own seeded stream (`seed:map`), so a run's commands never change its map. The run's draft and storm choices use a second stream (`seed:run`) kept in the state. |
 
+## Balance simulator (Milestone 2)
+
+| Topic          | Decision                                                                                                                                                                                                                                                                                    |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bots           | The design asks for greedy food, greedy energy and random. A fourth, **balanced**, is a steadier baseline (needs first, then Harmony and wellbeing). The three non-random bots share a survival layer: fix this season's power shortfall, keep a food buffer, house growth, compost scraps. |
+| Lookahead      | Ending a season is a pure function, so bots test a fix by ending the season on a copy and reading the report, then keep the build only if it helped (the same as a free undo). A human can't see the storm's target this way; the bots' advantage is small and the same for all of them.    |
+| Score          | Provisional, until Milestone 7 settles the real formula: 1 per season survived, 2 per citizen, 1 per Harmony, 1 per 10 wellbeing, +20 for finishing. Weights are in the content file (`provisionalScore`).                                                                                  |
+| Idle season    | A season in which the bot built or changed nothing besides its draft pick.                                                                                                                                                                                                                  |
+| Collapse cause | The biggest wellbeing drain (hunger, unpowered homes or clutter) over a collapsed run's last 4 seasons. Wellbeing lines now carry a `kind` for this.                                                                                                                                        |
+| Card lift      | Mean score of runs that picked a card in the first 2 years minus runs that did not, among runs that lasted 2 years, averaged over bots. Counting all picks instead would favour every card, because longer runs pick more cards.                                                            |
+| Seeds          | Every bot plays the same seeds (`balance-0`, `balance-1`, ...). Results don't depend on the number of threads.                                                                                                                                                                              |
+| Speed          | States are copied by hand (not `structuredClone`) and write-once parts are shared between copies, which roughly halved the time per run.                                                                                                                                                    |
+
 ## Deferred to later milestones
 
 - Tunings, charters and visions (Milestone 6 and 7). The draft currently deals blueprints only, which is what run 1 uses ("blueprints only, with the guided first year").

@@ -8,6 +8,7 @@ import {
   isHome,
   neighborTiles,
 } from '../queries';
+import type { WellbeingLine } from '../types';
 import type { SeasonContext } from './context';
 
 export function feedAndGrow(ctx: SeasonContext): void {
@@ -44,20 +45,25 @@ export function feedAndGrow(ctx: SeasonContext): void {
 
   // Wellbeing updates.
   const wb = rules.wellbeing;
-  const lines: { reason: string; amount: number }[] = [];
+  const lines: WellbeingLine[] = [];
   const buildings = Object.values(state.buildings);
   const unpoweredHomes = buildings.filter((b) => {
     if (!isHome(defOf(content, b))) return false;
     return b.damage !== undefined || !ctx.powered.has(b.uid);
   }).length;
   if (unfed === 0 && unpoweredHomes === 0) {
-    lines.push({ reason: 'every need met', amount: wb.allNeedsMet });
+    lines.push({ kind: 'needsMet', reason: 'every need met', amount: wb.allNeedsMet });
   }
   if (unfed > 0) {
-    lines.push({ reason: `${unfed} unfed citizens`, amount: unfed * wb.perUnfedCitizen });
+    lines.push({
+      kind: 'hunger',
+      reason: `${unfed} unfed citizens`,
+      amount: unfed * wb.perUnfedCitizen,
+    });
   }
   if (unpoweredHomes > 0) {
     lines.push({
+      kind: 'unpowered',
       reason: `${unpoweredHomes} unpowered homes`,
       amount: unpoweredHomes * wb.perUnpoweredHome,
     });
@@ -65,6 +71,7 @@ export function feedAndGrow(ctx: SeasonContext): void {
   const clutterSteps = Math.floor(state.stores.clutter / wb.clutterStep);
   if (clutterSteps > 0) {
     lines.push({
+      kind: 'clutter',
       reason: `${state.stores.clutter} clutter`,
       amount: clutterSteps * wb.perClutterStep,
     });
@@ -73,11 +80,15 @@ export function feedAndGrow(ctx: SeasonContext): void {
     const def = defOf(content, b);
     const near = def.wellbeing?.nextToTiles;
     if (near && !b.damage && neighborTiles(state, b.at).some((t) => near.tiles.includes(t.type))) {
-      lines.push({ reason: `${def.name} next to ${near.tiles.join(' or ')}`, amount: near.amount });
+      lines.push({
+        kind: 'greenery',
+        reason: `${def.name} next to ${near.tiles.join(' or ')}`,
+        amount: near.amount,
+      });
     }
     const whenPowered = def.wellbeing?.whenPowered ?? 0;
     if (whenPowered !== 0 && ctx.powered.has(b.uid)) {
-      lines.push({ reason: `powered ${def.name}`, amount: whenPowered });
+      lines.push({ kind: 'civic', reason: `powered ${def.name}`, amount: whenPowered });
     }
   }
   const total = lines.reduce((sum, l) => sum + l.amount, 0);

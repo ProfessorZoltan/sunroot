@@ -29,8 +29,7 @@ import { generate, produce, producePowered, staff } from './production';
 import { snapshot } from '../snapshot';
 
 export function resolveSeason(content: Content, input: RunState): RunState {
-  const { seasonStart: _start, seasonCommands: _commands, ...rest } = input;
-  const state: RunState = { ...structuredClone(rest), seasonStart: null, seasonCommands: [] };
+  const state: RunState = { ...snapshot(input), seasonStart: null, seasonCommands: [] };
   state.harmony = computeHarmony(content, state);
   const ctx: SeasonContext = {
     content,

@@ -8,7 +8,7 @@ import { hexKey } from './hex';
 import { canPlace } from './placement';
 import { computeHarmony, defOf, improveTile, isHome, tileAt } from './queries';
 import { resolveSeason } from './season/resolve';
-import { cloneState } from './snapshot';
+import { cloneState, snapshot } from './snapshot';
 import type { Command, CommandResult, RunState } from './types';
 
 const fail = (error: string): CommandResult => ({ ok: false, error });
@@ -149,7 +149,7 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
 function undo(content: Content, state: RunState): CommandResult {
   if (state.seasonCommands.length === 0 || !state.seasonStart) return fail('nothing to undo');
   let s: RunState = {
-    ...structuredClone(state.seasonStart),
+    ...snapshot(state.seasonStart),
     seasonStart: state.seasonStart,
     seasonCommands: [],
   };

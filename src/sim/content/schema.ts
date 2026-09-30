@@ -265,6 +265,18 @@ export const RulesSchema = z
     compostPerTileStep: int.min(1),
     knowledge: z.object({ reroll: nonNeg, extraCard: nonNeg, hint: nonNeg }),
     draftCards: int.min(1),
+    /**
+     * Provisional end-of-run score for the balance simulator. The real formula
+     * and the Graft tier bands are an open design question (Milestone 7).
+     */
+    provisionalScore: z.object({
+      perSeasonSurvived: int,
+      perCitizen: int,
+      perHarmony: int,
+      wellbeingStep: int.min(1),
+      perWellbeingStep: int,
+      completeBonus: int,
+    }),
     mixedGrid: z.object({
       minSourceTypes: int.min(1),
       minShare: z.number().min(0).max(1),

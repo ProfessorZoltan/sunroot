@@ -70,20 +70,28 @@ describe('population', () => {
 describe('wellbeing', () => {
   it('+1 when every need is met', () => {
     const s = endSeason(scenario(DRY));
-    expect(s.lastReport!.wellbeing.lines).toEqual([{ reason: 'every need met', amount: 1 }]);
+    expect(s.lastReport!.wellbeing.lines).toEqual([
+      { kind: 'needsMet', reason: 'every need met', amount: 1 },
+    ]);
     expect(s.wellbeing).toBe(61);
   });
 
   it('-3 per unfed citizen', () => {
     const s = endSeason(scenario(DRY, { stores: { food: 2 } }));
     expect(s.lastReport!.food.unfed).toBe(4);
-    expect(s.lastReport!.wellbeing.lines).toEqual([{ reason: '4 unfed citizens', amount: -12 }]);
+    expect(s.lastReport!.wellbeing.lines).toEqual([
+      { kind: 'hunger', reason: '4 unfed citizens', amount: -12 },
+    ]);
     expect(s.wellbeing).toBe(48);
   });
 
   it('-1 per 5 clutter', () => {
     const s = endSeason(scenario(DRY, { stores: { clutter: 11 } }));
-    expect(s.lastReport!.wellbeing.lines).toContainEqual({ reason: '11 clutter', amount: -2 });
+    expect(s.lastReport!.wellbeing.lines).toContainEqual({
+      kind: 'clutter',
+      reason: '11 clutter',
+      amount: -2,
+    });
   });
 
   it('+1 per cottage next to meadow or woodland', () => {
@@ -92,6 +100,7 @@ describe('wellbeing', () => {
     s = place(s, 'cottage', 2, 3); // bare ground
     s = endSeason(s);
     expect(s.lastReport!.wellbeing.lines).toContainEqual({
+      kind: 'greenery',
       reason: 'Cottage next to meadow or woodland',
       amount: 1,
     });

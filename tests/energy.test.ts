@@ -141,7 +141,11 @@ describe('storage and demand', () => {
     const r = s.lastReport!;
     expect(r.energy.night.shortfall).toBe(2);
     expect(r.blackouts).toEqual([uidAt(s, 3, 1)]);
-    expect(r.wellbeing.lines).toContainEqual({ reason: '1 unpowered homes', amount: -2 });
+    expect(r.wellbeing.lines).toContainEqual({
+      kind: 'unpowered',
+      reason: '1 unpowered homes',
+      amount: -2,
+    });
   });
 
   it('the player can reorder priorities', () => {
@@ -156,10 +160,12 @@ describe('storage and demand', () => {
     s = endSeason(s);
     expect(s.lastReport!.blackouts).toEqual([c2]);
     expect(s.lastReport!.wellbeing.lines).toContainEqual({
+      kind: 'civic',
       reason: 'powered Commons Plaza',
       amount: 3,
     });
     expect(s.lastReport!.wellbeing.lines).toContainEqual({
+      kind: 'unpowered',
       reason: '1 unpowered homes',
       amount: -2,
     });
