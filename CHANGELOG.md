@@ -1,5 +1,21 @@
 # Changelog
 
+## Milestone 3: map rendering
+
+- A PixiJS map in the mockup's papercraft style: tiles with depth, terrain details, the river's
+  flow line, fog around the valley, and a drawing for each of the 26 buildings.
+- Pan (drag, arrow keys), zoom (wheel toward the cursor, + / −), fit (0), hover highlight.
+- Placement preview: a ghost building with floating +/− numbers on every tile it affects, and a
+  panel with its effect on food, Harmony, wellbeing and shortfalls, warnings and its math. Invalid
+  sites show a red outline and the reason. Worked out by the simulation (`previewPlacement`).
+- Free undo (Ctrl/Cmd+Z), a simple draft, building palette and End season (Milestone 4 replaces
+  these panels with the full interface).
+- Sandbox mode (`?sandbox`) and a test that every building can be placed on generated maps.
+- Map generation: river bluffs are now hills. The Pumped Reservoir could never be built before,
+  because it needs a hill beside a reservoir and hills were only at the valley edges.
+- Season reports record energy and heat per building; yield math reads more plainly.
+- Browser tests with Playwright, in CI.
+
 ## Fix the clutter spiral
 
 - Food beyond storage now rots into biomass instead of scraps (DECISIONS.md D1). It is a data

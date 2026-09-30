@@ -18,6 +18,8 @@ import { addHeat, addSupply, addYield, explain, type SeasonContext } from './con
 
 const EPSILON = 1e-9;
 
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
 /** Assigns citizens as workers in priority order. Damaged buildings don't operate. */
 export function staff(ctx: SeasonContext): void {
   let workers = ctx.state.citizens;
@@ -79,8 +81,8 @@ export function generate(ctx: SeasonContext): void {
       const base = output[slot][si]!;
       // Adjustments apply only to slots where the source runs at all.
       const amount = base > 0 ? Math.max(0, base + adjust) : 0;
-      if (makesHeat) addHeat(ctx, slot, def.id, amount);
-      else addSupply(ctx, slot, def.id, amount);
+      if (makesHeat) addHeat(ctx, slot, b, amount);
+      else addSupply(ctx, slot, b, amount);
       const what = makesHeat ? 'heat' : 'energy';
       explain(
         ctx,
@@ -130,13 +132,13 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
     explain(ctx, b, `${res}: still growing (${age}/${def.maturesAfterSeasons} seasons)`);
     return 0;
   }
-  const lines = [`${res} ${base} (${state.season})`];
+  const lines = [`${cap(res)}: ${base} in ${state.season}`];
   const tile = tileAt(state, b.at)!;
   if (res === 'food') {
     const mod = def.tileFoodModifier[tile.type] ?? 0;
     if (mod !== 0) {
       base = Math.max(0, base + mod);
-      lines.push(`on ${tile.type} ${mod > 0 ? '+' : ''}${mod}`);
+      lines.push(`${mod > 0 ? '+' : '−'}${Math.abs(mod)} on ${tile.type}`);
     }
   }
   let multiplier = 1;
@@ -144,29 +146,29 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
     const flood = content.events.flood;
     if (b.siltYear === state.year && flood.siltSeasons.includes(state.season)) {
       multiplier *= 1 + flood.siltBonus;
-      lines.push(`silt x${1 + flood.siltBonus}`);
+      lines.push(`× ${1 + flood.siltBonus} silt`);
     }
     const low = content.events.lowRiver;
     if (ctx.lowRiver && waterDistance(content, state, b.at) > low.farFromWaterDistance) {
       multiplier *= low.farYieldFactor;
-      lines.push(`low river, far from water x${low.farYieldFactor}`);
+      lines.push(`× ${low.farYieldFactor} low river, far from water`);
     }
   }
   if (content.rules.harmony.multiplies.includes(res)) {
     const h = harmonyMultiplier(content, state.harmony);
     multiplier *= h;
-    if (h !== 1) lines.push(`Harmony x${h}`);
+    if (h !== 1) lines.push(`× ${h} Harmony`);
   }
   let value = Math.floor(base * multiplier + EPSILON);
   if (res === 'food') {
     const penalty = downstreamPenalty(ctx, def);
     if (penalty > 0 && isDownstreamOfWeir(ctx, b)) {
       value = Math.max(0, value - penalty);
-      lines.push(`downstream of a weir -${penalty}`);
+      lines.push(`−${penalty} downstream of a weir`);
     }
   }
   lines.push(`= ${value}`);
-  explain(ctx, b, lines.join(', '));
+  explain(ctx, b, lines.join(' '));
   return value;
 }
 
@@ -250,7 +252,7 @@ export function convert(ctx: SeasonContext): void {
         runs++;
       }
       if (runs > 0) {
-        addSupply(ctx, slot, def.id, runs * d.energyPerRun);
+        addSupply(ctx, slot, b, runs * d.energyPerRun);
         addYield(ctx, b, 'compost', runs * d.compostPerRun);
       }
       explain(

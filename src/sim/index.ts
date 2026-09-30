@@ -16,6 +16,13 @@ export * from './hex';
 export { createRun, type CreateRunOverrides } from './run';
 export { applyCommand } from './commands';
 export { canPlace, type PlacementCheck } from './placement';
+export {
+  previewPlacement,
+  resolveAsIs,
+  type PlacementPreview,
+  type PreviewItem,
+  type PreviewKey,
+} from './preview';
 export { generateMap } from './map';
 export { blueprintPool } from './draft';
 export { provisionalScore, type ScoreLine } from './score';

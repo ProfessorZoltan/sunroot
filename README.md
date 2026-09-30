@@ -7,9 +7,10 @@ it sends home grows a permanent city. The full design is in [docs/DESIGN.md](doc
 
 ```sh
 npm install
-npm run dev      # blank page at http://localhost:5173
+npm run dev      # the game at http://localhost:5173 (?seed=..., ?sandbox, ?guided=0)
 npm test         # Vitest, including the Year 1 golden test
 npm run check    # typecheck, lint, format check and tests (what CI runs)
+npm run e2e      # browser tests (Playwright)
 npm run balance  # balance simulator: 4,000 bot runs -> balance-out/runs.csv and report.md
 ```
 

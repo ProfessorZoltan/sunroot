@@ -1,7 +1,7 @@
 /**
  * Seeded map generation for a river-valley biome: a river runs north to south
- * with floodplain on both banks (broken by a few dry bluffs), hills at the
- * edges, ruins to salvage and a little surviving green land. Green land is
+ * with floodplain on both banks (broken by a few dry, hilly bluffs), hills at
+ * the edges, ruins to salvage and a little surviving green land. Green land is
  * placed so the valley starts at exactly the biome's starting Harmony.
  */
 import type { Content } from './content/load';
@@ -69,7 +69,8 @@ export function generateMap(content: Content, seed: string): GeneratedMap {
     const t = tiles[key]!;
     if (t.type === 'river') continue;
     const d = riverDistance(t);
-    if (d === 1 && !bluff.has(bankSide(key))) t.type = 'floodplain';
+    // Bluffs are steep, dry banks: hills right on the river (where a pumped reservoir can go).
+    if (d === 1) t.type = bluff.has(bankSide(key)) ? 'hill' : 'floodplain';
   }
   for (const key of order) {
     const t = tiles[key]!;

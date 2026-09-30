@@ -33,12 +33,12 @@ describe('Willow Reach map generation', () => {
     expect(count('floodplain')).toBeGreaterThanOrEqual(10);
     expect(map.floodOrder).toHaveLength(count('floodplain'));
 
-    // Hills only at the edges.
+    // Hills at the edges, and on the river's bluffs.
     for (const t of tiles.filter((x) => x.type === 'hill')) {
       const { col } = axialToOffset(t);
-      expect(col < 2 || col >= map.width - 2).toBe(true);
+      expect(col < 2 || col >= map.width - 2 || riverDistance(t) === 1).toBe(true);
     }
-    expect(count('hill')).toBeGreaterThan(0);
+    expect(tiles.some((t) => t.type === 'hill' && riverDistance(t) === 1)).toBe(true);
 
     expect(count('ruin')).toBe(content.map.ruins);
     for (const t of tiles.filter((x) => x.type === 'ruin')) expect(t.salvage).toBe(24);

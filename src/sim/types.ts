@@ -45,6 +45,8 @@ export interface RunOptions {
   seed: string;
   /** The guided first year: fixed draft offers in year 1. */
   guided?: boolean;
+  /** For testing and designers: every blueprint unlocked and 999 materials. */
+  sandbox?: boolean;
 }
 
 export interface DraftState {
@@ -191,6 +193,8 @@ export interface SeasonReport {
   clutter: { fromScraps: number; recycled: number; total: number };
   scraps: { fromCitizens: number; fromRot: number; total: number };
   harmony: { value: number; multiplier: number };
+  /** Energy and free heat generated per building uid, by slot. */
+  generated: Record<string, { energy: Record<Slot, number>; heat: Record<Slot, number> }>;
   discoveries: string[];
 }
 

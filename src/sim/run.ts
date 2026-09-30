@@ -20,7 +20,11 @@ export function createRun(
   options: RunOptions,
   overrides: CreateRunOverrides = {},
 ): RunState {
-  const opts: Required<RunOptions> = { seed: options.seed, guided: options.guided ?? false };
+  const opts: Required<RunOptions> = {
+    seed: options.seed,
+    guided: options.guided ?? false,
+    sandbox: options.sandbox ?? false,
+  };
   const generated = overrides.map ? null : generateMap(content, opts.seed);
   const map = overrides.map ?? generated!.map;
   const camp = overrides.camp ?? generated?.camp;
@@ -61,6 +65,10 @@ export function createRun(
     seasonStart: null,
     seasonCommands: [],
   };
+  if (opts.sandbox) {
+    state.unlocked = content.buildings.map((b) => b.id);
+    state.stores.materials = 999;
+  }
   state.harmony = computeHarmony(content, state);
   state.draft.offer = dealOffer(content, state);
   state.seasonStart = snapshot(state);

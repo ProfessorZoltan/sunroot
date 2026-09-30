@@ -61,6 +61,7 @@ export function emptyReport(state: RunState): SeasonReport {
     clutter: { fromScraps: 0, recycled: 0, total: state.stores.clutter },
     scraps: { fromCitizens: 0, fromRot: 0, total: state.stores.scraps },
     harmony: { value: state.harmony, multiplier: 1 },
+    generated: {},
     discoveries: [],
   };
 }
@@ -77,14 +78,25 @@ export function explain(ctx: SeasonContext, b: BuildingState, line: string) {
   (ctx.report.math[b.uid] ??= []).push(line);
 }
 
-export function addHeat(ctx: SeasonContext, slot: Slot, source: string, amount: number) {
+function generatedBy(ctx: SeasonContext, b: BuildingState) {
+  return (ctx.report.generated[b.uid] ??= {
+    energy: { day: 0, night: 0 },
+    heat: { day: 0, night: 0 },
+  });
+}
+
+export function addHeat(ctx: SeasonContext, slot: Slot, b: BuildingState, amount: number) {
   if (amount <= 0) return;
+  generatedBy(ctx, b).heat[slot] += amount;
+  const source = b.type;
   const h = ctx.report.energy[slot].heat;
   h.bySource[source] = (h.bySource[source] ?? 0) + amount;
 }
 
-export function addSupply(ctx: SeasonContext, slot: Slot, source: string, amount: number) {
+export function addSupply(ctx: SeasonContext, slot: Slot, b: BuildingState, amount: number) {
   if (amount <= 0) return;
+  generatedBy(ctx, b).energy[slot] += amount;
+  const source = b.type;
   const r = ctx.report.energy[slot];
   r.bySource[source] = (r.bySource[source] ?? 0) + amount;
   r.supply += amount;
