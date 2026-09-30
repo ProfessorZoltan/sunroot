@@ -6,6 +6,7 @@
  */
 import type { Application } from 'pixi.js';
 import { Container, Graphics, Text } from 'pixi.js';
+import type { PhaseName, Timeline } from '../game/timeline';
 import type { Content } from '../sim/content/load';
 import { hexKey, type Hex } from '../sim/hex';
 import type { PlacementPreview, PreviewKey } from '../sim/preview';
@@ -22,6 +23,8 @@ import {
   type Point,
 } from './layout';
 import { COLORS } from './palette';
+import { ResolutionPlayer } from './resolution';
+import { drawBird, drawDeer, drawOtter, drawSeason, wildlifeFor, type Wildlife } from './seasonArt';
 import { dashedLine, drawFogTile, drawTile } from './tileArt';
 
 export interface MapViewEvents {
@@ -56,26 +59,111 @@ const LABELS: Record<PreviewKey, string> = {
 };
 
 export class MapView {
+  private readonly shaker = new Container();
   private readonly world = new Container();
   private readonly terrain = new Graphics();
+  private readonly seasonLayer = new Graphics();
   private readonly flow = new Graphics();
+  private readonly underFx = new Container();
   private readonly buildings = new Graphics();
+  private readonly wildlife = new Graphics();
+  private readonly overFx = new Container();
   private readonly overlay = new Graphics();
   private readonly labels = new Container();
+  private readonly screenFx = new Container();
   private bounds: Bounds | null = null;
   private mapSignature = '';
+  private seasonSignature = '';
+  private animals: Wildlife = { birds: false, deer: [], otters: [] };
+  private clock = 0;
   private state: RunState | null = null;
   private zoom = 1;
   private pointer: { x: number; y: number; dragging: boolean; button: number } | null = null;
+  private player: ResolutionPlayer | null = null;
+  /** Follows prefers-reduced-motion: short fades, no drifting or shaking. */
+  reducedMotion = false;
 
   constructor(
     private readonly app: Application,
     private readonly content: Content,
     private readonly events: MapViewEvents,
   ) {
-    app.stage.addChild(this.world);
-    this.world.addChild(this.terrain, this.flow, this.buildings, this.overlay, this.labels);
+    app.stage.addChild(this.shaker, this.screenFx);
+    this.shaker.addChild(this.world);
+    this.world.addChild(
+      this.terrain,
+      this.seasonLayer,
+      this.flow,
+      this.underFx,
+      this.buildings,
+      this.wildlife,
+      this.overFx,
+      this.overlay,
+      this.labels,
+    );
     this.listen(app.canvas);
+    app.ticker.add(this.tick);
+  }
+
+  private lastTick = performance.now();
+
+  /** Wall-clock time, so a slow frame never stretches the season's 5 seconds. */
+  private readonly tick = (): void => {
+    const now = performance.now();
+    const dt = now - this.lastTick;
+    this.lastTick = now;
+    this.clock += dt;
+    this.player?.update(dt);
+    const moving = this.animals.birds || this.animals.otters.length > 0;
+    if (moving && !this.reducedMotion) this.drawWildlife();
+  };
+
+  /**
+   * Plays a season's resolution over the map. Any resolution still playing
+   * is skipped first. `onDone` runs when it ends or is skipped.
+   */
+  playResolution(
+    timeline: Timeline,
+    hooks: { onPhase(phase: PhaseName): void; onDone(): void },
+  ): void {
+    this.stopResolution();
+    const player: ResolutionPlayer = new ResolutionPlayer(
+      timeline,
+      { under: this.underFx, over: this.overFx, screen: this.screenFx, shake: this.shaker },
+      this.bounds ?? { minX: 0, minY: 0, maxX: 0, maxY: 0 },
+      () => this.app.screen,
+      {
+        onPhase: hooks.onPhase,
+        onDone: () => {
+          if (this.player === player) this.endResolution();
+          hooks.onDone();
+        },
+      },
+      this.reducedMotion,
+    );
+    this.player = player;
+    if (this.state) this.drawBuildings(this.state);
+  }
+
+  /** Skips to the end of the resolution, if one is playing. */
+  stopResolution(): void {
+    this.player?.skip();
+    this.endResolution();
+  }
+
+  setResolutionPaused(paused: boolean): void {
+    this.player?.setPaused(paused);
+  }
+
+  get resolving(): boolean {
+    return this.player !== null;
+  }
+
+  private endResolution(): void {
+    if (!this.player) return;
+    this.player.destroy();
+    this.player = null;
+    if (this.state) this.drawBuildings(this.state);
   }
 
   /** Redraws whatever changed in the run state. */
@@ -93,6 +181,40 @@ export class MapView {
     }
     this.state = state;
     this.drawBuildings(state);
+    const seasonSignature = `${signature}|${state.turn}|${Object.keys(state.buildings).length}|${state.harmony}`;
+    if (seasonSignature !== this.seasonSignature) {
+      this.seasonSignature = seasonSignature;
+      drawSeason(this.seasonLayer, this.content, state);
+      this.animals = wildlifeFor(this.content, state);
+      this.drawWildlife();
+    }
+  }
+
+  /** The season the map is painted for, and which animals have returned (for tests). */
+  get scenery(): { season: string; birds: boolean; deer: number; otters: number } {
+    return {
+      season: this.state?.season ?? '',
+      birds: this.animals.birds,
+      deer: this.animals.deer.length,
+      otters: this.animals.otters.length,
+    };
+  }
+
+  private drawWildlife(): void {
+    const g = this.wildlife.clear();
+    const { birds, deer, otters } = this.animals;
+    const still = this.reducedMotion;
+    for (const d of deer) drawDeer(g, d);
+    otters.forEach((o, i) => drawOtter(g, o, still ? 0 : Math.sin(this.clock / 400 + i) * 1.2));
+    if (birds && this.bounds) {
+      const { minX, maxX, minY } = this.bounds;
+      const span = maxX - minX + 200;
+      const lead = still ? span * 0.4 : ((this.clock / 40) % span) - 100;
+      for (let i = 0; i < 4; i++) {
+        const p = { x: maxX - lead + i * 16, y: minY + 70 + (i % 2) * 9 + i * 3 };
+        drawBird(g, p, still ? 0.5 : (Math.sin(this.clock / 120 + i) + 1) / 2);
+      }
+    }
   }
 
   /** Hover outline, and in placement mode the ghost building and its preview numbers. */
@@ -261,7 +383,8 @@ export class MapView {
       const c = hexToPixel(b.at);
       (BUILDING_ART[b.type] ?? missingArt)(g, c);
       if (b.damage) drawCondition(g, c, 'damaged');
-      else if (report?.blackouts.includes(b.uid)) drawCondition(g, c, 'dark');
+      // While the season resolves, blackouts show when night falls.
+      else if (report?.blackouts.includes(b.uid) && !this.player) drawCondition(g, c, 'dark');
     }
   }
 

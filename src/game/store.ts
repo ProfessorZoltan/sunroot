@@ -18,8 +18,10 @@ import {
   type Hex,
   type PlacementPreview,
   type RunState,
+  type SeasonReport,
 } from '../sim';
 import { computeInsight, type Insight } from './insight';
+import type { PhaseName } from './timeline';
 
 /** A building to place, or spreading compost on a tile. */
 export type Tool = { kind: 'build'; building: string } | { kind: 'compost' };
@@ -32,6 +34,16 @@ export interface Placement {
 
 export const COMPOST_TOOL = 'compost';
 
+/** A season being played out on the map (Milestone 5). */
+export interface Resolution {
+  id: number;
+  report: SeasonReport;
+  /** What the interface showed before the season ended; the year strip fills from it. */
+  before: Insight;
+  phase: PhaseName;
+  paused: boolean;
+}
+
 export class GameStore {
   tool: Tool | null = null;
   hover: Hex | null = null;
@@ -39,6 +51,8 @@ export class GameStore {
   inspected: string | null = null;
   placement: Placement | null = null;
   message: string | null = null;
+  resolution: Resolution | null = null;
+  private resolutions = 0;
   private listeners = new Set<() => void>();
   private cache: { state: RunState; asIs: RunState; insight: Insight | null } | null = null;
 
@@ -76,9 +90,21 @@ export class GameStore {
 
   /** Sends a command; on failure the reason is shown instead. */
   dispatch(command: Command): boolean {
+    // Acting during a resolution skips the rest of it.
+    this.resolution = null;
+    const before = command.type === 'endSeason' ? this.insight : null;
     const result = applyCommand(this.content, this.state, command);
     if (result.ok) {
       this.state = result.state;
+      if (before) {
+        this.resolution = {
+          id: ++this.resolutions,
+          report: this.state.lastReport!,
+          before,
+          phase: 'event',
+          paused: false,
+        };
+      }
       this.message = null;
       const tool = this.tool;
       if (tool?.kind === 'build' && !this.state.unlocked.includes(tool.building)) this.tool = null;
@@ -92,11 +118,31 @@ export class GameStore {
     return result.ok;
   }
 
+  /** Ends the resolution being played (when it finishes, or the player skips it). */
+  finishResolution(id?: number): void {
+    if (!this.resolution || (id !== undefined && this.resolution.id !== id)) return;
+    this.resolution = null;
+    this.emit();
+  }
+
+  setResolutionPhase(id: number, phase: PhaseName): void {
+    if (this.resolution?.id !== id || this.resolution.phase === phase) return;
+    this.resolution = { ...this.resolution, phase };
+    this.emit();
+  }
+
+  togglePause(): void {
+    if (!this.resolution) return;
+    this.resolution = { ...this.resolution, paused: !this.resolution.paused };
+    this.emit();
+  }
+
   selectBuilding(building: string | null): void {
     this.setTool(building ? { kind: 'build', building } : null);
   }
 
   setTool(tool: Tool | null): void {
+    if (tool) this.resolution = null;
     this.tool = tool;
     this.message = null;
     if (tool) this.inspected = null;
@@ -117,6 +163,7 @@ export class GameStore {
 
   /** A click uses the tool in hand (which stays in hand), or inspects a building. */
   clickAt(hex: Hex): void {
+    this.resolution = null;
     if (this.tool?.kind === 'build') {
       this.dispatch({ type: 'place', building: this.tool.building, at: hex });
     } else if (this.tool?.kind === 'compost') {

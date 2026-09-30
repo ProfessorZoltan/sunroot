@@ -63,6 +63,7 @@ export function emptyReport(state: RunState): SeasonReport {
     scraps: { fromCitizens: 0, fromRot: 0, total: state.stores.scraps },
     harmony: { value: state.harmony, multiplier: 1 },
     generated: {},
+    shaded: {},
     discoveries: [],
   };
 }

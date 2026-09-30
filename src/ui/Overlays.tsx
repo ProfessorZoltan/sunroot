@@ -39,15 +39,26 @@ export function Footer({ store, onHelp }: { store: GameStore; onHelp: () => void
         >
           <Undo size={16} /> Undo
         </button>
-        <button
-          type="button"
-          class="button primary"
-          disabled={ended || needsPick}
-          onClick={() => store.dispatch({ type: 'endSeason' })}
-          aria-keyshortcuts="E"
-        >
-          End {SEASON_NAMES[state.season].toLowerCase()} <Arrow />
-        </button>
+        {store.resolution ? (
+          <button
+            type="button"
+            class="button primary"
+            onClick={() => store.finishResolution()}
+            aria-keyshortcuts="Space"
+          >
+            Skip <Arrow />
+          </button>
+        ) : (
+          <button
+            type="button"
+            class="button primary"
+            disabled={ended || needsPick}
+            onClick={() => store.dispatch({ type: 'endSeason' })}
+            aria-keyshortcuts="E"
+          >
+            End {SEASON_NAMES[state.season].toLowerCase()} <Arrow />
+          </button>
+        )}
       </div>
     </footer>
   );
@@ -62,6 +73,44 @@ export function ForecastPill({ store }: { store: GameStore }) {
       <span>
         <strong>{SEASON_NAMES[state.season]}</strong> · {event.name}: {event.summary}
       </span>
+    </div>
+  );
+}
+
+const PHASE_TEXT = {
+  event: (event: string) => event,
+  day: () => 'Day: the sun crosses the valley',
+  night: () => 'Night: stores and wind carry the valley',
+  settle: () => 'The season settles',
+} as const;
+
+/** Shown over the map while a season plays out, with Pause and Skip. */
+export function ResolutionBanner({ store }: { store: GameStore }) {
+  const r = store.resolution!;
+  const event = store.content.events[r.report.event];
+  return (
+    <div class="pill resolution" role="status" aria-label="The season is resolving">
+      <Sun size={16} />
+      <span>
+        <strong>{SEASON_NAMES[r.report.season]}</strong> · {PHASE_TEXT[r.phase](event.name)}
+        {r.paused ? ' (paused)' : ''}
+      </span>
+      <button
+        type="button"
+        class="button small-button"
+        onClick={() => store.togglePause()}
+        aria-keyshortcuts="P"
+      >
+        {r.paused ? 'Resume' : 'Pause'}
+      </button>
+      <button
+        type="button"
+        class="button small-button"
+        onClick={() => store.finishResolution()}
+        aria-keyshortcuts="Space"
+      >
+        Skip
+      </button>
     </div>
   );
 }
@@ -108,6 +157,8 @@ export function Help({ onClose }: { onClose: () => void }) {
     ['Esc', 'Stop placing, close panels'],
     ['Z or Ctrl+Z', 'Undo (free until the season ends)'],
     ['E', 'End the season'],
+    ['Space / Esc', 'Skip the season playing out'],
+    ['P', 'Pause or resume the season playing out'],
     ['+ / − / 0', 'Zoom in / out / fit the valley'],
     ['Tab', 'Move between buttons; tooltips show on focus'],
   ];

@@ -186,6 +186,15 @@ select:focus-visible {
 .bar-fill {
   height: 100%;
 }
+/* While a season resolves, its slots fill as the sun and then the moon cross. */
+.bar-fill.filling {
+  transition: width var(--fill-ms, 0ms) linear;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bar-fill.filling {
+    transition-duration: 200ms;
+  }
+}
 .bar.day .bar-fill {
   background: #e3a73a;
 }
@@ -633,6 +642,15 @@ select:focus-visible {
   font-family: var(--display);
   font-size: 19px;
   font-weight: 600;
+}
+
+.pill.resolution {
+  pointer-events: auto;
+  padding: 5px 6px 5px 14px;
+  border-color: var(--gold, #d9a441);
+}
+.pill.resolution .small-button {
+  height: 28px;
 }
 
 /* ---------------------------------------------------------------- tooltips */

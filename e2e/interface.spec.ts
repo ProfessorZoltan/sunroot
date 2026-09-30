@@ -33,6 +33,7 @@ test('a whole run, keyboard only, to the end screen', async ({ page }) => {
   for (let season = 0; season < 48; season++) {
     const s = await state(page);
     if (s.status !== 'active') break;
+    await page.keyboard.press('Escape'); // skip the last season's resolution
     await page.keyboard.press('1');
     const key = plan[season];
     if (key) {
@@ -47,6 +48,7 @@ test('a whole run, keyboard only, to the end screen', async ({ page }) => {
   expect(['complete', 'collapsed']).toContain(end.status);
   expect(end.types).toEqual(expect.arrayContaining(['floodplainFarm', 'salvageYard', 'workshop']));
   const dialog = page.getByRole('dialog', { name: 'The run has ended' });
+  await page.keyboard.press('Escape'); // skip the final season's resolution
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole('button', { name: 'Start a new run' })).toBeFocused();
   await page.keyboard.press('Tab');

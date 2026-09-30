@@ -65,6 +65,7 @@ test('the map renders, previews, places, undoes and ends a season', async ({ pag
   expect(await read(page, (s) => s.store.state.stores.materials)).toBe(20);
 
   await page.getByRole('button', { name: 'End spring' }).click();
+  await page.getByRole('button', { name: /^Skip/ }).last().click();
   await expect(page.getByRole('button', { name: 'End summer' })).toBeVisible();
   expect(errors).toEqual([]);
 });

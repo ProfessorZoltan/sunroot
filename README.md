@@ -3,8 +3,8 @@
 A solarpunk settlement builder of short, replayable runs. Each run heals one damaged region, and what
 it sends home grows a permanent city. The full design is in [docs/DESIGN.md](docs/DESIGN.md).
 
-Built so far: the simulation core, the balance simulator, the map and the interface (Milestones 0
-to 4 of the build plan). A whole run of Willow Reach can be played to the end with mouse or
+Built so far: the simulation core, the balance simulator, the map, the interface and the season
+resolution (Milestones 0 to 5 of the build plan). A whole run of Willow Reach can be played to the end with mouse or
 keyboard. See [CHANGELOG.md](CHANGELOG.md) and [docs/DECISIONS.md](docs/DECISIONS.md).
 
 ## Getting started
@@ -28,7 +28,8 @@ The ghost shows exactly what it would do this season, including effects on its n
 to place; Esc or right-click stops. Undo is free until the season ends. Every number at the top
 and on the left has a tooltip with its full math. Click a building to inspect and adjust it. End
 the season when you're ready; the year strip shows each season's energy and forecasts the rest of
-the year with what you have now.
+the year with what you have now. Each season then plays out on the map in about 5 seconds: Space
+skips it, P pauses it.
 
 Keyboard: 1–4 pick a card, letters on the palette pick a building, arrow keys aim, N jumps to the
 next legal site, Enter places, Z undoes, E ends the season, ? lists every key.
@@ -40,8 +41,8 @@ next legal site, Enter places, Z undoes, E ends the season, ? lists every key.
 | `src/sim/`     | The pure, deterministic simulation core. No rendering, no clock, one seeded random generator. |
 | `src/content/` | All game content and numbers as JSON, validated with Zod at load.                             |
 | `src/balance/` | The balance simulator: bots, the run recorder, the report and the command line.               |
-| `src/game/`    | The client store and the numbers the interface shows (projections, tooltips).                 |
-| `src/render/`  | The PixiJS map: layout, palette, procedural tiles and building art.                           |
+| `src/game/`    | The client store, the numbers the interface shows, and each season's resolution timeline.     |
+| `src/render/`  | The PixiJS map: procedural tiles and buildings, seasons, wildlife, the resolution player.     |
 | `src/ui/`      | The Preact interface.                                                                         |
 | `src/main.tsx` | The web client's entry point.                                                                 |
 | `tests/`       | Unit tests and the Year 1 golden test.                                                        |

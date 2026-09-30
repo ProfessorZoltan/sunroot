@@ -4,12 +4,12 @@
  * and palette on the right, the forecast, undo and End season at the bottom.
  * Everything works with the keyboard as well as the mouse.
  */
-import { useEffect, useReducer, useState } from 'preact/hooks';
+import { useEffect, useReducer, useRef, useState } from 'preact/hooks';
 import type { GameStore } from '../game/store';
 import type { MapView } from '../render/mapView';
 import { paletteHotkeys, GLOBAL_KEYS } from './hotkeys';
 import { LeftPanel } from './LeftPanel';
-import { EndScreen, Footer, ForecastPill, Help, MapTip } from './Overlays';
+import { EndScreen, Footer, ForecastPill, Help, MapTip, ResolutionBanner } from './Overlays';
 import { RightPanel, paletteOrder, type Ui } from './RightPanel';
 import { TipProvider } from './tips';
 import { TopBar } from './TopBar';
@@ -24,7 +24,13 @@ export function App({
   icons: () => Record<string, string>;
 }) {
   const [, rerender] = useReducer((n: number, _: undefined) => n + 1, 0);
-  const [help, setHelp] = useState(false);
+  const [help, setHelpState] = useState(false);
+  // Keys read the ref: a key can arrive before the handler from the last render is replaced.
+  const helpOpen = useRef(false);
+  const setHelp = (open: boolean) => {
+    helpOpen.current = open;
+    setHelpState(open);
+  };
   const [endSeen, setEndSeen] = useState(false);
   useEffect(() => store.subscribe(() => rerender(undefined)), [store]);
 
@@ -46,7 +52,16 @@ export function App({
       if ((e.ctrlKey || e.metaKey) && lower === 'z')
         return (handled(), void store.dispatch({ type: 'undo' }));
       if (e.ctrlKey || e.metaKey || e.altKey) return;
-      if (key === '?') return (handled(), setHelp((h) => !h));
+      const help = helpOpen.current;
+      if (key === '?') return (handled(), setHelp(!help));
+      if (store.resolution && !help) {
+        // Space, Esc or E skip the season's resolution; P pauses it.
+        if (key === ' ' || key === 'Escape' || lower === GLOBAL_KEYS.endSeason) {
+          handled();
+          return store.finishResolution();
+        }
+        if (lower === 'p') return (handled(), store.togglePause());
+      }
       if (key === 'Escape') {
         if (help) return setHelp(false);
         if (store.tool) return store.setTool(null);
@@ -123,14 +138,16 @@ export function App({
           <LeftPanel store={store} />
           <main class="map-wrap" aria-label="Map of the valley">
             <div id="map-host" class="map" />
-            <ForecastPill store={store} />
+            {store.resolution ? <ResolutionBanner store={store} /> : <ForecastPill store={store} />}
             <MapTip store={store} view={view()} />
           </main>
           <RightPanel store={store} ui={ui} />
         </div>
         <Footer store={store} onHelp={() => setHelp(true)} />
         {help && <Help onClose={() => setHelp(false)} />}
-        {ended && !endSeen && <EndScreen store={store} onClose={() => setEndSeen(true)} />}
+        {ended && !endSeen && !store.resolution && (
+          <EndScreen store={store} onClose={() => setEndSeen(true)} />
+        )}
       </div>
     </TipProvider>
   );

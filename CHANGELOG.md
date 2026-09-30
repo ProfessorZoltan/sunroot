@@ -1,5 +1,22 @@
 # Changelog
 
+## Milestone 5: season resolution and feel
+
+- Each season now plays out on the map in about 5 seconds: the event (the flood spreads, storms
+  shake the valley, freeze pales it), the sun crossing from east to west with moving shadows,
+  yields popping as the sun reaches each building, energy flowing as light from sources to
+  consumers, night with lit windows and dark blackouts, then population and wellbeing changes.
+- The year strip fills slot by slot as the season plays out.
+- Skip with Space, Esc, E or the Skip button; pause with P. Any action skips the rest.
+- Reduced motion (the system setting) shortens it to about a second, without drifting or shaking.
+- Seasons repaint the map (blossom, leaves, snow, silt glitter), and wildlife returns with Harmony:
+  birds, then deer, then otters.
+- Simulation: the season report names what shades each solar building (`report.shaded`).
+- Browser tests: a season takes about 5 seconds through all four phases, and can be skipped and
+  paused.
+- Fixed: Esc pressed straight after ? could miss the key list, because keys read the state of the
+  last render.
+
 ## Milestone 4: interface
 
 - The mockup's layout: the year strip of 8 energy slots (done, now and forecast, with striped

@@ -9,6 +9,7 @@ import { Application } from 'pixi.js';
 import { render } from 'preact';
 import willowReach from './content/willow-reach.json';
 import { GameStore } from './game/store';
+import { buildTimeline } from './game/timeline';
 import { renderBuildingIcons } from './render/icons';
 import { MapView } from './render/mapView';
 import { COLORS } from './render/palette';
@@ -49,8 +50,28 @@ async function start() {
     onClick: (hex) => store.clickAt(hex),
     onCancel: () => store.setTool(null),
   });
+  const motion = matchMedia('(prefers-reduced-motion: reduce)');
+  view.reducedMotion = motion.matches;
+  motion.addEventListener('change', () => (view!.reducedMotion = motion.matches));
+  // Each season plays out on the map; the store ends it when it finishes or is skipped.
+  let playing: number | null = null;
   const drawMap = () => {
+    const r = store.resolution;
     view!.setState(store.state);
+    if (r && r.id !== playing) {
+      playing = r.id;
+      const timeline = buildTimeline(content, store.state, r.report, {
+        reducedMotion: motion.matches,
+      });
+      view!.playResolution(timeline, {
+        onPhase: (phase) => store.setResolutionPhase(r.id, phase),
+        onDone: () => store.finishResolution(r.id),
+      });
+    } else if (!r && playing !== null) {
+      playing = null;
+      view!.stopResolution();
+    }
+    view!.setResolutionPaused(r?.paused ?? false);
     view!.setOverlay(
       store.hover,
       store.placement,

@@ -1,6 +1,7 @@
 /** The top bar: the year strip of 8 energy slots, and Harmony, wellbeing and citizens. */
 import type { GameStore } from '../game/store';
 import { POPULATION_REASONS, type SeasonView, type SlotView } from '../game/insight';
+import { FULL_DURATIONS, type PhaseName } from '../game/timeline';
 import { harmonyMultiplier, type Content, type Slot } from '../sim';
 import { Heart, Leaf, Moon, People, Sun } from './icons';
 import { TipTable, useTip, type Row } from './tips';
@@ -15,6 +16,9 @@ export const SEASON_NAMES = {
 export function TopBar({ store }: { store: GameStore }) {
   const { content, state } = store;
   const insight = store.insight;
+  // While a season resolves, the strip shows the year as it was and fills that season's slots.
+  const r = store.resolution;
+  const year = r ? r.before.year : insight.year;
   return (
     <header class="top">
       <div class="brand">
@@ -24,8 +28,12 @@ export function TopBar({ store }: { store: GameStore }) {
         </div>
       </div>
       <div class="year-strip" aria-label={`Energy this year`}>
-        {insight.year.map((sv) => (
-          <SeasonBox content={content} sv={sv} />
+        {year.map((sv) => (
+          <SeasonBox
+            content={content}
+            sv={sv}
+            filling={r && sv.status === 'now' ? r.phase : null}
+          />
         ))}
       </div>
       <div class="stats">
@@ -37,10 +45,24 @@ export function TopBar({ store }: { store: GameStore }) {
   );
 }
 
-function SeasonBox({ content, sv }: { content: Content; sv: SeasonView }) {
+const REVEALED: Record<Slot, PhaseName[]> = {
+  day: ['day', 'night', 'settle'],
+  night: ['night', 'settle'],
+};
+
+function SeasonBox({
+  content,
+  sv,
+  filling = null,
+}: {
+  content: Content;
+  sv: SeasonView;
+  filling?: PhaseName | null;
+}) {
   const short = sv.day.shortfall + sv.night.shortfall;
-  const label =
-    sv.status === 'done'
+  const label = filling
+    ? 'resolving'
+    : sv.status === 'done'
       ? 'done'
       : short > 0
         ? `${short} short`
@@ -59,8 +81,8 @@ function SeasonBox({ content, sv }: { content: Content; sv: SeasonView }) {
         </span>
       </div>
       <div class="slots">
-        <SlotMeter content={content} sv={sv} slot="day" view={sv.day} />
-        <SlotMeter content={content} sv={sv} slot="night" view={sv.night} />
+        <SlotMeter content={content} sv={sv} slot="day" view={sv.day} filling={filling} />
+        <SlotMeter content={content} sv={sv} slot="night" view={sv.night} filling={filling} />
       </div>
     </div>
   );
@@ -71,14 +93,17 @@ function SlotMeter({
   sv,
   slot,
   view,
+  filling,
 }: {
   content: Content;
   sv: SeasonView;
   slot: Slot;
   view: SlotView;
+  filling: PhaseName | null;
 }) {
   const tip = useTip(() => <EnergyTip content={content} sv={sv} slot={slot} view={view} />);
-  const short = view.shortfall > 0;
+  const shown = filling === null || REVEALED[slot].includes(filling);
+  const short = view.shortfall > 0 && shown;
   const fill =
     view.supply === 0
       ? view.demand > 0
@@ -99,12 +124,20 @@ function SlotMeter({
         ) : (
           <Moon size={14} color={short ? '#A3401F' : undefined} />
         )}
-        <span>
-          {view.supply} / {view.demand}
-        </span>
+        <span>{shown ? `${view.supply} / ${view.demand}` : '…'}</span>
       </div>
       <div class={`bar ${slot}`}>
-        {short ? <div class="bar-short" /> : <div class="bar-fill" style={{ width: `${fill}%` }} />}
+        {short ? (
+          <div class="bar-short" />
+        ) : (
+          <div
+            class={`bar-fill ${filling ? 'filling' : ''}`}
+            style={{
+              width: `${shown ? fill : 0}%`,
+              '--fill-ms': `${FULL_DURATIONS[slot] * 0.9}ms`,
+            }}
+          />
+        )}
       </div>
     </div>
   );

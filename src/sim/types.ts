@@ -197,6 +197,8 @@ export interface SeasonReport {
   harmony: { value: number; multiplier: number };
   /** Energy and free heat generated per building uid, by slot. */
   generated: Record<string, { energy: Record<Slot, number>; heat: Record<Slot, number> }>;
+  /** Shaded solar per building uid: the keys of the tiles casting the shade. */
+  shaded: Record<string, string[]>;
   discoveries: string[];
 }
 

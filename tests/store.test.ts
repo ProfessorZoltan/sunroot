@@ -68,4 +68,31 @@ describe('game store', () => {
     store.dispatch({ type: 'pickCard', card: store.state.draft.offer[0]! });
     expect(store.insight).not.toBe(a);
   });
+
+  it('plays each season out, and any action skips the rest of it', () => {
+    const store = new GameStore(content, scenario(RIVER));
+    store.dispatch({ type: 'pickCard', card: store.state.draft.offer[0]! });
+    const spring = store.insight;
+    store.dispatch({ type: 'endSeason' });
+    const r = store.resolution!;
+    expect(r.report).toBe(store.state.lastReport);
+    expect(r.before).toBe(spring);
+    expect(r.phase).toBe('event');
+
+    store.setResolutionPhase(r.id, 'day');
+    store.togglePause();
+    expect(store.resolution).toMatchObject({ phase: 'day', paused: true });
+    store.finishResolution(r.id + 1); // a stale finish is ignored
+    expect(store.resolution).not.toBeNull();
+
+    store.selectBuilding('cottage'); // picking up a tool skips
+    expect(store.resolution).toBeNull();
+    store.selectBuilding(null);
+
+    store.dispatch({ type: 'pickCard', card: store.state.draft.offer[0]! });
+    store.dispatch({ type: 'endSeason' });
+    expect(store.resolution!.id).toBe(r.id + 1);
+    store.dispatch({ type: 'undo' }); // a command skips, even one that fails
+    expect(store.resolution).toBeNull();
+  });
 });

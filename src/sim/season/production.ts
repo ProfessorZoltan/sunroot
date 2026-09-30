@@ -55,10 +55,14 @@ export function generate(ctx: SeasonContext): void {
     let adjust = 0;
     const notes: string[] = [];
     if (def.shading) {
-      const tallNeighbor =
-        neighbors.some((n) => defOf(content, n).tall) ||
-        neighborTiles(state, b.at).some((t) => t.type === 'woodland');
-      if (tallNeighbor) {
+      const casters = [
+        ...neighbors.filter((n) => defOf(content, n).tall).map((n) => hexKey(n.at)),
+        ...neighborTiles(state, b.at)
+          .filter((t) => t.type === 'woodland')
+          .map((t) => hexKey(t)),
+      ];
+      if (casters.length > 0) {
+        ctx.report.shaded[b.uid] = [...new Set(casters)];
         adjust -= def.shading.penaltyPerSlot;
         notes.push(`shaded by a tall neighbour -${def.shading.penaltyPerSlot}`);
       }

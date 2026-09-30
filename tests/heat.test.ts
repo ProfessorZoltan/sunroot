@@ -103,6 +103,8 @@ describe('Solar Thermal Collector', () => {
     }
     expect(open).toEqual([2, 3, 3, 2]);
     expect(shaded).toEqual([1, 2, 2, 1]);
+    // The report names what casts the shade, so the resolution can draw it.
+    expect(s.lastReport!.shaded).toEqual({ [uidAt(s, 6, 1)]: [hexKey(at(6, 2))] });
   });
 
   it('pays day heat directly: a winter greenhouse needs no heating energy', () => {
