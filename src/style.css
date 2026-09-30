@@ -1,0 +1,32 @@
+:root {
+  --paper: #f4ebd6;
+  --panel: #fbf5e6;
+  --ink: #2f3b2e;
+  --quiet: #5e6b58;
+  --sun-gold: #f2c14e;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Nunito, system-ui, sans-serif;
+}
+
+#app {
+  display: grid;
+  place-items: center;
+  height: 100%;
+}
+
+h1 {
+  font-family: Fraunces, Georgia, serif;
+  font-weight: 600;
+  margin: 0;
+}
+
+p {
+  color: var(--quiet);
+}
