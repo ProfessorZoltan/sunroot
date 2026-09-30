@@ -1,0 +1,100 @@
+/** Steps 8 and 9: food, population, wellbeing, then scraps, clutter and Harmony. */
+import {
+  computeHarmony,
+  defOf,
+  foodStorage,
+  harmonyMultiplier,
+  housingCapacity,
+  isHome,
+  neighborTiles,
+} from '../queries';
+import type { SeasonContext } from './context';
+
+export function feedAndGrow(ctx: SeasonContext): void {
+  const { content, state, report } = ctx;
+  const rules = content.rules;
+
+  // Food is eaten.
+  const need = state.citizens * rules.foodPerCitizen;
+  const eaten = Math.min(state.stores.food, need);
+  state.stores.food -= eaten;
+  const unfed = rules.foodPerCitizen > 0 ? Math.ceil((need - eaten) / rules.foodPerCitizen) : 0;
+  const spareFood = ctx.foodProduced - need;
+
+  // Population grows or shrinks, using wellbeing as it stood this season.
+  const pop = rules.population;
+  const before = state.citizens;
+  let change = 0;
+  if (state.wellbeing < pop.leaveBelow) {
+    change = -Math.min(pop.leaving, state.citizens);
+  } else if (state.wellbeing >= pop.growAt && spareFood >= pop.minSpareFood) {
+    const free = housingCapacity(content, state) - state.citizens;
+    const growth = state.wellbeing >= pop.boomAt ? pop.boomGrowth : pop.growth;
+    change = Math.max(0, Math.min(growth, free));
+  }
+  state.citizens += change;
+
+  // Food beyond storage rots into scraps.
+  const storage = foodStorage(content, state);
+  const rotted = Math.max(0, state.stores.food - storage);
+  state.stores.food -= rotted;
+
+  report.food = { produced: ctx.foodProduced, eaten, unfed, rotted, storage };
+  report.population = { before, change, after: state.citizens };
+
+  // Wellbeing updates.
+  const wb = rules.wellbeing;
+  const lines: { reason: string; amount: number }[] = [];
+  const buildings = Object.values(state.buildings);
+  const unpoweredHomes = buildings.filter((b) => {
+    if (!isHome(defOf(content, b))) return false;
+    return b.damage !== undefined || !ctx.powered.has(b.uid);
+  }).length;
+  if (unfed === 0 && unpoweredHomes === 0) {
+    lines.push({ reason: 'every need met', amount: wb.allNeedsMet });
+  }
+  if (unfed > 0) {
+    lines.push({ reason: `${unfed} unfed citizens`, amount: unfed * wb.perUnfedCitizen });
+  }
+  if (unpoweredHomes > 0) {
+    lines.push({
+      reason: `${unpoweredHomes} unpowered homes`,
+      amount: unpoweredHomes * wb.perUnpoweredHome,
+    });
+  }
+  const clutterSteps = Math.floor(state.stores.clutter / wb.clutterStep);
+  if (clutterSteps > 0) {
+    lines.push({
+      reason: `${state.stores.clutter} clutter`,
+      amount: clutterSteps * wb.perClutterStep,
+    });
+  }
+  for (const b of buildings) {
+    const def = defOf(content, b);
+    const near = def.wellbeing?.nextToTiles;
+    if (near && !b.damage && neighborTiles(state, b.at).some((t) => near.tiles.includes(t.type))) {
+      lines.push({ reason: `${def.name} next to ${near.tiles.join(' or ')}`, amount: near.amount });
+    }
+    const whenPowered = def.wellbeing?.whenPowered ?? 0;
+    if (whenPowered !== 0 && ctx.powered.has(b.uid)) {
+      lines.push({ reason: `powered ${def.name}`, amount: whenPowered });
+    }
+  }
+  const total = lines.reduce((sum, l) => sum + l.amount, 0);
+  const wellbeingBefore = state.wellbeing;
+  state.wellbeing = Math.max(wb.min, Math.min(wb.max, state.wellbeing + total));
+  report.wellbeing = { before: wellbeingBefore, after: state.wellbeing, lines };
+}
+
+/** Scraps left unprocessed from last season become clutter; people and rot make new scraps. */
+export function scrapsAndHarmony(ctx: SeasonContext): void {
+  const { content, state, report } = ctx;
+  const fromScraps = state.stores.scraps;
+  state.stores.clutter += fromScraps;
+  const fromCitizens = Math.floor(state.citizens / content.rules.citizensPerScrap);
+  state.stores.scraps = fromCitizens + report.food.rotted;
+  report.clutter = { ...report.clutter, fromScraps, total: state.stores.clutter };
+  report.scraps = { fromCitizens, fromRot: report.food.rotted, total: state.stores.scraps };
+  state.harmony = computeHarmony(content, state);
+  report.harmony = { value: state.harmony, multiplier: harmonyMultiplier(content, state.harmony) };
+}

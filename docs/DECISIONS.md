@@ -1,0 +1,119 @@
+# Decisions
+
+Rules that [DESIGN.md](DESIGN.md) leaves open, and the choice made for each. Every number named here
+lives in `src/content/willow-reach.json`; the choices below are about _how_ rules work. Each one is
+covered by a test in `tests/`.
+
+## Where the design disagrees with itself
+
+The working rules say to raise these rather than guess. Each was resolved the way the Year 1
+walkthrough (the golden test) requires, and should be confirmed or changed in the design.
+
+| #   | Conflict                                                                                                                                                                                                                                      | Resolution                                                                                                                                                                                                                               | Why                                                                                                                                                 |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1  | The season order runs flexible consumers (step 5) before storage charges (step 6), but the Cell Bank alternative says the bank "uses the workshop's spare day energy" and ends the year at 7 materials, which needs the bank to charge first. | Before flexible consumers run, storage **reserves** the spare day energy it needs to cover a night shortfall it can already see. Flexible consumers use what is left; storage then charges from what is still spare (step 6 as written). | Covering demand is a need, not a spare. With the literal order the workshop would run once and the year would end at 10 materials, with a blackout. |
+| C2  | "Energy, storage, water and nature buildings need no workers", but the building table gives the Tree Nursery 1 worker.                                                                                                                        | 1 worker, as in the table.                                                                                                                                                                                                               | The table is the more specific source.                                                                                                              |
+| C3  | "Unprocessed scraps become clutter", but the walkthrough has 2 clutter appear in **summer**, not spring.                                                                                                                                      | Scraps wait one season. In step 9, scraps still unprocessed from last season become clutter, then this season's new scraps are added.                                                                                                    | Spring's 2 scraps become summer's 2 clutter; in autumn the new composter eats them and "clutter stops growing".                                     |
+| C4  | A workshop can run on clutter, and in autumn it has spare energy and 2 clutter, but the walkthrough ends autumn at 10 materials (one salvage run, no clutter run).                                                                            | Each workshop has a recipe setting (`salvage` by default, or `clutter`), changed with the `setRecipe` command. It never switches on its own.                                                                                             | An automatic clutter run would end autumn at 11.                                                                                                    |
+| C5  | "Neighbouring food buildings +1 food while compost lasts", but winter ends at 11 food, so farms (0 food in winter) get no +1 though compost is in stock.                                                                                      | Flat neighbour bonuses only reach buildings that produce that food this season.                                                                                                                                                          | Otherwise winter ends at 13.                                                                                                                        |
+| C6  | Silt: "floodplain farms gain +50% food in summer and autumn", but the second farm, built on the floodplain in summer, makes plain 4 and 5.                                                                                                    | Silt belongs to the farms standing when the flood comes, not to the tiles.                                                                                                                                                               | Otherwise autumn ends at 21 food.                                                                                                                   |
+| C7  | Rounding order between the silt multiplier and the compost +1.                                                                                                                                                                                | Multipliers first (all multiplied together, rounded down once per building), then flat bonuses and penalties.                                                                                                                            | Autumn's silted farm makes ⌊5 × 1.5⌋ + 1 = 8, giving 19 food. Adding first gives 9 and 20 food.                                                     |
+
+## Season structure
+
+| Topic             | Decision                                                                                                                                                                                                                                                    |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Forecast          | `forecast.event` is this season's event (announced during the previous season); `forecast.next` is next season's. The calendar is fixed per biome: flood, low river, storms, freeze.                                                                        |
+| Draft timing      | A card can be picked at any point in the season, but must be picked before the season ends. Building before picking is allowed.                                                                                                                             |
+| New buildings     | Buildings placed during a season work in that same season (the walkthrough's spring workshop runs at once). Orchards are the exception (they mature).                                                                                                       |
+| Undo              | Undo is replay-based: the run keeps the state at the start of the season plus the commands since. Undo replays all but the last. Undo restores the random generator too, so undoing a reroll and rerolling again deals the same cards (no reroll-scumming). |
+| Guided first year | Run option `guided`: year 1 uses the fixed offers in `guidedYear` (orchard in spring, River Wheel / Cell Bank / Heat Well in winter). The golden test plays the guided year. From year 2 offers are random.                                                 |
+| Run end           | After 48 seasons (`complete`) or when wellbeing reaches 0 (`collapsed`). Commands are rejected once a run ends.                                                                                                                                             |
+| Step 10           | The combo discovery check is a stub until Milestone 6.                                                                                                                                                                                                      |
+
+## Energy
+
+| Topic              | Decision                                                                                                                                                                                                                                             |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Heat               | Heat is not a separate supply. It is paid in the same slot as energy, 1 for 1, or from a Heat Well's stored heat. The Camp's and Cottages' winter heat is due at night; the Greenhouse's is due by day, with the rest of its demand.                 |
+| Storage discharge  | Storage only discharges into shortfalls (step 7). Stored heat pays only heat demand.                                                                                                                                                                 |
+| Cell Bank          | Charges from day energy only. Stores up to 4 and returns 3 for every 4 (like the Pumped Reservoir), rounded down: 3 stored covers a 2 shortfall. Empties at the end of the season.                                                                   |
+| Heat Well          | Charges from spare energy in any slot and any season (1 energy = 1 heat), up to 6. Loses 1 heat at the end of every season. A kiln run next to it adds 1 heat for free.                                                                              |
+| Pumped Reservoir   | Charges from any spare energy, up to 12 stored, returns 3 for every 4, and keeps its charge between seasons. Era 3 applies to when the blueprint can be drafted.                                                                                     |
+| Reservation order  | For a night shortfall, heat wells are charged first (for the heat part, 1:1), then energy storage (4:3).                                                                                                                                             |
+| Flexible consumers | Each workshop or kiln run takes 2 energy from one slot, day first, then night. Buildings run in priority order.                                                                                                                                      |
+| Blackouts          | Settled per slot. Buildings with demand in that slot are shut off lowest priority first until demand fits. A building shut off in either slot is unpowered for the season.                                                                           |
+| Priority           | One list per run, highest first. Default: homes first, in build order, then everything else in build order, so homes shut off last and older buildings get workers first. The player can reorder it (`setPriority`).                                 |
+| Unpowered homes    | A home that is blacked out, or flood-damaged, counts as unpowered (−2 wellbeing).                                                                                                                                                                    |
+| Shading            | Tall things are the Wind Spire, Kiln, Seedbank Library and woodland tiles. A Solar Canopy next to any of them loses 1 per slot (only in slots where it produces), not 1 per tall neighbour. Canopies do not shade each other (see open question Q4). |
+| Wind Spire         | −1 per slot for each other spire within 2 tiles. "Lowers nearby Harmony": −2 to the settlement's Harmony per spire, cancelled by a neighbouring Pollinator Meadow.                                                                                   |
+| River Wheel        | "+1 per slot next to a weir": +1 in each slot when adjacent to a Weir building. The low-river drop is already in the table (summer 1 / 1).                                                                                                           |
+| Biogas Digester    | Needs no workers (energy building). Runs automatically, up to 2 times, when 2 scraps or biomass are in stock (scraps first). Its energy goes to its assigned slot (night by default, `setDigesterSlot`).                                             |
+| Mixed Grid         | Measured over the last 4 seasons of generated energy. The Founders' Camp does not count as a source type. It cancels storm damage. The freeze does no damage in Milestone 1, so there is nothing for it to cancel yet.                               |
+
+## Food, land and Harmony
+
+| Topic              | Decision                                                                                                                                                                                                                            |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Harmony multiplier | Applies to food, biomass and knowledge yields. Not to energy, materials or salvage, so the energy slot puzzle stays readable.                                                                                                       |
+| Farm on meadow     | −1 food in every season it produces (never below 0).                                                                                                                                                                                |
+| Low river          | Affects Floodplain Farms only (orchards are deep-rooted), and halves food only (not biomass). Water means river, reservoir or a Fish Pond; distance is measured in tiles.                                                           |
+| Neighbour bonuses  | Each kind of bonus reaches a building at most once (two apiaries next to one farm give +1, not +2). An apiary's 3 targets are taken in neighbour order: E, NE, NW, W, SW, SE.                                                       |
+| Composter          | Takes up to 3 inputs, scraps first, then biomass, and makes ⌊inputs × 2 / 3⌋ compost. Each +1 food it gives a neighbour spends 1 compost from the store ("while compost lasts").                                                    |
+| Orchard            | Produces from its third season (built in autumn → first food next spring). Its tile turns to meadow when it matures; it never downgrades woodland.                                                                                  |
+| Weir               | Placed on a river tile. The 3 river tiles directly upstream become reservoir (still water for adjacency). A Fish Pond is downstream if it touches a river tile further down than the weir. Nothing can be built on reservoir tiles. |
+| Tree Nursery       | Each season improves its least healthy neighbouring tile one step, ties broken by neighbour order. Only barren, scrub and meadow improve; hills, floodplain and ruins are not on the land-health ladder.                            |
+| Compost spreading  | A player command (`spreadCompost`): 2 compost improves one tile one step.                                                                                                                                                           |
+| Pollinator Meadow  | Built on barren, scrub, meadow or woodland. Raises its tile to meadow (never downgrades). Counts +1 Harmony on top of the meadow tile.                                                                                              |
+| Salvage            | Salvage Yards stand only on ruins and draw from the ruin's 24 salvage. No other building can use a ruin tile.                                                                                                                       |
+| Food rot           | After eating, food above storage (Camp 40 + 5 per Cottage) rots into scraps.                                                                                                                                                        |
+
+## People
+
+| Topic          | Decision                                                                                                           |
+| -------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Spare food     | Food produced this season minus food needed this season.                                                           |
+| Growth check   | Uses wellbeing as it stood at the start of step 8, before this season's change. Growth never exceeds free housing. |
+| Every need met | Every citizen fed and every home powered.                                                                          |
+| Hunger         | Unfed citizens cost wellbeing but do not leave directly; people leave only below wellbeing 20.                     |
+| Workers        | Citizens staff buildings in priority order. An unstaffed or damaged building does nothing and has no demand.       |
+| Founders' Camp | Houses 6, stores 40 food, needs no workers.                                                                        |
+
+## Events
+
+| Topic         | Decision                                                                                                                                                                                                                     |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Flooded area  | Every floodplain tile. With any weir, only the lowest half (rounded down) floods; the lowest ground is the tiles closest to the river. Several weirs do not halve it again.                                                  |
+| Levees        | Protect floodplain tiles within 2 tiles of the levee from both damage and silt. Built on a land tile next to the river.                                                                                                      |
+| Flood repairs | Damaged buildings are disabled for the flood season. At the start of the next season each is repaired automatically for 2 materials, in priority order; if materials run short it stays damaged and tries again next season. |
+| Storms        | Unless the Mixed Grid bonus is active, one building (chosen with the run's seeded generator) on a hill that is not next to woodland is disabled for the season. No repair cost.                                              |
+
+## Map generation
+
+| Topic            | Decision                                                                                                                                                                         |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Shape            | A 12 × 10 hex rectangle (120 tiles). The river runs one tile per row from the north edge to the south edge.                                                                      |
+| Banks            | Tiles next to the river are floodplain except on 3 short "bluffs" (dry bank where river wheels and kilns can stand safely); some tiles 2 away are floodplain too.                |
+| Starting Harmony | Green land is placed until meadow + 2 × woodland equals the biome's starting Harmony (18), so every seed starts at 18.                                                           |
+| Camp             | On plain land 2 to 3 tiles from the river, in the middle rows.                                                                                                                   |
+| Randomness       | The map uses its own seeded stream (`seed:map`), so a run's commands never change its map. The run's draft and storm choices use a second stream (`seed:run`) kept in the state. |
+
+## Deferred to later milestones
+
+- Tunings, charters and visions (Milestone 6 and 7). The draft currently deals blueprints only, which is what run 1 uses ("blueprints only, with the guided first year").
+- The 5-knowledge formation hint (Milestone 6).
+- Chains, formations and evolutions, and the step 10 discovery check (Milestone 6).
+- Scoring, eras' effects beyond draft gating, and the Graft (Milestone 7).
+- Demolishing buildings: not in the design; not implemented.
+
+## Open questions for the design
+
+- **Q1.** Food rot feeds clutter without limit. See the Milestone 1 summary in the CHANGELOG: in
+  scripted runs, surplus food rots into scraps, then clutter, and wellbeing collapses by years 4
+  to 8. Milestone 2's simulator should measure this before it is tuned.
+- **Q2.** Should the season order in the design be rewritten to match C1?
+- **Q3.** Is Mixed Grid meant to count the Founders' Camp? Counting it makes the bonus reachable
+  with only two built source types.
+- **Q4.** The Sun Terrace formation promises "no self-shading", which implies canopies normally
+  shade each other. Currently they don't.
+- **Q5.** What does the freeze damage, so that Mixed Grid has something to prevent?

@@ -1,0 +1,49 @@
+import { describe, expect, it } from 'vitest';
+import { loadContent } from '../src/sim';
+import willowReach from '../src/content/willow-reach.json';
+
+const clone = () => structuredClone(willowReach) as typeof willowReach;
+
+describe('content validation', () => {
+  it("loads Willow Reach: the camp plus the biome's 23 buildings", () => {
+    const content = loadContent(willowReach);
+    expect(content.buildings.filter((b) => b.id !== content.campBuilding)).toHaveLength(23);
+    expect(content.byId.floodplainFarm?.yields.food).toEqual([2, 4, 5, 0]);
+  });
+
+  it("matches the design doc's energy table", () => {
+    const { byId } = loadContent(willowReach);
+    const table: Record<
+      string,
+      [number, [number, number, number, number], [number, number, number, number]]
+    > = {
+      solarCanopy: [4, [3, 4, 2, 1], [0, 0, 0, 0]],
+      riverWheel: [6, [3, 1, 2, 2], [3, 1, 2, 2]],
+      windSpire: [8, [2, 1, 3, 3], [3, 1, 4, 4]],
+      foundersCamp: [0, [2, 2, 2, 2], [2, 2, 2, 2]],
+    };
+    for (const [id, [cost, day, night]] of Object.entries(table)) {
+      expect(byId[id]!.cost, id).toBe(cost);
+      expect(byId[id]!.generation?.day, id).toEqual(day);
+      expect(byId[id]!.generation?.night, id).toEqual(night);
+    }
+  });
+
+  it('rejects bad numbers with a readable message', () => {
+    const bad = clone();
+    bad.buildings[1]!.cost = -3;
+    expect(() => loadContent(bad)).toThrow(/buildings\.1\.cost/);
+  });
+
+  it('rejects unknown fields, so typos in data files are caught', () => {
+    const bad = clone() as unknown as { buildings: Record<string, unknown>[] };
+    bad.buildings[1]!.costt = 3;
+    expect(() => loadContent(bad)).toThrow(/costt/);
+  });
+
+  it('rejects references to buildings that do not exist', () => {
+    const bad = clone();
+    bad.guidedYear[0] = ['orchard', 'unicornStable'];
+    expect(() => loadContent(bad)).toThrow(/unicornStable/);
+  });
+});
