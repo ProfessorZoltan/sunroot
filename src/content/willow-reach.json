@@ -72,6 +72,7 @@
   "events": {
     "flood": {
       "name": "Flood",
+      "summary": "floodplain farms gain silt; other floodplain buildings are disabled",
       "description": "Floodplain farms gain silt (+50% food in summer and autumn). Buildings that aren't flood-tolerant are disabled for the season and cost 2 materials to repair. Levees block both the damage and the silt; a weir halves the flooded area.",
       "siltBonus": 0.5,
       "siltSeasons": ["summer", "autumn"],
@@ -79,17 +80,20 @@
     },
     "lowRiver": {
       "name": "Low river",
+      "summary": "river wheels slow; farms far from water lose half their food",
       "description": "River wheels turn slowly; farms more than 2 tiles from water lose half their summer yield.",
       "farFromWaterDistance": 2,
       "farYieldFactor": 0.5
     },
     "storm": {
       "name": "Storms",
+      "summary": "wind rises; an exposed building on a hill may be damaged",
       "description": "Wind rises; one exposed building on a hill is disabled for the season unless it is next to woodland.",
       "disableCount": 1
     },
     "freeze": {
       "name": "Freeze",
+      "summary": "solar is weak; homes need heat at night",
       "description": "Solar is weak, homes need heat, wind is strong."
     }
   },

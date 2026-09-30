@@ -96,7 +96,11 @@ export class MapView {
   }
 
   /** Hover outline, and in placement mode the ghost building and its preview numbers. */
-  setOverlay(hover: Hex | null, placement: Placement | null): void {
+  setOverlay(
+    hover: Hex | null,
+    placement: Placement | null,
+    cursor: 'hover' | 'compost' = 'hover',
+  ): void {
     const g = this.overlay.clear();
     for (const child of this.labels.removeChildren()) child.destroy();
     if (placement) {
@@ -136,8 +140,8 @@ export class MapView {
     }
     if (hover) {
       g.poly(hexCorners(hexToPixel(hover), HEX_RADIUS - 1.5)).stroke({
-        width: 2.5,
-        color: COLORS.leadingGold,
+        width: cursor === 'compost' ? 3 : 2.5,
+        color: cursor === 'compost' ? COLORS.good : COLORS.leadingGold,
       });
     }
   }
@@ -154,6 +158,15 @@ export class MapView {
       width / 2 - ((this.bounds.minX + this.bounds.maxX) / 2) * this.zoom,
       height / 2 - ((this.bounds.minY + this.bounds.maxY) / 2) * this.zoom,
     );
+  }
+
+  /** Pans just enough to bring a hex into view (for the keyboard cursor). */
+  ensureVisible(h: Hex, margin = 70): void {
+    const p = this.screenOf(h);
+    const { width, height } = this.app.screen;
+    const dx = p.x < margin ? margin - p.x : p.x > width - margin ? width - margin - p.x : 0;
+    const dy = p.y < margin ? margin - p.y : p.y > height - margin ? height - margin - p.y : 0;
+    if (dx || dy) this.pan(dx, dy);
   }
 
   pan(dx: number, dy: number): void {

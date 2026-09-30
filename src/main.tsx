@@ -9,6 +9,7 @@ import { Application } from 'pixi.js';
 import { render } from 'preact';
 import willowReach from './content/willow-reach.json';
 import { GameStore } from './game/store';
+import { renderBuildingIcons } from './render/icons';
 import { MapView } from './render/mapView';
 import { COLORS } from './render/palette';
 import { canPlace, createRun, loadContent } from './sim';
@@ -28,8 +29,10 @@ async function start() {
   );
 
   let view: MapView | null = null;
+  let icons: Record<string, string> = {};
   const root = document.getElementById('app')!;
-  render(<App store={store} view={() => view} />, root);
+  const draw = () => render(<App store={store} view={() => view} icons={() => icons} />, root);
+  draw();
 
   const host = document.getElementById('map-host')!;
   const app = new Application();
@@ -44,16 +47,22 @@ async function start() {
   view = new MapView(app, content, {
     onHover: (hex) => store.hoverAt(hex),
     onClick: (hex) => store.clickAt(hex),
-    onCancel: () => store.select(null),
+    onCancel: () => store.setTool(null),
   });
-  const draw = () => {
+  const drawMap = () => {
     view!.setState(store.state);
-    view!.setOverlay(store.hover, store.placement);
+    view!.setOverlay(
+      store.hover,
+      store.placement,
+      store.tool?.kind === 'compost' ? 'compost' : 'hover',
+    );
   };
-  store.subscribe(draw);
-  draw();
-  // Expose the store for debugging and end-to-end checks.
+  store.subscribe(drawMap);
+  drawMap();
+  // Exposed for debugging and the browser tests.
   (window as unknown as { sunroot: unknown }).sunroot = { store, view, seed, canPlace, content };
+  icons = await renderBuildingIcons(app);
+  draw();
 }
 
 void start();

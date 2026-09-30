@@ -3,16 +3,35 @@
 A solarpunk settlement builder of short, replayable runs. Each run heals one damaged region, and what
 it sends home grows a permanent city. The full design is in [docs/DESIGN.md](docs/DESIGN.md).
 
+Built so far: the simulation core, the balance simulator, the map and the interface (Milestones 0
+to 4 of the build plan). A whole run of Willow Reach can be played to the end with mouse or
+keyboard. See [CHANGELOG.md](CHANGELOG.md) and [docs/DECISIONS.md](docs/DECISIONS.md).
+
 ## Getting started
 
 ```sh
 npm install
-npm run dev      # the game at http://localhost:5173 (?seed=..., ?sandbox, ?guided=0)
-npm test         # Vitest, including the Year 1 golden test
-npm run check    # typecheck, lint, format check and tests (what CI runs)
+npm run dev      # the game at http://localhost:5173
+npm test         # unit tests, including the Year 1 golden test
 npm run e2e      # browser tests (Playwright)
+npm run check    # typecheck, lint, format check and unit tests
 npm run balance  # balance simulator: 4,000 bot runs -> balance-out/runs.csv and report.md
 ```
+
+URL options: `?seed=<text>` replays a run, `?sandbox` unlocks every building with 999 materials,
+`?guided=0` skips the guided first year.
+
+## Playing
+
+Pick one of three blueprint cards, then build: choose a building on the right and hover the map.
+The ghost shows exactly what it would do this season, including effects on its neighbours. Click
+to place; Esc or right-click stops. Undo is free until the season ends. Every number at the top
+and on the left has a tooltip with its full math. Click a building to inspect and adjust it. End
+the season when you're ready; the year strip shows each season's energy and forecasts the rest of
+the year with what you have now.
+
+Keyboard: 1–4 pick a card, letters on the palette pick a building, arrow keys aim, N jumps to the
+next legal site, Enter places, Z undoes, E ends the season, ? lists every key.
 
 ## Layout
 
@@ -20,9 +39,32 @@ npm run balance  # balance simulator: 4,000 bot runs -> balance-out/runs.csv and
 | -------------- | --------------------------------------------------------------------------------------------- |
 | `src/sim/`     | The pure, deterministic simulation core. No rendering, no clock, one seeded random generator. |
 | `src/content/` | All game content and numbers as JSON, validated with Zod at load.                             |
-| `src/main.ts`  | The web client (a blank page until Milestone 3).                                              |
+| `src/balance/` | The balance simulator: bots, the run recorder, the report and the command line.               |
+| `src/game/`    | The client store and the numbers the interface shows (projections, tooltips).                 |
+| `src/render/`  | The PixiJS map: layout, palette, procedural tiles and building art.                           |
+| `src/ui/`      | The Preact interface.                                                                         |
+| `src/main.tsx` | The web client's entry point.                                                                 |
 | `tests/`       | Unit tests and the Year 1 golden test.                                                        |
-| `docs/`        | The design doc and `DECISIONS.md` (rules the design leaves open).                             |
+| `e2e/`         | Browser tests, including a whole run played with the keyboard.                                |
+| `docs/`        | The design, `DECISIONS.md`, design proposals and balance reports.                             |
+
+## Using the simulation
+
+```ts
+import { applyCommand, createRun, loadContent } from './src/sim';
+import willowReach from './src/content/willow-reach.json';
+
+const content = loadContent(willowReach); // validates the data
+let state = createRun(content, { seed: 'my-seed', guided: true });
+const result = applyCommand(content, state, { type: 'pickCard', card: state.draft.offer[0] });
+if (result.ok) state = result.state; // otherwise result.error says why
+```
+
+Commands never mutate the state they are given. `state.lastReport` explains the last season:
+energy per slot, every building's yield and the math behind it, blackouts and wellbeing changes.
+`previewPlacement` and `projectSeason` answer "what if" questions without changing anything. The
+same seed and the same commands always give the same run, and a state survives `JSON.stringify`,
+so saves are just serialized state.
 
 ## Balance simulator
 

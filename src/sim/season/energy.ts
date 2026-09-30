@@ -88,6 +88,10 @@ export function resolveEnergy(ctx: SeasonContext): void {
     const r = report.energy[slot];
     const s = settle(slot, new Set());
     r.demand = s.demand;
+    for (const b of active) {
+      const d = energyOf(b, slot) + heatOf(b, slot);
+      if (d > 0) r.demandBy[b.type] = (r.demandBy[b.type] ?? 0) + d;
+    }
     Object.assign(r.heat, {
       demand: s.heat,
       free: s.free,

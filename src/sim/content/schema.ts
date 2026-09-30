@@ -206,7 +206,12 @@ export const BuildingSchema = z
   .strict();
 export type BuildingDef = z.infer<typeof BuildingSchema>;
 
-const EventBase = z.object({ name: z.string(), description: z.string() });
+const EventBase = z.object({
+  name: z.string(),
+  /** One line for the map's forecast pill. */
+  summary: z.string(),
+  description: z.string(),
+});
 export const EventsSchema = z
   .object({
     flood: EventBase.extend({

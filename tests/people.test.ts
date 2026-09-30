@@ -197,3 +197,13 @@ describe('land', () => {
     expect(s.harmony).toBe(2 + 2 + 1 - 1);
   });
 });
+
+describe('after a run ends', () => {
+  it('the forecast matches the season and there is nothing to draft', () => {
+    const s = endSeason(scenario(DRY, { wellbeing: 1, stores: { food: 0 } }));
+    expect(s.status).toBe('collapsed');
+    expect(s.season).toBe('summer');
+    expect(s.forecast.event).toBe(content.calendar[1]);
+    expect(s.draft.offer).toEqual([]);
+  });
+});

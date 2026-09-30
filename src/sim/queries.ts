@@ -105,24 +105,59 @@ export function eraOf(content: Content, turn: number): number {
   );
 }
 
-/** Harmony = green tiles + building Harmony - wind spire penalties - clutter (never below 0). */
-export function computeHarmony(content: Content, state: RunState): number {
+export interface HarmonyLine {
+  label: string;
+  amount: number;
+}
+
+/** Where Harmony comes from: green tiles, buildings, wind spires and clutter. */
+export function harmonyLines(content: Content, state: RunState): HarmonyLine[] {
   const { harmony } = content.rules;
-  let total = 0;
-  for (const t of Object.values(state.map.tiles)) total += harmony.perTile[t.type] ?? 0;
+  const lines: HarmonyLine[] = [];
+  const tileCounts = new Map<string, number>();
+  for (const t of Object.values(state.map.tiles)) {
+    if (harmony.perTile[t.type]) tileCounts.set(t.type, (tileCounts.get(t.type) ?? 0) + 1);
+  }
+  for (const [type, n] of tileCounts) {
+    const each = harmony.perTile[type as TileType]!;
+    lines.push({ label: `${n} ${type} tiles${each !== 1 ? ` × ${each}` : ''}`, amount: n * each });
+  }
+  const byBuilding = new Map<string, { n: number; amount: number }>();
+  const penalties = new Map<string, { n: number; amount: number }>();
   const occ = occupancy(state);
   for (const b of Object.values(state.buildings)) {
     const def = defOf(content, b);
-    total += def.harmony;
+    if (def.harmony) {
+      const e = byBuilding.get(def.name) ?? { n: 0, amount: 0 };
+      byBuilding.set(def.name, { n: e.n + 1, amount: e.amount + def.harmony });
+    }
     if (def.harmonyPenalty) {
       const cancelled = neighborBuildings(state, b, occ).some((n) =>
         def.harmonyPenalty!.cancelledByNeighbor.includes(n.type),
       );
-      if (!cancelled) total -= def.harmonyPenalty.amount;
+      if (!cancelled) {
+        const e = penalties.get(def.name) ?? { n: 0, amount: 0 };
+        penalties.set(def.name, { n: e.n + 1, amount: e.amount - def.harmonyPenalty.amount });
+      }
     }
   }
-  total += harmony.perClutter * state.stores.clutter;
-  return Math.max(0, total);
+  for (const [name, e] of byBuilding) lines.push({ label: `${e.n} ${name}`, amount: e.amount });
+  for (const [name, e] of penalties) lines.push({ label: `${e.n} ${name}`, amount: e.amount });
+  if (state.stores.clutter > 0) {
+    lines.push({
+      label: `${state.stores.clutter} clutter`,
+      amount: harmony.perClutter * state.stores.clutter,
+    });
+  }
+  return lines;
+}
+
+/** Harmony = green tiles + building Harmony - wind spire penalties - clutter (never below 0). */
+export function computeHarmony(content: Content, state: RunState): number {
+  return Math.max(
+    0,
+    harmonyLines(content, state).reduce((sum, l) => sum + l.amount, 0),
+  );
 }
 
 export function harmonyMultiplier(content: Content, harmony: number): number {

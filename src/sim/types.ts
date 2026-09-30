@@ -132,6 +132,8 @@ export interface SlotReport {
   /** Energy generated, by source building type. */
   bySource: Record<string, number>;
   supply: number;
+  /** Energy and heat demanded, by building type, before free heat and heat pumps. */
+  demandBy: Record<string, number>;
   /**
    * Energy the slot's buildings need: their energy demand, plus heat paid
    * directly, plus the energy drawn by heat pumps.
@@ -188,7 +190,7 @@ export interface SeasonReport {
   improvedTiles: string[];
   blackouts: string[];
   food: { produced: number; eaten: number; unfed: number; rotted: number; storage: number };
-  population: { before: number; change: number; after: number };
+  population: { before: number; change: number; after: number; reason: PopulationReason };
   wellbeing: { before: number; after: number; lines: WellbeingLine[] };
   clutter: { fromScraps: number; recycled: number; total: number };
   scraps: { fromCitizens: number; fromRot: number; total: number };
@@ -197,6 +199,10 @@ export interface SeasonReport {
   generated: Record<string, { energy: Record<Slot, number>; heat: Record<Slot, number> }>;
   discoveries: string[];
 }
+
+/** Why the population did or didn't change this season. */
+export type PopulationReason =
+  'grew' | 'boom' | 'noHousing' | 'lowSpareFood' | 'lowWellbeing' | 'leaving';
 
 export interface SeasonSummary {
   turn: number;
@@ -209,4 +215,6 @@ export interface SeasonSummary {
   harmony: number;
   shortfall: number;
   blackouts: number;
+  /** Energy per slot, for the year strip. */
+  energy: Record<Slot, { supply: number; demand: number; shortfall: number }>;
 }

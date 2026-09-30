@@ -24,6 +24,7 @@ function emptySlot(): SlotReport {
   return {
     bySource: {},
     supply: 0,
+    demandBy: {},
     demand: 0,
     heat: { demand: 0, bySource: {}, free: 0, pumped: 0, pumpEnergy: 0, direct: 0, stored: 0 },
     reserved: 0,
@@ -56,7 +57,7 @@ export function emptyReport(state: RunState): SeasonReport {
     improvedTiles: [],
     blackouts: [],
     food: { produced: 0, eaten: 0, unfed: 0, rotted: 0, storage: 0 },
-    population: { before: state.citizens, change: 0, after: state.citizens },
+    population: { before: state.citizens, change: 0, after: state.citizens, reason: 'grew' },
     wellbeing: { before: state.wellbeing, after: state.wellbeing, lines: [] },
     clutter: { fromScraps: 0, recycled: 0, total: state.stores.clutter },
     scraps: { fromCitizens: 0, fromRot: 0, total: state.stores.scraps },

@@ -78,6 +78,18 @@ function advance(content: Content, ctx: SeasonContext): RunState {
     harmony: state.harmony,
     shortfall: report.energy.day.shortfall + report.energy.night.shortfall,
     blackouts: report.blackouts.length,
+    energy: {
+      day: {
+        supply: report.energy.day.supply,
+        demand: report.energy.day.demand,
+        shortfall: report.energy.day.shortfall,
+      },
+      night: {
+        supply: report.energy.night.supply,
+        demand: report.energy.night.demand,
+        shortfall: report.energy.night.shortfall,
+      },
+    },
   };
   state.history = [...state.history, summary];
   state.lastReport = report;
@@ -105,13 +117,16 @@ function advance(content: Content, ctx: SeasonContext): RunState {
   state.season = SEASONS[state.turn % SEASONS.length]!;
   state.era = eraOf(content, state.turn);
 
+  const si = seasonIndex(state.season);
+  state.forecast = { event: content.calendar[si]!, next: content.calendar[(si + 1) % 4]! };
   if (state.status === 'active') startSeason(content, state);
+  else state.draft = { offer: [], picked: null, extraBought: false };
   state.harmony = computeHarmony(content, state);
   state.seasonStart = snapshot(state);
   return state;
 }
 
-/** Start-of-season upkeep: orchards mature, flood damage is repaired, the forecast and draft update. */
+/** Start-of-season upkeep: orchards mature, flood damage is repaired, the draft is dealt. */
 function startSeason(content: Content, state: RunState): void {
   for (const b of byPriority(state)) {
     const def = defOf(content, b);
@@ -138,7 +153,5 @@ function startSeason(content: Content, state: RunState): void {
       }
     }
   }
-  const si = seasonIndex(state.season);
-  state.forecast = { event: content.calendar[si]!, next: content.calendar[(si + 1) % 4]! };
   state.draft = { offer: dealOffer(content, state), picked: null, extraBought: false };
 }

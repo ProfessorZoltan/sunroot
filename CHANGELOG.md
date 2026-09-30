@@ -1,5 +1,24 @@
 # Changelog
 
+## Milestone 4: interface
+
+- The mockup's layout: the year strip of 8 energy slots (done, now and forecast, with striped
+  shortfalls), Harmony, wellbeing and citizens; stores with this season's change and last
+  season's events; stained-glass draft cards with reroll and a 4th card; the building palette with
+  icons and letter keys; the forecast, Undo and End season.
+- Tooltips with the full math on every number, on hover and keyboard focus, live while open.
+- A building inspector: status, this season's math, recipe, digester slot and blackout priority.
+- Spread compost from the palette.
+- A whole run is playable with the keyboard alone (tested end to end), with a keyboard cursor,
+  a sensible-first cycle through legal sites, and a key list on ?.
+- An end-of-run screen with the provisional score.
+- Simulation: season projections (`projectSeason`), energy per season in the run history, demand
+  by building type, why the population did or didn't grow, a Harmony breakdown, and one-line
+  event summaries in the data.
+- Fixed: after a run ended, the forecast showed the old season's event.
+- The README was out of date (several earlier edits had not applied); it now describes the
+  project as it stands.
+
 ## Milestone 3: map rendering
 
 - A PixiJS map in the mockup's papercraft style: tiles with depth, terrain details, the river's

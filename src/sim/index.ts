@@ -26,5 +26,12 @@ export {
 export { generateMap } from './map';
 export { blueprintPool } from './draft';
 export { provisionalScore, type ScoreLine } from './score';
-export { computeHarmony, harmonyMultiplier, waterDistance } from './queries';
+export {
+  computeHarmony,
+  harmonyLines,
+  harmonyMultiplier,
+  waterDistance,
+  type HarmonyLine,
+} from './queries';
+export { projectSeason } from './projection';
 export type * from './types';

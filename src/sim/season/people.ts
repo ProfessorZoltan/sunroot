@@ -8,7 +8,7 @@ import {
   isHome,
   neighborTiles,
 } from '../queries';
-import type { WellbeingLine } from '../types';
+import type { PopulationReason, WellbeingLine } from '../types';
 import type { SeasonContext } from './context';
 
 export function feedAndGrow(ctx: SeasonContext): void {
@@ -25,13 +25,22 @@ export function feedAndGrow(ctx: SeasonContext): void {
   // Population grows or shrinks, using wellbeing as it stood this season.
   const pop = rules.population;
   const before = state.citizens;
+  const free = housingCapacity(content, state) - state.citizens;
   let change = 0;
+  let reason: PopulationReason;
   if (state.wellbeing < pop.leaveBelow) {
     change = -Math.min(pop.leaving, state.citizens);
-  } else if (state.wellbeing >= pop.growAt && spareFood >= pop.minSpareFood) {
-    const free = housingCapacity(content, state) - state.citizens;
-    const growth = state.wellbeing >= pop.boomAt ? pop.boomGrowth : pop.growth;
-    change = Math.max(0, Math.min(growth, free));
+    reason = 'leaving';
+  } else if (state.wellbeing < pop.growAt) {
+    reason = 'lowWellbeing';
+  } else if (spareFood < pop.minSpareFood) {
+    reason = 'lowSpareFood';
+  } else if (free <= 0) {
+    reason = 'noHousing';
+  } else {
+    const boom = state.wellbeing >= pop.boomAt;
+    change = Math.min(boom ? pop.boomGrowth : pop.growth, free);
+    reason = boom && change > 1 ? 'boom' : 'grew';
   }
   state.citizens += change;
 
@@ -42,7 +51,7 @@ export function feedAndGrow(ctx: SeasonContext): void {
   if (rules.rotsInto === 'biomass') state.stores.biomass += rotted;
 
   report.food = { produced: ctx.foodProduced, eaten, unfed, rotted, storage };
-  report.population = { before, change, after: state.citizens };
+  report.population = { before, change, after: state.citizens, reason };
 
   // Wellbeing updates.
   const wb = rules.wellbeing;
