@@ -4,6 +4,14 @@ Rules that [DESIGN.md](DESIGN.md) leaves open, and the choice made for each. Eve
 lives in `src/content/willow-reach.json`; the choices below are about _how_ rules work. Each one is
 covered by a test in `tests/`.
 
+## Changes to the design
+
+Rule changes made on purpose, with the evidence. DESIGN.md is not edited; these override it.
+
+| #   | Design says                             | Now                                                                                                                                                                                                                                                                       | Evidence                                                                                                                                                                                                                                                                                                                                                                                                     |
+| --- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| D1  | "Food beyond storage rots into scraps." | Food beyond storage rots into **biomass** (`rules.rotsInto`). Scraps come only from people, as "Scraps come from people" intends. Biomass still feeds composters and digesters but never becomes clutter. Setting `rotsInto` back to `scraps` restores the original rule. | Rot made 36–71% of all scraps. 1,171 of 3,000 non-random bot runs collapsed from clutter; after the change, none did, and non-random completion rose from 7–94% to 100%. Bots still build about 4 composters per run to keep up with people's scraps. See [balance/history/01-before-clutter-fix.md](balance/history/01-before-clutter-fix.md) and [balance/baseline-report.md](balance/baseline-report.md). |
+
 ## Where the design disagrees with itself
 
 The working rules say to raise these rather than guess. Each was resolved the way the Year 1
@@ -66,7 +74,7 @@ walkthrough (the golden test) requires, and should be confirmed or changed in th
 | Compost spreading  | A player command (`spreadCompost`): 2 compost improves one tile one step.                                                                                                                                                           |
 | Pollinator Meadow  | Built on barren, scrub, meadow or woodland. Raises its tile to meadow (never downgrades). Counts +1 Harmony on top of the meadow tile.                                                                                              |
 | Salvage            | Salvage Yards stand only on ruins and draw from the ruin's 24 salvage. No other building can use a ruin tile.                                                                                                                       |
-| Food rot           | After eating, food above storage (Camp 40 + 5 per Cottage) rots into scraps.                                                                                                                                                        |
+| Food rot           | After eating, food above storage (Camp 40 + 5 per Cottage) rots into biomass (D1).                                                                                                                                                  |
 
 ## People
 
@@ -121,9 +129,8 @@ walkthrough (the golden test) requires, and should be confirmed or changed in th
 
 ## Open questions for the design
 
-- **Q1.** Food rot feeds clutter without limit. See the Milestone 1 summary in the CHANGELOG: in
-  scripted runs, surplus food rots into scraps, then clutter, and wellbeing collapses by years 4
-  to 8. Milestone 2's simulator should measure this before it is tuned.
+- **Q1. Resolved** (see "Changes to the design" below): food rot fed clutter without limit, and
+  scripted runs collapsed by years 4 to 8.
 - **Q2.** Should the season order in the design be rewritten to match C1?
 - **Q3.** Is Mixed Grid meant to count the Founders' Camp? Counting it makes the bonus reachable
   with only two built source types.

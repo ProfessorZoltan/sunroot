@@ -39,6 +39,7 @@ export function feedAndGrow(ctx: SeasonContext): void {
   const storage = foodStorage(content, state);
   const rotted = Math.max(0, state.stores.food - storage);
   state.stores.food -= rotted;
+  if (rules.rotsInto === 'biomass') state.stores.biomass += rotted;
 
   report.food = { produced: ctx.foodProduced, eaten, unfed, rotted, storage };
   report.population = { before, change, after: state.citizens };
@@ -97,15 +98,16 @@ export function feedAndGrow(ctx: SeasonContext): void {
   report.wellbeing = { before: wellbeingBefore, after: state.wellbeing, lines };
 }
 
-/** Scraps left unprocessed from last season become clutter; people and rot make new scraps. */
+/** Scraps left unprocessed from last season become clutter; people (and rot, if set) make new scraps. */
 export function scrapsAndHarmony(ctx: SeasonContext): void {
   const { content, state, report } = ctx;
   const fromScraps = state.stores.scraps;
   state.stores.clutter += fromScraps;
   const fromCitizens = Math.floor(state.citizens / content.rules.citizensPerScrap);
-  state.stores.scraps = fromCitizens + report.food.rotted;
+  const fromRot = content.rules.rotsInto === 'scraps' ? report.food.rotted : 0;
+  state.stores.scraps = fromCitizens + fromRot;
   report.clutter = { ...report.clutter, fromScraps, total: state.stores.clutter };
-  report.scraps = { fromCitizens, fromRot: report.food.rotted, total: state.stores.scraps };
+  report.scraps = { fromCitizens, fromRot, total: state.stores.scraps };
   state.harmony = computeHarmony(content, state);
   report.harmony = { value: state.harmony, multiplier: harmonyMultiplier(content, state.harmony) };
 }

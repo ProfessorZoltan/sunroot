@@ -43,6 +43,10 @@ export function toCsv(records: RunRecord[]): string {
     ['food_eaten_after_y1', (r) => r.foodEatenAfterY1],
     ['food_rotted', (r) => r.foodRotted],
     ['storage_full_seasons', (r) => r.storageFullSeasons],
+    ['scraps_from_citizens', (r) => r.scrapsFromCitizens],
+    ['scraps_from_rot', (r) => r.scrapsFromRot],
+    ['clutter_from_scraps', (r) => r.clutterFromScraps],
+    ['clutter_recycled', (r) => r.clutterRecycled],
     ...sources.map((s) => [`energy_${s}`, (r: RunRecord) => r.energyBySource[s] ?? 0] as const),
     ['heat_pumped', (r) => r.heatPumped],
     ['heat_free', (r) => r.heatFree],
@@ -436,7 +440,9 @@ function balanceQuestions(
       : ratio > 1.3
         ? `**Yes.** The non-random bots make ${fixed(ratio, 2)}× the food they eat after Year 1; ` +
           `${pct(rotted / Math.max(1, made))} of it rots, and ${pct(fullShare)} of seasons end with storage full. ` +
-          'Rotting food becomes scraps, then clutter, so the surplus is not just wasted: it costs wellbeing and Harmony.'
+          (sum(smart.map((r) => r.scrapsFromRot)) > 0
+            ? 'Rotting food becomes scraps, then clutter, so the surplus is not just wasted: it costs wellbeing and Harmony.'
+            : 'Rotting food becomes biomass, so the surplus is wasted but does no harm.')
         : `**No.** The non-random bots make ${fixed(ratio, 2)}× the food they eat after Year 1.`,
     '',
   );
@@ -506,7 +512,10 @@ function balanceQuestions(
   const collapsedByClutter = smart.filter((r) => r.collapseCause === 'clutter').length;
   out.push(
     '### What costs wellbeing? (the clutter spiral, DECISIONS.md Q1)',
-    `Per non-random run, wellbeing lost: ${fixed(lost('hunger'), 0)} to hunger, ` +
+    `Per non-random run, scraps came ${fixed(mean(smart.map((r) => r.scrapsFromCitizens)), 0)} from citizens and ` +
+      `${fixed(mean(smart.map((r) => r.scrapsFromRot)), 0)} from rotting food; ` +
+      `${fixed(mean(smart.map((r) => r.clutterFromScraps)), 0)} became clutter. ` +
+      `Wellbeing lost: ${fixed(lost('hunger'), 0)} to hunger, ` +
       `${fixed(lost('unpowered'), 0)} to unpowered homes, ${fixed(lost('clutter'), 0)} to clutter. ` +
       `${collapsedByClutter} of ${smart.length} non-random runs collapsed from clutter.`,
     '',

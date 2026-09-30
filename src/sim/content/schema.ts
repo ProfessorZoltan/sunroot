@@ -236,6 +236,8 @@ export const RulesSchema = z
       wellbeing: nonNeg,
     }),
     foodPerCitizen: nonNeg,
+    /** What food beyond storage turns into: scraps (can become clutter) or biomass (can't). */
+    rotsInto: z.enum(['scraps', 'biomass']),
     citizensPerScrap: int.min(1),
     landHealth: z.array(TileTypeSchema).min(2),
     harmony: z.object({

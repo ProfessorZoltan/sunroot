@@ -1,5 +1,19 @@
 # Changelog
 
+## Fix the clutter spiral
+
+- Food beyond storage now rots into biomass instead of scraps (DECISIONS.md D1). It is a data
+  setting, `rules.rotsInto`, so the original rule is one line away.
+- The balance simulator now tracks where scraps come from (people or rot), how much becomes
+  clutter, and how much is recycled.
+- Rerun of 4,000 runs (`docs/balance/baseline-report.md`; the previous one is in
+  `docs/balance/history/`):
+  - Clutter collapses in non-random runs: 1,171 of 3,000 → 0. Completion: 7% / 94% / 83% → 100%
+    for greedy food, greedy energy and balanced. Median scores: 59 / 153 / 151 → 174 / 164 / 208.
+  - Clutter is still a cost: bots build about 4 composters per run (down from 7–8).
+  - New concern: nothing now ends a competent run. Blackouts are the only pressure left (9–14
+    blackout seasons per run), and idle seasons rose to 13–18 per run.
+
 ## Milestone 2: balance simulator
 
 - `npm run balance` plays 1,000 seeds with each of 4 bots (random, greedy food, greedy energy and

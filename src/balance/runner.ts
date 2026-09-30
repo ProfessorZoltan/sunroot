@@ -27,6 +27,11 @@ export interface RunRecord {
   foodMadeAfterY1: number;
   foodEatenAfterY1: number;
   foodRotted: number;
+  /** Where scraps came from, how much became clutter, and how much clutter was recycled. */
+  scrapsFromCitizens: number;
+  scrapsFromRot: number;
+  clutterFromScraps: number;
+  clutterRecycled: number;
   /** Seasons that ended with food storage full. */
   storageFullSeasons: number;
   energyBySource: Record<string, number>;
@@ -76,6 +81,10 @@ export function playRun(
     foodMadeAfterY1: 0,
     foodEatenAfterY1: 0,
     foodRotted: 0,
+    scrapsFromCitizens: 0,
+    scrapsFromRot: 0,
+    clutterFromScraps: 0,
+    clutterRecycled: 0,
     storageFullSeasons: 0,
     energyBySource: {},
     heatPumped: 0,
@@ -120,6 +129,10 @@ export function playRun(
       record.foodEatenAfterY1 += r.food.eaten;
     }
     record.foodRotted += r.food.rotted;
+    record.scrapsFromCitizens += r.scraps.fromCitizens;
+    record.scrapsFromRot += r.scraps.fromRot;
+    record.clutterFromScraps += r.clutter.fromScraps;
+    record.clutterRecycled += r.clutter.recycled;
     if (state.stores.food >= r.food.storage) record.storageFullSeasons += 1;
     for (const slot of ['day', 'night'] as const) {
       for (const [source, amount] of Object.entries(r.energy[slot].bySource)) {

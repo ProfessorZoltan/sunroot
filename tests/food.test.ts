@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { hexDistance, waterDistance } from '../src/sim';
+import { applyCommand, hexDistance, loadContent, waterDistance } from '../src/sim';
+import willowReach from '../src/content/willow-reach.json';
 import { act, at, content, endSeason, place, scenario, tileTypeAt, uidAt } from './helpers';
 
 // Floodplain along both banks of a river in column 4.
@@ -243,13 +244,26 @@ describe('other food buildings', () => {
     expect(s.lastReport!.harmony.multiplier).toBe(1.2);
   });
 
-  it('food beyond storage rots into scraps', () => {
+  it('food beyond storage rots into biomass, which never becomes clutter', () => {
     let s = scenario(RIVER, { stores: { food: 50 } });
     s = endSeason(s);
-    // 50 - 6 eaten = 44, storage 40: 4 rot. Scraps: 6 citizens / 3 + 4.
+    // 50 - 6 eaten = 44, storage 40: 4 rot. Scraps come only from the 6 citizens.
     expect(s.stores.food).toBe(40);
     expect(s.lastReport!.food.rotted).toBe(4);
-    expect(s.stores.scraps).toBe(2 + 4);
+    expect(s.stores.biomass).toBe(4);
+    expect(s.stores.scraps).toBe(2);
+  });
+
+  it("with rotsInto set to scraps, rot follows the design's original rule", () => {
+    const original = loadContent({
+      ...willowReach,
+      rules: { ...willowReach.rules, rotsInto: 'scraps' },
+    });
+    const s = scenario(RIVER, { stores: { food: 50 } });
+    const result = applyCommand(original, s, { type: 'endSeason' });
+    if (!result.ok) throw new Error(result.error);
+    expect(result.state.stores.scraps).toBe(2 + 4);
+    expect(result.state.stores.biomass).toBe(0);
   });
 
   it('a workshop set to recycle turns 2 energy and 2 clutter into 1 material', () => {
