@@ -24,7 +24,8 @@ export function TopBar({ store }: { store: GameStore }) {
       <div class="brand">
         <div class="title">Sunroot</div>
         <div class="quiet small">
-          {content.name} · year {state.year} of {content.rules.yearsPerRun}
+          {content.name} · year {state.year} of {content.rules.yearsPerRun} · era {state.era}:{' '}
+          {content.rules.eras[state.era - 1]}
         </div>
       </div>
       <div class="year-strip" aria-label={`Energy this year`}>

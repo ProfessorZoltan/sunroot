@@ -8,7 +8,9 @@ import {
   applyCommand,
   axialToOffset,
   canPlace,
+  graftOffer,
   hexDistance,
+  scoreRun,
   hexKey,
   offsetToAxial,
   parseHexKey,
@@ -23,6 +25,7 @@ import {
   type SeasonReport,
 } from '../sim';
 import { EMPTY_ALMANAC, entryView, recordRun, type Almanac } from './almanac';
+import type { Graft } from './city';
 import { computeInsight, type Insight } from './insight';
 import type { PhaseName } from './timeline';
 
@@ -36,6 +39,10 @@ export interface Placement {
 }
 
 export const COMPOST_TOOL = 'compost';
+
+/** A card shown after a season plays out: a combo new to the Almanac, a new era, a vision met. */
+export type Reveal =
+  { kind: 'combo'; id: string } | { kind: 'era'; era: number } | { kind: 'vision'; id: string };
 
 /** A season being played out on the map (Milestone 5). */
 export interface Resolution {
@@ -55,9 +62,11 @@ export class GameStore {
   placement: Placement | null = null;
   message: string | null = null;
   resolution: Resolution | null = null;
-  /** Combos new to the Almanac, waiting to be revealed after the resolution. */
-  discoveries: string[] = [];
+  /** Cards waiting to be shown once the season has played out. */
+  reveals: Reveal[] = [];
   almanac: Almanac;
+  /** The Graft this run sent home, once chosen. */
+  graft: Graft | null = null;
   private resolutions = 0;
   private listeners = new Set<() => void>();
   private cache: { state: RunState; asIs: RunState; insight: Insight | null } | null = null;
@@ -65,13 +74,23 @@ export class GameStore {
   constructor(
     readonly content: Content,
     public state: RunState,
-    options: { almanac?: Almanac; onAlmanac?: (almanac: Almanac) => void } = {},
+    options: {
+      almanac?: Almanac;
+      onAlmanac?: (almanac: Almanac) => void;
+      onGraft?: (graft: Graft) => void;
+      /** The time, for the Graft's record (the simulation has no clock). */
+      now?: () => string;
+    } = {},
   ) {
     this.almanac = options.almanac ?? EMPTY_ALMANAC;
     this.onAlmanac = options.onAlmanac ?? (() => {});
+    this.onGraft = options.onGraft ?? (() => {});
+    this.now = options.now ?? (() => new Date().toISOString());
   }
 
   private readonly onAlmanac: (almanac: Almanac) => void;
+  private readonly onGraft: (graft: Graft) => void;
+  private readonly now: () => string;
 
   subscribe(listener: () => void): () => void {
     this.listeners.add(listener);
@@ -105,6 +124,7 @@ export class GameStore {
     // Acting during a resolution skips the rest of it.
     this.resolution = null;
     const before = command.type === 'endSeason' ? this.insight : null;
+    const era = this.state.era;
     const result = applyCommand(this.content, this.state, command);
     if (result.ok) {
       this.state = result.state;
@@ -131,8 +151,20 @@ export class GameStore {
           : { almanac: this.almanac, fresh: [] };
       if (almanac !== this.almanac) {
         this.almanac = almanac;
-        this.discoveries = [...this.discoveries, ...fresh];
         this.onAlmanac(almanac);
+      }
+      if (command.type === 'endSeason') {
+        const r = this.state.lastReport!;
+        this.reveals = [
+          ...this.reveals,
+          ...fresh.map((id) => ({ kind: 'combo' as const, id })),
+          ...(r.visionAchieved && this.state.vision
+            ? [{ kind: 'vision' as const, id: this.state.vision }]
+            : []),
+          ...(this.state.era > era && this.state.status === 'active'
+            ? [{ kind: 'era' as const, era: this.state.era }]
+            : []),
+        ];
       }
     } else {
       this.message = result.error;
@@ -154,11 +186,31 @@ export class GameStore {
     this.emit();
   }
 
-  /** Closes the discovery card on top. */
-  dismissDiscovery(): void {
-    if (this.discoveries.length === 0) return;
-    this.discoveries = this.discoveries.slice(1);
+  /** Closes the card on top. */
+  dismissReveal(): void {
+    if (this.reveals.length === 0) return;
+    this.reveals = this.reveals.slice(1);
     this.emit();
+  }
+
+  /** Sends the run's Graft home: one of the districts offered at the end of the run. */
+  chooseGraft(district: string): boolean {
+    if (this.state.status === 'active' || this.graft) return false;
+    const offer = graftOffer(this.content, this.state);
+    if (!offer.options.some((o) => o.district.id === district)) return false;
+    const score = scoreRun(this.content, this.state);
+    this.graft = {
+      district,
+      tier: offer.tier.id,
+      score: score.total,
+      seed: this.state.options.seed,
+      vision: this.state.vision,
+      visionAchieved: this.state.visionAchieved !== null,
+      sentAt: this.now(),
+    };
+    this.onGraft(this.graft);
+    this.emit();
+    return true;
   }
 
   togglePause(): void {

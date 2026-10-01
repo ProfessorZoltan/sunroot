@@ -2,48 +2,99 @@
  * The web client. It builds a run, draws it with Pixi and lays the
  * interface over it. Only src/sim changes the run, through commands.
  *
- * URL options: ?seed=<text> (a fixed run), ?guided=0 (skip the guided
- * first year), ?sandbox (everything unlocked, 999 materials).
+ * The run in progress is saved as you play and resumed on the next visit.
+ *
+ * URL options: ?seed=<text> (a new run with this seed), ?new (a new run),
+ * ?guided=0 (skip the guided first year), ?visions=0 (no vision choice),
+ * ?sandbox (everything unlocked, 999 materials; never saved).
  */
 import { Application } from 'pixi.js';
 import { render } from 'preact';
 import willowReach from './content/willow-reach.json';
 import { loadAlmanac, saveAlmanac } from './game/almanac';
+import { loadCity, saveCity } from './game/city';
+import { debounced, indexedDbSlot } from './game/saves';
 import { GameStore } from './game/store';
 import { buildTimeline } from './game/timeline';
 import { renderBuildingIcons } from './render/icons';
 import { MapView } from './render/mapView';
 import { COLORS } from './render/palette';
-import { canPlace, createRun, loadContent } from './sim';
+import { canPlace, createRun, loadContent, makeSave, readSave, type RunState } from './sim';
 import { App } from './ui/App';
 
 async function start() {
   const params = new URLSearchParams(location.search);
-  const seed = params.get('seed') ?? `run-${Math.floor(Math.random() * 1e9).toString(36)}`;
   const content = loadContent(willowReach);
   let storage: Storage | null = null;
   try {
     storage = window.localStorage;
   } catch {
-    // Blocked storage: the Almanac lasts for this visit only.
+    // Blocked storage: the Almanac and Grafts last for this visit only.
   }
-  const store = new GameStore(
-    content,
-    createRun(content, {
-      seed,
-      guided: params.get('guided') !== '0',
-      sandbox: params.has('sandbox'),
-    }),
-    {
-      almanac: loadAlmanac(content, storage),
-      onAlmanac: (almanac) => saveAlmanac(content, storage, almanac),
+  const sandbox = params.has('sandbox');
+  const slot = indexedDbSlot();
+
+  // Resume the saved run, unless a new one was asked for.
+  let state: RunState | null = null;
+  let resumeNote: string | null = null;
+  if (!params.has('seed') && !params.has('new') && !sandbox) {
+    const data = await slot.load();
+    if (data !== undefined) {
+      const read = readSave(content, data);
+      if (read.ok) {
+        state = read.save.state;
+        const { year, season } = read.save.summary;
+        resumeNote = `Welcome back: your run continues in ${season}, year ${year}.`;
+      } else {
+        resumeNote = `Your saved run couldn't be loaded (${read.error}), so a new one has begun.`;
+      }
+    }
+  }
+  state ??= createRun(content, {
+    seed: params.get('seed') ?? `run-${Math.floor(Math.random() * 1e9).toString(36)}`,
+    guided: params.get('guided') !== '0',
+    sandbox,
+    visions: params.get('visions') !== '0',
+  });
+  const seed = state.options.seed;
+  // A reload should resume this run, not start yet another.
+  if (params.has('new')) history.replaceState(null, '', location.pathname);
+
+  const store = new GameStore(content, state, {
+    almanac: loadAlmanac(content, storage),
+    onAlmanac: (almanac) => saveAlmanac(content, storage, almanac),
+    // The Graft goes to Root City; the finished run's save is no longer needed.
+    onGraft: (graft) => {
+      const city = loadCity(storage);
+      saveCity(storage, { ...city, grafts: [...city.grafts, graft] });
+      void slot.clear();
     },
-  );
+  });
+  store.message = resumeNote;
+
+  // Save as you play (not sandbox runs, which are for trying things out).
+  const save = () => {
+    if (!sandbox && !store.graft) void slot.save(makeSave(store.state, new Date().toISOString()));
+  };
+  const autosave = debounced(save);
+  let saved = store.state;
+  store.subscribe(() => {
+    if (store.state === saved) return;
+    saved = store.state;
+    autosave();
+  });
+  save();
+  const newRun = () => {
+    void slot.clear().then(() => {
+      location.href = `${location.pathname}?new`;
+    });
+  };
 
   let view: MapView | null = null;
   let icons: Record<string, string> = {};
   const root = document.getElementById('app')!;
-  const draw = () => render(<App store={store} view={() => view} icons={() => icons} />, root);
+  const draw = () =>
+    render(<App store={store} view={() => view} icons={() => icons} newRun={newRun} />, root);
   draw();
 
   const host = document.getElementById('map-host')!;

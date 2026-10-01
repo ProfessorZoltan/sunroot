@@ -30,6 +30,7 @@ import { snapshot } from '../snapshot';
 import { applyLoopBonuses, checkCombos, findFormations, formationEffects } from '../combos';
 import { effectiveContent } from '../content/modifiers';
 import { dealCharters } from '../draft';
+import { visionMet } from '../score';
 
 export function resolveSeason(base: Content, input: RunState): RunState {
   // Tunings and charters change the content for the rest of the run.
@@ -77,6 +78,20 @@ function advance(content: Content, ctx: SeasonContext): RunState {
   }
   state.energyHistory = [...state.energyHistory, bySource].slice(-4);
 
+  // The run's ledger, for the score and the Graft offer.
+  const energy = { ...state.ledger.energy };
+  for (const [source, amount] of Object.entries(bySource))
+    energy[source] = (energy[source] ?? 0) + amount;
+  let industry = 0;
+  for (const uid of Object.keys(report.runs)) industry += report.yields[uid]?.materials ?? 0;
+  state.ledger = {
+    energy,
+    foodMade: state.ledger.foodMade + report.food.produced,
+    foodEaten: state.ledger.foodEaten + report.food.eaten,
+    citizenSeasons: state.ledger.citizenSeasons + state.citizens,
+    industry: state.ledger.industry + industry,
+  };
+
   const summary: SeasonSummary = {
     turn: state.turn,
     year: state.year,
@@ -103,6 +118,10 @@ function advance(content: Content, ctx: SeasonContext): RunState {
   };
   state.history = [...state.history, summary];
   state.lastReport = report;
+  if (state.vision && state.visionAchieved === null && visionMet(content, state)) {
+    state.visionAchieved = state.turn;
+    report.visionAchieved = true;
+  }
 
   // Storage: same-season stores empty, heat leaks.
   for (const b of Object.values(state.buildings)) {

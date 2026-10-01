@@ -2,7 +2,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import type { GameStore } from '../game/store';
 import type { MapView } from '../render/mapView';
-import { hexKey, provisionalScore } from '../sim';
+import { hexKey } from '../sim';
 import { Arrow, Sun, Undo, Wind } from './icons';
 import { SEASON_NAMES } from './TopBar';
 
@@ -10,10 +10,12 @@ export function Footer({
   store,
   onHelp,
   onAlmanac,
+  onNewRun,
 }: {
   store: GameStore;
   onHelp: () => void;
   onAlmanac: () => void;
+  onNewRun: () => void;
 }) {
   const { content, state } = store;
   const event = content.events[state.forecast.event];
@@ -35,13 +37,18 @@ export function Footer({
         {store.message ??
           (ended
             ? ''
-            : state.charterOffer.length > 0
-              ? 'Choose a charter to end the season.'
-              : needsPick
-                ? 'Choose a draft card to end the season.'
-                : '')}
+            : state.visionOffer.length > 0
+              ? 'Choose a vision to end the season.'
+              : state.charterOffer.length > 0
+                ? 'Choose a charter to end the season.'
+                : needsPick
+                  ? 'Choose a draft card to end the season.'
+                  : '')}
       </div>
       <div class="actions">
+        <button type="button" class="button" onClick={onNewRun}>
+          New run
+        </button>
         <button type="button" class="button" onClick={onHelp} aria-keyshortcuts="?">
           Keys
         </button>
@@ -70,7 +77,9 @@ export function Footer({
           <button
             type="button"
             class="button primary"
-            disabled={ended || needsPick || state.charterOffer.length > 0}
+            disabled={
+              ended || needsPick || state.charterOffer.length > 0 || state.visionOffer.length > 0
+            }
             onClick={() => store.dispatch({ type: 'endSeason' })}
             aria-keyshortcuts="E"
           >
@@ -165,7 +174,7 @@ export function Help({ onClose }: { onClose: () => void }) {
   const close = useRef<HTMLButtonElement>(null);
   useEffect(() => close.current?.focus(), []);
   const keys: [string, string][] = [
-    ['1 – 4', 'Pick a draft card (or a charter, when one is offered)'],
+    ['1 – 4', 'Pick a draft card (or a vision or charter, when one is offered)'],
     ['A', 'Open the Almanac'],
     ['R / X', 'Reroll the draft / buy a 4th card (knowledge)'],
     ['Letters on the palette', 'Pick a building to place'],
@@ -202,63 +211,6 @@ export function Help({ onClose }: { onClose: () => void }) {
         <button type="button" class="button" ref={close} onClick={onClose}>
           Close
         </button>
-      </div>
-    </div>
-  );
-}
-
-export function EndScreen({ store, onClose }: { store: GameStore; onClose: () => void }) {
-  const { content, state } = store;
-  const first = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    // Focus the first button, and again after the next frame in case a closing
-    // overlay or a late re-render took focus away.
-    first.current?.focus();
-    const again = requestAnimationFrame(() => {
-      const dialog = first.current?.closest('[role="dialog"]');
-      if (dialog && !dialog.contains(document.activeElement)) first.current?.focus();
-    });
-    return () => cancelAnimationFrame(again);
-  }, []);
-  const score = provisionalScore(content, state);
-  const complete = state.status === 'complete';
-  const newRun = () => {
-    const url = new URL(location.href);
-    url.searchParams.delete('seed');
-    location.href = url.toString();
-  };
-  return (
-    <div class="modal-backdrop">
-      <div class="modal glass" role="dialog" aria-modal="true" aria-label="The run has ended">
-        <span class="card-kind">{complete ? 'Sprout complete' : 'Sprout ended'}</span>
-        <h2 class="glass-title">
-          {complete ? 'The valley is breathing again' : 'The settlement has scattered'}
-        </h2>
-        <p>
-          {complete
-            ? `Twelve years in ${content.name}: ${state.citizens} citizens, Harmony ${state.harmony}.`
-            : `Wellbeing reached 0 in year ${state.year}. Every run still teaches the valley something.`}
-        </p>
-        <table class="keys">
-          {score.lines.map((l) => (
-            <tr>
-              <th>{l.reason}</th>
-              <td>{l.points}</td>
-            </tr>
-          ))}
-          <tr class="total">
-            <th>Score (provisional)</th>
-            <td>{score.total}</td>
-          </tr>
-        </table>
-        <div class="row">
-          <button type="button" class="button primary" ref={first} onClick={newRun}>
-            Start a new run
-          </button>
-          <button type="button" class="button" onClick={onClose}>
-            Look at the valley
-          </button>
-        </div>
       </div>
     </div>
   );

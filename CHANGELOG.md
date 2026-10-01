@@ -1,5 +1,23 @@
 # Changelog
 
+## Milestone 7: run structure
+
+- Visions: a run starts with a choice of 2 of 3 goals (Restore the Reach, Lantern of the Valley,
+  Thriving Commons), followed on the left as it progresses, with a card when achieved. Lantern now
+  needs 30 citizens and Thriving Commons 50, because the design's numbers were met without trying
+  (DECISIONS.md D2, D3).
+- Eras: a stained-glass card announces each new era and what it brings; the top bar shows the era.
+- The score replaces the provisional one: people, Harmony, wellbeing, loops, discoveries, the vision
+  and finishing. It sets the Graft tier: Seedling, Sapling or Heartwood, with bands calibrated on
+  the balance simulator.
+- The end-of-run screen shows the score line by line and the tier, then offers the 2 districts that
+  match how the run was played; the chosen Graft is kept for Root City.
+- Saves: the run is saved as you play and resumed when you come back. Saves are versioned and
+  checked before use. **New run** starts another.
+- Simulation: the run's ledger (energy by source, food, people, industry), visions (`pickVision`),
+  `scoreRun`, `graftOffer`, `makeSave` and `readSave`.
+- The balance report has a run-end section: tiers, visions met, and the Graft offered.
+
 ## Is food too easy?
 
 - Answered: no. The balance report said food was too easy (1.77× made over eaten, 41% rotting),

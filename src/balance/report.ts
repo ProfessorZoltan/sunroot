@@ -24,6 +24,10 @@ export function toCsv(records: RunRecord[]): string {
     ['status', (r) => r.status],
     ['seasons', (r) => r.seasons],
     ['score', (r) => r.score],
+    ['tier', (r) => r.tier],
+    ['vision', (r) => r.vision],
+    ['vision_achieved', (r) => r.visionAchieved],
+    ['graft', (r) => r.graft.join(';')],
     ['citizens', (r) => r.citizens],
     ['peak_citizens', (r) => r.peakCitizens],
     ['wellbeing', (r) => r.wellbeing],
@@ -130,8 +134,8 @@ export function toReport(records: RunRecord[], meta: ReportMeta): string {
   push(
     '# Sunroot balance report',
     `${records.length} runs of ${meta.contentId}: ${meta.runsPerBot} seeds for each of ${bots.length} bots. ` +
-      'Every bot plays the same seeds. Scores use the provisional formula in the content file ' +
-      '(the real one is an open question for Milestone 7).',
+      'Every bot plays the same seeds. Scores use the formula and Graft tiers in the content file ' +
+      '(`rules.score`).',
     `Reproduce with \`${meta.command}\`. Every run is also a row in \`runs.csv\`.`,
   );
 
@@ -221,6 +225,57 @@ export function toReport(records: RunRecord[], meta: ReportMeta): string {
           (['hunger', 'unpowered', 'clutter'] as const)
             .map((k) => fixed(mean(rs.map((r) => r.wellbeingLost[k])), 0))
             .join(' / '),
+        ];
+      }),
+    ),
+  );
+
+  // The end of a run: tiers, visions and the Graft offer.
+  const tierIds = [...new Set(records.map((r) => r.tier))];
+  const visionIds = [...new Set(records.map((r) => r.vision).filter((v) => v))];
+  const firstGraft = [...new Set(records.map((r) => r.graft[0] ?? ''))].filter((d) => d);
+  push(
+    '## Run end',
+    'The Graft tier each run earns, how often each vision was achieved (and by which season, ' +
+      'median), and the district offered first as the Graft.',
+    table(
+      ['Bot', ...tierIds.map((t) => `Tier: ${t}`)],
+      bots.map((b) => {
+        const rs = byBot.get(b.name)!;
+        return [
+          b.name,
+          ...tierIds.map((t) => pct(rs.filter((r) => r.tier === t).length / rs.length)),
+        ];
+      }),
+    ),
+    table(
+      ['Bot', ...visionIds.map((v) => `Vision: ${v}`)],
+      bots.map((b) => {
+        const rs = byBot.get(b.name)!;
+        return [
+          b.name,
+          ...visionIds.map((v) => {
+            const chose = rs.filter((r) => r.vision === v);
+            const met = chose.filter((r) => r.visionAchieved >= 0);
+            if (chose.length === 0) return '–';
+            const when = met.length
+              ? ` (season ${quantile(
+                  met.map((r) => r.visionAchieved),
+                  0.5,
+                )})`
+              : '';
+            return `${pct(met.length / chose.length)}${when}`;
+          }),
+        ];
+      }),
+    ),
+    table(
+      ['Bot', ...firstGraft.map((d) => `Graft: ${d}`)],
+      bots.map((b) => {
+        const rs = byBot.get(b.name)!;
+        return [
+          b.name,
+          ...firstGraft.map((d) => pct(rs.filter((r) => r.graft[0] === d).length / rs.length)),
         ];
       }),
     ),

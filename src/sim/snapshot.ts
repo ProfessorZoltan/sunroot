@@ -7,7 +7,7 @@ import type { BuildingState, MapState, RunState, SeasonSnapshot } from './types'
  * field is added to the state and not copied here.
  *
  * Parts that are written once and then only replaced, never changed in place,
- * are shared between copies: `lastReport`, `history`, `energyHistory`, `loops`, the
+ * are shared between copies: `lastReport`, `history`, `energyHistory`, `loops`, `ledger`, the
  * season-start snapshot, past commands, `options`, and the map's `river` and
  * `floodOrder` lists. Code must never mutate those in place.
  */
@@ -40,6 +40,10 @@ export function snapshot(state: SeasonSnapshot): SeasonSnapshot {
     charters: [...state.charters],
     charterOffer: [...state.charterOffer],
     hints: [...state.hints],
+    visionOffer: [...state.visionOffer],
+    vision: state.vision,
+    visionAchieved: state.visionAchieved,
+    ledger: state.ledger,
     notices: [...state.notices],
     lastReport: state.lastReport,
     history: state.history,

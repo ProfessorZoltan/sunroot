@@ -34,7 +34,7 @@ const read = <T>(page: Page, f: (s: Sunroot) => T) =>
 test('the map renders, previews, places, undoes and ends a season', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto('/?seed=willow-reach-golden');
+  await page.goto('/?seed=willow-reach-golden&visions=0');
   await expect(page.locator('#map-host canvas')).toBeVisible();
   await expect(page.getByText('Choose one')).toBeVisible();
 

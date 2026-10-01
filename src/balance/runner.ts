@@ -2,7 +2,8 @@
 import {
   applyCommand,
   createRun,
-  provisionalScore,
+  graftOffer,
+  scoreRun,
   SEASONS,
   type Content,
   type RunState,
@@ -17,6 +18,13 @@ export interface RunRecord {
   status: 'complete' | 'collapsed';
   seasons: number;
   score: number;
+  /** The Graft tier the score earns. */
+  tier: string;
+  vision: string;
+  /** The season the vision was achieved, or -1. */
+  visionAchieved: number;
+  /** The two districts offered as the Graft, best match first. */
+  graft: string[];
   citizens: number;
   peakCitizens: number;
   wellbeing: number;
@@ -66,7 +74,7 @@ export function playRun(
   seed: string,
   options: { guided?: boolean; onSeason?: (state: RunState) => void } = {},
 ): RunRecord {
-  let state = createRun(content, { seed, guided: options.guided ?? false });
+  let state = createRun(content, { seed, guided: options.guided ?? false, visions: true });
   const rng = createRng(`${seed}:bot:${bot.name}`);
   const record: RunRecord = {
     seed,
@@ -74,6 +82,10 @@ export function playRun(
     status: 'complete',
     seasons: 0,
     score: 0,
+    tier: '',
+    vision: '',
+    visionAchieved: -1,
+    graft: [],
     citizens: 0,
     peakCitizens: state.citizens,
     wellbeing: 0,
@@ -116,7 +128,11 @@ export function playRun(
     if (state.draft.offer.length > 0 && !state.draft.picked) {
       state = ok(applyCommand(content, state, { type: 'pickCard', card: state.draft.offer[0]! }));
     }
-    // Charters: the first on offer (the offer is already shuffled).
+    // Visions and charters: the first on offer (the offers are already shuffled).
+    if (state.visionOffer.length > 0) {
+      const vision = state.visionOffer[0]!;
+      state = ok(applyCommand(content, state, { type: 'pickVision', vision }));
+    }
     if (state.charterOffer.length > 0) {
       const charter = state.charterOffer[0]!;
       state = ok(applyCommand(content, state, { type: 'pickCharter', charter }));
@@ -168,7 +184,12 @@ export function playRun(
 
   record.status = state.status === 'complete' ? 'complete' : 'collapsed';
   record.seasons = state.turn;
-  record.score = provisionalScore(content, state).total;
+  const score = scoreRun(content, state);
+  record.score = score.total;
+  record.tier = score.tier.id;
+  record.vision = state.vision ?? '';
+  record.visionAchieved = state.visionAchieved ?? -1;
+  record.graft = graftOffer(content, state).options.map((o) => o.district.id);
   record.citizens = state.citizens;
   record.wellbeing = state.wellbeing;
   record.harmony = state.harmony;

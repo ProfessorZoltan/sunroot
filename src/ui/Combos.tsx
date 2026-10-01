@@ -132,34 +132,86 @@ function AlmanacEntry({
   );
 }
 
-/** The stained-glass card that unfolds when a combo is discovered for the first time. */
-export function DiscoveryCard({ store }: { store: GameStore }) {
-  const id = store.discoveries[0]!;
-  const combo = store.content.comboById[id]!;
+/**
+ * The stained-glass card that unfolds after a season plays out: a combo new to
+ * the Almanac, the start of an era, or the run's vision achieved.
+ */
+export function RevealCard({ store }: { store: GameStore }) {
+  const reveal = store.reveals[0]!;
+  const { content } = store;
   const button = useRef<HTMLButtonElement>(null);
-  useEffect(() => button.current?.focus(), [id]);
-  const more = store.discoveries.length - 1;
+  const key = reveal.kind === 'era' ? `era-${reveal.era}` : `${reveal.kind}-${reveal.id}`;
+  useEffect(() => button.current?.focus(), [key]);
+  const more = store.reveals.length - 1;
+  let label: string;
+  let body;
+  if (reveal.kind === 'combo') {
+    const combo = content.comboById[reveal.id]!;
+    label = `Discovered: ${combo.name}`;
+    body = (
+      <>
+        <Jewel layer={combo.layer} />
+        <span class="card-kind">Discovered · {LAYER_NAMES[combo.layer]}</span>
+        <h2 class="glass-title">{combo.name}</h2>
+        <p>{combo.text}</p>
+        <div class="small">Filed in the Almanac.</div>
+      </>
+    );
+  } else if (reveal.kind === 'era') {
+    const name = content.rules.eras[reveal.era - 1] ?? `Era ${reveal.era}`;
+    const blueprints = content.buildings
+      .filter((b) => b.draftable && b.minEra === reveal.era)
+      .map((b) => b.name);
+    const charter = content.rules.charterEras.includes(reveal.era);
+    label = `Era ${reveal.era}: ${name}`;
+    body = (
+      <>
+        <span class="combo-jewel" style={{ background: '#E0A33B' }} aria-hidden="true">
+          {reveal.era}
+        </span>
+        <span class="card-kind">A new era</span>
+        <h2 class="glass-title">{name}</h2>
+        <p>
+          Era {reveal.era} of {content.rules.eras.length}: years{' '}
+          {(reveal.era - 1) * content.rules.yearsPerEra + 1} to{' '}
+          {reveal.era * content.rules.yearsPerEra}.
+          {charter ? ' A charter awaits: choose one before the season ends.' : ''}
+          {blueprints.length > 0 ? ` New blueprints can be drafted: ${blueprints.join(', ')}.` : ''}
+        </p>
+      </>
+    );
+  } else {
+    const vision = content.visions.find((v) => v.id === reveal.id)!;
+    label = `Vision achieved: ${vision.name}`;
+    body = (
+      <>
+        <span class="combo-jewel" style={{ background: '#2E8B6A' }} aria-hidden="true">
+          ✓
+        </span>
+        <span class="card-kind">Vision achieved</span>
+        <h2 class="glass-title">{vision.name}</h2>
+        <p>{vision.text}</p>
+        <div class="small">+{content.rules.score.visionBonus} to this run's score.</div>
+      </>
+    );
+  }
   return (
     <div class="modal-backdrop">
       <div
         class="modal glass discovery"
         role="dialog"
         aria-modal="true"
-        aria-label={`Discovered: ${combo.name}`}
-        key={id}
+        aria-label={label}
+        key={key}
       >
-        <Jewel layer={combo.layer} />
-        <span class="card-kind">Discovered · {LAYER_NAMES[combo.layer]}</span>
-        <h2 class="glass-title">{combo.name}</h2>
-        <p>{combo.text}</p>
-        <div class="small">Filed in the Almanac.</div>
+        {body}
         <button
           type="button"
           class="button primary"
           ref={button}
-          onClick={() => store.dismissDiscovery()}
+          onClick={() => store.dismissReveal()}
         >
-          {more > 0 ? `Next discovery (${more} more)` : 'Continue'}
+          {more > 0 ? `Next (${more} more)` : 'Continue'}
         </button>
       </div>
     </div>

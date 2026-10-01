@@ -23,6 +23,7 @@ export function applyCommand(base: Content, state: RunState, command: Command): 
       return fail('pick a draft card before ending the season');
     }
     if (state.charterOffer.length > 0) return fail('choose a charter before ending the season');
+    if (state.visionOffer.length > 0) return fail('choose a vision before ending the season');
     return { ok: true, state: resolveSeason(base, state) };
   }
   const content = effectiveContent(base, state);
@@ -50,6 +51,12 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       if (!s.charterOffer.includes(command.charter)) return `${command.charter} is not on offer`;
       s.charters.push(command.charter);
       s.charterOffer = [];
+      return null;
+    }
+    case 'pickVision': {
+      if (!s.visionOffer.includes(command.vision)) return `${command.vision} is not on offer`;
+      s.vision = command.vision;
+      s.visionOffer = [];
       return null;
     }
     case 'buyHint': {

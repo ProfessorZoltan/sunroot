@@ -298,17 +298,25 @@ export const RulesSchema = z
     charterEras: z.array(int.min(1)).default([]),
     charterChoices: int.min(1).default(3),
     /**
-     * Provisional end-of-run score for the balance simulator. The real formula
-     * and the Graft tier bands are an open design question (Milestone 7).
+     * The end-of-run score and the Graft tier bands (Milestone 7). The design
+     * leaves both open; see DECISIONS.md for how these were chosen.
      */
-    provisionalScore: z.object({
+    score: z.object({
       perSeasonSurvived: int,
       perCitizen: int,
       perHarmony: int,
       wellbeingStep: int.min(1),
       perWellbeingStep: int,
       completeBonus: int,
+      /** Per loop standing at the end, and per combo discovered this run. */
+      perLoop: int,
+      perDiscovery: int,
+      visionBonus: int,
+      /** Graft tiers from lowest; a run reaches the highest tier whose `min` its score meets. */
+      tiers: z.array(z.object({ id: z.string(), name: z.string(), min: int.min(0) })).min(1),
     }),
+    /** How many visions are offered at the start of a run (when visions are on). */
+    visionChoices: int.min(1).default(2),
     mixedGrid: z.object({
       minSourceTypes: int.min(1),
       minShare: z.number().min(0).max(1),
@@ -471,6 +479,49 @@ export type Combo = z.infer<typeof ComboSchema>;
 export type ComboLayer = Combo['layer'];
 export const COMBO_LAYERS = ['adjacency', 'chain', 'formation', 'evolution'] as const;
 
+/** Run goals: one is chosen at the start of a run. */
+export const VisionSchema = z
+  .object({
+    ...CardText,
+    goal: z.discriminatedUnion('kind', [
+      /** This share of the healable land (the land-health ladder) is meadow or woodland. */
+      z.object({ kind: z.literal('greenLand'), share: z.number().min(0).max(1) }),
+      /**
+       * A full calendar year, spring to winter, without a shortfall in any slot,
+       * with at least `minCitizens` citizens at the end of every season of it.
+       */
+      z.object({ kind: z.literal('noShortfallYear'), minCitizens: int.min(0).default(0) }),
+      /** At least this many citizens at this wellbeing or more. */
+      z.object({ kind: z.literal('citizens'), citizens: int.min(1), wellbeing: int.min(0) }),
+    ]),
+  })
+  .strict();
+export type Vision = z.infer<typeof VisionSchema>;
+
+/** What a run's signature is measured by, for the Graft offer. */
+export const SIGNATURE_METRICS = ['energyShare', 'foodPerCitizen', 'harmony', 'industry'] as const;
+
+/** A Root City district a run can send home as its Graft. */
+export const DistrictSchema = z
+  .object({
+    id: z.string().regex(/^[a-z][A-Za-z]*$/),
+    name: z.string(),
+    /** "Earned by", as in the design's table. */
+    earnedBy: z.string(),
+    /** The run's lean towards this district is `metric / full` (1 = fully this kind of run). */
+    signature: z.object({
+      metric: z.enum(SIGNATURE_METRICS),
+      full: z.number().positive(),
+      /** For `energyShare`: the source types whose share of built energy counts. */
+      sources: z.array(z.string()).default([]),
+    }),
+    /** The perk at each tier, lowest first, and what it adds to future drafts (Milestone 8). */
+    perks: z.array(z.string()).min(1),
+    addsToDraft: z.string(),
+  })
+  .strict();
+export type District = z.infer<typeof DistrictSchema>;
+
 export const ContentSchema = z
   .object({
     id: z.string(),
@@ -490,6 +541,8 @@ export const ContentSchema = z
     combos: z.array(ComboSchema).default([]),
     tunings: z.array(TuningSchema).default([]),
     charters: z.array(CharterSchema).default([]),
+    visions: z.array(VisionSchema).default([]),
+    districts: z.array(DistrictSchema).default([]),
     /** Fixed draft offers for the guided first year, spring to winter. */
     guidedYear: z.tuple([
       z.array(z.string()),

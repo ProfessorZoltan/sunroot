@@ -51,6 +51,7 @@ describe('report', () => {
     for (const heading of [
       '## Summary',
       '## Score spread',
+      '## Run end',
       '## Cards',
       '## Idle seasons',
       '## Blackouts',

@@ -2,6 +2,7 @@
 import type { GameStore } from '../game/store';
 import type { BuildingDef, Content } from '../sim';
 import { CharterPanel } from './Combos';
+import { VisionPanel } from './RunUi';
 import { describeBuilding } from './describe';
 import { Reroll } from './icons';
 import { SEASON_NAMES } from './TopBar';
@@ -27,7 +28,9 @@ export interface Ui {
 export function RightPanel({ store, ui }: { store: GameStore; ui: Ui }) {
   return (
     <aside class="side" aria-label="Draft and building">
-      {store.state.charterOffer.length > 0 ? (
+      {store.state.visionOffer.length > 0 ? (
+        <VisionPanel store={store} />
+      ) : store.state.charterOffer.length > 0 ? (
         <CharterPanel store={store} />
       ) : (
         <DraftPanel store={store} ui={ui} />

@@ -4,8 +4,9 @@ A solarpunk settlement builder of short, replayable runs. Each run heals one dam
 it sends home grows a permanent city. The full design is in [docs/DESIGN.md](docs/DESIGN.md).
 
 Built so far: the simulation core, the balance simulator, the map, the interface, the season
-resolution, and combos with the Almanac (Milestones 0 to 6 of the build plan). A whole run of Willow Reach can be played to the end with mouse or
-keyboard. See [CHANGELOG.md](CHANGELOG.md) and [docs/DECISIONS.md](docs/DECISIONS.md).
+resolution, combos with the Almanac, and the run's structure: eras, visions, scoring and the Graft
+(Milestones 0 to 7 of the build plan, the vertical slice). A whole run of Willow Reach can be played
+to the end with mouse or keyboard, and a run in progress is saved and resumed. See [CHANGELOG.md](CHANGELOG.md) and [docs/DECISIONS.md](docs/DECISIONS.md).
 
 ## Getting started
 
@@ -18,10 +19,19 @@ npm run check    # typecheck, lint, format check and unit tests
 npm run balance  # balance simulator: 4,000 bot runs -> balance-out/runs.csv and report.md
 ```
 
-URL options: `?seed=<text>` replays a run, `?sandbox` unlocks every building with 999 materials,
-`?guided=0` skips the guided first year.
+The run in progress is saved in the browser as you play, and opening the game again continues it.
+**New run** at the bottom starts another.
+
+URL options: `?seed=<text>` starts a run with that seed, `?new` starts a new run, `?guided=0` skips
+the guided first year, `?visions=0` skips the vision choice, and `?sandbox` unlocks every building
+with 999 materials (sandbox runs are never saved).
 
 ## Playing
+
+A run is 12 years of 4 seasons, in 4 eras: Settle, Mend, Flourish and Bloom. It starts with a choice
+of vision, a goal for the run; each new era after the first offers a charter. At the end the score
+sets the tier of the Graft, the district the run sends home to Root City, and you choose which of
+the two districts that match how you played.
 
 Pick one of three blueprint cards, then build: choose a building on the right and hover the map.
 The ghost shows exactly what it would do this season, including effects on its neighbours. Click
@@ -70,7 +80,8 @@ Commands never mutate the state they are given. `state.lastReport` explains the 
 energy per slot, every building's yield and the math behind it, blackouts and wellbeing changes.
 `previewPlacement` and `projectSeason` answer "what if" questions without changing anything. The
 same seed and the same commands always give the same run, and a state survives `JSON.stringify`,
-so saves are just serialized state.
+so saves are just serialized state: `makeSave` wraps one in a versioned envelope and
+`readSave` checks one before it is used.
 
 ## Balance simulator
 

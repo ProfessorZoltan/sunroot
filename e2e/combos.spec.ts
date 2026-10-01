@@ -7,7 +7,7 @@ import { expect, test } from '@playwright/test';
 test('a discovery unfolds as a card, and the Almanac keeps it', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto('/?seed=willow-reach-golden&sandbox');
+  await page.goto('/?seed=willow-reach-golden&sandbox&visions=0');
   await expect(page.locator('#map-host canvas')).toBeVisible();
   // A cottage beside green land: the Green Doorstep.
   await page.evaluate(() => {

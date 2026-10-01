@@ -27,10 +27,10 @@ async function settle(page: Page) {
     const busy = await page.evaluate(() => {
       const { store } = (
         window as unknown as {
-          sunroot: { store: { resolution: unknown; discoveries: string[] } };
+          sunroot: { store: { resolution: unknown; reveals: unknown[] } };
         }
       ).sunroot;
-      return store.resolution !== null || store.discoveries.length > 0;
+      return store.resolution !== null || store.reveals.length > 0;
     });
     if (!busy) return;
     await page.keyboard.press('Escape');
@@ -69,15 +69,22 @@ test('a whole run, keyboard only, to the end screen', async ({ page }) => {
   const dialog = page.getByRole('dialog', { name: 'The run has ended' });
   await settle(page);
   await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText(/Score: (Seedling|Sapling|Heartwood) Graft/);
+  // The first Graft on offer has focus: send it home, then look at the valley.
+  await expect(dialog.getByRole('button', { name: /runs/ }).first()).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(dialog.getByRole('status')).toContainText('is on its way to Root City');
   await expect(dialog.getByRole('button', { name: 'Start a new run' })).toBeFocused();
   await page.keyboard.press('Tab');
   await page.keyboard.press('Enter');
   await expect(dialog).toBeHidden();
+  const city = await page.evaluate(() => JSON.parse(localStorage.getItem('sunroot:city')!));
+  expect(city.grafts).toHaveLength(1);
   expect(errors).toEqual([]);
 });
 
 test('tooltips show the math on hover and on keyboard focus', async ({ page }) => {
-  await page.goto('/?seed=willow-reach-golden');
+  await page.goto('/?seed=willow-reach-golden&visions=0');
   await expect(page.locator('#map-host canvas')).toBeVisible();
 
   await page
@@ -102,7 +109,7 @@ test('tooltips show the math on hover and on keyboard focus', async ({ page }) =
 });
 
 test('the inspector changes a workshop recipe and blackout priority', async ({ page }) => {
-  await page.goto('/?seed=willow-reach-golden&sandbox');
+  await page.goto('/?seed=willow-reach-golden&sandbox&visions=0');
   await expect(page.locator('#map-host canvas')).toBeVisible();
   await page.keyboard.press('w');
   await page.keyboard.press('Enter');

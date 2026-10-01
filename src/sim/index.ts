@@ -10,6 +10,8 @@ export {
   type Charter,
   type Combo,
   type ComboLayer,
+  type District,
+  type Vision,
   type EventId,
   type Tuning,
   type Resource,
@@ -30,7 +32,23 @@ export {
 } from './preview';
 export { generateMap } from './map';
 export { blueprintPool } from './draft';
-export { provisionalScore, type ScoreLine } from './score';
+export {
+  graftOffer,
+  leanOf,
+  provisionalScore,
+  runSignature,
+  scoreRun,
+  visionMet,
+  visionProgress,
+  type GraftOffer,
+  type GraftOption,
+  type RunScore,
+  type ScoreLine,
+  type Signature,
+  type Tier,
+  type VisionProgress,
+} from './score';
+export { makeSave, readSave, SAVE_VERSION, type ReadSave, type SaveFile } from './save';
 export {
   computeHarmony,
   harmonyLines,

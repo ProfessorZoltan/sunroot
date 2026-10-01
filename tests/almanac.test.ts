@@ -65,11 +65,11 @@ describe('the Almanac', () => {
     store.dispatch({ type: 'endSeason' });
     // The Kitchen Loop was already in the Almanac; the composter's neighbour is new.
     expect(store.state.lastReport!.discoveries).toContain('kitchenLoop');
-    expect(store.discoveries).not.toContain('kitchenLoop');
-    expect(saved).toHaveLength(store.discoveries.length > 0 ? 1 : 0);
-    const before = store.discoveries.length;
-    store.dismissDiscovery();
-    expect(store.discoveries.length).toBe(Math.max(0, before - 1));
+    expect(store.reveals).not.toContain('kitchenLoop');
+    expect(saved).toHaveLength(store.reveals.length > 0 ? 1 : 0);
+    const before = store.reveals.length;
+    store.dismissReveal();
+    expect(store.reveals.length).toBe(Math.max(0, before - 1));
   });
 });
 

@@ -8,9 +8,10 @@ import { useEffect, useReducer, useRef, useState } from 'preact/hooks';
 import type { GameStore } from '../game/store';
 import type { MapView } from '../render/mapView';
 import { paletteHotkeys, GLOBAL_KEYS } from './hotkeys';
-import { AlmanacModal, DiscoveryCard } from './Combos';
+import { AlmanacModal, RevealCard } from './Combos';
 import { LeftPanel } from './LeftPanel';
-import { EndScreen, Footer, ForecastPill, Help, MapTip, ResolutionBanner } from './Overlays';
+import { Footer, ForecastPill, Help, MapTip, ResolutionBanner } from './Overlays';
+import { EndScreen, NewRunDialog } from './RunUi';
 import { RightPanel, paletteOrder, type Ui } from './RightPanel';
 import { TipProvider } from './tips';
 import { TopBar } from './TopBar';
@@ -19,10 +20,13 @@ export function App({
   store,
   view,
   icons,
+  newRun,
 }: {
   store: GameStore;
   view: () => MapView | null;
   icons: () => Record<string, string>;
+  /** Abandons this run (and its save) and starts another. */
+  newRun: () => void;
 }) {
   const [, rerender] = useReducer((n: number, _: undefined) => n + 1, 0);
   const [help, setHelpState] = useState(false);
@@ -39,6 +43,7 @@ export function App({
     setAlmanacState(open);
   };
   const [endSeen, setEndSeen] = useState(false);
+  const [askNewRun, setAskNewRun] = useState(false);
   useEffect(() => store.subscribe(() => rerender(undefined)), [store]);
 
   const { content, state } = store;
@@ -70,9 +75,9 @@ export function App({
         if (lower === 'p') return (handled(), store.togglePause());
       }
       // A discovery card waits for Continue (Enter or Space on its button, or Esc).
-      const revealing = store.discoveries.length > 0 && !store.resolution;
+      const revealing = store.reveals.length > 0 && !store.resolution;
       if (revealing && !help) {
-        if (key === 'Escape') return (handled(), store.dismissDiscovery());
+        if (key === 'Escape') return (handled(), store.dismissReveal());
         return;
       }
       if (almanacOpen.current && !help) {
@@ -88,7 +93,12 @@ export function App({
       if (help) return;
       if (lower === GLOBAL_KEYS.almanac) return (handled(), setAlmanac(true));
       if (/^[1-4]$/.test(key)) {
-        const { draft, charterOffer } = store.state;
+        const { draft, charterOffer, visionOffer } = store.state;
+        const vision = visionOffer[Number(key) - 1];
+        if (visionOffer.length > 0) {
+          if (vision) store.dispatch({ type: 'pickVision', vision });
+          return handled();
+        }
         const charter = charterOffer[Number(key) - 1];
         if (charterOffer.length > 0) {
           if (charter) store.dispatch({ type: 'pickCharter', charter });
@@ -167,12 +177,18 @@ export function App({
           </main>
           <RightPanel store={store} ui={ui} />
         </div>
-        <Footer store={store} onHelp={() => setHelp(true)} onAlmanac={() => setAlmanac(true)} />
+        <Footer
+          store={store}
+          onHelp={() => setHelp(true)}
+          onAlmanac={() => setAlmanac(true)}
+          onNewRun={() => (store.state.status === 'active' ? setAskNewRun(true) : newRun())}
+        />
         {help && <Help onClose={() => setHelp(false)} />}
+        {askNewRun && <NewRunDialog onConfirm={newRun} onClose={() => setAskNewRun(false)} />}
         {almanac && <AlmanacModal store={store} onClose={() => setAlmanac(false)} />}
-        {store.discoveries.length > 0 && !store.resolution && <DiscoveryCard store={store} />}
-        {ended && !endSeen && !store.resolution && store.discoveries.length === 0 && (
-          <EndScreen store={store} onClose={() => setEndSeen(true)} />
+        {store.reveals.length > 0 && !store.resolution && <RevealCard store={store} />}
+        {ended && !endSeen && !store.resolution && store.reveals.length === 0 && (
+          <EndScreen store={store} onClose={() => setEndSeen(true)} onNewRun={newRun} />
         )}
       </div>
     </TipProvider>

@@ -22,7 +22,7 @@ test('a season plays out in about 5 seconds, through event, day, night and settl
 }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto('/?seed=willow-reach-golden');
+  await page.goto('/?seed=willow-reach-golden&visions=0');
   await expect(page.locator('#map-host canvas')).toBeVisible();
   await page
     .getByRole('button', { name: /Floodplain Farm/ })
@@ -80,7 +80,7 @@ test('a season plays out in about 5 seconds, through event, day, night and settl
 });
 
 test('Space skips at once, P pauses, and acting skips the rest', async ({ page }) => {
-  await page.goto('/?seed=willow-reach-golden');
+  await page.goto('/?seed=willow-reach-golden&visions=0');
   await expect(page.locator('#map-host canvas')).toBeVisible();
   await page
     .getByRole('button', { name: /Floodplain Farm/ })

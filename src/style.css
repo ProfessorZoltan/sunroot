@@ -880,3 +880,38 @@ select:focus-visible {
     animation: none;
   }
 }
+
+/* ---------------------------------------------------------------- run end */
+
+.vision-bar {
+  margin: 6px 0 2px;
+}
+.vision-bar .bar-fill {
+  background: #2e8b6a;
+}
+
+.modal.glass.end {
+  width: min(640px, calc(100% - 32px));
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+.glass-subtitle {
+  margin: 4px 0 0;
+  color: var(--glass-gold);
+  font-family: var(--display);
+  font-size: 19px;
+}
+.graft-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+}
+.card.graft {
+  border: 2px solid var(--glass-gold);
+}
+.graft-sent {
+  color: var(--glass-text);
+  font-weight: 700;
+}

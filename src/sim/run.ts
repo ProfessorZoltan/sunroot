@@ -3,7 +3,7 @@ import { RESOURCES, SEASONS } from './content/schema';
 import { dealOffer } from './draft';
 import { generateMap } from './map';
 import { computeHarmony } from './queries';
-import { createRng } from './rng';
+import { createRng, shuffled } from './rng';
 import { snapshot } from './snapshot';
 import type { MapState, RunOptions, RunState, Stores } from './types';
 import type { Hex } from './hex';
@@ -24,6 +24,7 @@ export function createRun(
     seed: options.seed,
     guided: options.guided ?? false,
     sandbox: options.sandbox ?? false,
+    visions: options.visions ?? false,
   };
   const generated = overrides.map ? null : generateMap(content, opts.seed);
   const map = overrides.map ?? generated!.map;
@@ -35,7 +36,7 @@ export function createRun(
   stores.food = content.rules.start.food;
 
   const state: RunState = {
-    version: 1,
+    version: 2,
     contentId: content.id,
     options: opts,
     rng: createRng(`${opts.seed}:run`),
@@ -64,6 +65,16 @@ export function createRun(
     charters: [],
     charterOffer: [],
     hints: [],
+    // Visions draw from their own stream, so turning them on never changes the run itself.
+    visionOffer: opts.visions
+      ? shuffled(
+          createRng(`${opts.seed}:visions`),
+          content.visions.map((v) => v.id),
+        ).slice(0, content.rules.visionChoices)
+      : [],
+    vision: null,
+    visionAchieved: null,
+    ledger: { energy: {}, foodMade: 0, foodEaten: 0, citizenSeasons: 0, industry: 0 },
     notices: [],
     lastReport: null,
     history: [],

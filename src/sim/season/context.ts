@@ -77,6 +77,7 @@ export function emptyReport(state: RunState): SeasonReport {
     combos: [],
     discoveries: [],
     evolved: [],
+    visionAchieved: false,
   };
 }
 

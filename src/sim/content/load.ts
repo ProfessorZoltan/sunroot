@@ -52,6 +52,8 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     }
   }
   for (const c of data.combos) checkCombo(c, known);
+  for (const d of data.districts)
+    d.signature.sources.forEach((id) => known(id, `district ${d.id}`));
   const cards = new Set(data.buildings.map((b) => b.id));
   for (const t of data.tunings) {
     if (cards.has(t.id)) problems.push(`tuning ${t.id} has the same id as a draft card`);
@@ -72,9 +74,20 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     data.charters.map((c) => c.id),
     'charter',
   );
+  unique(
+    data.visions.map((v) => v.id),
+    'vision',
+  );
+  unique(
+    data.districts.map((d) => d.id),
+    'district',
+  );
   const { harmony } = data.rules;
   if (!harmony.tiers.every((t, i, a) => i === 0 || t.min > a[i - 1]!.min)) {
     problems.push('rules.harmony.tiers must be sorted by min');
+  }
+  if (!data.rules.score.tiers.every((t, i, a) => i === 0 || t.min > a[i - 1]!.min)) {
+    problems.push('rules.score.tiers must be sorted by min');
   }
   if (problems.length > 0) throw new Error(`Invalid content:\n  ${problems.join('\n  ')}`);
   const content: Content = {
