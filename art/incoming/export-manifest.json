@@ -1,0 +1,1920 @@
+{
+  "output_root": "C:/apps/sunroot art/output/art",
+  "frame": [
+    512,
+    640
+  ],
+  "target_tile_width": 400,
+  "target_anchor": [
+    256,
+    168
+  ],
+  "assets": [
+    {
+      "filename": "tiles/river.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-25d52eb8-2b75-42b4-8db0-ea27b49a2a08.png",
+      "crop": [
+        0,
+        0,
+        374,
+        505
+      ],
+      "source_anchor": [
+        190,
+        107
+      ],
+      "source_tile_width": 348,
+      "source_face_bottom": 459,
+      "source_band_bottom": 489
+    },
+    {
+      "filename": "tiles/reservoir.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-25d52eb8-2b75-42b4-8db0-ea27b49a2a08.png",
+      "crop": [
+        374,
+        0,
+        748,
+        505
+      ],
+      "source_anchor": [
+        560,
+        107
+      ],
+      "source_tile_width": 348,
+      "source_face_bottom": 461,
+      "source_band_bottom": 491
+    },
+    {
+      "filename": "tiles/floodplain.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-25d52eb8-2b75-42b4-8db0-ea27b49a2a08.png",
+      "crop": [
+        748,
+        0,
+        1122,
+        505
+      ],
+      "source_anchor": [
+        932,
+        107
+      ],
+      "source_tile_width": 348,
+      "source_face_bottom": 461,
+      "source_band_bottom": 490
+    },
+    {
+      "filename": "tiles/hill.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-25d52eb8-2b75-42b4-8db0-ea27b49a2a08.png",
+      "crop": [
+        0,
+        505,
+        374,
+        910
+      ],
+      "source_anchor": [
+        190,
+        519
+      ],
+      "source_tile_width": 348,
+      "source_face_bottom": 872,
+      "source_band_bottom": 902
+    },
+    {
+      "filename": "tiles/ruin.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-25d52eb8-2b75-42b4-8db0-ea27b49a2a08.png",
+      "crop": [
+        374,
+        505,
+        748,
+        910
+      ],
+      "source_anchor": [
+        560,
+        519
+      ],
+      "source_tile_width": 348,
+      "source_face_bottom": 872,
+      "source_band_bottom": 903
+    },
+    {
+      "filename": "tiles/barren.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-25d52eb8-2b75-42b4-8db0-ea27b49a2a08.png",
+      "crop": [
+        748,
+        505,
+        1122,
+        910
+      ],
+      "source_anchor": [
+        932,
+        519
+      ],
+      "source_tile_width": 348,
+      "source_face_bottom": 872,
+      "source_band_bottom": 903
+    },
+    {
+      "filename": "tiles/scrub.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-25d52eb8-2b75-42b4-8db0-ea27b49a2a08.png",
+      "crop": [
+        0,
+        910,
+        374,
+        1402
+      ],
+      "source_anchor": [
+        190,
+        930
+      ],
+      "source_tile_width": 348,
+      "source_face_bottom": 1286,
+      "source_band_bottom": 1316
+    },
+    {
+      "filename": "tiles/meadow.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-25d52eb8-2b75-42b4-8db0-ea27b49a2a08.png",
+      "crop": [
+        374,
+        910,
+        748,
+        1402
+      ],
+      "source_anchor": [
+        560,
+        930
+      ],
+      "source_tile_width": 348,
+      "source_face_bottom": 1286,
+      "source_band_bottom": 1316
+    },
+    {
+      "filename": "tiles/woodland.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-25d52eb8-2b75-42b4-8db0-ea27b49a2a08.png",
+      "crop": [
+        748,
+        910,
+        1122,
+        1402
+      ],
+      "source_anchor": [
+        932,
+        930
+      ],
+      "source_tile_width": 348,
+      "source_face_bottom": 1286,
+      "source_band_bottom": 1316
+    },
+    {
+      "filename": "tiles/river-2.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-d14417fe-b30b-43aa-8fdd-74843be07676.png",
+      "crop": [
+        0,
+        0,
+        374,
+        506
+      ],
+      "source_anchor": [
+        191,
+        102
+      ],
+      "source_tile_width": 350,
+      "source_face_bottom": 462,
+      "source_band_bottom": 492
+    },
+    {
+      "filename": "tiles/reservoir-2.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-d14417fe-b30b-43aa-8fdd-74843be07676.png",
+      "crop": [
+        374,
+        0,
+        748,
+        506
+      ],
+      "source_anchor": [
+        562,
+        102
+      ],
+      "source_tile_width": 350,
+      "source_face_bottom": 462,
+      "source_band_bottom": 493
+    },
+    {
+      "filename": "tiles/floodplain-2.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-d14417fe-b30b-43aa-8fdd-74843be07676.png",
+      "crop": [
+        748,
+        0,
+        1122,
+        506
+      ],
+      "source_anchor": [
+        932,
+        102
+      ],
+      "source_tile_width": 350,
+      "source_face_bottom": 462,
+      "source_band_bottom": 493
+    },
+    {
+      "filename": "tiles/hill-2.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-d14417fe-b30b-43aa-8fdd-74843be07676.png",
+      "crop": [
+        0,
+        506,
+        374,
+        911
+      ],
+      "source_anchor": [
+        191,
+        517
+      ],
+      "source_tile_width": 350,
+      "source_face_bottom": 876,
+      "source_band_bottom": 906
+    },
+    {
+      "filename": "tiles/ruin-2.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-d14417fe-b30b-43aa-8fdd-74843be07676.png",
+      "crop": [
+        374,
+        506,
+        748,
+        911
+      ],
+      "source_anchor": [
+        562,
+        517
+      ],
+      "source_tile_width": 350,
+      "source_face_bottom": 876,
+      "source_band_bottom": 906
+    },
+    {
+      "filename": "tiles/barren-2.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-d14417fe-b30b-43aa-8fdd-74843be07676.png",
+      "crop": [
+        748,
+        506,
+        1122,
+        911
+      ],
+      "source_anchor": [
+        932,
+        517
+      ],
+      "source_tile_width": 350,
+      "source_face_bottom": 876,
+      "source_band_bottom": 906
+    },
+    {
+      "filename": "tiles/scrub-2.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-d14417fe-b30b-43aa-8fdd-74843be07676.png",
+      "crop": [
+        0,
+        911,
+        374,
+        1402
+      ],
+      "source_anchor": [
+        191,
+        929
+      ],
+      "source_tile_width": 350,
+      "source_face_bottom": 1290,
+      "source_band_bottom": 1321
+    },
+    {
+      "filename": "tiles/meadow-2.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-d14417fe-b30b-43aa-8fdd-74843be07676.png",
+      "crop": [
+        374,
+        911,
+        748,
+        1402
+      ],
+      "source_anchor": [
+        562,
+        929
+      ],
+      "source_tile_width": 350,
+      "source_face_bottom": 1290,
+      "source_band_bottom": 1321
+    },
+    {
+      "filename": "tiles/woodland-2.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-d14417fe-b30b-43aa-8fdd-74843be07676.png",
+      "crop": [
+        748,
+        911,
+        1122,
+        1402
+      ],
+      "source_anchor": [
+        932,
+        929
+      ],
+      "source_tile_width": 350,
+      "source_face_bottom": 1290,
+      "source_band_bottom": 1321
+    },
+    {
+      "filename": "tiles/river.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-18ad4d3b-6988-4581-a770-f44b5f338ef0.png",
+      "crop": [
+        0,
+        0,
+        374,
+        505
+      ],
+      "source_anchor": [
+        191,
+        104
+      ],
+      "source_tile_width": 350,
+      "source_face_bottom": 461,
+      "source_band_bottom": 491
+    },
+    {
+      "filename": "tiles/reservoir.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-18ad4d3b-6988-4581-a770-f44b5f338ef0.png",
+      "crop": [
+        374,
+        0,
+        748,
+        505
+      ],
+      "source_anchor": [
+        562,
+        104
+      ],
+      "source_tile_width": 350,
+      "source_face_bottom": 461,
+      "source_band_bottom": 492
+    },
+    {
+      "filename": "tiles/floodplain.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-18ad4d3b-6988-4581-a770-f44b5f338ef0.png",
+      "crop": [
+        748,
+        0,
+        1122,
+        505
+      ],
+      "source_anchor": [
+        932,
+        104
+      ],
+      "source_tile_width": 350,
+      "source_face_bottom": 461,
+      "source_band_bottom": 492
+    },
+    {
+      "filename": "tiles/hill.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-18ad4d3b-6988-4581-a770-f44b5f338ef0.png",
+      "crop": [
+        0,
+        505,
+        374,
+        911
+      ],
+      "source_anchor": [
+        191,
+        517
+      ],
+      "source_tile_width": 350,
+      "source_face_bottom": 874,
+      "source_band_bottom": 905
+    },
+    {
+      "filename": "tiles/ruin.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-18ad4d3b-6988-4581-a770-f44b5f338ef0.png",
+      "crop": [
+        374,
+        505,
+        748,
+        911
+      ],
+      "source_anchor": [
+        562,
+        517
+      ],
+      "source_tile_width": 350,
+      "source_face_bottom": 874,
+      "source_band_bottom": 905
+    },
+    {
+      "filename": "tiles/barren.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-18ad4d3b-6988-4581-a770-f44b5f338ef0.png",
+      "crop": [
+        748,
+        505,
+        1122,
+        911
+      ],
+      "source_anchor": [
+        932,
+        517
+      ],
+      "source_tile_width": 350,
+      "source_face_bottom": 874,
+      "source_band_bottom": 905
+    },
+    {
+      "filename": "tiles/scrub.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-18ad4d3b-6988-4581-a770-f44b5f338ef0.png",
+      "crop": [
+        0,
+        911,
+        374,
+        1402
+      ],
+      "source_anchor": [
+        191,
+        929
+      ],
+      "source_tile_width": 350,
+      "source_face_bottom": 1288,
+      "source_band_bottom": 1319
+    },
+    {
+      "filename": "tiles/meadow.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-18ad4d3b-6988-4581-a770-f44b5f338ef0.png",
+      "crop": [
+        374,
+        911,
+        748,
+        1402
+      ],
+      "source_anchor": [
+        562,
+        929
+      ],
+      "source_tile_width": 350,
+      "source_face_bottom": 1288,
+      "source_band_bottom": 1319
+    },
+    {
+      "filename": "tiles/woodland.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-18ad4d3b-6988-4581-a770-f44b5f338ef0.png",
+      "crop": [
+        748,
+        911,
+        1122,
+        1402
+      ],
+      "source_anchor": [
+        932,
+        929
+      ],
+      "source_tile_width": 350,
+      "source_face_bottom": 1288,
+      "source_band_bottom": 1319
+    },
+    {
+      "filename": "buildings/foundersCamp.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-9a0cdf4f-c81e-4f6d-aae0-149c0194a020.png",
+      "crop": [
+        0,
+        0,
+        640,
+        836
+      ],
+      "source_anchor": [
+        323,
+        756
+      ],
+      "source_tile_width": 833.3333333333334,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/cottage.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-9a0cdf4f-c81e-4f6d-aae0-149c0194a020.png",
+      "crop": [
+        640,
+        0,
+        1225,
+        836
+      ],
+      "source_anchor": [
+        940,
+        764
+      ],
+      "source_tile_width": 833.3333333333334,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/treehouseCommons.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-9a0cdf4f-c81e-4f6d-aae0-149c0194a020.png",
+      "crop": [
+        1225,
+        0,
+        1881,
+        836
+      ],
+      "source_anchor": [
+        1543,
+        784
+      ],
+      "source_tile_width": 833.3333333333334,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/foundersCamp.lit.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-1f99798b-2813-44b1-bfce-52545518db10.png",
+      "crop": [
+        0,
+        0,
+        640,
+        836
+      ],
+      "source_anchor": [
+        323,
+        756
+      ],
+      "source_tile_width": 833.3333333333334,
+      "target_anchor": [
+        256,
+        440
+      ],
+      "source_canvas": [
+        1881,
+        836
+      ]
+    },
+    {
+      "filename": "buildings/cottage.lit.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-1f99798b-2813-44b1-bfce-52545518db10.png",
+      "crop": [
+        640,
+        0,
+        1225,
+        836
+      ],
+      "source_anchor": [
+        940,
+        764
+      ],
+      "source_tile_width": 833.3333333333334,
+      "target_anchor": [
+        256,
+        440
+      ],
+      "source_canvas": [
+        1881,
+        836
+      ]
+    },
+    {
+      "filename": "buildings/treehouseCommons.lit.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-1f99798b-2813-44b1-bfce-52545518db10.png",
+      "crop": [
+        1225,
+        0,
+        1881,
+        836
+      ],
+      "source_anchor": [
+        1543,
+        784
+      ],
+      "source_tile_width": 833.3333333333334,
+      "target_anchor": [
+        256,
+        440
+      ],
+      "source_canvas": [
+        1881,
+        836
+      ]
+    },
+    {
+      "filename": "buildings/foundersCamp.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-fe168715-59b9-4c41-bd14-711fe9171880.png",
+      "crop": [
+        0,
+        0,
+        640,
+        836
+      ],
+      "source_anchor": [
+        323,
+        756
+      ],
+      "source_tile_width": 833.3333333333334,
+      "target_anchor": [
+        256,
+        440
+      ],
+      "source_canvas": [
+        1881,
+        836
+      ]
+    },
+    {
+      "filename": "buildings/cottage.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-fe168715-59b9-4c41-bd14-711fe9171880.png",
+      "crop": [
+        640,
+        0,
+        1234,
+        836
+      ],
+      "source_anchor": [
+        940,
+        764
+      ],
+      "source_tile_width": 833.3333333333334,
+      "target_anchor": [
+        256,
+        440
+      ],
+      "source_canvas": [
+        1881,
+        836
+      ],
+      "component_seed": [
+        900,
+        500
+      ]
+    },
+    {
+      "filename": "buildings/treehouseCommons.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-fe168715-59b9-4c41-bd14-711fe9171880.png",
+      "crop": [
+        1218,
+        0,
+        1881,
+        836
+      ],
+      "source_anchor": [
+        1543,
+        784
+      ],
+      "source_tile_width": 833.3333333333334,
+      "target_anchor": [
+        256,
+        440
+      ],
+      "source_canvas": [
+        1881,
+        836
+      ],
+      "component_seed": [
+        1500,
+        300
+      ]
+    },
+    {
+      "filename": "buildings/floodplainFarm.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-27d52c3f-4de6-4a77-9c5b-145e4f8dbdd9.png",
+      "crop": [
+        0,
+        0,
+        391,
+        518
+      ],
+      "source_anchor": [
+        200,
+        483
+      ],
+      "source_tile_width": 442.42424242424244,
+      "target_anchor": [
+        256,
+        545
+      ]
+    },
+    {
+      "filename": "buildings/orchard.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-27d52c3f-4de6-4a77-9c5b-145e4f8dbdd9.png",
+      "crop": [
+        391,
+        0,
+        783,
+        518
+      ],
+      "source_anchor": [
+        588,
+        471
+      ],
+      "source_tile_width": 518.6206896551724,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/apiary.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-27d52c3f-4de6-4a77-9c5b-145e4f8dbdd9.png",
+      "crop": [
+        783,
+        0,
+        1145,
+        518
+      ],
+      "source_anchor": [
+        964,
+        468
+      ],
+      "source_tile_width": 547.2,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/fishPond.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-27d52c3f-4de6-4a77-9c5b-145e4f8dbdd9.png",
+      "crop": [
+        0,
+        518,
+        391,
+        917
+      ],
+      "source_anchor": [
+        198,
+        854
+      ],
+      "source_tile_width": 509.4736842105263,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/greenhouse.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-27d52c3f-4de6-4a77-9c5b-145e4f8dbdd9.png",
+      "crop": [
+        391,
+        518,
+        783,
+        917
+      ],
+      "source_anchor": [
+        585,
+        859
+      ],
+      "source_tile_width": 549.433962264151,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/composter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-27d52c3f-4de6-4a77-9c5b-145e4f8dbdd9.png",
+      "crop": [
+        783,
+        518,
+        1145,
+        917
+      ],
+      "source_anchor": [
+        960,
+        871
+      ],
+      "source_tile_width": 521.6666666666667,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/treeNursery.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-27d52c3f-4de6-4a77-9c5b-145e4f8dbdd9.png",
+      "crop": [
+        0,
+        917,
+        370,
+        1374
+      ],
+      "source_anchor": [
+        198,
+        1279
+      ],
+      "source_tile_width": 503.33333333333337,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/pollinatorMeadow.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-27d52c3f-4de6-4a77-9c5b-145e4f8dbdd9.png",
+      "crop": [
+        370,
+        917,
+        770,
+        1374
+      ],
+      "source_anchor": [
+        569,
+        1266
+      ],
+      "source_tile_width": 557.0370370370371,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/winterGarden.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-27d52c3f-4de6-4a77-9c5b-145e4f8dbdd9.png",
+      "crop": [
+        770,
+        917,
+        1145,
+        1374
+      ],
+      "source_anchor": [
+        955,
+        1278
+      ],
+      "source_tile_width": 549.433962264151,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/floodplainFarm.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-e6b6489e-48ac-4d26-bfc1-99bdcafaf975.png",
+      "crop": [
+        0,
+        0,
+        391,
+        518
+      ],
+      "source_anchor": [
+        200,
+        483
+      ],
+      "source_tile_width": 442.42424242424244,
+      "target_anchor": [
+        256,
+        545
+      ]
+    },
+    {
+      "filename": "buildings/orchard.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-e6b6489e-48ac-4d26-bfc1-99bdcafaf975.png",
+      "crop": [
+        391,
+        0,
+        783,
+        518
+      ],
+      "source_anchor": [
+        588,
+        471
+      ],
+      "source_tile_width": 518.6206896551724,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/apiary.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-e6b6489e-48ac-4d26-bfc1-99bdcafaf975.png",
+      "crop": [
+        783,
+        0,
+        1145,
+        518
+      ],
+      "source_anchor": [
+        964,
+        468
+      ],
+      "source_tile_width": 547.2,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/fishPond.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-e6b6489e-48ac-4d26-bfc1-99bdcafaf975.png",
+      "crop": [
+        0,
+        518,
+        391,
+        917
+      ],
+      "source_anchor": [
+        198,
+        854
+      ],
+      "source_tile_width": 509.4736842105263,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/greenhouse.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-e6b6489e-48ac-4d26-bfc1-99bdcafaf975.png",
+      "crop": [
+        391,
+        518,
+        783,
+        917
+      ],
+      "source_anchor": [
+        585,
+        859
+      ],
+      "source_tile_width": 549.433962264151,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/composter.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-e6b6489e-48ac-4d26-bfc1-99bdcafaf975.png",
+      "crop": [
+        783,
+        518,
+        1145,
+        917
+      ],
+      "source_anchor": [
+        960,
+        871
+      ],
+      "source_tile_width": 521.6666666666667,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/treeNursery.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-e6b6489e-48ac-4d26-bfc1-99bdcafaf975.png",
+      "crop": [
+        0,
+        917,
+        370,
+        1374
+      ],
+      "source_anchor": [
+        198,
+        1279
+      ],
+      "source_tile_width": 503.33333333333337,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/pollinatorMeadow.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-e6b6489e-48ac-4d26-bfc1-99bdcafaf975.png",
+      "crop": [
+        370,
+        917,
+        770,
+        1374
+      ],
+      "source_anchor": [
+        569,
+        1266
+      ],
+      "source_tile_width": 557.0370370370371,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/winterGarden.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-e6b6489e-48ac-4d26-bfc1-99bdcafaf975.png",
+      "crop": [
+        770,
+        917,
+        1145,
+        1374
+      ],
+      "source_anchor": [
+        955,
+        1278
+      ],
+      "source_tile_width": 549.433962264151,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/salvageYard.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-4baababf-4481-4723-a162-87ec5e549344.png",
+      "crop": [
+        0,
+        0,
+        436,
+        550
+      ],
+      "source_anchor": [
+        235,
+        147
+      ],
+      "source_tile_width": 384.0,
+      "target_anchor": [
+        256,
+        168
+      ],
+      "source_y_nodes": [
+        147,
+        257,
+        397,
+        506,
+        538
+      ]
+    },
+    {
+      "filename": "buildings/workshop.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-4baababf-4481-4723-a162-87ec5e549344.png",
+      "crop": [
+        436,
+        0,
+        812,
+        510
+      ],
+      "source_anchor": [
+        624,
+        493
+      ],
+      "source_tile_width": 517.8181818181818,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/kiln.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-4baababf-4481-4723-a162-87ec5e549344.png",
+      "crop": [
+        812,
+        0,
+        1150,
+        535
+      ],
+      "source_anchor": [
+        982,
+        497
+      ],
+      "source_tile_width": 513.3333333333333,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/commonsPlaza.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-4baababf-4481-4723-a162-87ec5e549344.png",
+      "crop": [
+        1150,
+        0,
+        1536,
+        535
+      ],
+      "source_anchor": [
+        1332,
+        482
+      ],
+      "source_tile_width": 478.59649122807014,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/ciderPress.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-4baababf-4481-4723-a162-87ec5e549344.png",
+      "crop": [
+        0,
+        550,
+        436,
+        1024
+      ],
+      "source_anchor": [
+        236,
+        934
+      ],
+      "source_tile_width": 529.4545454545455,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/seedbankLibrary.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-4baababf-4481-4723-a162-87ec5e549344.png",
+      "crop": [
+        436,
+        510,
+        792,
+        1024
+      ],
+      "source_anchor": [
+        614,
+        923
+      ],
+      "source_tile_width": 490.3703703703704,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/rewildedRuin.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-4baababf-4481-4723-a162-87ec5e549344.png",
+      "crop": [
+        792,
+        535,
+        1208,
+        1024
+      ],
+      "source_anchor": [
+        997,
+        574
+      ],
+      "source_tile_width": 386.00000000000006,
+      "target_anchor": [
+        256,
+        168
+      ],
+      "source_y_nodes": [
+        574,
+        683,
+        833,
+        941,
+        973
+      ]
+    },
+    {
+      "filename": "buildings/heatPump.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-4baababf-4481-4723-a162-87ec5e549344.png",
+      "crop": [
+        1208,
+        535,
+        1536,
+        1024
+      ],
+      "source_anchor": [
+        1367,
+        913
+      ],
+      "source_tile_width": 581.0526315789474,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/solarCanopy.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-f614c1c1-69cc-4b3b-a30c-83119e184a96.png",
+      "crop": [
+        0,
+        0,
+        534,
+        500
+      ],
+      "source_anchor": [
+        285,
+        465
+      ],
+      "source_tile_width": 696.2962962962962,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/biogasDigester.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-f614c1c1-69cc-4b3b-a30c-83119e184a96.png",
+      "crop": [
+        534,
+        0,
+        1003,
+        500
+      ],
+      "source_anchor": [
+        784,
+        479
+      ],
+      "source_tile_width": 632.5925925925926,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/solarThermalCollector.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-f614c1c1-69cc-4b3b-a30c-83119e184a96.png",
+      "crop": [
+        1003,
+        0,
+        1536,
+        500
+      ],
+      "source_anchor": [
+        1256,
+        468
+      ],
+      "source_tile_width": 650.3703703703703,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/cellBank.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-f614c1c1-69cc-4b3b-a30c-83119e184a96.png",
+      "crop": [
+        0,
+        500,
+        534,
+        1024
+      ],
+      "source_anchor": [
+        277,
+        888
+      ],
+      "source_tile_width": 740.0,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/heatWell.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-f614c1c1-69cc-4b3b-a30c-83119e184a96.png",
+      "crop": [
+        534,
+        500,
+        1003,
+        1024
+      ],
+      "source_anchor": [
+        756,
+        895
+      ],
+      "source_tile_width": 627.2,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/agrivoltaicField.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-f614c1c1-69cc-4b3b-a30c-83119e184a96.png",
+      "crop": [
+        1003,
+        500,
+        1536,
+        1024
+      ],
+      "source_anchor": [
+        1259,
+        919
+      ],
+      "source_tile_width": 604.8484848484849,
+      "target_anchor": [
+        256,
+        545
+      ]
+    },
+    {
+      "filename": "buildings/salvageYard.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-7f62e1e7-7151-4147-8791-cdb8ade24ded.png",
+      "crop": [
+        0,
+        0,
+        436,
+        550
+      ],
+      "source_anchor": [
+        235,
+        147
+      ],
+      "source_tile_width": 384.0,
+      "target_anchor": [
+        256,
+        168
+      ],
+      "source_y_nodes": [
+        147,
+        257,
+        397,
+        506,
+        538
+      ]
+    },
+    {
+      "filename": "buildings/workshop.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-7f62e1e7-7151-4147-8791-cdb8ade24ded.png",
+      "crop": [
+        436,
+        0,
+        812,
+        510
+      ],
+      "source_anchor": [
+        624,
+        493
+      ],
+      "source_tile_width": 517.8181818181818,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/kiln.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-7f62e1e7-7151-4147-8791-cdb8ade24ded.png",
+      "crop": [
+        812,
+        0,
+        1150,
+        535
+      ],
+      "source_anchor": [
+        982,
+        497
+      ],
+      "source_tile_width": 513.3333333333333,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/commonsPlaza.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-7f62e1e7-7151-4147-8791-cdb8ade24ded.png",
+      "crop": [
+        1150,
+        0,
+        1536,
+        535
+      ],
+      "source_anchor": [
+        1332,
+        482
+      ],
+      "source_tile_width": 478.59649122807014,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/ciderPress.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-7f62e1e7-7151-4147-8791-cdb8ade24ded.png",
+      "crop": [
+        0,
+        550,
+        436,
+        1024
+      ],
+      "source_anchor": [
+        236,
+        934
+      ],
+      "source_tile_width": 529.4545454545455,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/seedbankLibrary.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-7f62e1e7-7151-4147-8791-cdb8ade24ded.png",
+      "crop": [
+        436,
+        510,
+        792,
+        1024
+      ],
+      "source_anchor": [
+        614,
+        923
+      ],
+      "source_tile_width": 490.3703703703704,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/rewildedRuin.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-7f62e1e7-7151-4147-8791-cdb8ade24ded.png",
+      "crop": [
+        792,
+        535,
+        1208,
+        1024
+      ],
+      "source_anchor": [
+        997,
+        574
+      ],
+      "source_tile_width": 386.00000000000006,
+      "target_anchor": [
+        256,
+        168
+      ],
+      "source_y_nodes": [
+        574,
+        683,
+        833,
+        941,
+        973
+      ]
+    },
+    {
+      "filename": "buildings/heatPump.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-7f62e1e7-7151-4147-8791-cdb8ade24ded.png",
+      "crop": [
+        1208,
+        535,
+        1536,
+        1024
+      ],
+      "source_anchor": [
+        1367,
+        913
+      ],
+      "source_tile_width": 581.0526315789474,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/solarCanopy.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-a3d7c25d-c177-4f6d-a63c-fef4774147dc.png",
+      "crop": [
+        0,
+        0,
+        534,
+        500
+      ],
+      "source_anchor": [
+        285,
+        465
+      ],
+      "source_tile_width": 696.2962962962962,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/biogasDigester.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-a3d7c25d-c177-4f6d-a63c-fef4774147dc.png",
+      "crop": [
+        534,
+        0,
+        1003,
+        500
+      ],
+      "source_anchor": [
+        784,
+        479
+      ],
+      "source_tile_width": 632.5925925925926,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/solarThermalCollector.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-a3d7c25d-c177-4f6d-a63c-fef4774147dc.png",
+      "crop": [
+        1003,
+        0,
+        1536,
+        500
+      ],
+      "source_anchor": [
+        1256,
+        468
+      ],
+      "source_tile_width": 650.3703703703703,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/cellBank.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-a3d7c25d-c177-4f6d-a63c-fef4774147dc.png",
+      "crop": [
+        0,
+        500,
+        534,
+        1024
+      ],
+      "source_anchor": [
+        277,
+        888
+      ],
+      "source_tile_width": 740.0,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/heatWell.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-a3d7c25d-c177-4f6d-a63c-fef4774147dc.png",
+      "crop": [
+        534,
+        500,
+        1003,
+        1024
+      ],
+      "source_anchor": [
+        756,
+        895
+      ],
+      "source_tile_width": 627.2,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/agrivoltaicField.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-a3d7c25d-c177-4f6d-a63c-fef4774147dc.png",
+      "crop": [
+        1003,
+        500,
+        1536,
+        1024
+      ],
+      "source_anchor": [
+        1259,
+        919
+      ],
+      "source_tile_width": 604.8484848484849,
+      "target_anchor": [
+        256,
+        545
+      ]
+    },
+    {
+      "filename": "buildings/weir.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-5805af4f-af57-4127-aeec-f8278eda9c65.png",
+      "crop": [
+        0,
+        0,
+        390,
+        515
+      ],
+      "source_anchor": [
+        206,
+        92
+      ],
+      "source_tile_width": 350.0,
+      "target_anchor": [
+        256,
+        168
+      ],
+      "source_y_nodes": [
+        92,
+        192,
+        357,
+        456,
+        487
+      ]
+    },
+    {
+      "filename": "buildings/levee.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-5805af4f-af57-4127-aeec-f8278eda9c65.png",
+      "crop": [
+        390,
+        0,
+        738,
+        515
+      ],
+      "source_anchor": [
+        564,
+        355
+      ],
+      "source_tile_width": 426.2068965517242,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/pumpedReservoir.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-5805af4f-af57-4127-aeec-f8278eda9c65.png",
+      "crop": [
+        738,
+        0,
+        1122,
+        515
+      ],
+      "source_anchor": [
+        920,
+        91
+      ],
+      "source_tile_width": 350.0,
+      "target_anchor": [
+        256,
+        168
+      ],
+      "source_y_nodes": [
+        91,
+        192,
+        357,
+        456,
+        488
+      ]
+    },
+    {
+      "filename": "buildings/riverWheel.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-5805af4f-af57-4127-aeec-f8278eda9c65.png",
+      "crop": [
+        0,
+        515,
+        380,
+        955
+      ],
+      "source_anchor": [
+        200,
+        855
+      ],
+      "source_tile_width": 475.0,
+      "target_anchor": [
+        256,
+        440
+      ],
+      "rotation_hub": [
+        222,
+        309
+      ]
+    },
+    {
+      "filename": "buildings/windSpire.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-5805af4f-af57-4127-aeec-f8278eda9c65.png",
+      "crop": [
+        380,
+        515,
+        753,
+        955
+      ],
+      "source_anchor": [
+        564,
+        559
+      ],
+      "source_tile_width": 340.0,
+      "target_anchor": [
+        256,
+        168
+      ],
+      "source_y_nodes": [
+        559,
+        660,
+        799,
+        898,
+        930
+      ],
+      "rotation_hub": [
+        254,
+        181
+      ]
+    },
+    {
+      "filename": "buildings/riverWheel.rotor.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-5805af4f-af57-4127-aeec-f8278eda9c65.png",
+      "crop": [
+        0,
+        955,
+        380,
+        1402
+      ],
+      "source_anchor": [
+        202,
+        1152
+      ],
+      "source_tile_width": 680.0,
+      "target_anchor": [
+        222,
+        309
+      ],
+      "rotation_hub": [
+        222,
+        309
+      ]
+    },
+    {
+      "filename": "buildings/windSpire.rotor.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-5805af4f-af57-4127-aeec-f8278eda9c65.png",
+      "crop": [
+        380,
+        955,
+        760,
+        1402
+      ],
+      "source_anchor": [
+        569,
+        1167
+      ],
+      "source_tile_width": 540.5405405405405,
+      "target_anchor": [
+        254,
+        181
+      ],
+      "rotation_hub": [
+        254,
+        181
+      ]
+    },
+    {
+      "filename": "buildings/weir.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-a0563670-090e-4b78-b598-8257090c784a.png",
+      "crop": [
+        0,
+        0,
+        390,
+        515
+      ],
+      "source_anchor": [
+        206,
+        92
+      ],
+      "source_tile_width": 350.0,
+      "target_anchor": [
+        256,
+        168
+      ],
+      "source_y_nodes": [
+        92,
+        192,
+        357,
+        456,
+        487
+      ]
+    },
+    {
+      "filename": "buildings/levee.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-a0563670-090e-4b78-b598-8257090c784a.png",
+      "crop": [
+        390,
+        0,
+        738,
+        515
+      ],
+      "source_anchor": [
+        564,
+        355
+      ],
+      "source_tile_width": 426.2068965517242,
+      "target_anchor": [
+        256,
+        440
+      ]
+    },
+    {
+      "filename": "buildings/pumpedReservoir.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-a0563670-090e-4b78-b598-8257090c784a.png",
+      "crop": [
+        738,
+        0,
+        1122,
+        515
+      ],
+      "source_anchor": [
+        920,
+        91
+      ],
+      "source_tile_width": 350.0,
+      "target_anchor": [
+        256,
+        168
+      ],
+      "source_y_nodes": [
+        91,
+        192,
+        357,
+        456,
+        488
+      ]
+    },
+    {
+      "filename": "buildings/riverWheel.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-a0563670-090e-4b78-b598-8257090c784a.png",
+      "crop": [
+        0,
+        515,
+        380,
+        955
+      ],
+      "source_anchor": [
+        200,
+        855
+      ],
+      "source_tile_width": 475.0,
+      "target_anchor": [
+        256,
+        440
+      ],
+      "rotation_hub": [
+        222,
+        309
+      ]
+    },
+    {
+      "filename": "buildings/windSpire.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-a0563670-090e-4b78-b598-8257090c784a.png",
+      "crop": [
+        380,
+        515,
+        753,
+        955
+      ],
+      "source_anchor": [
+        564,
+        559
+      ],
+      "source_tile_width": 340.0,
+      "target_anchor": [
+        256,
+        168
+      ],
+      "source_y_nodes": [
+        559,
+        660,
+        799,
+        898,
+        930
+      ],
+      "rotation_hub": [
+        254,
+        181
+      ]
+    },
+    {
+      "filename": "buildings/riverWheel.rotor.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-a0563670-090e-4b78-b598-8257090c784a.png",
+      "crop": [
+        0,
+        955,
+        380,
+        1402
+      ],
+      "source_anchor": [
+        202,
+        1152
+      ],
+      "source_tile_width": 680.0,
+      "target_anchor": [
+        222,
+        309
+      ],
+      "rotation_hub": [
+        222,
+        309
+      ]
+    },
+    {
+      "filename": "buildings/windSpire.rotor.winter.png",
+      "source": "C:\\apps\\sunroot art\\output\\source-sheets\\exec-a0563670-090e-4b78-b598-8257090c784a.png",
+      "crop": [
+        380,
+        955,
+        760,
+        1402
+      ],
+      "source_anchor": [
+        569,
+        1167
+      ],
+      "source_tile_width": 540.5405405405405,
+      "target_anchor": [
+        254,
+        181
+      ],
+      "rotation_hub": [
+        254,
+        181
+      ]
+    }
+  ],
+  "qa_path": "C:/apps/sunroot art/output/qa/export-qa.json",
+  "preview_path": "C:/apps/sunroot art/output/qa/art-preview.png"
+}

@@ -1,0 +1,1062 @@
+{
+  "collection": "Sunroot option C \u2014 warm storybook papercraft",
+  "geometry": {
+    "frame": [
+      512,
+      640
+    ],
+    "top_vertex": [
+      256,
+      168
+    ],
+    "tile_center": [
+      256,
+      373.5
+    ],
+    "tile_width": 400,
+    "top_face_vertices": [
+      [
+        256,
+        168
+      ],
+      [
+        456,
+        283.47
+      ],
+      [
+        456,
+        463.47
+      ],
+      [
+        256,
+        579
+      ],
+      [
+        56,
+        463.47
+      ],
+      [
+        56,
+        283.47
+      ]
+    ],
+    "straight_side_length": 180,
+    "paper_side_band": 32,
+    "band_bottom": 611,
+    "lighting": "soft upper left",
+    "season_default": "late spring/summer"
+  },
+  "counts": {
+    "terrain": 27,
+    "summer_buildings": 31,
+    "winter_buildings": 31,
+    "night_replacements": 3,
+    "rotor_layers": 4,
+    "total_png": 96
+  },
+  "assets": [
+    {
+      "file": "tiles/river.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "9528820acf1df35ce56cf60ddba7be73a76bf6a24414e7b5e93f3f958af4d65f",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/reservoir.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "b949637449dd2381ef57195deac8a82a589672ff068ad64ee6ce01c90477e398",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/floodplain.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "c441bbe841673acdcf9bd173b41333502f085acfa32e6dc01bc0082a331248b8",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/hill.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "dbe1b4ff0500e9b65cba0d74fd7dabce6d8d343109b5b5815a8d82c196820d93",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/ruin.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "db789d366f5887047ff232092ee6b25b8df4303137fac77f307660ac35c4188a",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/barren.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "008f4ec6da75269d4ec6cf79e46f8327e1e5b055457b024577b3f307acc34361",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/scrub.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "5a813108626e872c0844fe5f84c400578bd8b7b2de48821d729e64726a41ecd2",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/meadow.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "3c22d362a8ac726527e04edd795301b19992251015aae58a9a66b4d6ee83307e",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/woodland.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "000f616030f2eb2fd22efd64d19af6303cf8be7d48fffcb17d6555e7739892a6",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/river-2.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "ce16da19a1a2aa4ffdefa4060bb0439dc09ed308e5e0e72a674fa9840cc9128c",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/reservoir-2.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "9b270e064e79f8550d38fc45b2be8f8f81dbae3d05adebdfb4a921216d51c4e4",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/floodplain-2.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "26762d94ba1556cc588c0a956986a53bdff91e54545a51ade22e5edabb6acb81",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/hill-2.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "69efe6871436c36d4276415661ef75c3fc5f5c4417f6f24a7d0c0cc0d0bfc7c0",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/ruin-2.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "0b6b0d7f42cfb3204030d4f200c48705f66f8674d239648b31cb657f209dbe7d",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/barren-2.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "2f450cb4be802c4739f47d606c4a435e9a15f70003f59803f875bbbd12ea5c4b",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/scrub-2.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "1c4b90c9f79eec1278c37ab2f3a33b7a9bc44fd0f710c9cb73f487c212f8ea53",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/meadow-2.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "b7747d9c07a7bf6a785e93a45aea87dee127fdf107c8f08f550593426e159d02",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/woodland-2.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "0b8de86c0f62fcfd64c038bad7fc0ff63cd097472d71448d1d2e7f12bb833fae",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/river.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "dcd8da5cd20b28a11796561c4c72fb0854aefdecef9cae8dee33853488b03cc0",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/reservoir.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "d5a293802725caf4c30af03e66dee67f569d9ca263126b4842d8a08bbe3a661e",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/floodplain.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "f371b6436613408fc4dacf25980f0c797c50b168787bb6725afb5837ebfbf993",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/hill.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "d94df0ef479da56914a33c0193003ed7354c96b0ab70fc385af80ec839697fb6",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/ruin.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "c1dc1cbf0bace05d6c3f9e9d5a77a4e753269935711da70d48b4d9beb97aac1c",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/barren.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "78ad33116720f64623b559951aa466f8d3ff1fc60d5c9ed3edcb8bc702bfbae4",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/scrub.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "bd1dd50aae12632395d0d78908522b4307deb544ec357c3c60a5ea46f922a071",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/meadow.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "84ea99917a5370698aac054be74246d42f67545a017592cabdbc4c6419b1999b",
+      "contains_ground": true
+    },
+    {
+      "file": "tiles/woodland.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "e9591321666ff161e19e50850b355b1872d29989d22a80eab2dd58c6887e93c5",
+      "contains_ground": true
+    },
+    {
+      "file": "buildings/foundersCamp.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "657302b30e12e4d67d666ac829ef7b5a10c151d626e94e004f42a9d28caf9cf7",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/cottage.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "415565a1a3f2cabec31cf15952bca64bed1b6c8320c53cb74fadd06b8b5ef06d",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/treehouseCommons.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "75faaa447e9fb0ba92afd50e65a4c51339bca55e4be134952bda7fe97d86d358",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/foundersCamp.lit.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "ed64f7625f07ab7444b5d3e84a71fabb9576258554b1814247fb1f98860a1406",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/cottage.lit.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "9cda3450bdf9f10bcf969a86500984a2d4225788226a822bef4218d49009d53e",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/treehouseCommons.lit.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "508e8401135962796c470ad3c4d7de7b494cd4d7bcf984da613c232e9e926c11",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/foundersCamp.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "dd604d37f38d0649176c091e4b1b4b7662a261c0bf8a09b7d4c3e4ddc54141e7",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/cottage.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "4acf9eb69e8a7bc681514b071adbf47c24a0fb7597e7d1a776a07e8c81ff8cce",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/treehouseCommons.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "05fec165c9e40e9be647984924d5ef18e9651b5f2d636998eaec08beab5b53fb",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/floodplainFarm.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "708c80de8396f8bb71475189445ffecb1955c4f41a5b80750ac6550a2244a2e9",
+      "contains_ground": true
+    },
+    {
+      "file": "buildings/orchard.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "15a1e940f6def034d62a544d8337c2ac07aabf9cd1eaf2081cc5f947e076353a",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/apiary.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "720c3bc18c15f429db719330dbe257f24a9c95aea2be9e9d1d275f0ed875e8a6",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/fishPond.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "4e7cfe1db339e385bc65ca61cdf38da7ec477edfc04a4a2475863d54d4e69928",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/greenhouse.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "d893c6c62c7083788fec88c3345304d12442db2d4ec51a61e137e46f383b109d",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/composter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "91cb1d05ccc8b2bc2fb32b81d3d74f302b5794b9f3ef6eb0e9f77edf1a284fc5",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/treeNursery.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "959012c6d4dff5f33b6e697b90a0f4315b7cd200272c57555137ba355a03dec1",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/pollinatorMeadow.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "5ea28c792c9feafe885c495d3da847ec8e00c6c65700ec071d29969b3aa36592",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/winterGarden.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "96e433dd36ad642bdc320cbbee5d3525120dd1df023f41e8092c268eff3b7767",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/floodplainFarm.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "ada1348e69dee011ac67e5758fcdd9ed750e63ce134281c00d3705db9bbe5083",
+      "contains_ground": true
+    },
+    {
+      "file": "buildings/orchard.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "03c99db43b3b52df00601f23c944543e0ca949caf478cbac6f8d6694e8669e8a",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/apiary.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "402ff5a7b3c0df5c4809a3fcc82280c7621363849ec25069d6846ad69c2aa7fe",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/fishPond.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "8d0a39503d92a6d332377eb22bda6cf157f42e1226edb7736be840ea1b89e185",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/greenhouse.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "1570d360fdd7f36946307c80cb487ac745b0327fa4b2d5835a9cc0d95e9de13e",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/composter.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "9c59e4144cbbf982ed05e38389275360245d71d7af3b20f0ca22997f389bddbc",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/treeNursery.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "0b25234be24c2d6ca5310ecfbe21951a28976a1f11199648cf0728bd41b264c8",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/pollinatorMeadow.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "160c4325c923d26ab58ef2cd8751cc6f592a958a53da9adf64ca077828b22a80",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/winterGarden.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "8a8aac8fd924c6ad38f054cabd6b3a81aafb761c7e869ca560a83a1c05116ada",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/salvageYard.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "5d8a7f852462052caf4b6f657e59b8b8d90afe45147dd9581f4c4106e625b8e4",
+      "contains_ground": true
+    },
+    {
+      "file": "buildings/workshop.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "0f7b4087b9e4f3947b06889534c5bf5e1410002c597581b522af04dea6342863",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/kiln.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "760941dafc82a70f874a0d01f8bb197e522b4a78698991991276e3e1333f52cf",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/commonsPlaza.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "119b0650090b51d5b57122cb07caccc099baf7b99b09ee135d9e52fbcdd084bd",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/ciderPress.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "77712fa0291de8350563c5506c4387c2185dcd64a440d2e9cbfc7a2742937302",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/seedbankLibrary.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "d4d2721754081cc5d38c64131cb6d24c80a8653aa690e71e0cddf582dbd00340",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/rewildedRuin.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "6996f76d082a188d7c115a761d888e3510c35abfb09a4ba770a290aa3724c82e",
+      "contains_ground": true
+    },
+    {
+      "file": "buildings/heatPump.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "fce0c16017d9a7780dfcb6d0adc984944d5fa5aab6937e4a806bbd53a0c8e983",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/solarCanopy.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "deeefaa6966605251580b6125eed5d2ec7f7dfc7e94e49c1bd59487379b174fd",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/biogasDigester.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "d0df995ccdeb29ebfa1321b2d85c1e63fa1ffc69b9d3c7f455a0e6682377483c",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/solarThermalCollector.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "154f86d0ca81e15e3f10c7f2a9feb58276ef5854151a07a6d33c2e308b065cea",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/cellBank.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "d76e81d748d7dda18ab7801b40f10d830fd42f7cbbc91306034252490aa0b5ee",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/heatWell.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "8382b08dd7e4ded47ada3dfb013d4eb1a4df000415df9325a2370879f6076b4d",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/agrivoltaicField.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "f5b5e6ee2421be74a35746e50563e946c8379b422bb4640a018e1948db769dfb",
+      "contains_ground": true
+    },
+    {
+      "file": "buildings/salvageYard.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "9244087ab15d920a94b453b41c2d146422e3a17c5ee7a572343ba3ee91e2a48a",
+      "contains_ground": true
+    },
+    {
+      "file": "buildings/workshop.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "9d5271af6e7d92c60bfc2d058e61808889a20291c4dd556f0e7c922676c04910",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/kiln.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "5a789556e6b7fcc6e72632b4fe62397b3c1bb3c6b0c0b3c11ea0cccb4e05dd7f",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/commonsPlaza.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "bf5a1f7e6b5a40e6ae362e7ed77bac1ed3405089ad28d16fcd0790860d6b50f8",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/ciderPress.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "3cbf605c8880b232c4f8d03eb5f168a4859d1c44f1de4a5a88463bc17e7be971",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/seedbankLibrary.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "141dc4192328d611979b05f42d83a77c1df0d0622c621abc9e08ba7e236119dc",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/rewildedRuin.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "db7f840ad9a6735b790916dd1d2bda67d45153a4359d41968fa6cf354b7bdafb",
+      "contains_ground": true
+    },
+    {
+      "file": "buildings/heatPump.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "57135380020720c91116d5607a12aa0b83d801a3dfd4469e8e68d1d95c9c0425",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/solarCanopy.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "7e2c5aa044820485693639b15b49d8152aa1f9892af3823de46775d7601dba28",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/biogasDigester.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "dcd45031f434e4ee61436bb303552059ac6dc1e51a6228862f3eda978e54b081",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/solarThermalCollector.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "69bbbc4fcfebd9c7b1400ecad776d7741ab9211a93e935f7378a3d72bac73fa5",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/cellBank.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "c8cec3f08bdab7b0af639f6c6b90aaac8233c9199c2d72f3b996ab6f5627e36c",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/heatWell.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "fdd1719643bb3e9c19bfc0d210dd09869b01814bb51ed345e809394c53d84785",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/agrivoltaicField.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "e0cafbb3d445966b4779fb7100aac89ad5620eb8d2665c785f31bd49efd6fad0",
+      "contains_ground": true
+    },
+    {
+      "file": "buildings/weir.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "c566e33b5d6756aa18d04a5b9c41a0587554ef61adc196a42de7191aa05579d6",
+      "contains_ground": true
+    },
+    {
+      "file": "buildings/levee.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "c4fab807a902318df2e19d9805e43a3189bc85ada79a8cfaca3a679fe6e54bd5",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/pumpedReservoir.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "e7c36a71e9efede689406ecfb94e5037f547001c3c9522c9c2a271ca5080e295",
+      "contains_ground": true
+    },
+    {
+      "file": "buildings/riverWheel.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "8446da72d38f94aa09bdaddf400f9ddd9db8d1de3b44d8a516404f4373a5e9bb",
+      "rotation_hub": [
+        222,
+        309
+      ],
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/windSpire.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "ffba00878e8d7183298a703f2a295340043e54c67ee1313ed1e6dd3c1ee57872",
+      "rotation_hub": [
+        254,
+        181
+      ],
+      "contains_ground": true
+    },
+    {
+      "file": "buildings/riverWheel.rotor.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "b896a4da5e7d48a9e796eecbb31890697564f1a3a39b9ac61c4b7453e32ec4ca",
+      "rotation_hub": [
+        222,
+        309
+      ],
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/windSpire.rotor.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "9e46e09b38a1a25c8d844e3196f104f64fdf2a192d3e3920bf0823dd94381747",
+      "rotation_hub": [
+        254,
+        181
+      ],
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/weir.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "0c1020e95937f5800b391308006547f7dcdb1d96b6ea63ac8581621ae7c895c7",
+      "contains_ground": true
+    },
+    {
+      "file": "buildings/levee.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "e938d16bef0789610f85d3ca58777a33b9ed0f41e815d8b531ae3023b7271191",
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/pumpedReservoir.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "00e52b44e1f7a83037e9cf6881fa1f353cd3634f1c5053cb2ef6cac77f95ee8d",
+      "contains_ground": true
+    },
+    {
+      "file": "buildings/riverWheel.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "5c026a3ec27ce9c66d13ffc3a38084bcfeb09422503c65b1ecf8ab5d2cac63f1",
+      "rotation_hub": [
+        222,
+        309
+      ],
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/windSpire.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "cb12317cf68d497a62dd945991e9ccfbcdf1abc11dc2b2ef492520d4ae565573",
+      "rotation_hub": [
+        254,
+        181
+      ],
+      "contains_ground": true
+    },
+    {
+      "file": "buildings/riverWheel.rotor.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "0cab38aab79deb3b69186c6448f687b530e7bb4add6271283eb680efc58b234b",
+      "rotation_hub": [
+        222,
+        309
+      ],
+      "contains_ground": false
+    },
+    {
+      "file": "buildings/windSpire.rotor.winter.png",
+      "frame": [
+        512,
+        640
+      ],
+      "mode": "RGBA",
+      "sha256": "ed3464ffc9c351e7c1daa98241d2c0f4824441dc49ba3399572f6951491c1b0d",
+      "rotation_hub": [
+        254,
+        181
+      ],
+      "contains_ground": false
+    }
+  ],
+  "qa": {
+    "significant_alpha_threshold": 16,
+    "output_clipping": 0,
+    "source_crop_cut_edges": 0,
+    "minimum_margin_px": 26,
+    "rotation_angles_checked": [
+      0,
+      90,
+      180
+    ]
+  }
+}
