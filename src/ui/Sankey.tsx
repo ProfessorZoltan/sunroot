@@ -35,6 +35,8 @@ function bandPath(l: SankeyLink, x0: number, x1: number): string {
 interface Tip {
   x: number;
   y: number;
+  /** Shown by keyboard focus: it stays until focus moves, whatever the pointer does. */
+  focused?: boolean;
   value: string;
   text: string;
 }
@@ -80,7 +82,7 @@ export function SankeyDiagram({
       text: `${n.label}: ${into.map((l) => `${l.value} ${groupOf.get(l.group)!.label.toLowerCase()}`).join(', ')}`,
     };
   };
-  const show = (node: SankeyNode, where: { x: number; y: number }) => {
+  const show = (node: SankeyNode, where: { x: number; y: number; focused?: boolean }) => {
     setFocus({ node: node.id });
     setTip({ ...where, ...nodeTip(node) });
   };
@@ -92,7 +94,7 @@ export function SankeyDiagram({
   const scaleY = (y: number) => scale(y + MARGIN);
 
   return (
-    <div class="sankey" ref={box} onPointerLeave={clear}>
+    <div class="sankey" ref={box} onPointerLeave={() => !tip?.focused && clear()}>
       <svg
         viewBox={`0 ${-MARGIN} ${WIDTH} ${layout.height + 2 * MARGIN}`}
         role="img"
@@ -133,7 +135,7 @@ export function SankeyDiagram({
               role="button"
               aria-label={`${label}: ${nodeTip(n).value}`}
               onPointerMove={(e) => show(n, at(e))}
-              onFocus={() => show(n, { x: scale(textX), y: scaleY(n.y + n.h / 2) })}
+              onFocus={() => show(n, { x: scale(textX), y: scaleY(n.y + n.h / 2), focused: true })}
               onBlur={clear}
             >
               <rect
