@@ -178,6 +178,12 @@ export function harmonyLines(content: Content, state: RunState): HarmonyLine[] {
   for (const [name, e] of penalties) lines.push({ label: `${e.n} ${name}`, amount: e.amount });
   lines.push(...formationHarmony(content, state));
   if (harmony.bonus !== 0) lines.push({ label: 'Root City', amount: harmony.bonus });
+  const grey = state.lastReport?.water?.greyToRiver ?? 0;
+  if (grey > 0 && content.rules.water.enabled)
+    lines.push({
+      label: `${grey} grey water in the river`,
+      amount: -grey * content.rules.water.greyHarmonyPerUnit,
+    });
   for (const p of finishedProjects(content, state))
     if (p.effect.harmony !== 0) lines.push({ label: p.name, amount: p.effect.harmony });
   if (state.stores.clutter > 0) {

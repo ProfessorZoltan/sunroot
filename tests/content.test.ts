@@ -12,7 +12,10 @@ const clone = () => structuredClone(willowReach) as typeof willowReach;
 describe('content validation', () => {
   it("loads Willow Reach: the camp, the design's 23 buildings and 2 from the heat proposal", () => {
     const content = loadContent(willowReach);
-    const buildings = content.buildings.filter((b) => b.id !== content.campBuilding);
+    // Water buildings come from EXPANSION.md, not the design's 23.
+    const buildings = content.buildings.filter(
+      (b) => b.id !== content.campBuilding && !b.requiresWater,
+    );
     // Evolved buildings (Milestone 6) are not among the 23: they come from evolutions.
     expect(
       buildings.filter(

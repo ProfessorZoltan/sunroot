@@ -75,6 +75,7 @@ export { projectSeason } from './projection';
 export { effectiveContent, runModifiers } from './content/modifiers';
 export { findFormations, placementEvolution } from './combos';
 export { isTuning } from './draft';
+export { channels, waterOn, type Channel } from './water';
 export type * from './types';
 export {
   applyCityCommand,

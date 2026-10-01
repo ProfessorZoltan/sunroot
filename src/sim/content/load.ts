@@ -56,6 +56,9 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
       problems.push(`${b.id}.recipes.defaultRecipe is not one of its options (or auto)`);
     }
   }
+  known(data.rules.water.channelBuilding, 'rules.water.channelBuilding');
+  if (!data.buildings.find((b) => b.id === data.rules.water.channelBuilding)?.water?.channel)
+    problems.push('rules.water.channelBuilding must be a building with water.channel');
   for (const c of data.combos) checkCombo(c, known);
   for (const g of data.eraGoals) {
     if (g.era > data.rules.eras.length)

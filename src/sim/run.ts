@@ -8,6 +8,7 @@ import { createRng, shuffled } from './rng';
 import { snapshot } from './snapshot';
 import type { MapState, RunOptions, RunState, Stores } from './types';
 import type { Hex } from './hex';
+import { available, campChannelPath, waterOn } from './water';
 
 export interface CreateRunOverrides {
   /** Use this map instead of generating one (tests and hand-made scenarios). */
@@ -57,7 +58,7 @@ export function createRun(
       b0: { uid: 'b0', type: content.campBuilding, at: { q: camp.q, r: camp.r }, builtTurn: 0 },
     },
     nextUid: 1,
-    unlocked: content.buildings.filter((b) => b.starter).map((b) => b.id),
+    unlocked: content.buildings.filter((b) => b.starter && available(content, b)).map((b) => b.id),
     stores,
     citizens: content.rules.start.citizens,
     wellbeing: content.rules.start.wellbeing,
@@ -94,8 +95,19 @@ export function createRun(
     seasonCommands: [],
   };
   if (opts.sandbox) {
-    state.unlocked = content.buildings.filter((b) => b.placeable).map((b) => b.id);
+    state.unlocked = content.buildings
+      .filter((b) => b.placeable && available(content, b))
+      .map((b) => b.id);
     state.stores.materials = 999;
+  }
+  // With the water system on, the camp starts with a channel dug from the river towards it.
+  if (waterOn(content)) {
+    const water = content.rules.water;
+    for (const h of campChannelPath(content, state, camp, water.campChannel)) {
+      const uid = `b${state.nextUid++}`;
+      state.buildings[uid] = { uid, type: water.channelBuilding, at: h, builtTurn: 0 };
+      state.priority.push(uid);
+    }
   }
   state.harmony = computeHarmony(content, state);
   state.draft.offer = dealOffer(content, state);

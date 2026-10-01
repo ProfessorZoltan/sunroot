@@ -86,8 +86,17 @@ export function generate(ctx: SeasonContext): void {
         notes.push(`${crowd} other ${def.name} within ${def.spacing.radius} tiles`);
       }
     }
+    // While the water system is on, a river wheel turns with the flow beside it.
+    const flow = ctx.wheelFlow.get(b.uid);
+    if (flow !== undefined)
+      notes.unshift(
+        `river flow ${flow}: ${Math.ceil(flow / content.rules.water.wheelFlowPerEnergy)} a slot`,
+      );
     for (const slot of SLOTS) {
-      const base = output[slot][si]!;
+      const base =
+        flow !== undefined
+          ? Math.ceil(flow / content.rules.water.wheelFlowPerEnergy)
+          : output[slot][si]!;
       // Adjustments apply only to slots where the source runs at all.
       const amount = base > 0 ? Math.max(0, base + adjust) : 0;
       if (makesHeat) addHeat(ctx, slot, b, amount);
@@ -159,7 +168,9 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
       lines.push(`× ${silt} silt`);
     }
     const low = content.events.lowRiver;
+    // With the water system on, water replaces the low river's "far from water" rule.
     if (
+      !ctx.report.water &&
       ctx.lowRiver &&
       !def.ignoresLowRiver &&
       waterDistance(content, state, b.at) > low.farFromWaterDistance
@@ -168,6 +179,11 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
       lines.push(`× ${low.farYieldFactor} low river, far from water`);
       if (!ctx.report.dried.includes(b.uid)) ctx.report.dried.push(b.uid);
     }
+  }
+  const water = ctx.report.water?.uses[b.uid];
+  if (water?.short) {
+    multiplier *= content.rules.water.shortfallFactor;
+    lines.push(`× ${content.rules.water.shortfallFactor} short of water`);
   }
   if (content.rules.harmony.multiplies.includes(res)) {
     const h = harmonyMultiplier(content, state.harmony);
@@ -181,6 +197,11 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
       value = Math.max(0, value - penalty);
       lines.push(`−${penalty} downstream of a weir`);
     }
+  }
+  const nutrient = def.water?.nutrientBonus[res] ?? 0;
+  if (nutrient > 0 && water && water.got.nutrient > 0) {
+    value += nutrient;
+    lines.push(`+${nutrient} nutrient-rich water`);
   }
   lines.push(`= ${value}`);
   explain(ctx, b, lines.join(' '));

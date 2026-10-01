@@ -1,6 +1,6 @@
 import type { Hex } from './hex';
 import type { RngState } from './rng';
-import type { EventId, Resource, Season, Slot, TileType } from './content/schema';
+import type { EventId, Resource, Season, Slot, TileType, WaterQuality } from './content/schema';
 
 export interface Tile extends Hex {
   type: TileType;
@@ -8,6 +8,8 @@ export interface Tile extends Hex {
   salvage?: number;
   /** Position along the river, 0 at the upstream edge (river and reservoir tiles). */
   riverIndex?: number;
+  /** Water held by a lake tile (still water off the river), while the water system is on. */
+  water?: number;
 }
 
 export interface MapState {
@@ -44,7 +46,7 @@ export interface BuildingState {
   recipe?: string;
   /** Energy slot a digester feeds. */
   slot?: Slot;
-  /** Stored energy or heat. */
+  /** Stored energy or heat (or water: a cistern's store, a weir's held-back water). */
   stored?: number;
 }
 
@@ -291,6 +293,57 @@ export type FlowLines = Record<string, { amount: number; count: number }>;
 /** Every unit of a resource made and used in a season: start + made − used = end. */
 export type Flows = Partial<Record<Resource, { made: FlowLines; used: FlowLines }>>;
 
+/** Units of water by quality. */
+export type WaterUnits = Record<WaterQuality, number>;
+
+/** Where a building's water came from. */
+export type WaterSource = 'river' | 'lake' | 'channel';
+
+export interface WaterUse {
+  need: number;
+  got: WaterUnits;
+  from: WaterSource | null;
+  /** Got less than it needs: yields are cut (rules.water.shortfallFactor). */
+  short: boolean;
+}
+
+export interface ChannelReport {
+  /** The channel's tiles (building uids), from the intake down. */
+  tiles: string[];
+  /** Where it takes its water: a river position, a lake (its first tile key), or nothing. */
+  intake: { river: number } | { lake: string } | null;
+  /** Fresh water taken from its source, evaporation included. */
+  drawn: number;
+  evaporated: number;
+  /** Water put in along the way: fish ponds and buildings' returns. */
+  fed: number;
+  /** Water cisterns released into it, and took from it. */
+  released: number;
+  stored: number;
+  /** Water left at its end: back into the river (at this position), or lost. */
+  rejoined: WaterUnits;
+  rejoinsAt: number | null;
+  lost: WaterUnits;
+}
+
+/**
+ * The season's water (EXPANSION.md, Water system). Every unit is accounted
+ * for: what came in (`in`) equals what went out (`out`), stores included.
+ */
+export interface WaterReport {
+  /** Entering the river at the top of the map. */
+  riverFlow: number;
+  /** Water leaving each river position, after what was drawn and returned there. */
+  flowAt: number[];
+  channels: ChannelReport[];
+  /** Water users by building uid. */
+  uses: Record<string, WaterUse>;
+  /** Grey water that reached the river: costs Harmony until next season. */
+  greyToRiver: number;
+  in: Record<string, number>;
+  out: Record<string, number>;
+}
+
 export interface SeasonReport {
   /**
    * Each resource made and used this season, by what: building, spending
@@ -305,8 +358,10 @@ export interface SeasonReport {
   flooded: string[];
   /** Floodplain tiles the flood would have reached, kept dry by a levee. */
   sheltered: string[];
-  /** Buildings that lost food to the low river (far from water). */
+  /** Buildings that lost food to the low river (far from water), or got too little water. */
   dried: string[];
+  /** The water system's season, while it is on. */
+  water: WaterReport | null;
   /** Buildings a storm could damage: on exposed land (hills), not next to woodland (unless the Mixed Grid holds). */
   exposed: string[];
   silted: string[];

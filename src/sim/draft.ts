@@ -1,5 +1,6 @@
 /** The draft: each season, pick 1 of 3 cards (blueprints and tunings); charters at some eras. */
 import type { Content } from './content/load';
+import { available } from './water';
 import { seasonIndex } from './queries';
 import { shuffled } from './rng';
 import type { RunState } from './types';
@@ -22,6 +23,7 @@ export function blueprintPool(content: Content, state: RunState, exclude: string
       (b) =>
         b.draftable &&
         !b.starter &&
+        available(content, b) &&
         b.minEra <= state.era &&
         !state.unlocked.includes(b.id) &&
         !exclude.includes(b.id) &&

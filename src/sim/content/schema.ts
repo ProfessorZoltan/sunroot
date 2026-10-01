@@ -52,6 +52,50 @@ const SlotSeason = z.object({
 export type SlotSeasonValues = z.infer<typeof SlotSeason>;
 const Ratio = z.object({ numerator: int.min(1), denominator: int.min(1) });
 
+/** Water qualities (EXPANSION.md, Water system): each unit of water carries one. */
+export const WATER_QUALITIES = ['clean', 'nutrient', 'grey'] as const;
+export const WaterQualitySchema = z.enum(WATER_QUALITIES);
+export type WaterQuality = z.infer<typeof WaterQualitySchema>;
+
+/**
+ * How a building takes part in the water system (EXPANSION.md). Only read
+ * while `rules.water.enabled` is on.
+ */
+const BuildingWaterSchema = z
+  .object({
+    /** Units of water needed each season (only while it works and is mature). */
+    needs: PerSeason.default(zero4),
+    /** Qualities it accepts, most wanted first. */
+    accepts: z.array(WaterQualitySchema).min(1).default(['nutrient', 'clean']),
+    /** Flat extra yield in a season it is fed at least 1 nutrient-rich unit. */
+    nutrientBonus: z.partialRecord(ResourceSchema, nonNeg).default({}),
+    /** Water it puts back into its channel at its position, in a season it gets all it needs. */
+    returns: z
+      .object({ quality: WaterQualitySchema, amount: int.min(1) })
+      .strict()
+      .optional(),
+    /** Turns up to this much grey water from its channel clean, in place (the Reed Bed). */
+    cleans: nonNeg.default(0),
+    /** A tile of Irrigation Channel. */
+    channel: z.boolean().default(false),
+    /** Stores this much water from its channel's spare capacity, released when it runs short. */
+    stores: nonNeg.default(0),
+    /** Fed by the river beside it: puts this water into a neighbouring channel each season (Fish Pond). */
+    feeds: z
+      .object({ quality: WaterQualitySchema, amount: int.min(1) })
+      .strict()
+      .optional(),
+    /** Holds back river water in one season and releases it below itself in another (the Weir). */
+    holdsBack: z
+      .object({ amount: int.min(1), fill: z.enum(SEASONS), release: z.enum(SEASONS) })
+      .strict()
+      .optional(),
+    /** Turned by the river: energy per slot follows the flow at its tile (the River Wheel). */
+    wheel: z.boolean().default(false),
+  })
+  .strict();
+export type BuildingWater = z.infer<typeof BuildingWaterSchema>;
+
 export const BUILDING_KINDS = [
   'food',
   'industry',
@@ -230,6 +274,9 @@ export const BuildingSchema = z
         siltShare: z.number().min(0).max(1).default(0),
       })
       .optional(),
+    /** Exists only while the water system is on (Irrigation Channel, Cistern). */
+    requiresWater: z.boolean().default(false),
+    water: BuildingWaterSchema.optional(),
     storage: z
       .object({
         holds: z.enum(['energy', 'heat']),
@@ -296,6 +343,31 @@ export const ModifierSchema = z
     message: 'a modifier needs exactly one of set, add or multiply',
   });
 export type Modifier = z.infer<typeof ModifierSchema>;
+
+const WaterRulesSchema = z
+  .object({
+    enabled: z.boolean().default(false),
+    /** Units entering the river at the top of the map each season. */
+    riverFlow: PerSeason,
+    /** Most water a channel takes from its source in a season, evaporation included. */
+    channelCapacity: int.min(1),
+    /** A channel loses 1 unit for every `tilesPerUnit` tiles (rounded down) in these seasons. */
+    evaporation: z.object({ tilesPerUnit: int.min(1), seasons: PerSeasonFlags }).strict(),
+    /** A building that gets less water than it needs yields this share, rounded down. */
+    shortfallFactor: z.number().min(0).max(1),
+    /** Harmony lost for each unit of grey water that reaches the river, until next season. */
+    greyHarmonyPerUnit: nonNeg,
+    /** Water each lake tile (still water off the river) holds; the spring flood fills it. */
+    lakePerTile: nonNeg,
+    /** River wheels make 1 energy per slot for every this many units of flow, rounded up. */
+    wheelFlowPerEnergy: int.min(1),
+    /** Tiles of channel the Founders' Camp starts with. */
+    campChannel: nonNeg,
+    /** The building that is a tile of channel, dug for the camp. */
+    channelBuilding: z.string(),
+  })
+  .strict();
+export type WaterRules = z.infer<typeof WaterRulesSchema>;
 
 export const RulesSchema = z
   .object({
@@ -418,6 +490,8 @@ export const RulesSchema = z
       .default([]),
     /** How many visions are offered at the start of a run (when visions are on). */
     visionChoices: int.min(1).default(2),
+    /** The water system (EXPANSION.md, Water system). Off unless `enabled`. */
+    water: WaterRulesSchema,
     mixedGrid: z.object({
       minSourceTypes: int.min(1),
       minShare: z.number().min(0).max(1),

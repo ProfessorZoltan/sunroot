@@ -23,6 +23,8 @@ export interface SeasonContext {
   /** Active buildings whose every demand was met (set after the energy step). */
   powered: Set<string>;
   lowRiver: boolean;
+  /** River wheels' flow this season, by uid, while the water system is on. */
+  wheelFlow: Map<string, number>;
   /** Food yielded this season, for the spare-food growth rule. */
   foodProduced: number;
   /** `${targetUid}:${giverType}` pairs, so each kind of neighbour bonus applies once. */
@@ -80,6 +82,7 @@ export function emptyReport(state: RunState): SeasonReport {
     flooded: [],
     sheltered: [],
     dried: [],
+    water: null,
     exposed: [],
     silted: [],
     damaged: [],

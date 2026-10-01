@@ -3,6 +3,7 @@ import { hexKey, type Hex } from './hex';
 import { placementEvolution } from './combos';
 import { buildingsTouching, neighborTiles, occupancy, tileAt } from './queries';
 import type { RunState } from './types';
+import { available, channelSiteProblem, isChannel } from './water';
 
 export type PlacementCheck = { ok: true } | { ok: false; reason: string };
 
@@ -19,6 +20,7 @@ export function canPlace(
   const def = content.byId[buildingId];
   if (!def) return { ok: false, reason: `unknown building ${buildingId}` };
   if (!def.placeable) return { ok: false, reason: `${def.name} can't be built, only evolved` };
+  if (!available(content, def)) return { ok: false, reason: `${def.name} needs the water system` };
   const tile = tileAt(state, at);
   if (!tile) return { ok: false, reason: 'outside the valley' };
   const occupant = occupancy(state).get(hexKey(at));
@@ -32,6 +34,10 @@ export function canPlace(
   }
   if (tile.type === 'ruin' && (tile.salvage ?? 0) <= 0) {
     return { ok: false, reason: 'the ruin is empty' };
+  }
+  if (isChannel(def)) {
+    const problem = channelSiteProblem(content, state, at);
+    if (problem) return { ok: false, reason: problem };
   }
   const { adjacentTo, adjacentToBuildings = [] } = def.placement;
   if (adjacentTo) {

@@ -24,7 +24,7 @@
       "tiers": [
         {
           "min": 0,
-          "multiplier": 1.0
+          "multiplier": 1
         },
         {
           "min": 20,
@@ -66,6 +66,21 @@
       "hint": 5
     },
     "draftCards": 3,
+    "water": {
+      "enabled": false,
+      "riverFlow": [12, 4, 8, 6],
+      "channelCapacity": 4,
+      "evaporation": {
+        "tilesPerUnit": 4,
+        "seasons": [false, true, false, false]
+      },
+      "shortfallFactor": 0.5,
+      "greyHarmonyPerUnit": 1,
+      "lakePerTile": 2,
+      "wheelFlowPerEnergy": 4,
+      "campChannel": 3,
+      "channelBuilding": "irrigationChannel"
+    },
     "mixedGrid": {
       "minSourceTypes": 3,
       "minShare": 0.15,
@@ -254,6 +269,13 @@
       "yields": {
         "food": [2, 4, 5, 0],
         "biomass": [1, 1, 1, 0]
+      },
+      "water": {
+        "needs": [1, 1, 1, 0],
+        "accepts": ["nutrient", "clean"],
+        "nutrientBonus": {
+          "food": 1
+        }
       }
     },
     {
@@ -270,6 +292,9 @@
       "yields": {
         "food": [1, 2, 4, 0],
         "biomass": [0, 0, 1, 0]
+      },
+      "water": {
+        "needs": [0, 1, 0, 0]
       }
     },
     {
@@ -303,6 +328,12 @@
       },
       "yields": {
         "food": [2, 1, 2, 1]
+      },
+      "water": {
+        "feeds": {
+          "quality": "nutrient",
+          "amount": 1
+        }
       }
     },
     {
@@ -325,6 +356,9 @@
         "heat": {
           "day": [0, 0, 0, 1]
         }
+      },
+      "water": {
+        "needs": [1, 1, 1, 1]
       }
     },
     {
@@ -553,6 +587,13 @@
           "targets": ["fishPond"],
           "amount": 1
         }
+      },
+      "water": {
+        "holdsBack": {
+          "amount": 4,
+          "fill": "spring",
+          "release": "summer"
+        }
       }
     },
     {
@@ -568,6 +609,40 @@
       },
       "levee": {
         "radius": 2
+      }
+    },
+    {
+      "id": "irrigationChannel",
+      "name": "Irrigation Channel",
+      "cost": 1,
+      "workers": 0,
+      "kind": "water",
+      "starter": true,
+      "draftable": false,
+      "requiresWater": true,
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["floodplain", "barren", "scrub", "meadow", "woodland"]
+      },
+      "water": {
+        "channel": true
+      }
+    },
+    {
+      "id": "cistern",
+      "name": "Cistern",
+      "cost": 5,
+      "workers": 0,
+      "kind": "water",
+      "requiresWater": true,
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland"],
+        "adjacentTo": [],
+        "adjacentToBuildings": ["irrigationChannel"]
+      },
+      "water": {
+        "stores": 6
       }
     },
     {
@@ -604,6 +679,9 @@
       },
       "weirBonus": {
         "perSlot": 1
+      },
+      "water": {
+        "wheel": true
       }
     },
     {
@@ -758,6 +836,9 @@
         "energy": {
           "day": [2, 2, 2, 2]
         }
+      },
+      "water": {
+        "needs": [1, 1, 1, 1]
       }
     },
     {
@@ -787,7 +868,14 @@
       "shading": {
         "penaltyPerSlot": 1
       },
-      "sourceType": "solarCanopy"
+      "sourceType": "solarCanopy",
+      "water": {
+        "needs": [1, 0, 1, 0],
+        "accepts": ["nutrient", "clean"],
+        "nutrientBonus": {
+          "food": 1
+        }
+      }
     },
     {
       "id": "rewildedRuin",
