@@ -11,7 +11,8 @@
  * ?new (the city's next run), ?seed=<text> (a run with this seed, outside
  * the city's teaching and expeditions), ?guided=0 (with ?seed: skip the
  * guided first year), ?visions=0 (with ?seed: no vision choice), ?sandbox
- * (everything unlocked, 999 materials; never saved).
+ * (everything unlocked, 999 materials; never saved), ?art (every tile and
+ * building in the frame hand-made art is delivered in; scripts/export-art.ts).
  */
 import { Application } from 'pixi.js';
 import { render } from 'preact';
@@ -24,6 +25,7 @@ import { PlayLog } from './game/playlog';
 import { indexedDbSlot, throttled } from './game/saves';
 import { GameStore, type Reveal } from './game/store';
 import { buildTimeline } from './game/timeline';
+import { renderArtSheet } from './render/artSheet';
 import { renderBuildingIcons } from './render/icons';
 import { MapView } from './render/mapView';
 import { COLORS } from './render/palette';
@@ -50,6 +52,13 @@ const randomSeed = (prefix: string) => `${prefix}-${Math.floor(Math.random() * 1
 async function start() {
   const params = new URLSearchParams(location.search);
   const content = loadContent(willowReach);
+  if (params.has('art')) {
+    // The art sheet: rendered off screen and handed to scripts/export-art.ts.
+    const app = new Application();
+    await app.init({ width: 64, height: 96, backgroundAlpha: 0, antialias: true });
+    (window as unknown as { sunrootArt: unknown }).sunrootArt = await renderArtSheet(app, content);
+    return;
+  }
   let storage: Storage | null = null;
   try {
     storage = window.localStorage;

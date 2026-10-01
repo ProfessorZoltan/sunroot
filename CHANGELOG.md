@@ -1,5 +1,11 @@
 # Changelog
 
+## Art guide
+
+- `docs/ART.md`: how to make hand-made art for every tile and building (style, frame, names,
+  optional layers), with the current art beside each. `npx tsx scripts/export-art.ts` exports the
+  current art, a contact sheet and the frame template to `docs/art/`.
+
 ## Events on the map
 
 - Choosing a building highlights every tile it can go on; floodplain where the flood would damage
