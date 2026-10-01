@@ -85,11 +85,11 @@ export function feedAndGrow(ctx: SeasonContext): void {
   const wb = rules.wellbeing;
   const lines: WellbeingLine[] = [];
   const buildings = Object.values(state.buildings);
-  const unpoweredHomes = buildings.filter((b) => {
-    if (!isHome(defOf(content, b))) return false;
-    return b.damage !== undefined || !ctx.powered.has(b.uid);
-  }).length;
-  if (unfed === 0 && unpoweredHomes === 0) {
+  // A damaged home is as cold and dark as an unpowered one, but for its own reason.
+  const homes = buildings.filter((b) => isHome(defOf(content, b)));
+  const damagedHomes = homes.filter((b) => b.damage !== undefined).length;
+  const unpoweredHomes = homes.filter((b) => !b.damage && !ctx.powered.has(b.uid)).length;
+  if (unfed === 0 && unpoweredHomes === 0 && damagedHomes === 0) {
     lines.push({ kind: 'needsMet', reason: 'every need met', amount: wb.allNeedsMet });
   }
   if (unfed > 0) {
@@ -104,6 +104,13 @@ export function feedAndGrow(ctx: SeasonContext): void {
       kind: 'unpowered',
       reason: `${unpoweredHomes} unpowered homes`,
       amount: unpoweredHomes * wb.perUnpoweredHome,
+    });
+  }
+  if (damagedHomes > 0) {
+    lines.push({
+      kind: 'damagedHomes',
+      reason: `${damagedHomes} damaged home${damagedHomes > 1 ? 's' : ''}`,
+      amount: damagedHomes * wb.perUnpoweredHome,
     });
   }
   const clutterSteps = Math.floor(state.stores.clutter / wb.clutterStep);

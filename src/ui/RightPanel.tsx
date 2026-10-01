@@ -7,6 +7,7 @@ import {
   timesTaken,
   type BuildingDef,
   type Content,
+  repairCost,
 } from '../sim';
 import { CharterPanel } from './Combos';
 import { VisionPanel } from './RunUi';
@@ -345,6 +346,48 @@ function PlacementPanel({ store }: { store: GameStore }) {
   );
 }
 
+/**
+ * Repairs: on by default, a damaged building is repaired at the start of each season
+ * while there are materials. The player can put a building's repairs on hold (to keep
+ * materials for something else, or because they mean to demolish it) and repair it now.
+ */
+function Repairs({ store, uid, cost }: { store: GameStore; uid: string; cost: number | null }) {
+  const b = store.state.buildings[uid];
+  // Only buildings an event can damage: not the camp, and only where repairs cost something.
+  if (!b || uid === 'b0') return null;
+  const short = cost !== null && store.state.stores.materials < cost;
+  return (
+    <div class="small control">
+      <label>
+        <input
+          type="checkbox"
+          checked={!b.holdRepairs}
+          onChange={(e) =>
+            store.dispatch({
+              type: 'setAutoRepair',
+              uid,
+              auto: (e.target as HTMLInputElement).checked,
+            })
+          }
+        />{' '}
+        Repair automatically when damaged
+      </label>
+      {cost !== null && (
+        <div>
+          <button
+            type="button"
+            class="button small-button"
+            disabled={short}
+            onClick={() => store.dispatch({ type: 'repair', uid })}
+          >
+            Repair now for {cost} materials
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
   const { state } = store;
   const b = state.buildings[store.inspected!];
@@ -352,12 +395,23 @@ function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
   const def = store.rules.byId[b.type]!;
   const now = store.insight.now;
   const status: string[] = [];
+  const repair = repairCost(store.rules, b);
+  const materials = state.stores.materials;
   if (b.damage) {
-    status.push(
-      b.damage.cause === 'flood'
-        ? 'Flood-damaged: repaired next season for 2 materials.'
-        : 'Storm-damaged this season.',
-    );
+    const cause = b.damage.cause === 'flood' ? 'Flood' : 'Storm';
+    if (repair === null) status.push(`${cause}-damaged: idle this season, then back at work.`);
+    else if (b.holdRepairs)
+      status.push(
+        `${cause}-damaged and idle. Repairs are on hold: repair it below when you choose.`,
+      );
+    else if (materials >= repair)
+      status.push(
+        `${cause}-damaged and idle: repaired at the start of next season for ${repair} materials.`,
+      );
+    else
+      status.push(
+        `${cause}-damaged and idle: repairs need ${repair} materials (you have ${materials}); it waits until you have them.`,
+      );
   }
   if (now.unstaffed.includes(b.uid)) status.push('No worker: it will not run this season.');
   if (now.blackouts.includes(b.uid)) status.push('Will be shut off in a blackout this season.');
@@ -428,6 +482,7 @@ function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
           slot
         </label>
       )}
+      <Repairs store={store} uid={b.uid} cost={repair} />
       <Demolish store={store} uid={b.uid} />
       {b.uid !== 'b0' && (
         <div class="small control">

@@ -9,6 +9,7 @@
  */
 import {
   hexKey,
+  repairCost,
   standsOn,
   parseHexKey,
   SEASONS,
@@ -66,15 +67,17 @@ export function mapMarks(content: Content, state: RunState, forecast: SeasonRepo
       add(b.at, 'silt', false, `Silted by the flood: +${bonus}% food this ${state.season}.`);
     }
     if (b.damage) {
+      const cost = repairCost(content, b);
+      const cause = b.damage.cause === 'flood' ? 'Flood' : 'Storm';
       add(
         b.at,
         'damaged',
         false,
-        b.damage.cause === 'flood'
-          ? `Flood-damaged: idle until repaired for ${flood.repairCost} materials.`
-          : content.events.storm.repairCost > 0
-            ? `Storm-damaged: idle until repaired for ${content.events.storm.repairCost} materials.`
-            : 'Storm-damaged: idle this season.',
+        cost === null
+          ? `${cause}-damaged: idle this season.`
+          : b.holdRepairs
+            ? `${cause}-damaged: repairs on hold. Repair it from its panel (${cost} materials).`
+            : `${cause}-damaged: idle until repaired for ${cost} materials.`,
       );
     }
   }

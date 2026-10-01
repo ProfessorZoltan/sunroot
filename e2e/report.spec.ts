@@ -146,3 +146,65 @@ test('fast-forward ends seasons, waiting for each card, and Esc stops it', async
   expect(await turn()).toBe(2);
   expect(errors).toEqual([]);
 });
+
+test('repairs: on hold from the inspector, then repaired now', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/?seed=willow-reach-golden&visions=0&sandbox&guided=0');
+  await expect(page.locator('#map-host canvas')).toBeVisible();
+  type Store = {
+    legalSites: { at: { q: number; r: number }; risky: boolean }[];
+    selectBuilding(b: string | null): void;
+    dispatch(c: unknown): boolean;
+    inspect(uid: string | null): void;
+    finishResolution(): void;
+    reveals: unknown[];
+    dismissReveal(): void;
+    state: {
+      buildings: Record<string, { type: string; damage?: { cause: string } }>;
+      draft: { offer: string[] };
+    };
+  };
+  // A workshop where the spring flood will reach it.
+  const uid = await page.evaluate(() => {
+    const s = (window as unknown as { sunroot: { store: Store } }).sunroot.store;
+    s.selectBuilding('workshop');
+    const site = s.legalSites.find((x) => x.risky)!;
+    s.dispatch({ type: 'place', building: 'workshop', at: site.at });
+    s.selectBuilding(null);
+    return Object.entries(s.state.buildings).find(([, b]) => b.type === 'workshop')![0];
+  });
+  await page.evaluate(
+    (u) => (window as unknown as { sunroot: { store: Store } }).sunroot.store.inspect(u),
+    uid,
+  );
+  const details = page.getByRole('region', { name: 'Workshop details' });
+  const auto = details.getByRole('checkbox', { name: 'Repair automatically when damaged' });
+  await expect(auto).toBeChecked();
+  await auto.uncheck();
+  // The flood comes; the workshop stays damaged.
+  await page.evaluate(() => {
+    const s = (window as unknown as { sunroot: { store: Store } }).sunroot.store;
+    s.dispatch({ type: 'pickCard', card: s.state.draft.offer[0] });
+    s.dispatch({ type: 'endSeason' });
+    s.finishResolution();
+    while (s.reveals.length) s.dismissReveal();
+  });
+  const damage = () =>
+    page.evaluate(
+      (u) =>
+        (window as unknown as { sunroot: { store: Store } }).sunroot.store.state.buildings[u]!
+          .damage?.cause ?? null,
+      uid,
+    );
+  expect(await damage()).toBe('flood');
+  await page.evaluate(
+    (u) => (window as unknown as { sunroot: { store: Store } }).sunroot.store.inspect(u),
+    uid,
+  );
+  await expect(details).toContainText('Repairs are on hold');
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/repairs.png` });
+  await details.getByRole('button', { name: /^Repair now for \d+ materials$/ }).click();
+  await expect.poll(damage).toBeNull();
+  expect(errors).toEqual([]);
+});

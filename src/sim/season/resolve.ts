@@ -19,6 +19,7 @@ import {
   seasonIndex,
   tileAt,
   byPriority,
+  repairCost,
 } from '../queries';
 import type { RunState, SeasonSummary } from '../types';
 import { emptyReport, flow, type SeasonContext } from './context';
@@ -208,11 +209,14 @@ function startSeason(content: Content, state: RunState): void {
         state.notices.push(`${def.name} matured and turned its tile to ${def.matureTileBecomes}`);
       }
     }
-    if (b.damage) {
-      // Flood damage, and storm damage when storms need repairs: repaired once it can be paid for.
-      const event = b.damage.cause === 'flood' ? 'flood' : 'storm';
-      const cost = content.events[event].repairCost;
-      if (state.stores.materials >= cost) {
+    const cost = repairCost(content, b);
+    if (cost !== null && b.damage) {
+      // Flood damage, and storm damage when storms need repairs: repaired once it can be paid
+      // for, in priority order, unless the player put this building's repairs on hold.
+      const event = b.damage.cause;
+      if (b.holdRepairs) {
+        state.notices.push(`${def.name} is ${event}-damaged: repairs are on hold`);
+      } else if (state.stores.materials >= cost) {
         state.stores.materials -= cost;
         if (state.lastReport)
           flow(

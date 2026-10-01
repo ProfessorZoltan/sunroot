@@ -1,5 +1,14 @@
 # Changelog
 
+## Repairs
+
+- A building's panel can turn off "Repair automatically when damaged": it then stays damaged until
+  you choose "Repair now". Repairs stay automatic by default.
+- The panel and the map tooltip give a damaged building's real repair cost, whether you have the
+  materials, or that its repairs are on hold.
+- A damaged home shows as "damaged home" in wellbeing, not as an unpowered one; under Wild Storms
+  the Mixed Grid no longer claims to stop storm damage.
+
 ## Hand-made art
 
 - The map is drawn with hand-made storybook papercraft: every tile type (two summer looks and

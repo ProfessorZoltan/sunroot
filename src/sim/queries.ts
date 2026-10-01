@@ -75,6 +75,16 @@ export function isHome(def: BuildingDef): boolean {
   return def.housing > 0;
 }
 
+/**
+ * What repairing a damaged building costs in materials, or null when it needs
+ * no repair (undamaged, or storm damage that clears by itself).
+ */
+export function repairCost(content: Content, b: BuildingState): number | null {
+  if (!b.damage) return null;
+  const cost = content.events[b.damage.cause].repairCost;
+  return b.damage.cause === 'storm' && cost === 0 ? null : cost;
+}
+
 /** Whether a storm can damage this building: on exposed land, with no woodland beside it. */
 export function stormExposed(content: Content, state: RunState, b: BuildingState): boolean {
   const type = tileAt(state, b.at)?.type;

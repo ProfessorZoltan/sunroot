@@ -11,7 +11,15 @@ import { hexKey } from './hex';
 import { canPlace } from './placement';
 import { evolve, hintable, placementEvolution } from './combos';
 import { effectiveContent } from './content/modifiers';
-import { buildingAt, computeHarmony, defOf, improveTile, isHome, tileAt } from './queries';
+import {
+  buildingAt,
+  computeHarmony,
+  defOf,
+  improveTile,
+  isHome,
+  repairCost,
+  tileAt,
+} from './queries';
 import { flow } from './season/context';
 import { resolveSeason } from './season/resolve';
 import { cloneState, snapshot } from './snapshot';
@@ -199,6 +207,32 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       }
       for (const uid of command.order) if (!current.has(uid)) return `unknown building ${uid}`;
       s.priority = [...command.order];
+      return null;
+    }
+    case 'setAutoRepair': {
+      const b = s.buildings[command.uid];
+      if (!b) return `unknown building ${command.uid}`;
+      if (command.auto) delete b.holdRepairs;
+      else b.holdRepairs = true;
+      return null;
+    }
+    case 'repair': {
+      const b = s.buildings[command.uid];
+      if (!b) return `unknown building ${command.uid}`;
+      const cost = repairCost(content, b);
+      if (cost === null) return `the ${defOf(content, b).name} needs no repair`;
+      if (s.stores.materials < cost) return `repairing it needs ${cost} materials`;
+      s.stores.materials -= cost;
+      const cause = b.damage!.cause;
+      flow(
+        s.spent,
+        'materials',
+        'used',
+        cause === 'flood' ? 'Flood repairs' : 'Storm repairs',
+        cost,
+        b.uid,
+      );
+      delete b.damage;
       return null;
     }
     default:

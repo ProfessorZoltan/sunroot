@@ -75,7 +75,9 @@ the music gains an instrument at each Harmony tier. **Sound** in the footer turn
 panel (?) has the volumes.
 
 **Report** at the bottom shows what made and used each resource in the last of each season.
-Click a building to inspect it; Delete demolishes it (for some energy and rubble).
+Click a building to inspect it; Delete demolishes it (for some energy and rubble). Damaged
+buildings are repaired automatically at the start of a season while you have the materials; a
+building's panel can put its repairs on hold and repair it later.
 
 Keyboard: 1–4 pick a card, letters on the palette pick a building, arrow keys aim, N jumps to the
 next legal site, Enter places, Z undoes, E ends the season, Space skips its resolution, A opens

@@ -207,7 +207,12 @@ function Bonuses({ store, report }: { store: GameStore; report: SeasonReport }) 
       `Harmony ${report.harmony.value}: food, biomass and knowledge × ${report.harmony.multiplier}.`,
     );
   if (report.silted.length > 0) lines.push(`Silt on ${report.silted.length} farms.`);
-  if (report.mixedGrid) lines.push('Mixed Grid: extra energy in every slot, no storm damage.');
+  if (report.mixedGrid)
+    lines.push(
+      store.rules.events.storm.mixedGridShelters
+        ? 'Mixed Grid: extra energy in every slot, no storm damage.'
+        : 'Mixed Grid: extra energy in every slot (no shelter from these storms).',
+    );
   const tunings = state.tunings.map((id) => content.tuningById[id]?.name ?? id);
   const charters = state.charters.map((id) => content.charterById[id]?.name ?? id);
   return (

@@ -38,6 +38,8 @@ export interface BuildingState {
   evolvedTurn?: number;
   /** Disabled by an event. Flood damage needs a repair; storm damage clears next season. */
   damage?: { cause: 'flood' | 'storm'; turn: number };
+  /** The player put repairs on hold: damage stays until they repair it themselves. */
+  holdRepairs?: boolean;
   /** Selected recipe for workshops and kilns. */
   recipe?: string;
   /** Energy slot a digester feeds. */
@@ -201,6 +203,10 @@ export type Command =
   | { type: 'setRecipe'; uid: string; recipe: string }
   | { type: 'setDigesterSlot'; uid: string; slot: Slot }
   | { type: 'setPriority'; order: string[] }
+  /** Whether a damaged building is repaired automatically at the start of a season (the default). */
+  | { type: 'setAutoRepair'; uid: string; auto: boolean }
+  /** Repairs a damaged building now, for its repair cost in materials. */
+  | { type: 'repair'; uid: string }
   | { type: 'undo' }
   | { type: 'endSeason' };
 
@@ -263,6 +269,7 @@ export type WellbeingKind =
   | 'needsMet'
   | 'hunger'
   | 'unpowered'
+  | 'damagedHomes'
   | 'clutter'
   | 'greenery'
   | 'civic'

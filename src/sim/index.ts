@@ -66,6 +66,7 @@ export {
   computeHarmony,
   harmonyLines,
   harmonyMultiplier,
+  repairCost,
   standsOn,
   waterDistance,
   type HarmonyLine,
