@@ -160,6 +160,9 @@ export class MapView {
     this.player = player;
     if (this.state) this.drawBuildings(this.state);
     this.drawMarks();
+    // Setting up can take a while on a slow machine: the season's clock starts now, not at the
+    // last frame, so the first frame doesn't skip ahead by the setup time.
+    this.lastTick = performance.now();
   }
 
   /** Skips to the end of the resolution, if one is playing. */
