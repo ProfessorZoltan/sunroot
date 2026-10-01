@@ -1,7 +1,7 @@
 /** Step 3: the season's event. */
 import { hexDistance, hexKey } from '../hex';
 import { nextInt } from '../rng';
-import { defOf, neighborTiles, occupancy, stormExposed, tileAt } from '../queries';
+import { defOf, occupancy, stormExposed } from '../queries';
 import type { SeasonContext } from './context';
 
 /**
