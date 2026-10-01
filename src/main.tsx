@@ -16,6 +16,8 @@
 import { Application } from 'pixi.js';
 import { render } from 'preact';
 import willowReach from './content/willow-reach.json';
+import { connectAudio } from './audio/director';
+import { AudioEngine } from './audio/engine';
 import { loadAlmanac, saveAlmanac } from './game/almanac';
 import { loadCity, saveCity } from './game/city';
 import { PlayLog } from './game/playlog';
@@ -58,6 +60,14 @@ async function start() {
   const slot = indexedDbSlot('current');
   const citySlot = indexedDbSlot('city');
   const root = document.getElementById('app')!;
+
+  // Sound starts with the first click or key press (browsers require one) and pauses while hidden.
+  const audio = new AudioEngine(storage);
+  addEventListener('pointerdown', () => audio.unlock());
+  addEventListener('keydown', () => audio.unlock());
+  document.addEventListener('visibilitychange', () =>
+    document.visibilityState === 'hidden' ? audio.pause() : audio.unlock(),
+  );
 
   // Root City, saved in its own slot (sandbox runs never touch it).
   const loaded = sandbox
@@ -117,6 +127,7 @@ async function start() {
         onSave={keepCity}
         onSetOut={() => go('?new')}
         onBack={() => go('')}
+        audio={audio}
       />,
       root,
     );
@@ -124,6 +135,7 @@ async function start() {
       city: () => city,
       content,
       savedCity: cityStatus,
+      audio,
     };
     return;
   }
@@ -151,8 +163,13 @@ async function start() {
 
   // The playtest log: a row per season, kept in the browser (not for sandbox runs).
   const log = new PlayLog(content, sandbox ? null : storage);
+  // Notes for what the player does, chords for combos, music that follows Harmony.
+  let sound: ReturnType<typeof connectAudio> | null = null;
   const store = new GameStore(content, state, {
-    onCommand: (command, ok, before, after) => log.command(command, ok, before, after),
+    onCommand: (command, ok, before, after) => {
+      log.command(command, ok, before, after);
+      sound?.command(command, ok, before, after);
+    },
     onResolution: (playing, skipped, s) => log.resolution(playing, skipped, s),
     almanac: loadAlmanac(content, storage),
     onAlmanac: (almanac) => saveAlmanac(content, storage, almanac),
@@ -166,6 +183,7 @@ async function start() {
     },
     intro,
   });
+  sound = connectAudio(audio, store);
   store.message = resumeNote;
   log.begin(store.state);
 
@@ -208,6 +226,7 @@ async function start() {
         newRun={newRun}
         viewCity={sandbox ? undefined : viewCity}
         log={log}
+        audio={audio}
       />,
       root,
     );
@@ -270,6 +289,7 @@ async function start() {
     saved: status,
     city: () => city,
     savedCity: cityStatus,
+    audio,
   };
   icons = await renderBuildingIcons(app);
   draw();

@@ -13,6 +13,7 @@ import { LeftPanel } from './LeftPanel';
 import { Footer, ForecastPill, Help, MapTip, ResolutionBanner } from './Overlays';
 import { EndScreen, NewRunDialog, NoteDialog } from './RunUi';
 import type { PlayLog } from '../game/playlog';
+import type { AudioEngine } from '../audio/engine';
 import { RightPanel, paletteOrder, type Ui } from './RightPanel';
 import { TipProvider } from './tips';
 import { TopBar } from './TopBar';
@@ -24,6 +25,7 @@ export function App({
   newRun,
   viewCity,
   log,
+  audio,
 }: {
   store: GameStore;
   view: () => MapView | null;
@@ -34,6 +36,8 @@ export function App({
   viewCity?: () => void;
   /** The playtest log, for notes and the CSV download. */
   log?: PlayLog;
+  /** Sound (Milestone 9): its controls in the footer and the keys panel. */
+  audio?: AudioEngine;
 }) {
   const [, rerender] = useReducer((n: number, _: undefined) => n + 1, 0);
   const [help, setHelpState] = useState(false);
@@ -198,8 +202,9 @@ export function App({
           onNote={log ? () => setNoting(true) : undefined}
           onNewRun={() => (store.state.status === 'active' ? setAskNewRun(true) : newRun())}
           onCity={viewCity}
+          audio={audio}
         />
-        {help && <Help onClose={() => setHelp(false)} log={log} />}
+        {help && <Help onClose={() => setHelp(false)} log={log} audio={audio} />}
         {noting && log && (
           <NoteDialog
             season={`${store.state.season}, year ${store.state.year}`}

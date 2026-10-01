@@ -27,7 +27,10 @@ import {
   type Expedition,
   type Hex,
 } from '../sim';
+import { cityCue } from '../audio/director';
+import type { AudioEngine } from '../audio/engine';
 import { cardLabel } from './RunUi';
+import { SoundButton } from './Sound';
 
 const SIZE = 44;
 const SQRT3 = Math.sqrt(3);
@@ -179,6 +182,7 @@ export function CityScreen({
   onSave,
   onSetOut,
   onBack,
+  audio,
 }: {
   content: Content;
   initial: CityState;
@@ -187,6 +191,7 @@ export function CityScreen({
   onSave: (city: CityState) => void;
   onSetOut: (city: CityState) => void;
   onBack?: () => void;
+  audio?: AudioEngine;
 }) {
   const [city, setCity] = useState(initial);
   const [selected, setSelected] = useState<number | null>(null);
@@ -194,6 +199,11 @@ export function CityScreen({
   const [events, setEvents] = useState<CityEvent[]>([]);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => heading.current?.focus(), []);
+  // The city's music fills out as its slots fill.
+  useEffect(
+    () => audio?.setLayers(1 + Math.floor((3 * initial.districts.length) / slotCount(content))),
+    [],
+  );
 
   const apply = (command: CityCommand): boolean => {
     const r = applyCityCommand(content, city, command);
@@ -203,6 +213,25 @@ export function CityScreen({
     }
     setCity(r.city);
     onSave(r.city);
+    if (audio) {
+      const placed = command.type === 'place' ? r.city.districts.at(-1) : undefined;
+      const district =
+        placed ?? (command.type === 'upgrade' ? districtAt(r.city, command.slot) : undefined);
+      if (district) {
+        const cue = cityCue(
+          command.type === 'upgrade' ? 'upgrade' : 'place',
+          districtNote(content, district.district),
+        );
+        audio.play(cue.cue, cue.notes);
+      }
+      for (const e of r.events) {
+        if (e.kind === 'landmark' || e.kind === 'sunTree') {
+          const cue = cityCue(e.kind);
+          audio.play(cue.cue, cue.notes);
+        }
+      }
+      audio.setLayers(1 + Math.floor((3 * r.city.districts.length) / slotCount(content)));
+    }
     const composted = r.events.find((e) => e.kind === 'composted');
     setMessage(
       composted && composted.kind === 'composted'
@@ -251,6 +280,7 @@ export function CityScreen({
           </strong>
         </div>
         <span class="grow" />
+        {audio && <SoundButton engine={audio} />}
         {readOnly && onBack && (
           <button type="button" class="button primary" onClick={onBack}>
             Back to the run
@@ -414,6 +444,15 @@ export function CityScreen({
       )}
     </div>
   );
+}
+
+/** A district's note: its place among the districts, on the pentatonic scale. */
+function districtNote(content: Content, district: string): number {
+  const i = Math.max(
+    0,
+    content.districts.findIndex((d) => d.id === district),
+  );
+  return 62 + [0, 2, 4, 7, 9][i % 5]!;
 }
 
 function nameOf(content: Content, district: string): string {

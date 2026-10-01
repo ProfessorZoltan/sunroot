@@ -1,11 +1,13 @@
 /** The footer, the map's forecast pill and building tooltip, keyboard help and the end-of-run screen. */
 import { useEffect, useRef, useState } from 'preact/hooks';
+import type { AudioEngine } from '../audio/engine';
 import { logToCsv, type PlayLog } from '../game/playlog';
 import type { GameStore } from '../game/store';
 import type { MapView } from '../render/mapView';
 import { hexKey } from '../sim';
 import { Arrow, Sun, Undo, Wind } from './icons';
 import { SEASON_NAMES } from './TopBar';
+import { SoundButton, SoundSettings } from './Sound';
 
 export function Footer({
   store,
@@ -14,6 +16,7 @@ export function Footer({
   onNewRun,
   onNote,
   onCity,
+  audio,
 }: {
   store: GameStore;
   onHelp: () => void;
@@ -21,6 +24,7 @@ export function Footer({
   onNewRun: () => void;
   /** Looks at Root City (the run stays saved). */
   onCity?: () => void;
+  audio?: AudioEngine;
   /** Opens a playtest note for this season. */
   onNote?: () => void;
 }) {
@@ -53,6 +57,7 @@ export function Footer({
                   : '')}
       </div>
       <div class="actions">
+        {audio && <SoundButton engine={audio} />}
         {onCity && (
           <button type="button" class="button" onClick={onCity}>
             Root City
@@ -192,7 +197,15 @@ export function MapTip({ store, view }: { store: GameStore; view: MapView | null
   );
 }
 
-export function Help({ onClose, log }: { onClose: () => void; log?: PlayLog }) {
+export function Help({
+  onClose,
+  log,
+  audio,
+}: {
+  onClose: () => void;
+  log?: PlayLog;
+  audio?: AudioEngine;
+}) {
   const close = useRef<HTMLButtonElement>(null);
   useEffect(() => close.current?.focus(), []);
   const keys: [string, string][] = [
@@ -230,6 +243,7 @@ export function Help({ onClose, log }: { onClose: () => void; log?: PlayLog }) {
             </tr>
           ))}
         </table>
+        {audio && <SoundSettings engine={audio} />}
         {log && <LogTools log={log} />}
         <button type="button" class="button" ref={close} onClick={onClose}>
           Close

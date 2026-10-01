@@ -1,5 +1,16 @@
 # Changelog
 
+## Milestone 9: audio
+
+- Sound, all synthesized in code: each building plays a note when placed (a marimba for food, a
+  bell for energy, a flute for homes...), all in D major so play sounds like a tune.
+- Combos play chords: a placement that puts a combo to work, a loop closing, a building evolving.
+  Discovery cards unfold with a chime. A run ends with a cadence; Root City has its own notes, a
+  landmark chord and the Sun Tree's fanfare.
+- A soundtrack that gains an instrument at each Harmony tier: a pad, then a plucked arpeggio, a bell
+  melody and a high flute, so a thriving valley sounds fuller.
+- Sound on/off in the footer and the city; music and effects volumes in the keys panel.
+
 ## Milestone 8: Root City
 
 - Root City between runs: the Heartwood ringed by 18 district slots. Place the Graft a run planted,

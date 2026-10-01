@@ -4,10 +4,10 @@ A solarpunk settlement builder of short, replayable runs. Each run heals one dam
 it sends home grows a permanent city. The full design is in [docs/DESIGN.md](docs/DESIGN.md).
 
 Built so far: the simulation core, the balance simulator, the map, the interface, the season
-resolution, combos with the Almanac, the run's structure (eras, visions, scoring and the Graft), and
-Root City between runs (Milestones 0 to 8 of the build plan). Runs of Willow Reach can be played
-one after another with mouse or keyboard, growing Root City; the run in progress and the city are
-saved and resumed. See [CHANGELOG.md](CHANGELOG.md) and [docs/DECISIONS.md](docs/DECISIONS.md).
+resolution, combos with the Almanac, the run's structure (eras, visions, scoring and the Graft),
+Root City between runs, and sound (Milestones 0 to 9 of the build plan). Runs of Willow Reach can
+be played one after another with mouse or keyboard, growing Root City; the run in progress and the
+city are saved and resumed. See [CHANGELOG.md](CHANGELOG.md) and [docs/DECISIONS.md](docs/DECISIONS.md).
 
 ## Getting started
 
@@ -60,6 +60,10 @@ Buildings combine: neighbours help each other, loops of buildings earn a lasting
 and evolutions wait to be discovered. Each discovery goes into the Almanac (A), which keeps them
 across runs.
 
+Sound starts with your first click or key press: buildings play notes, combos play chords, and
+the music gains an instrument at each Harmony tier. **Sound** in the footer turns it off; the keys
+panel (?) has the volumes.
+
 Keyboard: 1–4 pick a card, letters on the palette pick a building, arrow keys aim, N jumps to the
 next legal site, Enter places, Z undoes, E ends the season, Space skips its resolution, A opens
 the Almanac, ? lists every key.
@@ -74,6 +78,7 @@ the Almanac, ? lists every key.
 | `src/game/`    | The client store, the numbers the interface shows, and each season's resolution timeline.     |
 | `src/render/`  | The PixiJS map: procedural tiles and buildings, seasons, wildlife, the resolution player.     |
 | `src/ui/`      | The Preact interface.                                                                         |
+| `src/audio/`   | Sound: the music as data, what plays when, and the Web Audio engine that synthesizes it.      |
 | `src/main.tsx` | The web client's entry point.                                                                 |
 | `tests/`       | Unit tests and the Year 1 golden test.                                                        |
 | `e2e/`         | Browser tests, including a whole run played with the keyboard.                                |

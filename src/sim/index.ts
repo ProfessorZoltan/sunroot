@@ -7,6 +7,7 @@ export {
   TILE_TYPES,
   COMBO_LAYERS,
   type BuildingDef,
+  type BuildingKind,
   type Charter,
   type Combo,
   type ComboLayer,

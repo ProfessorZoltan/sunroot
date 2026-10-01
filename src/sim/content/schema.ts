@@ -62,6 +62,7 @@ export const BUILDING_KINDS = [
   'nature',
   'water',
 ] as const;
+export type BuildingKind = (typeof BUILDING_KINDS)[number];
 
 const RecipeSchema = z.object({
   id: z.string(),
