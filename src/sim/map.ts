@@ -65,18 +65,55 @@ export function generateMap(content: Content, seed: string): GeneratedMap {
     return `${t.r}:${colOf(key) > riverCol[t.r]! ? 'e' : 'w'}`;
   };
 
+  const width = gen.floodplainWidth;
   for (const key of order) {
     const t = tiles[key]!;
     if (t.type === 'river') continue;
     const d = riverDistance(t);
     // Bluffs are steep, dry banks: hills right on the river (where a pumped reservoir can go).
     if (d === 1) t.type = bluff.has(bankSide(key)) ? 'hill' : 'floodplain';
+    else if (d <= width && !bluff.has(bankSide(key))) t.type = 'floodplain';
   }
   for (const key of order) {
     const t = tiles[key]!;
-    if (t.type !== 'barren' || riverDistance(t) !== 2 || bluff.has(bankSide(key))) continue;
+    if (t.type !== 'barren' || riverDistance(t) !== width + 1 || bluff.has(bankSide(key))) continue;
     const touchesFloodplain = hexNeighbors(t).some((n) => tile(n)?.type === 'floodplain');
     if (touchesFloodplain && chance(rng, gen.farFloodplainChance)) t.type = 'floodplain';
+  }
+
+  // Oxbow lakes: still water a little way from the river, ringed with floodplain.
+  for (let i = 0; i < gen.lakes; i++) {
+    const nearLake = (h: Hex) =>
+      order.some((k) => tiles[k]!.type === 'reservoir' && hexDistance(h, tiles[k]!) <= 3);
+    const sites = order.filter((key) => {
+      const t = tiles[key]!;
+      const d = riverDistance(t);
+      return (
+        t.type === 'barren' && d >= 2 && d <= 3 && t.r >= 1 && t.r < gen.height - 1 && !nearLake(t)
+      );
+    });
+    if (sites.length === 0) break;
+    const lake = [tiles[sites[nextInt(rng, sites.length)]!]!];
+    while (lake.length < gen.lakeSize) {
+      const grow = lake
+        .flatMap((h) => hexNeighbors(h))
+        .map((n) => tile(n))
+        .filter(
+          (n): n is Tile =>
+            n !== undefined &&
+            (n.type === 'barren' || n.type === 'floodplain') &&
+            riverDistance(n) >= 2 &&
+            !lake.includes(n),
+        );
+      if (grow.length === 0) break;
+      lake.push(grow[nextInt(rng, grow.length)]!);
+    }
+    for (const t of lake) t.type = 'reservoir';
+    for (const t of lake)
+      for (const n of hexNeighbors(t)) {
+        const nt = tile(n);
+        if (nt?.type === 'barren') nt.type = 'floodplain';
+      }
   }
 
   // Hills at the valley edges.

@@ -97,14 +97,21 @@ export function EraGoalStatus({ store }: { store: GameStore }) {
 export function ExpeditionStatus({ store }: { store: GameStore }) {
   const { content, state } = store;
   const twist = content.twists.find((t) => t.id === state.options.expedition?.twist);
+  const region = content.regions.find((r) => r.id === state.options.expedition?.region);
   const request = cityRequest(content, state);
-  if (!twist && !request) return null;
+  if (!twist && !request && !region) return null;
   const met = state.requestMet !== null;
   const progress = request ? goalProgress(content, state, request.goal) : null;
   const bonus = content.progression?.seeds.cityRequest ?? 0;
   return (
     <section aria-label="Expedition">
       <h2>Expedition</h2>
+      {region && (
+        <div class="small">
+          <strong>{region.name}</strong>
+          {region.modifiers.length > 0 ? `: ${region.text}` : ''}
+        </div>
+      )}
       {twist && (
         <div class="small">
           <strong>{twist.name}</strong>
@@ -242,7 +249,7 @@ export function EndScreen({
         </table>
         {score.lift && (
           <div class="small">
-            The {score.lift.twist} lifted the Graft {score.lift.tiers} tier
+            {score.lift.by} lifted the Graft {score.lift.tiers} tier
             {score.lift.tiers > 1 ? 's' : ''}, to {score.tier.name}.
           </div>
         )}

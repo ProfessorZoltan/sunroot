@@ -26,8 +26,8 @@ export interface RunScore {
   tier: Tier;
   /** The next tier up and the points still needed, if any. */
   next: { tier: Tier; points: number } | null;
-  /** Tiers the expedition's twist raised the Graft, and the twist's name. */
-  lift: { tiers: number; twist: string } | null;
+  /** A hard region or twist lifted the Graft: by how many tiers, and what lifted it. */
+  lift: { tiers: number; by: string } | null;
 }
 
 export function scoreRun(content: Content, state: RunState): RunScore {
@@ -64,9 +64,13 @@ export function scoreRun(content: Content, state: RunState): RunScore {
   const total = lines.reduce((sum, l) => sum + l.points, 0);
   const tiers = w.tiers;
   const scored = Math.max(0, tiers.filter((t) => total >= t.min).length - 1);
-  // A hard twist (a Drought Year) raises the Graft a tier or more.
-  const twist = content.twists.find((t) => t.id === state.options.expedition?.twist);
-  const bonus = twist?.graftTierBonus ?? 0;
+  // A hard region (High Banks) or twist (a Drought Year) raises the Graft a tier or more.
+  const expedition = state.options.expedition;
+  const lifters = [
+    content.regions.find((r) => r.id === expedition?.region),
+    content.twists.find((t) => t.id === expedition?.twist),
+  ].filter((x) => x !== undefined && x.graftTierBonus > 0);
+  const bonus = lifters.reduce((n, x) => n + x!.graftTierBonus, 0);
   const at = Math.min(tiers.length - 1, scored + bonus);
   const up = tiers[at + 1] && tiers[scored + 1];
   return {
@@ -74,7 +78,8 @@ export function scoreRun(content: Content, state: RunState): RunScore {
     lines,
     tier: tiers[at]!,
     next: up ? { tier: tiers[at + 1]!, points: up.min - total } : null,
-    lift: twist && at > scored ? { tiers: at - scored, twist: twist.name } : null,
+    lift:
+      at > scored ? { tiers: at - scored, by: lifters.map((x) => x!.name).join(' and ') } : null,
   };
 }
 

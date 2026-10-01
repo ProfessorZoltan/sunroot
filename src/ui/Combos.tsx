@@ -307,7 +307,9 @@ export function runStart(store: GameStore, joining: string[]): { title: string; 
   const twist = content.twists.find((t) => t.id === state.options.expedition?.twist);
   const request = content.requests.find((r) => r.id === state.options.expedition?.request);
   const tiers = content.rules.score.tiers;
+  const region = content.regions.find((r) => r.id === state.options.expedition?.region);
   const lines: string[] = [];
+  if (region) lines.push(`${region.name}: ${region.text}`);
   if (twist) lines.push(`${twist.name}: ${twist.text}`);
   if (request) {
     lines.push(
@@ -328,7 +330,8 @@ export function runStart(store: GameStore, joining: string[]): { title: string; 
     if (l) lines.push(`${l.name}: ${l.text}`);
   }
   for (const j of joining) if (JOINING[j]) lines.push(JOINING[j]);
-  return { title: twist ? `Expedition: ${twist.name}` : 'A new Sprout', lines };
+  const name = [region?.name, twist?.name].filter(Boolean).join(', ');
+  return { title: name ? `Expedition: ${name}` : 'A new Sprout', lines };
 }
 
 /** At the start of eras 2, 3 and 4: choose one charter (keys 1 to 3). */

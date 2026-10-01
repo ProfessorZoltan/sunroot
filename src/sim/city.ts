@@ -51,11 +51,13 @@ export interface CityDistrict {
   run: number;
 }
 
-/** An expedition on offer: a region (a map seed), a twist and an optional city request. */
+/** An expedition on offer: a valley (a map seed and a region), a twist and an optional city request. */
 export interface Expedition {
   seed: string;
   twist: string;
   request: string | null;
+  /** The valley's variation; null (or missing, in older saves) for the biome as it is. */
+  region?: string | null;
 }
 
 export interface CityState {
@@ -228,7 +230,11 @@ export function nextRunOptions(content: Content, city: CityState): RunOptions {
   const run = city.runs + 1;
   const t = teaching(content, run);
   const expedition: RunExpedition = city.expedition
-    ? { twist: city.expedition.twist, request: city.expedition.request }
+    ? {
+        twist: city.expedition.twist,
+        request: city.expedition.request,
+        region: city.expedition.region ?? null,
+      }
     : { twist: null, request: null };
   return {
     seed: city.expedition?.seed ?? `${city.seed}-${run}`,
@@ -241,7 +247,7 @@ export function nextRunOptions(content: Content, city: CityState): RunOptions {
   };
 }
 
-/** The expeditions on offer before the next run: distinct twists and requests, at random. */
+/** The expeditions on offer before the next run: distinct regions, twists and requests, at random. */
 export function expeditionOffer(content: Content, city: CityState): Expedition[] {
   const count = content.progression?.expeditionChoices ?? 3;
   const rng = createRng(`${city.seed}:expeditions:${city.runs}`);
@@ -253,11 +259,17 @@ export function expeditionOffer(content: Content, city: CityState): Expedition[]
     rng,
     content.requests.map((r) => r.id),
   );
+  // Regions are drawn last, after the twists and requests.
+  const regions = shuffled(
+    rng,
+    content.regions.map((r) => r.id),
+  );
   const run = city.runs + 1;
   return Array.from({ length: count }, (_, i) => ({
     seed: `${city.seed}-${run}-${String.fromCharCode(97 + i)}`,
     twist: twists[i % Math.max(1, twists.length)] ?? 'none',
     request: requests[i] ?? null,
+    region: regions[i] ?? null,
   }));
 }
 

@@ -1,5 +1,16 @@
 # Changelog
 
+## More varied expeditions
+
+- Each expedition now sets out to a **region**, a variation of Willow Reach's valley, shown on its
+  card: The Reach (as it was), Oxbow Lakes (still lakes ringed with floodplain), The Broad Wash
+  (floodplain two tiles deep), Old Town (nine ruins of salvage), High Banks (steep banks and hills;
+  the Graft a tier higher), Old Grove (six groves, Harmony 24) and Wandering River.
+- Six new twists, five of them trade-offs rather than hardships: Rich Silt, Steady Winds, Clear
+  Skies, Big Families, Scavengers' Valley, and Lean Start (half the starting stores; the Graft a
+  tier higher).
+- `scripts/expeditions.ts` plays bot runs for each region and twist.
+
 ## Art guide
 
 - `docs/ART.md`: how to make hand-made art for every tile and building (style, frame, names,

@@ -199,7 +199,7 @@ describe('expeditions', () => {
     expect(plain.tier.id).toBe('seedling');
     expect(lifted.tier.id).toBe('sapling');
     expect(lifted.total).toBe(plain.total);
-    expect(lifted.lift).toEqual({ tiers: 1, twist: 'Drought Year' });
+    expect(lifted.lift).toEqual({ tiers: 1, by: 'Drought Year' });
     expect(lifted.next?.tier.id).toBe('heartwood');
     expect(scoreRun(content, ended('fairWeather')).lift).toBeNull();
   });

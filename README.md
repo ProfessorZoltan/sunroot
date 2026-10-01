@@ -42,8 +42,10 @@ played), and the Seeds the run earns. Planting the Graft costs Seeds; Seeds that
 are banked.
 
 Between runs, in Root City: place the Graft in a slot around the Heartwood, spend Seeds to raise
-districts' tiers, and choose the next expedition: a region, a twist (a Drought Year makes the run
-harder and the Graft a tier higher) and a city request worth bonus Seeds. Districts give each run a
+districts' tiers, and choose the next expedition: a region (a variation of the valley: lakes, a
+broad floodplain, an old town, high banks...), a twist (a Drought Year makes the run harder and
+the Graft a tier higher; Rich Silt trades bigger harvests for dearer repairs) and a city request
+worth bonus Seeds. Districts give each run a
 perk and add a card to its draft; some neighbouring districts form hidden landmarks. Fill all 18
 slots with 6 districts at Heartwood to grow the Sun Tree. New systems join run by run: tunings from
 run 2, charters at each new era from run 3, and a vision (a goal for the run) from run 4.

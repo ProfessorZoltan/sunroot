@@ -72,6 +72,8 @@ export interface RunCity {
 export interface RunExpedition {
   twist: string | null;
   request: string | null;
+  /** The valley's variation (a region id); none for the biome as it is. */
+  region?: string | null;
 }
 
 export interface DraftState {

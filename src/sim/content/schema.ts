@@ -275,8 +275,8 @@ export type EventId = keyof z.infer<typeof EventsSchema>;
 
 export const ModifierSchema = z
   .object({
-    target: z.enum(['building', 'rules', 'event', 'combo']),
-    /** Building, event or combo id (not for rules). */
+    target: z.enum(['building', 'rules', 'event', 'combo', 'map']),
+    /** Building, event or combo id (not for rules or the map generator). */
     id: z.string().optional(),
     path: z.string().min(1),
     set: z.union([z.number(), z.boolean(), z.string()]).optional(),
@@ -438,6 +438,11 @@ export const MapGenSchema = z
     woodlands: nonNeg,
     startingHarmony: nonNeg,
     campRiverDistance: z.tuple([int.min(1), int.min(1)]),
+    /** Tiles from the river that are floodplain (the next ring may be, by farFloodplainChance). */
+    floodplainWidth: int.min(1).default(1),
+    /** Oxbow lakes: still water beside the river, ringed with floodplain. */
+    lakes: nonNeg.default(0),
+    lakeSize: int.min(1).default(3),
   })
   .strict();
 export type MapGen = z.infer<typeof MapGenSchema>;
@@ -702,6 +707,21 @@ export const TwistSchema = z
   .strict();
 export type Twist = z.infer<typeof TwistSchema>;
 
+/**
+ * An expedition's region: a variation of the biome's valley, as modifiers
+ * (usually of the map generator, `target: 'map'`). Applied before everything
+ * else, so twists and cards build on it.
+ */
+export const RegionSchema = z
+  .object({
+    ...CardText,
+    modifiers: z.array(ModifierSchema).default([]),
+    /** Tiers the Graft rises for a harder valley (with a twist's, up to the highest). */
+    graftTierBonus: nonNeg.default(0),
+  })
+  .strict();
+export type Region = z.infer<typeof RegionSchema>;
+
 /** An expedition's optional city request, worth bonus Seeds if met. */
 export const RequestSchema = z
   .object({ id: z.string().regex(/^[a-z][A-Za-z]*$/), text: z.string(), goal: GoalSchema })
@@ -775,6 +795,7 @@ export const ContentSchema = z
     landmarks: z.array(LandmarkSchema).default([]),
     projects: z.array(ProjectSchema).default([]),
     twists: z.array(TwistSchema).default([]),
+    regions: z.array(RegionSchema).default([]),
     requests: z.array(RequestSchema).default([]),
     progression: ProgressionSchema.optional(),
     /** Fixed draft offers for the guided first year, spring to winter. */

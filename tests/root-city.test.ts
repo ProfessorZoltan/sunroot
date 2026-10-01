@@ -246,7 +246,7 @@ describe('teaching across runs', () => {
       tunings: true,
       charters: false,
       city: { districts: { orchardWard: 'seedling' }, landmarks: [] },
-      expedition: { twist: a!.twist, request: a!.request },
+      expedition: { twist: a!.twist, request: a!.request, region: a!.region },
     });
     expect(run(c, { type: 'embark' }).expedition).toBeNull();
   });

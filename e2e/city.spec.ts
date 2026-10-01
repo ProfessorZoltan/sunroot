@@ -125,6 +125,11 @@ test('Root City: place the Graft, find a landmark, raise a district, choose an e
   const next = page.getByRole('region', { name: 'Next expedition' });
   const options = next.locator('.card.expedition');
   await expect(options).toHaveCount(3);
+  // Each is a valley region with a twist, its map drawn on the card.
+  for (let i = 0; i < 3; i++) {
+    await expect(options.nth(i).locator('.card-kind')).toContainText(/Willow Reach · \S/);
+    await expect(options.nth(i).locator('.region-thumb')).toBeVisible();
+  }
   await expect(next.getByRole('button', { name: 'Choose an expedition first' })).toBeDisabled();
   await options.nth(1).click();
   await expect(next.getByRole('button', { pressed: true })).toHaveCount(1);
@@ -138,6 +143,8 @@ test('Root City: place the Graft, find a landmark, raise a district, choose an e
   await expect(start).toContainText('Millrace Quarter (Sapling): River wheels cost 4');
   await expect(start).toContainText('Cider Mill');
   await expect(start).toContainText('New this run: charters');
+  const region = content.regions.find((r) => r.id === chosen.region)!;
+  await expect(start).toContainText(`${region.name}: ${region.text}`);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/run-start.png` });
   const options3 = await page.evaluate(
     () => (window as unknown as Win).sunroot.store!.state.options,
@@ -152,7 +159,7 @@ test('Root City: place the Graft, find a landmark, raise a district, choose an e
       districts: { orchardWard: 'seedling', millraceQuarter: 'sapling' },
       landmarks: ['ciderMill'],
     },
-    expedition: { twist: chosen.twist, request: chosen.request },
+    expedition: { twist: chosen.twist, request: chosen.request, region: chosen.region },
   });
   await page.keyboard.press('Enter');
   await expect(page.getByRole('region', { name: 'Expedition' })).toBeVisible();

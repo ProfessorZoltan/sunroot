@@ -23,13 +23,14 @@ export interface RunModifierSources {
   projects?: { id: string; done: number | null }[];
   options?: {
     city?: { districts: Record<string, string>; landmarks: string[] };
-    expedition?: { twist: string | null };
+    expedition?: { twist: string | null; region?: string | null };
   };
 }
 
 /**
- * The modifiers a run plays under, in order: Root City's district perks and
- * landmarks, the expedition's twist, then the run's tunings and charters.
+ * The modifiers a run plays under, in order: the expedition's region, the
+ * era's harsher seasons, Root City's district perks and landmarks, the
+ * expedition's twist, finished projects, then the run's tunings and charters.
  */
 export function runModifiers(content: Content, state: RunModifierSources): Modifier[] {
   const city = state.options?.city;
@@ -42,10 +43,12 @@ export function runModifiers(content: Content, state: RunModifierSources): Modif
     (id) => content.landmarks.find((l) => l.id === id)?.modifiers ?? [],
   );
   const twist = state.options?.expedition?.twist;
+  const region = state.options?.expedition?.region;
   const harsher = content.rules.eraModifiers
     .filter((m) => m.era <= (state.era ?? 1))
     .flatMap((m) => m.modifiers);
   return [
+    ...(content.regions.find((r) => r.id === region)?.modifiers ?? []),
     ...harsher,
     ...perks,
     ...landmarks,
@@ -85,6 +88,7 @@ function applyModifier(data: Json, m: Modifier): void {
   let root: unknown;
   if (m.target === 'rules') root = data.rules;
   else if (m.target === 'event') root = (data.events as Json)[m.id ?? ''];
+  else if (m.target === 'map') root = data.map;
   else if (m.target === 'combo') root = (data.combos as Json[]).find((c) => c.id === m.id);
   else root = (data.buildings as Json[]).find((b) => b.id === m.id);
   if (root === undefined) throw new Error(`no ${m.target} ${m.id ?? ''}`);

@@ -127,6 +127,10 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     data.requests.map((r) => r.id),
     'request',
   );
+  unique(
+    data.regions.map((r) => r.id),
+    'region',
+  );
   const { harmony } = data.rules;
   if (!harmony.tiers.every((t, i, a) => i === 0 || t.min > a[i - 1]!.min)) {
     problems.push('rules.harmony.tiers must be sorted by min');
@@ -142,13 +146,14 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     tuningById: Object.fromEntries(data.tunings.map((t) => [t.id, t])),
     charterById: Object.fromEntries(data.charters.map((c) => [c.id, c])),
   };
-  // Every modifier (tunings, charters, landmarks, twists, perks) must apply cleanly (valid paths, valid results).
+  // Every modifier (tunings, charters, landmarks, twists, regions, perks) must apply cleanly (valid paths, valid results).
   if (options.checkModifiers ?? true) {
     const sources = [
       ...data.tunings,
       ...data.charters,
       ...data.landmarks,
       ...data.twists,
+      ...data.regions,
       ...data.rules.eraModifiers.map((m) => ({ id: `era ${m.era}`, modifiers: m.modifiers })),
       ...data.projects.map((p) => ({ id: p.id, modifiers: p.effect.modifiers })),
       ...data.districts.flatMap((d) =>

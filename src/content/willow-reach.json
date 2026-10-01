@@ -1872,7 +1872,7 @@
     {
       "id": "fairWeather",
       "name": "Fair Weather",
-      "text": "The valley as it is."
+      "text": "No twist: the seasons as usual."
     },
     {
       "id": "droughtYear",
@@ -1927,6 +1927,287 @@
         }
       ],
       "graftTierBonus": 1
+    },
+    {
+      "id": "richSilt",
+      "name": "Rich Silt",
+      "text": "Floods leave twice the silt (+100% food in summer and autumn), but flood repairs cost 2 more materials.",
+      "modifiers": [
+        {
+          "target": "event",
+          "id": "flood",
+          "path": "siltBonus",
+          "set": 1
+        },
+        {
+          "target": "event",
+          "id": "flood",
+          "path": "repairCost",
+          "add": 2
+        }
+      ]
+    },
+    {
+      "id": "steadyWinds",
+      "name": "Steady Winds",
+      "text": "Wind spires make 1 more energy by day and night, but storms can damage 2 exposed buildings.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "windSpire",
+          "path": "generation.day",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "windSpire",
+          "path": "generation.night",
+          "add": 1
+        },
+        {
+          "target": "event",
+          "id": "storm",
+          "path": "disableCount",
+          "set": 2
+        }
+      ]
+    },
+    {
+      "id": "clearSkies",
+      "name": "Clear Skies",
+      "text": "Solar canopies make 1 more energy by day, but wind spires make 1 less, day and night.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "solarCanopy",
+          "path": "generation.day",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "windSpire",
+          "path": "generation.day",
+          "add": -1
+        },
+        {
+          "target": "building",
+          "id": "windSpire",
+          "path": "generation.night",
+          "add": -1
+        }
+      ]
+    },
+    {
+      "id": "leanStart",
+      "name": "Lean Start",
+      "text": "The Sprout sets out with half the usual stores: 10 materials and 6 food. The Graft is one tier higher.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "start.materials",
+          "set": 10
+        },
+        {
+          "target": "rules",
+          "path": "start.food",
+          "set": 6
+        }
+      ],
+      "graftTierBonus": 1
+    },
+    {
+      "id": "bigFamilies",
+      "name": "Big Families",
+      "text": "Citizens arrive two at a time, but only when a season's harvest leaves 4 food spare after eating (usually 2).",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "population.growth",
+          "add": 1
+        },
+        {
+          "target": "rules",
+          "path": "population.minSpareFood",
+          "add": 2
+        }
+      ]
+    },
+    {
+      "id": "scavengers",
+      "name": "Scavengers' Valley",
+      "text": "Ruins hold 12 more salvage each (36 instead of 24), but every clutter costs 2 Harmony.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "ruinSalvage",
+          "add": 12
+        },
+        {
+          "target": "rules",
+          "path": "harmony.perClutter",
+          "set": -2
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "id": "theReach",
+      "name": "The Reach",
+      "text": "The valley as it has always been: one river, floodplain on both banks, hills at the edges."
+    },
+    {
+      "id": "oxbowLakes",
+      "name": "Oxbow Lakes",
+      "text": "A wider valley with two still lakes beside the river, ringed with floodplain: water for wheels and ponds, and farms near them never dry out.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "lakes",
+          "set": 2
+        },
+        {
+          "target": "map",
+          "path": "width",
+          "set": 14
+        },
+        {
+          "target": "map",
+          "path": "riverColumns.0",
+          "set": 5
+        },
+        {
+          "target": "map",
+          "path": "riverColumns.1",
+          "set": 8
+        }
+      ]
+    },
+    {
+      "id": "broadWash",
+      "name": "The Broad Wash",
+      "text": "A wider valley whose floodplain runs two tiles deep on both banks: rich farmland, and far more of it under water each spring.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "floodplainWidth",
+          "set": 2
+        },
+        {
+          "target": "map",
+          "path": "bluffs",
+          "set": 1
+        },
+        {
+          "target": "map",
+          "path": "campRiverDistance.0",
+          "set": 3
+        },
+        {
+          "target": "map",
+          "path": "campRiverDistance.1",
+          "set": 4
+        },
+        {
+          "target": "map",
+          "path": "width",
+          "set": 14
+        },
+        {
+          "target": "map",
+          "path": "riverColumns.0",
+          "set": 5
+        },
+        {
+          "target": "map",
+          "path": "riverColumns.1",
+          "set": 8
+        }
+      ]
+    },
+    {
+      "id": "oldTown",
+      "name": "Old Town",
+      "text": "The ruins of a town: nine sites full of salvage (30 each), and worn-out land around them.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "ruins",
+          "set": 9
+        },
+        {
+          "target": "map",
+          "path": "ruinSalvage",
+          "set": 30
+        },
+        {
+          "target": "map",
+          "path": "barrenChance",
+          "set": 0.75
+        }
+      ]
+    },
+    {
+      "id": "highBanks",
+      "name": "High Banks",
+      "text": "Steep banks and broad hills: little floodplain and little land to heal, but high ground and wind everywhere. The Graft is one tier higher.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "bluffs",
+          "set": 6
+        },
+        {
+          "target": "map",
+          "path": "bluffLength",
+          "set": 3
+        },
+        {
+          "target": "map",
+          "path": "hillColumns",
+          "set": 3
+        },
+        {
+          "target": "map",
+          "path": "hillChance",
+          "set": 0.85
+        }
+      ],
+      "graftTierBonus": 1
+    },
+    {
+      "id": "oldGrove",
+      "name": "Old Grove",
+      "text": "Woodland survived here: six groves from the start, and Harmony 24.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "woodlands",
+          "set": 6
+        },
+        {
+          "target": "map",
+          "path": "startingHarmony",
+          "set": 24
+        }
+      ]
+    },
+    {
+      "id": "wanderingRiver",
+      "name": "Wandering River",
+      "text": "The river wanders across the whole valley, leaving odd corners of land on either side.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "riverColumns.0",
+          "set": 2
+        },
+        {
+          "target": "map",
+          "path": "riverColumns.1",
+          "set": 9
+        }
+      ]
     }
   ],
   "requests": [

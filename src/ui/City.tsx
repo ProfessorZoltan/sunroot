@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { TILE_COLORS } from '../render/palette';
 import {
+  effectiveContent,
   applyCityCommand,
   districtAt,
   expeditionOffer,
@@ -140,8 +141,24 @@ function Heartwood({ growth, grown }: { growth: number; grown: boolean }) {
 }
 
 /** A small map of an expedition's region, so the options look like places. */
-function RegionThumb({ content, seed }: { content: Content; seed: string }) {
-  const { map } = generateMap(content, seed);
+function RegionThumb({
+  content,
+  seed,
+  region,
+  twist,
+}: {
+  content: Content;
+  seed: string;
+  region: string | null;
+  twist: string;
+}) {
+  // The valley as the run will generate it: the region (and a twist) can change the map.
+  const valley = effectiveContent(content, {
+    tunings: [],
+    charters: [],
+    options: { expedition: { twist, region } },
+  });
+  const { map } = generateMap(valley, seed);
   const s = 4;
   const tiles = Object.values(map.tiles).map((t) => ({ ...toPixel(t, s), type: t.type }));
   const xs = tiles.map((t) => t.x);
@@ -588,6 +605,7 @@ function ExpeditionPanel({
           {offer.map((o, i) => {
             const twist = content.twists.find((t) => t.id === o.twist);
             const request = content.requests.find((r) => r.id === o.request);
+            const region = content.regions.find((r) => r.id === o.region);
             return (
               <button
                 type="button"
@@ -595,9 +613,20 @@ function ExpeditionPanel({
                 aria-pressed={chosen === i}
                 onClick={() => onChoose(i)}
               >
-                <RegionThumb content={content} seed={o.seed} />
+                <RegionThumb
+                  content={content}
+                  seed={o.seed}
+                  region={o.region ?? null}
+                  twist={o.twist}
+                />
                 <span class="card-body">
-                  <span class="card-kind">{content.name}</span>
+                  <span class="card-kind">
+                    {content.name}
+                    {region ? ` · ${region.name}` : ''}
+                  </span>
+                  {region && region.modifiers.length > 0 && (
+                    <span class="card-text">{region.text}</span>
+                  )}
                   <span class="card-name">{twist?.name ?? 'Fair Weather'}</span>
                   <span class="card-text">{twist?.text}</span>
                   {request && (
