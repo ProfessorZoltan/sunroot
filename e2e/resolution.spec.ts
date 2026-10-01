@@ -38,8 +38,18 @@ test('a season plays out in about 5 seconds, through event, day, night and settl
         };
       };
       phases: [string | null, number][];
+      longestFrame: number;
     };
     w.phases = [];
+    // The longest gap between frames: the season ends on the first frame after 5 seconds.
+    w.longestFrame = 0;
+    let last = performance.now();
+    const frame = (now: number) => {
+      w.longestFrame = Math.max(w.longestFrame, now - last);
+      last = now;
+      requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
     w.sunroot.store.subscribe(() => {
       const p = w.sunroot.store.resolution?.phase ?? null;
       if (w.phases.at(-1)?.[0] !== p) w.phases.push([p, performance.now()]);
@@ -52,15 +62,18 @@ test('a season plays out in about 5 seconds, through event, day, night and settl
   expect(await turn(page)).toBe(1);
   await expect.poll(() => phase(page), { timeout: 10_000 }).toBeNull();
 
-  const phases = await page.evaluate(
-    () => (window as unknown as { phases: [string | null, number][] }).phases,
-  );
+  const { phases, longestFrame } = await page.evaluate(() => {
+    const w = window as unknown as { phases: [string | null, number][]; longestFrame: number };
+    return { phases: w.phases, longestFrame: w.longestFrame };
+  });
   // Picking the card is recorded as "no resolution" first.
   const played = phases.filter(([p], i) => p !== null || i > 1);
   expect(played.map(([p]) => p)).toEqual(['event', 'day', 'night', 'settle', null]);
   const took = played.at(-1)![1] - played[0]![1];
+  // 5 seconds, ending on the next frame (software rendering in CI can make frames slow).
   expect(took).toBeGreaterThan(4500);
-  expect(took).toBeLessThan(6000);
+  expect(took).toBeLessThan(5000 + longestFrame + 500);
+  expect(longestFrame).toBeLessThan(2000);
   await expect(banner).toBeHidden();
   await expect(page.getByRole('button', { name: /End summer/ })).toBeVisible();
   expect(errors).toEqual([]);
