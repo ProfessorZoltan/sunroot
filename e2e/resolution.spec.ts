@@ -80,6 +80,7 @@ test('a season plays out in about 5 seconds, through event, day, night and settl
 });
 
 test('Space skips at once, P pauses, and acting skips the rest', async ({ page }) => {
+  test.setTimeout(60_000); // it holds a paused season for 6 seconds
   await page.goto('/?seed=willow-reach-golden&visions=0');
   await expect(page.locator('#map-host canvas')).toBeVisible();
   await page

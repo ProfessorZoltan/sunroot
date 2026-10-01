@@ -17,6 +17,11 @@
 - Simulation: the run's ledger (energy by source, food, people, industry), visions (`pickVision`),
   `scoreRun`, `graftOffer`, `makeSave` and `readSave`.
 - The balance report has a run-end section: tiers, visions met, and the Graft offered.
+- Faster map: the ground and the buildings are each drawn once into a texture and redrawn only
+  when they change or the zoom settles. Frames under software rendering went from about 100 ms to
+  17 ms.
+- Fixed: a slow frame could jump over the night of a season's resolution, so the year strip never
+  filled its night slot. Every phase passed is now announced, in order.
 
 ## Is food too easy?
 

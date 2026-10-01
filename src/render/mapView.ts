@@ -61,6 +61,10 @@ const LABELS: Record<PreviewKey, string> = {
 export class MapView {
   private readonly shaker = new Container();
   private readonly world = new Container();
+  private readonly ground = new Container();
+  private readonly built = new Container();
+  private cacheResolution = 0;
+  private recacheTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly terrain = new Graphics();
   private readonly seasonLayer = new Graphics();
   private readonly flow = new Graphics();
@@ -90,12 +94,14 @@ export class MapView {
   ) {
     app.stage.addChild(this.shaker, this.screenFx);
     this.shaker.addChild(this.world);
+    // The ground and the buildings change only with the run, so each is drawn once into
+    // a texture (at the current zoom) instead of re-rasterizing every shape each frame.
+    this.ground.addChild(this.terrain, this.seasonLayer, this.flow);
+    this.built.addChild(this.buildings);
     this.world.addChild(
-      this.terrain,
-      this.seasonLayer,
-      this.flow,
+      this.ground,
       this.underFx,
-      this.buildings,
+      this.built,
       this.wildlife,
       this.overFx,
       this.overlay,
@@ -103,6 +109,7 @@ export class MapView {
     );
     this.listen(app.canvas);
     app.ticker.add(this.tick);
+    this.applyCacheResolution();
   }
 
   private lastTick = performance.now();
@@ -174,6 +181,7 @@ export class MapView {
     if (signature !== this.mapSignature) {
       this.mapSignature = signature;
       this.drawTerrain(state);
+      this.ground.updateCacheTexture();
       if (!this.bounds) {
         this.bounds = boundsOf([...Object.values(state.map.tiles), ...fogHexes(state.map)]);
         this.fit();
@@ -185,6 +193,7 @@ export class MapView {
     if (seasonSignature !== this.seasonSignature) {
       this.seasonSignature = seasonSignature;
       drawSeason(this.seasonLayer, this.content, state);
+      this.ground.updateCacheTexture();
       this.animals = wildlifeFor(this.content, state);
       this.drawWildlife();
     }
@@ -279,6 +288,7 @@ export class MapView {
     const h = this.bounds.maxY - this.bounds.minY;
     this.zoom = clamp(Math.min(width / w, height / h) * 0.98, MIN_ZOOM, MAX_ZOOM);
     this.world.scale.set(this.zoom);
+    this.scheduleRecache();
     this.world.position.set(
       width / 2 - ((this.bounds.minX + this.bounds.maxX) / 2) * this.zoom,
       height / 2 - ((this.bounds.minY + this.bounds.maxY) / 2) * this.zoom,
@@ -308,6 +318,7 @@ export class MapView {
     const world = this.toWorld(at);
     this.zoom = next;
     this.world.scale.set(next);
+    this.scheduleRecache();
     this.world.position.set(at.x - world.x * next, at.y - world.y * next);
     this.clampPosition();
   }
@@ -376,7 +387,32 @@ export class MapView {
     }
   }
 
+  /** Redraws the cached layers sharply for the new zoom, once zooming settles. */
+  private scheduleRecache(): void {
+    if (this.recacheTimer) clearTimeout(this.recacheTimer);
+    this.recacheTimer = setTimeout(() => {
+      this.recacheTimer = null;
+      this.applyCacheResolution();
+    }, 150);
+  }
+
+  private applyCacheResolution(): void {
+    const resolution = clamp(this.zoom * this.app.renderer.resolution, 1, 4);
+    if (Math.abs(resolution - this.cacheResolution) < 0.01) return;
+    this.cacheResolution = resolution;
+    for (const layer of [this.ground, this.built]) {
+      layer.cacheAsTexture(false);
+      layer.cacheAsTexture({ resolution, antialias: true });
+    }
+  }
+
+  private drawnBuildings: { state: RunState; resolving: boolean } | null = null;
+
   private drawBuildings(state: RunState): void {
+    // Hovering re-sends the same state: only redraw (and re-cache) when something changed.
+    const resolving = this.player !== null;
+    if (this.drawnBuildings?.state === state && this.drawnBuildings.resolving === resolving) return;
+    this.drawnBuildings = { state, resolving };
     const g = this.buildings.clear();
     const report = state.lastReport;
     const sorted = Object.values(state.buildings).sort(
@@ -389,6 +425,7 @@ export class MapView {
       // While the season resolves, blackouts show when night falls.
       else if (report?.blackouts.includes(b.uid) && !this.player) drawCondition(g, c, 'dark');
     }
+    this.built.updateCacheTexture();
   }
 
   private ghost(building: string, c: Point, alpha = 0.75): void {

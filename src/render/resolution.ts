@@ -121,8 +121,12 @@ export class ResolutionPlayer {
     const tl = this.timeline;
     const current = tl.phases.find((p) => this.t < p.end)?.name ?? 'settle';
     if (current !== this.phase) {
+      // A slow frame can jump over a phase: announce every phase passed, in order,
+      // so the year strip still fills the day slot and then the night slot.
+      const names = tl.phases.map((p) => p.name);
+      const from = this.phase === null ? 0 : names.indexOf(this.phase) + 1;
+      for (const name of names.slice(from, names.indexOf(current) + 1)) this.hooks.onPhase(name);
       this.phase = current;
-      this.hooks.onPhase(current);
     }
     const dawn = this.progress('day');
     const dusk = this.progress('night');
