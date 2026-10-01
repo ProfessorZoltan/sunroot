@@ -122,7 +122,7 @@ function LastSeason({ store }: { store: GameStore }) {
   if (r.silted.length)
     lines.push(`Silt on ${r.silted.length} farm${r.silted.length > 1 ? 's' : ''}.`);
   if (r.damaged.length) lines.push(`Damaged: ${r.damaged.map(name).join(', ')}.`);
-  if (r.mixedGrid) lines.push('Mixed Grid: storms did no damage.');
+  if (r.mixedGrid) lines.push('Mixed Grid: no storm damage, and extra energy in every slot.');
   if (r.blackouts.length) lines.push(`Blackouts: ${r.blackouts.map(name).join(', ')}.`);
   if (r.population.change > 0)
     lines.push(`${r.population.change} new citizen${r.population.change > 1 ? 's' : ''}.`);

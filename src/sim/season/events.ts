@@ -8,13 +8,29 @@ import type { SeasonContext } from './context';
  * Mixed Grid: 3 or more source types each supplied at least 15% of the
  * energy over the last 4 seasons (the Founders' Camp doesn't count).
  */
+/** The Mixed Grid's extra energy shows under this source in the energy report. */
+export const MIXED_GRID_SOURCE = 'mixedGrid';
+
+/** While the Mixed Grid holds, every slot gets a little extra energy. */
+export function mixedGridBonus(ctx: SeasonContext): void {
+  const bonus = ctx.content.rules.mixedGrid.bonusPerSlot;
+  if (!ctx.report.mixedGrid || bonus === 0) return;
+  for (const slot of ['day', 'night'] as const) {
+    const r = ctx.report.energy[slot];
+    r.bySource[MIXED_GRID_SOURCE] = (r.bySource[MIXED_GRID_SOURCE] ?? 0) + bonus;
+    r.supply += bonus;
+  }
+}
+
 export function hasMixedGrid(ctx: SeasonContext): boolean {
   const { minSourceTypes, minShare, excludeSources } = ctx.content.rules.mixedGrid;
+  // Shares of built sources only: not the camp, not the bonus itself, not storage releases.
   const totals: Record<string, number> = {};
   for (const season of ctx.state.energyHistory.slice(-4)) {
     for (const [source, amount] of Object.entries(season)) {
-      if (excludeSources.includes(source)) continue;
-      totals[source] = (totals[source] ?? 0) + amount;
+      if (excludeSources.includes(source) || source === MIXED_GRID_SOURCE) continue;
+      const type = ctx.content.byId[source]?.sourceType ?? source;
+      totals[type] = (totals[type] ?? 0) + amount;
     }
   }
   const sum = Object.values(totals).reduce((a, b) => a + b, 0);

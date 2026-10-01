@@ -193,7 +193,7 @@ describe('3. formations', () => {
     });
   });
 
-  it('Sun Terrace: 3 canopies in a row on hills, +1 each and no shade', () => {
+  it('Sun Terrace: 3 canopies in a row on hills, +1 day energy each, every season', () => {
     const TERRACE = ['^ ^ ^ W ~ , , , ^ ^', ' ^ ^ , , ~ , , , ^ ^', '^ , C , ~ , , , , ^'];
     let s = scenario(TERRACE);
     s = place(s, 'solarCanopy', 1, 0);
@@ -204,8 +204,10 @@ describe('3. formations', () => {
     s = place(s, 'solarCanopy', 0, 0);
     s = endSeason(s);
     found(s, 'sunTerrace');
-    expect(s.lastReport!.energy.day.bySource.solarCanopy).toBe(3 * 4); // spring 3, +1 each, no shade
-    expect(s.lastReport!.shaded).toEqual({});
+    // Spring: 3 each, +1 in the terrace; the woodland still shades its neighbour.
+    expect(s.lastReport!.energy.day.bySource.solarCanopy).toBe(4 + 4 + 3);
+    s = endSeason(endSeason(s)); // winter: 1 each, +1
+    expect(s.lastReport!.energy.day.bySource.solarCanopy).toBe(2 + 2 + 1);
   });
 
   it('Mill Race: weir, river wheel and workshop in a row; the workshop runs without energy', () => {
@@ -245,9 +247,10 @@ describe('4. evolutions', () => {
     ]);
     s = endSeason(s); // winter
     expect(s.lastReport!.energy.day.demandBy.winterGarden).toBe(2); // energy only, no heat
+    expect(s.lastReport!.yields[uidAt(s, 6, 2)]!.food).toBe(4); // 4 in winter, not 3
   });
 
-  it('Agrivoltaic Field: a solar canopy built over a farm', () => {
+  it('Agrivoltaic Field: a solar canopy built over a farm merges with it', () => {
     let s = scenario(LAND, { season: 'summer' });
     s = place(s, 'floodplainFarm', 5, 3);
     const farm = uidAt(s, 5, 3);
@@ -255,14 +258,38 @@ describe('4. evolutions', () => {
     s = place(s, 'solarCanopy', 5, 3);
     expect(s.buildings[farm]!.type).toBe('agrivoltaicField');
     expect(s.stores.materials).toBe(materials - 4);
+    expect(content.byId.agrivoltaicField!.workers).toBe(1);
     s = endSeason(s);
     found(s, 'agrivoltaicField');
     expect(s.lastReport!.yields[farm]!.food).toBe(3); // 4 in summer, -1
-    expect(s.lastReport!.energy.day.bySource.agrivoltaicField).toBe(3);
+    expect(s.lastReport!.energy.day.bySource.agrivoltaicField).toBe(4); // the canopy's summer energy
     // Only over a farm.
     expect(rejects(s, { type: 'place', building: 'solarCanopy', at: at(2, 2) })).toMatch(
       /already has a building/,
     );
+  });
+
+  it("Agrivoltaic Field: the canopy's energy, the farm's food minus 1 with silt after, no low-river loss", () => {
+    // Built in spring: the flood silts it; summer's food is (4 - 1) x 1.5, rounded down.
+    let s = scenario(LAND);
+    s = place(s, 'floodplainFarm', 5, 3);
+    s = place(s, 'solarCanopy', 5, 3);
+    s = endSeason(s);
+    expect(s.lastReport!.yields[uidAt(s, 5, 3)]!.food).toBe(1); // spring 2 - 1
+    expect(s.lastReport!.energy.day.bySource.agrivoltaicField).toBe(3);
+    s = endSeason(s);
+    expect(s.lastReport!.yields[uidAt(s, 5, 3)]!.food).toBe(4);
+    expect(s.lastReport!.energy.day.bySource.agrivoltaicField).toBe(4);
+
+    // Far from water in a low river: a farm on meadow loses half, the field loses nothing.
+    const far = (canopy: boolean) => {
+      let x = scenario(LAND, { season: 'summer' });
+      x = place(x, 'floodplainFarm', 7, 4); // meadow, 3 tiles from the river
+      if (canopy) x = place(x, 'solarCanopy', 7, 4);
+      return endSeason(x).lastReport!.yields[uidAt(x, 7, 4)]!.food;
+    };
+    expect(far(false)).toBe(1); // (4 - 1 on meadow) x 0.5
+    expect(far(true)).toBe(2); // 4 - 1 on meadow - 1
   });
 
   it('Rewilded Ruin: a salvage yard whose ruin runs out, +2 Harmony', () => {
@@ -388,13 +415,23 @@ describe('charters', () => {
 
   const withCharter = (charter: string, s: RunState) => ({ ...s, charters: [charter] });
 
-  it('Repair Culture: each salvage drawn from a ruin gives 2', () => {
+  it('Repair Culture: salvage x2 from the same ruin, and 2 clutter makes 2 materials', () => {
     const map = ['^ ^ ^ , ~ , , , ^ ^', ' ^ ^ , , ~ , R , ^ ^', '^ , C , ~ , , , , ^'];
     let s = withCharter('repairCulture', scenario(map, { season: 'summer' }));
     s = place(s, 'salvageYard', 6, 1);
     s = endSeason(s);
     expect(s.lastReport!.yields[uidAt(s, 6, 1)]!.salvage).toBe(6);
-    expect(s.map.tiles[hexKey(at(6, 1))]!.salvage).toBe(21);
+    expect(s.map.tiles[hexKey(at(6, 1))]!.salvage).toBe(21); // 24 lasts 8 seasons: 48 in all
+
+    const recycled = (charter: boolean) => {
+      let x = scenario(map, { season: 'summer', stores: { clutter: 4 } });
+      if (charter) x = withCharter('repairCulture', x);
+      x = place(x, 'workshop', 7, 2);
+      x = act(x, { type: 'setRecipe', uid: uidAt(x, 7, 2), recipe: 'clutter' });
+      return endSeason(x).lastReport!.yields[uidAt(x, 7, 2)]!.materials;
+    };
+    expect(recycled(false)).toBe(2); // 2 runs x 1
+    expect(recycled(true)).toBe(4); // 2 runs x 2
   });
 
   it('River Keepers: floods do no damage and fish ponds make +1', () => {

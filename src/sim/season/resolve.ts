@@ -23,7 +23,7 @@ import {
 import type { RunState, SeasonSummary } from '../types';
 import { emptyReport, type SeasonContext } from './context';
 import { resolveEnergy } from './energy';
-import { applyEvent } from './events';
+import { applyEvent, mixedGridBonus } from './events';
 import { feedAndGrow, scrapsAndHarmony } from './people';
 import { generate, produce, producePowered, staff } from './production';
 import { snapshot } from '../snapshot';
@@ -56,6 +56,7 @@ export function resolveSeason(base: Content, input: RunState): RunState {
   ctx.effects = formationEffects(content, state, ctx.formations);
   staff(ctx);
   generate(ctx); // 4
+  mixedGridBonus(ctx);
   produce(ctx);
   resolveEnergy(ctx); // 5, 6, 7
   producePowered(ctx);

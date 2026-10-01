@@ -87,6 +87,8 @@ export const BuildingSchema = z
     /** First era in which the blueprint can be drafted. */
     minEra: int.min(1).default(1),
     floodTolerant: z.boolean().default(false),
+    /** Counts as this source type for the Mixed Grid (an Agrivoltaic Field is solar). */
+    sourceType: z.string().optional(),
     /** Tall buildings shade neighbouring solar canopies. */
     tall: z.boolean().default(false),
     placement: z.object({
@@ -322,6 +324,8 @@ export const RulesSchema = z
       minShare: z.number().min(0).max(1),
       /** Sources that don't count towards the mix (the Founders' Camp). */
       excludeSources: z.array(z.string()).default([]),
+      /** Extra energy in every slot while the Mixed Grid holds (a balance setting). */
+      bonusPerSlot: int.min(0).default(0),
     }),
   })
   .strict();

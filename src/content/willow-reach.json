@@ -69,7 +69,8 @@
     "mixedGrid": {
       "minSourceTypes": 3,
       "minShare": 0.15,
-      "excludeSources": ["foundersCamp"]
+      "excludeSources": ["foundersCamp"],
+      "bonusPerSlot": 1
     },
     "charterEras": [2, 3, 4],
     "charterChoices": 3,
@@ -670,7 +671,7 @@
         "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland"]
       },
       "yields": {
-        "food": [3, 3, 3, 3]
+        "food": [3, 3, 3, 4]
       },
       "demand": {
         "energy": {
@@ -700,8 +701,12 @@
         "biomass": [1, 1, 1, 0]
       },
       "generation": {
-        "day": [0, 3, 0, 0]
-      }
+        "day": [3, 4, 2, 1]
+      },
+      "shading": {
+        "penaltyPerSlot": 1
+      },
+      "sourceType": "solarCanopy"
     },
     {
       "id": "rewildedRuin",
@@ -874,10 +879,9 @@
       },
       "effect": {
         "generation": 1,
-        "ignoresShade": true,
         "appliesTo": "solarCanopy"
       },
-      "text": "3 solar canopies in a row on hills: +1 energy each in every slot they produce, and no shade.",
+      "text": "3 solar canopies in a row, all on hills: each makes +1 day energy every season.",
       "hint": "Panels stepping in a straight line along the high ground."
     },
     {
@@ -921,7 +925,7 @@
           "buildings": ["heatWell"]
         }
       },
-      "text": "A greenhouse next to a heat well becomes a Winter Garden: the well keeps it warm, so it needs no heat in winter.",
+      "text": "A greenhouse next to a heat well becomes a Winter Garden: the well keeps it warm, so it needs no heat in winter and makes 4 food then instead of 3.",
       "hint": "Glass that never gets cold."
     },
     {
@@ -934,7 +938,7 @@
         "kind": "placed",
         "building": "solarCanopy"
       },
-      "text": "A solar canopy built over a farm makes an Agrivoltaic Field: 1 less food, 3 day energy in summer, and no loss in a low river.",
+      "text": "A solar canopy built over a farm merges with it into an Agrivoltaic Field, one building on one tile with the farm's worker: the canopy's energy (3 / 4 / 2 / 1 by day), the farm's food minus 1 (silt after that), and no loss in a low river.",
       "hint": "Panels high enough to farm beneath."
     },
     {
@@ -1037,11 +1041,17 @@
     {
       "id": "repairCulture",
       "name": "Repair Culture",
-      "text": "Salvage ×2: every salvage drawn from a ruin gives 2.",
+      "text": "Salvage ×2: each salvage yard makes 6 a season from the same ruin. Workshops turn 2 clutter into 2 materials.",
       "modifiers": [
         {
           "target": "rules",
           "path": "ruinSalvageFactor",
+          "set": 2
+        },
+        {
+          "target": "building",
+          "id": "workshop",
+          "path": "recipes.options.1.outputs.materials",
           "set": 2
         }
       ]

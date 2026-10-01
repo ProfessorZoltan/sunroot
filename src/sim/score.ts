@@ -146,7 +146,9 @@ export interface Signature {
 export function runSignature(content: Content, state: RunState): Signature {
   const { ledger } = state;
   const camp = content.campBuilding;
-  const built = Object.entries(ledger.energy).filter(([source]) => source !== camp);
+  const built = Object.entries(ledger.energy).filter(
+    ([source]) => source !== camp && source !== 'mixedGrid',
+  );
   const total = built.reduce((sum, [, n]) => sum + n, 0);
   const seasons = Math.max(1, state.turn);
   return {

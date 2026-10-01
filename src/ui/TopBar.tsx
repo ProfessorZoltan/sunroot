@@ -169,7 +169,8 @@ function EnergyTip({
       />
     );
   }
-  const name = (id: string) => content.byId[id]?.name ?? id;
+  const name = (id: string) =>
+    id === 'mixedGrid' ? 'Mixed Grid bonus' : (content.byId[id]?.name ?? id);
   const supply: Row[] = Object.entries(r.bySource).map(([id, n]) => ({
     label: name(id),
     amount: n,
