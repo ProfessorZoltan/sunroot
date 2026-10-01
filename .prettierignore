@@ -3,6 +3,7 @@ node_modules
 coverage
 package-lock.json
 docs/DESIGN.md
+docs/EXPANSION.md
 
 # Delivered art, kept exactly as received.
 art/incoming/
