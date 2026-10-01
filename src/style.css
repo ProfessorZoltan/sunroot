@@ -1257,3 +1257,10 @@ ul.projects {
   justify-content: space-between;
   margin-top: 4px;
 }
+.map-tip .mark-line {
+  margin-top: 2px;
+  font-weight: 700;
+}
+.map-tip .mark-line.coming {
+  color: var(--gold-text);
+}

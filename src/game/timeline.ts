@@ -41,6 +41,25 @@ export interface Flow {
   particles: number;
 }
 
+/** Something the season's event did to a tile or building, shown during the event. */
+export type EventFxKind =
+  | 'flooded'
+  | 'silted'
+  | 'sheltered'
+  | 'dried'
+  | 'slowed'
+  | 'struck'
+  | 'exposed'
+  | 'calm'
+  | 'chilled';
+
+export interface EventFx {
+  kind: EventFxKind;
+  at: Hex;
+  /** When it shows, within the event phase. */
+  t: number;
+}
+
 export interface Timeline {
   season: Season;
   event: EventId;
@@ -60,14 +79,17 @@ export interface Timeline {
   shade: { at: Hex; by: Hex[] }[];
   /** Loops at work this season: each glows along its buildings. */
   glow: Hex[][];
+  /** What the event did, tile by tile; and the river's tiles (low river, freeze). */
+  eventFx: EventFx[];
+  river: Hex[];
 }
 
 /** About 5 seconds in full; a short fade when the player prefers reduced motion. */
 export const FULL_DURATIONS: Record<PhaseName, number> = {
-  event: 800,
-  day: 2400,
-  night: 1200,
-  settle: 600,
+  event: 1300,
+  day: 2100,
+  night: 1100,
+  settle: 500,
 };
 export const REDUCED_DURATIONS: Record<PhaseName, number> = {
   event: 200,
@@ -198,6 +220,64 @@ export function buildTimeline(
     };
   });
 
+  // The event, tile by tile: it reaches each in the order the flood would, or across the valley.
+  const ev = phase('event');
+  const across = (h: Hex) => {
+    const x = (axialToOffset(h).col - minCol) / span;
+    return ev.start + (0.15 + x * 0.55) * (ev.end - ev.start);
+  };
+  const eventFx: EventFx[] = [];
+  const fx = (
+    kind: EventFxKind,
+    h: Hex | undefined,
+    t: number,
+    pop?: Pop['text'],
+    tone?: Pop['tone'],
+  ) => {
+    if (!h) return;
+    eventFx.push({ kind, at: h, t });
+    if (pop) pops.push({ t: t + 120, at: h, text: pop, tone: tone ?? 'neutral' });
+  };
+  const floodT = new Map(flood.map((f) => [f.key, f.t]));
+  for (const uid of report.damaged) {
+    const h = at(uid);
+    const t =
+      floodT.get(h ? `${h.q},${h.r}` : '') ??
+      (h ? across(h) : ev.start + (ev.end - ev.start) * 0.4);
+    fx(
+      report.event === 'flood' ? 'flooded' : 'struck',
+      h,
+      t,
+      report.event === 'flood' ? 'flooded' : 'storm damage',
+      'bad',
+    );
+  }
+  for (const uid of report.silted) {
+    const h = at(uid);
+    fx('silted', h, (h && floodT.get(`${h.q},${h.r}`)) ?? ev.start + 300, 'silt', 'good');
+  }
+  for (const key of report.sheltered) fx('sheltered', parseHexKey(key), ev.start + 250);
+  for (const uid of report.dried)
+    fx('dried', at(uid), across(at(uid) ?? { q: 0, r: 0 }), 'dry: −food', 'bad');
+  if (report.event === 'lowRiver') {
+    for (const b of Object.values(after.buildings))
+      if (b.type === 'riverWheel') fx('slowed', b.at, across(b.at), 'slow', 'neutral');
+  }
+  if (report.event === 'storm') {
+    const struck = new Set(report.damaged);
+    for (const uid of report.exposed) {
+      if (struck.has(uid)) continue;
+      fx(report.mixedGrid ? 'calm' : 'exposed', at(uid), across(at(uid) ?? { q: 0, r: 0 }));
+    }
+    if (report.mixedGrid && camp) fx('calm', camp, ev.start + 200, 'Mixed Grid: no damage', 'good');
+  }
+  if (report.event === 'freeze') {
+    for (const b of Object.values(after.buildings)) {
+      const heat = content.byId[b.type]?.demand?.heat.night[si] ?? 0;
+      if (heat > 0) fx('chilled', b.at, across(b.at));
+    }
+  }
+
   const lit = Object.values(after.buildings)
     .filter(
       (b) =>
@@ -236,6 +316,8 @@ export function buildTimeline(
     glow: report.combos
       .filter((hit) => content.comboById[hit.combo]?.layer === 'chain')
       .map((hit) => hit.members.map(at).filter((h): h is Hex => h !== undefined)),
+    eventFx,
+    river: after.map.river.map(parseHexKey),
   };
 }
 

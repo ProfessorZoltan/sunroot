@@ -48,13 +48,15 @@ perk and add a card to its draft; some neighbouring districts form hidden landma
 slots with 6 districts at Heartwood to grow the Sun Tree. New systems join run by run: tunings from
 run 2, charters at each new era from run 3, and a vision (a goal for the run) from run 4.
 
-Pick one of three blueprint cards, then build: choose a building on the right and hover the map.
+Pick one of three blueprint cards, then build: choose a building on the right and every tile it
+can go on lights up; hover the map.
 The ghost shows exactly what it would do this season, including effects on its neighbours. Click
 to place; Esc or right-click stops. Undo is free until the season ends. Every number at the top
 and on the left has a tooltip with its full math. Click a building to inspect and adjust it. End
 the season when you're ready; the year strip shows each season's energy and forecasts the rest of
 the year with what you have now. Each season then plays out on the map in about 5 seconds: Space
-skips it, P pauses it.
+skips it, P pauses it. The map marks how far the coming event reaches (dashed) and what lasts for
+the season, like silt on flooded farms (solid); hover a tile for what each mark means.
 
 Later in a run, when the blueprints run out, the draft offers refinements to the buildings you
 have; from era 3 you can start projects with your spare stores, and citizens begin to expect civic

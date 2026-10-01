@@ -61,6 +61,7 @@ export function applyEvent(ctx: SeasonContext): void {
       };
       const flooded = floodable.filter((k) => !protectedTile(k));
       report.flooded = flooded;
+      report.sheltered = floodable.filter((k) => protectedTile(k));
       const occ = occupancy(state);
       // Levees with Silt Traps let part of the silt through to the farms they protect.
       const share = Math.max(0, ...levees.map((l) => defOf(content, l).levee!.siltShare));
@@ -93,6 +94,11 @@ export function applyEvent(ctx: SeasonContext): void {
       ctx.lowRiver = true;
       break;
     case 'storm': {
+      report.exposed = state.priority.filter((uid) => {
+        const b = state.buildings[uid]!;
+        if (tileAt(state, b.at)?.type !== 'hill') return false;
+        return !neighborTiles(state, b.at).some((t) => t.type === 'woodland');
+      });
       if (report.mixedGrid) break;
       const count = content.events.storm.disableCount;
       for (let i = 0; i < count; i++) {

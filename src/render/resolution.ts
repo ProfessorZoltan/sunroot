@@ -35,6 +35,12 @@ export class ResolutionPlayer {
   private paused = false;
   private done = false;
   private readonly water = new Graphics();
+  /** The event on the ground (dry earth, ice, sandbars), under the buildings. */
+  private readonly eventGround = new Graphics();
+  /** The event on buildings (shields, lightning, frost), over them. */
+  private readonly eventMarks = new Graphics();
+  /** Rain, wind and snow over everything. */
+  private readonly weather = new Graphics();
   private readonly shadows = new Graphics();
   private readonly sky = new Graphics();
   private readonly night = new Graphics();
@@ -54,8 +60,17 @@ export class ResolutionPlayer {
     private readonly hooks: ResolutionHooks,
     private readonly reducedMotion = false,
   ) {
-    layers.under.addChild(this.water, this.shadows);
-    layers.over.addChild(this.sky, this.night, this.light, this.glow, this.particles, this.pops);
+    layers.under.addChild(this.water, this.eventGround, this.shadows);
+    layers.over.addChild(
+      this.sky,
+      this.eventMarks,
+      this.weather,
+      this.night,
+      this.light,
+      this.glow,
+      this.particles,
+      this.pops,
+    );
     this.night.blendMode = 'multiply';
     layers.screen.addChild(this.sun);
     this.shakeOrigin = { x: layers.shake.position.x, y: layers.shake.position.y };
@@ -94,6 +109,9 @@ export class ResolutionPlayer {
     this.layers.shake.position.set(this.shakeOrigin.x, this.shakeOrigin.y);
     for (const g of [
       this.water,
+      this.eventGround,
+      this.eventMarks,
+      this.weather,
       this.shadows,
       this.sky,
       this.night,
@@ -134,6 +152,8 @@ export class ResolutionPlayer {
     const isDay = this.t >= phaseStart(tl, 'day') && this.t < phaseStart(tl, 'night');
 
     this.drawWater();
+    this.drawEvent();
+    this.drawWeather();
     this.drawShadows(isDay ? dawn : null);
     this.drawSky(current, dawn);
     this.drawNight(dusk, settle);
@@ -159,6 +179,173 @@ export class ResolutionPlayer {
         .quadraticCurveTo(c.x - 7, c.y, c.x, c.y + 4)
         .quadraticCurveTo(c.x + 7, c.y + 8, c.x + 14, c.y + 4)
         .stroke({ width: 1.5, color: 0xe4f2f5, alpha });
+    }
+  }
+
+  /**
+   * How strongly the event shows: fully through the event phase, fading out
+   * over the first half of the day (the map's marks then say what lasts).
+   */
+  private eventStrength(): number {
+    const day = this.progress('day');
+    return clamp01(1 - day / 0.5);
+  }
+
+  /**
+   * What the event did, tile by tile, each from the moment it reaches it: a
+   * levee's shield, flood damage, silt settling, farms drying, the river wheel
+   * slowing, lightning, wind on exposed buildings, the Mixed Grid's dome and
+   * frost on homes that need heat.
+   */
+  private drawEvent(): void {
+    const ground = this.eventGround.clear();
+    const g = this.eventMarks.clear();
+    const strength = this.eventStrength();
+    if (strength <= 0) return;
+    const tl = this.timeline;
+    const evP = this.progress('event');
+
+    // The river itself: sandbars when it runs low, ice when it freezes.
+    if (tl.event === 'lowRiver' || tl.event === 'freeze') {
+      tl.river.forEach((h, i) => {
+        const c = hexToPixel(h);
+        const reach = clamp01(evP * 1.6 - (i / Math.max(1, tl.river.length)) * 0.6);
+        if (reach <= 0) return;
+        const a = reach * strength;
+        if (tl.event === 'lowRiver') {
+          ground.poly(hexCorners(c, HEX_RADIUS - 6)).fill({ color: 0xd9c08f, alpha: 0.45 * a });
+          ellipse(ground, c.x - 6, c.y + 3, 11, 4, -0.3);
+          ground.fill({ color: 0xe8d3a3, alpha: 0.9 * a });
+          ellipse(ground, c.x + 8, c.y - 6, 7, 3, 0.4);
+          ground.fill({ color: 0xe8d3a3, alpha: 0.8 * a });
+        } else {
+          ground.poly(hexCorners(c, HEX_RADIUS - 2)).fill({ color: 0xeaf4fa, alpha: 0.55 * a });
+          ground
+            .moveTo(c.x - 12, c.y - 4)
+            .lineTo(c.x - 2, c.y + 2)
+            .lineTo(c.x + 10, c.y - 3)
+            .moveTo(c.x - 2, c.y + 2)
+            .lineTo(c.x + 1, c.y + 11)
+            .stroke({ width: 1.2, color: 0x9cc3d8, alpha: 0.8 * a });
+        }
+      });
+    }
+
+    for (const fx of tl.eventFx) {
+      const age = this.t - fx.t;
+      if (age < 0) continue;
+      const rise = this.reducedMotion ? 1 : clamp01(age / 300);
+      const a = rise * strength;
+      const c = hexToPixel(fx.at);
+      const corners = hexCorners(c, HEX_RADIUS - 3);
+      const pulse = this.reducedMotion ? 1 : 0.75 + 0.25 * Math.sin(age / 90);
+      switch (fx.kind) {
+        case 'sheltered':
+          shield(g, c, 0x3f7a3a, a);
+          g.poly(corners).stroke({ width: 2.5, color: 0x3f7a3a, alpha: 0.8 * a * pulse });
+          break;
+        case 'flooded':
+          g.poly(corners).stroke({ width: 3, color: 0xa3401f, alpha: 0.85 * a * pulse });
+          droplets(g, c, age, this.reducedMotion, a);
+          break;
+        case 'silted': {
+          // Gold motes settle onto the farm.
+          ground.poly(corners).fill({ color: 0xc9a25c, alpha: 0.35 * a });
+          for (let k = 0; k < 6; k++) {
+            const fall = this.reducedMotion ? 1 : clamp01((age - k * 60) / 500);
+            const x = c.x + (hash(k, fx.at.q, fx.at.r) - 0.5) * 30;
+            const y = c.y - 18 + fall * (14 + hash(k + 7, fx.at.q, fx.at.r) * 10);
+            g.circle(x, y, 1.8).fill({ color: 0xe0a33b, alpha: a * (fall > 0 ? 1 : 0) });
+          }
+          break;
+        }
+        case 'dried': {
+          ground.poly(corners).fill({ color: 0xd9b98a, alpha: 0.45 * a });
+          const grow = this.reducedMotion ? 1 : clamp01(age / 500);
+          cracks(ground, c, grow, a);
+          break;
+        }
+        case 'slowed': {
+          // The wheel's turn slows to a stop: a fading arc.
+          const turn = this.reducedMotion
+            ? 0
+            : Math.min(age, 900) / 120 - (Math.min(age, 900) / 900) ** 2 * 3;
+          for (let k = 0; k < 3; k++) {
+            const s = turn + (k * Math.PI * 2) / 3;
+            g.arc(c.x, c.y - 2, 15, s, s + 0.8).stroke({
+              width: 2.5,
+              color: 0x6c8a96,
+              alpha: 0.7 * a,
+              cap: 'round',
+            });
+          }
+          break;
+        }
+        case 'struck': {
+          // Two strokes of lightning, a moment apart.
+          const flash = this.reducedMotion
+            ? 0
+            : Math.max(clamp01(1 - age / 160), clamp01(1 - Math.abs(age - 260) / 120));
+          if (flash > 0) {
+            g.circle(c.x, c.y, 34).fill({ color: 0xfff7d6, alpha: 0.55 * flash });
+            bolt(g, c, flash);
+          }
+          g.poly(corners).stroke({ width: 3, color: 0xa3401f, alpha: 0.85 * a * pulse });
+          break;
+        }
+        case 'exposed':
+          // Wind tugs at buildings on the hills.
+          gusts(g, c, this.reducedMotion ? 0 : age, a);
+          g.poly(corners).stroke({ width: 2, color: 0x5b6770, alpha: 0.7 * a });
+          break;
+        case 'calm':
+          // The Mixed Grid's dome holds the storm off.
+          g.arc(c.x, c.y + 6, 24 + 2 * pulse, Math.PI, 0)
+            .stroke({ width: 2.5, color: 0x3f7a3a, alpha: 0.8 * a })
+            .arc(c.x, c.y + 6, 24, Math.PI, 0)
+            .fill({ color: 0x9dbb79, alpha: 0.14 * a });
+          break;
+        case 'chilled': {
+          const grow = this.reducedMotion ? 1 : clamp01(age / 450);
+          ground.poly(corners).fill({ color: 0xdcebf5, alpha: 0.4 * a * grow });
+          frost(g, c, grow, a);
+          break;
+        }
+      }
+    }
+  }
+
+  /** Rain and wind for storms and floods, snow for the freeze; still when motion is reduced. */
+  private drawWeather(): void {
+    const g = this.weather.clear();
+    const strength = this.eventStrength();
+    const event = this.timeline.event;
+    if (strength <= 0 || this.reducedMotion) return;
+    if (event !== 'storm' && event !== 'flood' && event !== 'freeze') return;
+    const b = this.bounds;
+    const w = b.maxX - b.minX;
+    const h = b.maxY - b.minY;
+    const n = event === 'flood' ? 70 : 110;
+    for (let i = 0; i < n; i++) {
+      const x0 = b.minX + hash(i, 1, 2) * w;
+      const speed = 0.35 + hash(i, 3, 4) * 0.25;
+      const y =
+        b.minY + ((hash(i, 5, 6) * h + this.t * speed * (event === 'freeze' ? 0.18 : 1)) % h);
+      if (event === 'freeze') {
+        const x = x0 + Math.sin(this.t / 400 + i) * 6;
+        g.circle(x, y, 1.6 + hash(i, 7, 8)).fill({ color: 0xffffff, alpha: 0.85 * strength });
+      } else {
+        const storm = event === 'storm';
+        const slant = storm ? 9 : 3;
+        const x = x0 + ((y - b.minY) / h) * slant * 4;
+        g.moveTo(x, y)
+          .lineTo(x - slant, y + (storm ? 18 : 14))
+          .stroke({
+            width: storm ? 1.6 : 1.2,
+            color: storm ? 0x46606e : 0x6d8796,
+            alpha: (storm ? 0.6 : 0.45) * strength,
+          });
+      }
     }
   }
 
@@ -369,6 +556,106 @@ function popLabel(pop: Pop): Container {
   text.position.set(-text.width / 2, -8);
   node.addChild(pill, text);
   return node;
+}
+
+/** A small shield over a tile a levee keeps dry. */
+function shield(g: Graphics, c: Point, color: number, a: number): void {
+  const x = c.x;
+  const y = c.y - 14;
+  g.moveTo(x - 8, y - 7)
+    .lineTo(x + 8, y - 7)
+    .lineTo(x + 8, y)
+    .quadraticCurveTo(x + 7, y + 7, x, y + 9)
+    .quadraticCurveTo(x - 7, y + 7, x - 8, y)
+    .closePath()
+    .fill({ color, alpha: 0.9 * a })
+    .stroke({ width: 1.5, color: 0xfffbf0, alpha: a });
+}
+
+/** Water drips off a flooded building. */
+function droplets(g: Graphics, c: Point, age: number, still: boolean, a: number): void {
+  for (let k = 0; k < 3; k++) {
+    const p = still ? 0.5 : (age / 600 + k / 3) % 1;
+    const x = c.x - 10 + k * 10;
+    const y = c.y - 10 + p * 18;
+    g.moveTo(x, y - 3)
+      .quadraticCurveTo(x + 2.5, y + 1, x, y + 3)
+      .quadraticCurveTo(x - 2.5, y + 1, x, y - 3)
+      .fill({ color: 0x3a7d96, alpha: a * (1 - p * 0.6) });
+  }
+}
+
+/** Cracks spreading through dry earth. */
+function cracks(g: Graphics, c: Point, grow: number, a: number): void {
+  const arms = [
+    [-14, 8, -5, 2, -8, -7],
+    [-5, 2, 6, 5, 13, -3],
+    [6, 5, 9, 13, 4, 16],
+  ];
+  for (const [x1, y1, x2, y2, x3, y3] of arms) {
+    const mx = x1! + (x2! - x1!) * Math.min(1, grow * 2);
+    const my = y1! + (y2! - y1!) * Math.min(1, grow * 2);
+    g.moveTo(c.x + x1!, c.y + y1!).lineTo(c.x + mx, c.y + my);
+    if (grow > 0.5) {
+      const k = (grow - 0.5) * 2;
+      g.lineTo(c.x + x2! + (x3! - x2!) * k, c.y + y2! + (y3! - y2!) * k);
+    }
+    g.stroke({ width: 1.4, color: 0x8a6438, alpha: 0.8 * a });
+  }
+}
+
+/** A lightning bolt from the sky onto a building. */
+function bolt(g: Graphics, c: Point, a: number): void {
+  g.moveTo(c.x + 6, c.y - 90)
+    .lineTo(c.x - 4, c.y - 52)
+    .lineTo(c.x + 5, c.y - 48)
+    .lineTo(c.x - 6, c.y - 12)
+    .stroke({ width: 5, color: 0xfff3b0, alpha: 0.5 * a, join: 'miter' })
+    .moveTo(c.x + 6, c.y - 90)
+    .lineTo(c.x - 4, c.y - 52)
+    .lineTo(c.x + 5, c.y - 48)
+    .lineTo(c.x - 6, c.y - 12)
+    .stroke({ width: 2, color: 0xffffff, alpha: a, join: 'miter' });
+}
+
+/** Wind streaks blowing past a building. */
+function gusts(g: Graphics, c: Point, age: number, a: number): void {
+  for (let k = 0; k < 3; k++) {
+    const p = (age / 700 + k / 3) % 1;
+    const x = c.x - 22 + p * 44;
+    const y = c.y - 12 + k * 9;
+    g.moveTo(x - 10, y)
+      .lineTo(x + 4, y)
+      .quadraticCurveTo(x + 9, y - 1, x + 7, y - 4)
+      .stroke({ width: 1.5, color: 0x5b6770, alpha: a * Math.sin(Math.PI * p), cap: 'round' });
+  }
+}
+
+/** Frost creeping over a home: six-armed crystals at its corners. */
+function frost(g: Graphics, c: Point, grow: number, a: number): void {
+  const spots = [
+    { x: c.x - 13, y: c.y - 10 },
+    { x: c.x + 13, y: c.y - 8 },
+    { x: c.x, y: c.y + 12 },
+  ];
+  spots.forEach((p, i) => {
+    const r = 5 * clamp01(grow * 1.5 - i * 0.25);
+    if (r <= 0) return;
+    for (let k = 0; k < 3; k++) {
+      const ang = (Math.PI / 3) * k + Math.PI / 6;
+      g.moveTo(p.x - Math.cos(ang) * r, p.y - Math.sin(ang) * r)
+        .lineTo(p.x + Math.cos(ang) * r, p.y + Math.sin(ang) * r)
+        .stroke({ width: 1.4, color: 0x7fb2d6, alpha: 0.95 * a, cap: 'round' });
+    }
+  });
+}
+
+/** A fixed pseudo-random number in [0, 1) for drawing: the same every frame. */
+export function hash(a: number, b: number, c: number): number {
+  let h = (a * 374761393 + b * 668265263 + c * 2147483647) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
 }
 
 function phaseStart(tl: Timeline, name: PhaseName): number {

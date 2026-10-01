@@ -269,11 +269,13 @@ async function start() {
       view!.stopResolution();
     }
     view!.setResolutionPaused(r?.paused ?? false);
+    view!.setMarks(store.marks);
     view!.setOverlay(
       store.hover,
       store.placement,
       store.tool?.kind === 'compost' ? 'compost' : 'hover',
       store.vines,
+      store.legalSites,
     );
   };
   store.subscribe(drawMap);

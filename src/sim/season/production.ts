@@ -166,6 +166,7 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
     ) {
       multiplier *= low.farYieldFactor;
       lines.push(`× ${low.farYieldFactor} low river, far from water`);
+      if (!ctx.report.dried.includes(b.uid)) ctx.report.dried.push(b.uid);
     }
   }
   if (content.rules.harmony.multiplies.includes(res)) {

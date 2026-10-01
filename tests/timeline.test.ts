@@ -10,7 +10,7 @@ describe('season resolution timeline', () => {
     expect(tl.duration).toBe(5000);
     expect(tl.phases.map((p) => p.name)).toEqual(['event', 'day', 'night', 'settle']);
     expect(phaseAt(tl, 0)).toBe('event');
-    expect(phaseAt(tl, 1000)).toBe('day');
+    expect(phaseAt(tl, 1400)).toBe('day');
     expect(phaseAt(tl, 4000)).toBe('night');
     expect(phaseAt(tl, 4999)).toBe('settle');
   });

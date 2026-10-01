@@ -1,5 +1,18 @@
 # Changelog
 
+## Events on the map
+
+- Choosing a building highlights every tile it can go on; floodplain where the flood would damage
+  it is tinted blue.
+- The map marks what lasts for the season (silt on flood-fed farms, damage, no worker, shade) and,
+  dashed, how far the coming event reaches: tiles a flood will cover, buildings it will damage,
+  tiles levees keep dry, farms a low river will dry, buildings exposed to storms, homes the freeze
+  makes cold. The forecast pill sums it up; the map tooltip explains each mark.
+- Each event plays out on the tiles it touches: levee shields, flood damage and silt; sandbars,
+  cracked fields and slowed wheels; rain, wind and lightning; ice, frost and snow.
+- More life about the valley: butterflies, bees, chimney smoke, leaping fish, citizens walking to
+  work, petals, seeds, leaves or snow on the wind, and cloud shadows.
+
 ## A fuller end to a run
 
 - Refinements: once the blueprints and tunings run out, the draft deals refinements, cards that

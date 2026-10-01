@@ -31,6 +31,7 @@ import {
 import { EMPTY_ALMANAC, entryView, recordRun, type Almanac } from './almanac';
 import type { Graft, RunResult } from '../sim';
 import { computeInsight, type Insight } from './insight';
+import { mapMarks, type Mark } from './marks';
 import type { PhaseName } from './timeline';
 
 /** A building to place, or spreading compost on a tile. */
@@ -440,6 +441,42 @@ export class GameStore {
     const next =
       at < 0 ? (step === 1 ? 0 : sites.length - 1) : (at + step + sites.length) % sites.length;
     this.hoverAt(sites[next]!);
+  }
+
+  private marksCache: { state: RunState; marks: Mark[] } | null = null;
+
+  /** What the map marks for the season: lasting effects and the coming event's reach. */
+  get marks(): Mark[] {
+    if (this.marksCache?.state !== this.state)
+      this.marksCache = {
+        state: this.state,
+        marks: mapMarks(this.rules, this.state, this.insight.now),
+      };
+    return this.marksCache.marks;
+  }
+
+  private sitesCache: { state: RunState; tool: Tool; sites: { at: Hex; risky: boolean }[] } | null =
+    null;
+
+  /**
+   * Every legal tile for the building (or compost) being placed, for the map
+   * to highlight; `risky` marks floodplain a flood would damage it on.
+   */
+  get legalSites(): { at: Hex; risky: boolean }[] {
+    const tool = this.tool;
+    if (!tool) return [];
+    if (this.sitesCache?.state === this.state && this.sitesCache.tool === tool)
+      return this.sitesCache.sites;
+    const def = tool.kind === 'build' ? this.content.byId[tool.building] : undefined;
+    const sites = this.siteCycle().map((at) => ({
+      at,
+      risky:
+        def !== undefined &&
+        !def.floodTolerant &&
+        this.state.map.tiles[hexKey(at)]?.type === 'floodplain',
+    }));
+    this.sitesCache = { state: this.state, tool, sites };
+    return sites;
   }
 
   private siteCycle(): Hex[] {

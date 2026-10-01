@@ -1,6 +1,7 @@
 /** The footer, the map's forecast pill and building tooltip, keyboard help and the end-of-run screen. */
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { AudioEngine } from '../audio/engine';
+import { reachSummary } from '../game/marks';
 import { logToCsv, type PlayLog } from '../game/playlog';
 import type { GameStore } from '../game/store';
 import type { MapView } from '../render/mapView';
@@ -161,11 +162,13 @@ export function Footer({
 export function ForecastPill({ store }: { store: GameStore }) {
   const { content, state } = store;
   const event = content.events[state.forecast.event];
+  const reach = reachSummary(store.marks);
   return (
     <div class="pill" aria-hidden="true">
       <Sun size={16} />
       <span>
         <strong>{SEASON_NAMES[state.season]}</strong> · {event.name}: {event.summary}
+        {reach ? <span class="quiet"> · {reach}</span> : null}
       </span>
     </div>
   );
@@ -218,6 +221,7 @@ export function MapTip({ store, view }: { store: GameStore; view: MapView | null
   if (!tile) return null;
   const at = view.screenOf(store.hover);
   const math = b ? (store.insight.now.math[b.uid] ?? []) : [];
+  const marks = store.marks.filter((m) => hexKey(m.at) === hexKey(store.hover!));
   const title = b
     ? content.byId[b.type]!.name
     : tile.type.charAt(0).toUpperCase() + tile.type.slice(1);
@@ -230,6 +234,9 @@ export function MapTip({ store, view }: { store: GameStore; view: MapView | null
       <div class="strong">{title}</div>
       {b && <div class="quiet small">on {tile.type} · click for details</div>}
       {tile.salvage !== undefined && <div class="small">{tile.salvage} salvage left</div>}
+      {marks.map((m) => (
+        <div class={`small mark-line${m.coming ? ' coming' : ''}`}>{m.text}</div>
+      ))}
       {math.slice(0, 6).map((l) => (
         <div class="small">{l}</div>
       ))}

@@ -24,6 +24,9 @@ import {
 } from './layout';
 import { COLORS } from './palette';
 import { ResolutionPlayer } from './resolution';
+import type { Mark } from '../game/marks';
+import { drawMarkBadges, drawMarkTiles } from './markArt';
+import { ambientFor, drawAmbient, type Ambient } from './ambient';
 import { drawBird, drawDeer, drawOtter, drawSeason, wildlifeFor, type Wildlife } from './seasonArt';
 import { dashedLine, drawFogTile, drawTile } from './tileArt';
 
@@ -68,6 +71,9 @@ export class MapView {
   private readonly terrain = new Graphics();
   private readonly seasonLayer = new Graphics();
   private readonly flow = new Graphics();
+  private readonly marksUnder = new Graphics();
+  private readonly marksOver = new Graphics();
+  private marks: Mark[] = [];
   private readonly underFx = new Container();
   private readonly buildings = new Graphics();
   private readonly wildlife = new Graphics();
@@ -79,6 +85,7 @@ export class MapView {
   private mapSignature = '';
   private seasonSignature = '';
   private animals: Wildlife = { birds: false, deer: [], otters: [] };
+  private ambient: Ambient | null = null;
   private clock = 0;
   private state: RunState | null = null;
   private zoom = 1;
@@ -100,8 +107,10 @@ export class MapView {
     this.built.addChild(this.buildings);
     this.world.addChild(
       this.ground,
+      this.marksUnder,
       this.underFx,
       this.built,
+      this.marksOver,
       this.wildlife,
       this.overFx,
       this.overlay,
@@ -121,8 +130,8 @@ export class MapView {
     this.lastTick = now;
     this.clock += dt;
     this.player?.update(dt);
-    const moving = this.animals.birds || this.animals.otters.length > 0;
-    if (moving && !this.reducedMotion) this.drawWildlife();
+    // Clouds, smoke and the rest are always about: the wildlife layer redraws each frame.
+    if (!this.reducedMotion) this.drawWildlife();
   };
 
   /**
@@ -150,6 +159,7 @@ export class MapView {
     );
     this.player = player;
     if (this.state) this.drawBuildings(this.state);
+    this.drawMarks();
   }
 
   /** Skips to the end of the resolution, if one is playing. */
@@ -171,6 +181,7 @@ export class MapView {
     this.player.destroy();
     this.player = null;
     if (this.state) this.drawBuildings(this.state);
+    this.drawMarks();
   }
 
   /** Redraws whatever changed in the run state. */
@@ -195,17 +206,54 @@ export class MapView {
       drawSeason(this.seasonLayer, this.content, state);
       this.ground.updateCacheTexture();
       this.animals = wildlifeFor(this.content, state);
+      this.ambient = ambientFor(this.content, state);
       this.drawWildlife();
     }
   }
 
+  /**
+   * Marks for the season: lasting effects and the coming event's reach.
+   * Hidden while a season plays out, which shows its own effects.
+   */
+  setMarks(marks: Mark[]): void {
+    if (marks === this.marks) return;
+    this.marks = marks;
+    this.drawMarks();
+  }
+
+  private drawMarks(): void {
+    const under = this.marksUnder.clear();
+    const over = this.marksOver.clear();
+    if (this.player) return;
+    drawMarkTiles(under, this.marks);
+    drawMarkBadges(over, this.marks);
+  }
+
   /** The season the map is painted for, and which animals have returned (for tests). */
-  get scenery(): { season: string; birds: boolean; deer: number; otters: number } {
+  get scenery(): {
+    season: string;
+    birds: boolean;
+    deer: number;
+    otters: number;
+    butterflies: number;
+    bees: number;
+    smoke: number;
+    fish: number;
+    walkers: number;
+    falling: string;
+  } {
+    const a = this.ambient;
     return {
       season: this.state?.season ?? '',
       birds: this.animals.birds,
       deer: this.animals.deer.length,
       otters: this.animals.otters.length,
+      butterflies: a?.butterflies.length ?? 0,
+      bees: a?.bees.length ?? 0,
+      smoke: a?.smoke.length ?? 0,
+      fish: a?.fish.length ?? 0,
+      walkers: a?.walkers.length ?? 0,
+      falling: a?.falling ?? '',
     };
   }
 
@@ -213,6 +261,7 @@ export class MapView {
     const g = this.wildlife.clear();
     const { birds, deer, otters } = this.animals;
     const still = this.reducedMotion;
+    if (this.ambient && this.bounds) drawAmbient(g, this.ambient, this.bounds, this.clock, still);
     for (const d of deer) drawDeer(g, d);
     otters.forEach((o, i) => drawOtter(g, o, still ? 0 : Math.sin(this.clock / 400 + i) * 1.2));
     if (birds && this.bounds) {
@@ -232,9 +281,17 @@ export class MapView {
     placement: Placement | null,
     cursor: 'hover' | 'compost' = 'hover',
     vines: Hex[][] = [],
+    sites: { at: Hex; risky: boolean }[] = [],
   ): void {
     const g = this.overlay.clear();
     for (const child of this.labels.removeChildren()) child.destroy();
+    // Every tile the building (or compost) could go on, while placing.
+    for (const s of sites) {
+      const c = hexToPixel(s.at);
+      g.poly(hexCorners(c, HEX_RADIUS - 4))
+        .fill({ color: s.risky ? 0x7fb7c8 : 0xfff3cf, alpha: 0.3 })
+        .stroke({ width: 1.5, color: s.risky ? 0x548899 : COLORS.leadingGold, alpha: 0.75 });
+    }
     // Vines grow between the tiles of each combo the placement would form.
     for (const group of vines) drawVine(g, group.map(hexToPixel));
     if (placement) {

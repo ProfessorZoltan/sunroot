@@ -292,6 +292,12 @@ export interface SeasonReport {
   event: EventId;
   mixedGrid: boolean;
   flooded: string[];
+  /** Floodplain tiles the flood would have reached, kept dry by a levee. */
+  sheltered: string[];
+  /** Buildings that lost food to the low river (far from water). */
+  dried: string[];
+  /** Buildings a storm could damage: on a hill, not next to woodland (unless the Mixed Grid holds). */
+  exposed: string[];
   silted: string[];
   damaged: string[];
   repaired: string[];
