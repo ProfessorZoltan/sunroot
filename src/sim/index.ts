@@ -15,6 +15,7 @@ export {
   type District,
   type EraGoal,
   type Goal,
+  type Project,
   type Vision,
   type EventId,
   type Tuning,
@@ -37,7 +38,7 @@ export {
   type PreviewKey,
 } from './preview';
 export { generateMap } from './map';
-export { blueprintPool, cardAllowed } from './draft';
+export { blueprintPool, cardAllowed, refinementPool, timesTaken } from './draft';
 export {
   cityRequest,
   eraGoal,
@@ -106,3 +107,4 @@ export {
 } from './city';
 export { demolishCheck, type DemolishCheck } from './demolish';
 export { energyLedger, SHORT, type EnergyLedger } from './energyLedger';
+export { finishedProjects, projectBlocked } from './projects';

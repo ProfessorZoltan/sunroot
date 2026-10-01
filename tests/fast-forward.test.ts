@@ -16,6 +16,10 @@ const LAND = [
  */
 const storeFor = (s: Parameters<typeof scenario>[1] = {}) => {
   const state = scenario(LAND, { stores: { food: 200 }, run: { tunings: false }, ...s });
+  // Every refinement taken as often as it can be, so none is dealt either.
+  state.tunings = content.tunings
+    .filter((t) => t.refinement)
+    .flatMap((t) => Array(t.max).fill(t.id));
   return new GameStore(content, state, { defer: (step) => step() });
 };
 

@@ -141,6 +141,8 @@ export interface RunState {
   eraGoalsMet: number[];
   /** The turn the expedition's city request was met, or null. */
   requestMet: number | null;
+  /** Projects started (Bloom-era works): when, and the turn they were finished, if they are. */
+  projects: ProjectState[];
   /** What this season's commands spent so far (building, rerolls, hints), for the season report. */
   spent: Flows;
   /** The reports of the last 4 seasons, oldest first: the last one of each season. */
@@ -153,6 +155,13 @@ export interface RunState {
   /** Undo support: the state at the start of the season and the commands since. */
   seasonStart: SeasonSnapshot | null;
   seasonCommands: Command[];
+}
+
+export interface ProjectState {
+  id: string;
+  started: number;
+  /** The turn it was finished (its effect holds from the next season), or null. */
+  done: number | null;
 }
 
 export interface LoopState {
@@ -183,6 +192,8 @@ export type Command =
   | { type: 'buyExtraCard' }
   | { type: 'place'; building: string; at: Hex }
   | { type: 'spreadCompost'; at: Hex }
+  /** Starts a project: its cost is paid now; it finishes after its seasons. */
+  | { type: 'startProject'; project: string }
   /** Removes a building: energy this season, rubble, and the tile reverts (see rules.demolition). */
   | { type: 'demolish'; uid: string }
   | { type: 'setRecipe'; uid: string; recipe: string }
@@ -247,7 +258,15 @@ export interface RunReport {
 }
 
 export type WellbeingKind =
-  'needsMet' | 'hunger' | 'unpowered' | 'clutter' | 'greenery' | 'civic' | 'formation' | 'charter';
+  | 'needsMet'
+  | 'hunger'
+  | 'unpowered'
+  | 'clutter'
+  | 'greenery'
+  | 'civic'
+  | 'formation'
+  | 'charter'
+  | 'expectations';
 
 export interface WellbeingLine {
   kind: WellbeingKind;
@@ -308,6 +327,8 @@ export interface SeasonReport {
   visionAchieved: boolean;
   /** The expedition's city request was met this season. */
   requestMet: boolean;
+  /** Projects finished this season. */
+  projectsDone: string[];
   /** The era whose goal was met this season, if any. */
   eraGoalMet: number | null;
 }

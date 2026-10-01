@@ -12,6 +12,7 @@ import {
 } from '../queries';
 import type { PopulationReason, WellbeingLine } from '../types';
 import { formationWellbeing } from '../combos';
+import { finishedProjects } from '../projects';
 import { flow, type SeasonContext } from './context';
 
 export function feedAndGrow(ctx: SeasonContext): void {
@@ -129,6 +130,25 @@ export function feedAndGrow(ctx: SeasonContext): void {
     }
   }
   lines.push(...cider);
+  // Rising expectations: from a later era, citizens beyond what civic life serves cost wellbeing.
+  const ex = rules.expectations;
+  if (ex && state.era >= ex.fromEra) {
+    let served = ex.base;
+    for (const b of buildings)
+      if (ctx.active.has(b.uid) && !b.damage) served += ex.perBuilding[b.type] ?? 0;
+    const unserved = state.citizens - served;
+    if (unserved > 0) {
+      lines.push({
+        kind: 'expectations',
+        reason: `${unserved} citizens beyond what civic life serves (${served})`,
+        amount: -Math.ceil(unserved / ex.perUnserved),
+      });
+    }
+  }
+  for (const p of finishedProjects(content, state)) {
+    if (p.effect.wellbeing !== 0)
+      lines.push({ kind: 'civic', reason: p.name, amount: p.effect.wellbeing });
+  }
   for (const f of formationWellbeing(ctx)) {
     lines.push({ kind: 'formation', reason: f.reason, amount: f.amount });
   }

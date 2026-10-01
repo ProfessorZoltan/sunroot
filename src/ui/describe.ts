@@ -73,6 +73,11 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
     );
   }
   if (def.harmony) lines.push(`+${def.harmony} Harmony.`);
+  const civic = content.rules.expectations?.perBuilding[def.id];
+  if (civic)
+    lines.push(
+      `Civic life for ${civic} citizens (expected from era ${content.rules.expectations!.fromEra}).`,
+    );
   if (def.improvesNeighborSteps) lines.push('Improves a neighbouring tile each season.');
   if (def.weir) lines.push('Halves the flooded area; the river above becomes reservoir.');
   if (def.levee) lines.push(`Protects floodplain within ${def.levee.radius} tiles from the flood.`);

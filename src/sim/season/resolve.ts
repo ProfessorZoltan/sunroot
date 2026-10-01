@@ -31,6 +31,7 @@ import { applyLoopBonuses, checkCombos, findFormations, formationEffects } from 
 import { effectiveContent } from '../content/modifiers';
 import { dealCharters } from '../draft';
 import { cityRequest, eraGoal, goalMet, visionMet } from '../score';
+import { finishProjects } from '../projects';
 
 export interface ResolveOptions {
   /**
@@ -140,6 +141,8 @@ function advance(content: Content, ctx: SeasonContext): RunState {
     state.visionAchieved = state.turn;
     report.visionAchieved = true;
   }
+  // Projects whose last season this was are finished; their effect holds from next season.
+  report.projectsDone = finishProjects(content, state);
   // The expedition's city request, once met, stays met.
   const request = cityRequest(content, state);
   if (request && state.requestMet === null && goalMet(content, state, request.goal)) {

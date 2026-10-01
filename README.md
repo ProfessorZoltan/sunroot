@@ -56,6 +56,11 @@ the season when you're ready; the year strip shows each season's energy and fore
 the year with what you have now. Each season then plays out on the map in about 5 seconds: Space
 skips it, P pauses it.
 
+Later in a run, when the blueprints run out, the draft offers refinements to the buildings you
+have; from era 3 you can start projects with your spare stores, and citizens begin to expect civic
+life (a Commons Plaza, a library) while the seasons grow harsher. **Fast-forward** (Shift+E) ends
+seasons up to next spring, pausing for each choice.
+
 Buildings combine: neighbours help each other, loops of buildings earn a lasting bonus, hidden shapes
 and evolutions wait to be discovered. Each discovery goes into the Almanac (A), which keeps them
 across runs.

@@ -51,7 +51,7 @@ describe('combo data', () => {
       'Rewilded Ruin',
       'Treehouse Commons',
     ]);
-    expect(content.tunings.map((t) => t.name)).toEqual([
+    expect(content.tunings.filter((t) => !t.refinement).map((t) => t.name)).toEqual([
       'Deep Roots',
       'Mirror Film',
       'Night Shift',

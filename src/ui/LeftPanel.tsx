@@ -33,6 +33,7 @@ export function LeftPanel({ store }: { store: GameStore }) {
       <VisionStatus store={store} />
       <EraGoalStatus store={store} />
       <ExpeditionStatus store={store} />
+      <CivicStatus store={store} />
       <LastSeason store={store} />
       <LoopsPanel store={store} />
     </aside>
@@ -147,6 +148,35 @@ function LastSeason({ store }: { store: GameStore }) {
       <ul class="events">
         {lines.length === 0 ? <li>A quiet season.</li> : lines.map((l) => <li>{l}</li>)}
       </ul>
+    </section>
+  );
+}
+
+/** From era 3: how many citizens the settlement's civic life serves (rising expectations). */
+function CivicStatus({ store }: { store: GameStore }) {
+  const { state } = store;
+  const ex = store.rules.rules.expectations;
+  if (!ex || state.era < ex.fromEra || state.status !== 'active') return null;
+  const now = store.insight.now;
+  const line = now.wellbeing.lines.find((l) => l.kind === 'expectations');
+  const idle = new Set(now.unstaffed);
+  let served = ex.base;
+  for (const b of Object.values(state.buildings))
+    if (!idle.has(b.uid) && !b.damage) served += ex.perBuilding[b.type] ?? 0;
+  const names = Object.entries(ex.perBuilding)
+    .map(([id, n]) => `${store.content.byId[id]?.name ?? id} +${n}`)
+    .join(', ');
+  return (
+    <section aria-label="Civic life">
+      <h2>Civic life</h2>
+      <div class="small">
+        Serves up to <strong>{served}</strong> citizens; {state.citizens} live here
+        {line ? <span class="bad"> · {line.amount} wellbeing a season</span> : '.'}
+      </div>
+      <div class="quiet small">
+        Citizens expect civic life now: it serves {ex.base}, and each working {names}. Every{' '}
+        {ex.perUnserved} citizens beyond that cost 1 wellbeing a season.
+      </div>
     </section>
   );
 }

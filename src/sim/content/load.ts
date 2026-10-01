@@ -39,6 +39,8 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
   };
   known(data.campBuilding, 'campBuilding');
   data.rules.demolition.salvagedBy.forEach((id) => known(id, 'rules.demolition.salvagedBy'));
+  for (const id of Object.keys(data.rules.expectations?.perBuilding ?? {}))
+    known(id, 'rules.expectations.perBuilding');
   data.guidedYear.forEach((offer, i) => offer.forEach((id) => known(id, `guidedYear[${i}]`)));
   for (const b of data.buildings) {
     b.neighborFoodBonus?.targets?.forEach((id) => known(id, `${b.id}.neighborFoodBonus`));
@@ -70,6 +72,7 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     ...data.tunings.map((t) => t.id),
     ...data.charters.map((c) => c.id),
   ]);
+  for (const t of data.tunings) if (t.building) known(t.building, `tuning ${t.id}`);
   for (const d of data.districts) {
     d.signature.sources.forEach((id) => known(id, `district ${d.id}`));
     if (!cardIds.has(d.adds)) problems.push(`district ${d.id} adds unknown card ${d.adds}`);
@@ -113,6 +116,10 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     'landmark',
   );
   unique(
+    data.projects.map((p) => p.id),
+    'project',
+  );
+  unique(
     data.twists.map((t) => t.id),
     'twist',
   );
@@ -142,6 +149,8 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
       ...data.charters,
       ...data.landmarks,
       ...data.twists,
+      ...data.rules.eraModifiers.map((m) => ({ id: `era ${m.era}`, modifiers: m.modifiers })),
+      ...data.projects.map((p) => ({ id: p.id, modifiers: p.effect.modifiers })),
       ...data.districts.flatMap((d) =>
         d.perks.map((perk, i) => ({ id: `${d.id} perk ${i + 1}`, modifiers: perk.modifiers })),
       ),

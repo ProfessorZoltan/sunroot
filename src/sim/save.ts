@@ -39,6 +39,7 @@ const ADDED_FIELDS: Partial<RunState> = {
   requestMet: null,
   spent: {},
   recentReports: [],
+  projects: [],
 };
 
 export type ReadSave = { ok: true; save: SaveFile } | { ok: false; error: string };

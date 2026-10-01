@@ -52,6 +52,8 @@ export type Reveal =
   | { kind: 'vision'; id: string }
   /** The expedition's city request met. */
   | { kind: 'request'; id: string }
+  /** A project finished. */
+  | { kind: 'project'; id: string }
   /** A run begun from Root City: what it brings, and the systems that join this run. */
   | { kind: 'start'; run: number; joining: string[] };
 
@@ -208,6 +210,7 @@ export class GameStore {
           ...(r.visionAchieved && this.state.vision
             ? [{ kind: 'vision' as const, id: this.state.vision }]
             : []),
+          ...r.projectsDone.map((id) => ({ kind: 'project' as const, id })),
           ...(r.requestMet && this.state.options.expedition?.request
             ? [{ kind: 'request' as const, id: this.state.options.expedition.request }]
             : []),

@@ -47,6 +47,7 @@ export function snapshot(state: SeasonSnapshot): SeasonSnapshot {
     eraGoalsMet: [...state.eraGoalsMet],
     requestMet: state.requestMet,
     spent: copyFlows(state.spent),
+    projects: state.projects.map((p) => ({ ...p })),
     recentReports: state.recentReports,
     ledger: state.ledger,
     notices: [...state.notices],

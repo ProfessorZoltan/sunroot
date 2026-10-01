@@ -1,5 +1,6 @@
 /** Read-only helpers over run state shared by commands and season resolution. */
 import { formationHarmony } from './combos';
+import { finishedProjects } from './projects';
 import type { Content } from './content/load';
 import type { BuildingDef, Season, TileType } from './content/schema';
 import { SEASONS } from './content/schema';
@@ -146,6 +147,8 @@ export function harmonyLines(content: Content, state: RunState): HarmonyLine[] {
   for (const [name, e] of penalties) lines.push({ label: `${e.n} ${name}`, amount: e.amount });
   lines.push(...formationHarmony(content, state));
   if (harmony.bonus !== 0) lines.push({ label: 'Root City', amount: harmony.bonus });
+  for (const p of finishedProjects(content, state))
+    if (p.effect.harmony !== 0) lines.push({ label: p.name, amount: p.effect.harmony });
   if (state.stores.clutter > 0) {
     lines.push({
       label: `${state.stores.clutter} clutter`,

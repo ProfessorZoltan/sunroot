@@ -110,7 +110,26 @@ function survive(turn: Turn, profile: Profile): void {
     if (workshop.recipe !== recipe) turn.apply({ type: 'setRecipe', uid: workshop.uid, recipe });
   }
 
+  // Rising expectations: build civic life when citizens outgrow it.
+  const unserved = () =>
+    -peekOr(
+      turn,
+      (p) => p.report.wellbeing.lines.find((l) => l.kind === 'expectations')?.amount ?? 0,
+      0,
+    );
+  for (let i = 0; i < 2 && unserved() > 0; i++) {
+    if (!buildFirstThatHelps(turn, ['commonsPlaza', 'seedbankLibrary', 'ciderPress'], unserved))
+      break;
+  }
+
   profile.extras(turn, profile);
+
+  // Projects: start the first one the stores can pay for, keeping the materials reserve.
+  for (const project of turn.content.projects) {
+    const materials = project.cost.materials ?? 0;
+    if (turn.state.stores.materials - materials < profile.reserve) continue;
+    if (turn.apply({ type: 'startProject', project: project.id })) break;
+  }
 }
 
 function spend(turn: Turn, profile: Profile, options: readonly string[], limit = 3): void {

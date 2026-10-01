@@ -1235,3 +1235,25 @@ ul.flow li {
 .sankey-label.short {
   fill: var(--bad);
 }
+
+/* ---------------------------------------------------------------- projects */
+
+ul.projects {
+  gap: 10px;
+  margin-top: 8px;
+}
+.project {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+}
+.project.done {
+  border-color: var(--gold);
+  background: var(--gold-soft);
+}
+.project .row {
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}

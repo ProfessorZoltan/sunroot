@@ -34,11 +34,38 @@ export function blueprintPool(content: Content, state: RunState, exclude: string
 export function tuningPool(content: Content, state: RunState, exclude: string[] = []): string[] {
   if (state.options.tunings === false) return [];
   return content.tunings
+    .filter((t) => !t.refinement)
     .map((t) => t.id)
     .filter(
       (id) =>
         !state.tunings.includes(id) && !exclude.includes(id) && cardAllowed(content, state, id),
     );
+}
+
+/**
+ * Refinements that could be dealt: for an unlocked building, and taken fewer
+ * than their `max` times. They fill the draft once the other cards run short.
+ */
+export function refinementPool(
+  content: Content,
+  state: RunState,
+  exclude: string[] = [],
+): string[] {
+  return content.tunings
+    .filter(
+      (t) =>
+        t.refinement &&
+        (!t.building || state.unlocked.includes(t.building)) &&
+        state.tunings.filter((id) => id === t.id).length < t.max &&
+        !exclude.includes(t.id) &&
+        cardAllowed(content, state, t.id),
+    )
+    .map((t) => t.id);
+}
+
+/** Times a tuning or refinement has been taken this run. */
+export function timesTaken(state: RunState, card: string): number {
+  return state.tunings.filter((id) => id === card).length;
 }
 
 export function isTuning(content: Content, card: string): boolean {
@@ -61,7 +88,11 @@ export function drawCards(
   exclude: string[] = [],
 ) {
   const pool = [...blueprintPool(content, state, exclude), ...tuningPool(content, state, exclude)];
-  return shuffled(state.rng, pool).slice(0, count);
+  const cards = shuffled(state.rng, pool).slice(0, count);
+  if (cards.length >= count) return cards;
+  // The draft has run short: refinements fill it, so every season still has a choice.
+  const more = refinementPool(content, state, [...exclude, ...cards]);
+  return [...cards, ...shuffled(state.rng, more).slice(0, count - cards.length)];
 }
 
 /** Deals the season's offer: fixed cards in the guided first year, otherwise random. */

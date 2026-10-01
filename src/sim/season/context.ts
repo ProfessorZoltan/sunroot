@@ -104,6 +104,7 @@ export function emptyReport(state: RunState): SeasonReport {
     atRisk: [],
     visionAchieved: false,
     requestMet: false,
+    projectsDone: [],
     eraGoalMet: null,
   };
 }

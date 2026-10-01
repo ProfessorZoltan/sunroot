@@ -4,7 +4,15 @@
  * check that the rules' invariants hold every season.
  */
 import { describe, expect, it } from 'vitest';
-import { applyCommand, canPlace, createRun, hexKey, type Command, type RunState } from '../src/sim';
+import {
+  applyCommand,
+  canPlace,
+  createRun,
+  effectiveContent,
+  hexKey,
+  type Command,
+  type RunState,
+} from '../src/sim';
 import { createRng, nextInt } from '../src/sim/rng';
 import { content } from './helpers';
 
@@ -77,8 +85,10 @@ describe('invariants over whole runs', () => {
       }
       expect(s.wellbeing).toBeGreaterThanOrEqual(0);
       expect(s.wellbeing).toBeLessThanOrEqual(100);
+      // Housing as the run plays it (refinements such as Loft Rooms add to it).
+      const rules = effectiveContent(content, s);
       const housing = Object.values(s.buildings).reduce(
-        (sum, b) => sum + content.byId[b.type]!.housing,
+        (sum, b) => sum + rules.byId[b.type]!.housing,
         0,
       );
       expect(s.citizens).toBeLessThanOrEqual(housing);

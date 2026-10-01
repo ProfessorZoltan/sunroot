@@ -273,6 +273,22 @@ export const EventsSchema = z
   .strict();
 export type EventId = keyof z.infer<typeof EventsSchema>;
 
+export const ModifierSchema = z
+  .object({
+    target: z.enum(['building', 'rules', 'event', 'combo']),
+    /** Building, event or combo id (not for rules). */
+    id: z.string().optional(),
+    path: z.string().min(1),
+    set: z.union([z.number(), z.boolean(), z.string()]).optional(),
+    add: z.number().optional(),
+    multiply: z.number().optional(),
+  })
+  .strict()
+  .refine((m) => [m.set, m.add, m.multiply].filter((x) => x !== undefined).length === 1, {
+    message: 'a modifier needs exactly one of set, add or multiply',
+  });
+export type Modifier = z.infer<typeof ModifierSchema>;
+
 export const RulesSchema = z
   .object({
     yearsPerRun: int.min(1),
@@ -369,6 +385,29 @@ export const RulesSchema = z
         tileBecomes: 'barren',
         keeps: [],
       }),
+    /**
+     * Rising expectations (asked for in playtesting): from `fromEra`, citizens
+     * expect civic life. It serves `base` citizens, plus more for each working
+     * civic building; every `perUnserved` citizens beyond that (rounded up)
+     * cost 1 wellbeing a season.
+     */
+    expectations: z
+      .object({
+        fromEra: int.min(1),
+        base: nonNeg,
+        perBuilding: z.record(z.string(), nonNeg),
+        perUnserved: int.min(1),
+      })
+      .strict()
+      .optional(),
+    /** Seasons grow harsher: modifiers that hold from each era on (before twists and cards). */
+    eraModifiers: z
+      .array(
+        z
+          .object({ era: int.min(1), text: z.string(), modifiers: z.array(ModifierSchema) })
+          .strict(),
+      )
+      .default([]),
     /** How many visions are offered at the start of a run (when visions are on). */
     visionChoices: int.min(1).default(2),
     mixedGrid: z.object({
@@ -409,25 +448,21 @@ export type MapGen = z.infer<typeof MapGenSchema>;
  * (array indexes allowed, e.g. `generation.day.3`). `add` and `multiply` apply
  * to every number of an array.
  */
-export const ModifierSchema = z
-  .object({
-    target: z.enum(['building', 'rules', 'event', 'combo']),
-    /** Building, event or combo id (not for rules). */
-    id: z.string().optional(),
-    path: z.string().min(1),
-    set: z.union([z.number(), z.boolean(), z.string()]).optional(),
-    add: z.number().optional(),
-    multiply: z.number().optional(),
-  })
-  .strict()
-  .refine((m) => [m.set, m.add, m.multiply].filter((x) => x !== undefined).length === 1, {
-    message: 'a modifier needs exactly one of set, add or multiply',
-  });
-export type Modifier = z.infer<typeof ModifierSchema>;
 
 const CardText = { id: z.string().regex(/^[a-z][A-Za-z]*$/), name: z.string(), text: z.string() };
 
-export const TuningSchema = z.object({ ...CardText, modifiers: z.array(ModifierSchema).min(1) });
+export const TuningSchema = z.object({
+  ...CardText,
+  modifiers: z.array(ModifierSchema).min(1),
+  /**
+   * A refinement: a late-run tuning that fills the draft once blueprints and
+   * tunings can't make a full offer. It refines `building` (offered only once
+   * that is unlocked) and can be taken up to `max` times, its effects stacking.
+   */
+  refinement: z.boolean().default(false),
+  building: z.string().optional(),
+  max: int.min(1).default(1),
+});
 export type Tuning = z.infer<typeof TuningSchema>;
 export const CharterSchema = z.object({ ...CardText, modifiers: z.array(ModifierSchema).min(1) });
 export type Charter = z.infer<typeof CharterSchema>;
@@ -626,6 +661,36 @@ export const LandmarkSchema = z
   .strict();
 export type Landmark = z.infer<typeof LandmarkSchema>;
 
+/**
+ * A project (proposed in playtesting for the quiet end of a run): a
+ * settlement-wide work started from a given era. It costs a lump of stores
+ * at once, takes some seasons, and then pays off for the rest of the run.
+ */
+export const ProjectSchema = z
+  .object({
+    ...CardText,
+    era: int.min(1),
+    cost: z.partialRecord(ResourceSchema, nonNeg),
+    seasons: int.min(1),
+    effect: z
+      .object({
+        /** Added to the run's score. */
+        score: int.default(0),
+        /** Flat Harmony from then on. */
+        harmony: int.default(0),
+        /** Wellbeing every season from then on. */
+        wellbeing: int.default(0),
+        /** On completion, this many of the least healthy healable tiles improve one step. */
+        heal: nonNeg.default(0),
+        /** Extra Seeds when the run is sent home. */
+        seeds: nonNeg.default(0),
+        modifiers: z.array(ModifierSchema).default([]),
+      })
+      .strict(),
+  })
+  .strict();
+export type Project = z.infer<typeof ProjectSchema>;
+
 /** An expedition's twist: a lasting change to the run, and how it lifts the Graft. */
 export const TwistSchema = z
   .object({
@@ -708,6 +773,7 @@ export const ContentSchema = z
     eraGoals: z.array(EraGoalSchema).default([]),
     districts: z.array(DistrictSchema).default([]),
     landmarks: z.array(LandmarkSchema).default([]),
+    projects: z.array(ProjectSchema).default([]),
     twists: z.array(TwistSchema).default([]),
     requests: z.array(RequestSchema).default([]),
     progression: ProgressionSchema.optional(),

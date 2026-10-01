@@ -1,6 +1,13 @@
 /** Right column: the draft, the building palette, and the placement preview or building inspector. */
 import type { GameStore } from '../game/store';
-import { AUTO_RECIPE, demolishCheck, type BuildingDef, type Content } from '../sim';
+import {
+  AUTO_RECIPE,
+  demolishCheck,
+  projectBlocked,
+  timesTaken,
+  type BuildingDef,
+  type Content,
+} from '../sim';
 import { CharterPanel } from './Combos';
 import { VisionPanel } from './RunUi';
 import { autoText, describeBuilding } from './describe';
@@ -35,6 +42,7 @@ export function RightPanel({ store, ui }: { store: GameStore; ui: Ui }) {
       ) : (
         <DraftPanel store={store} ui={ui} />
       )}
+      <ProjectsPanel store={store} />
       <BuildPanel store={store} ui={ui} />
       {store.inspected ? <Inspector store={store} ui={ui} /> : <PlacementPanel store={store} />}
     </aside>
@@ -167,6 +175,8 @@ function DraftCard({
 /** A tuning card: a small upgrade that lasts the rest of the run. */
 function TuningCard({ store, id, index }: { store: GameStore; id: string; index: number }) {
   const tuning = store.content.tuningById[id]!;
+  const taken = timesTaken(store.state, id);
+  const rank = tuning.max > 1 ? ` (${taken + 1} of ${tuning.max})` : '';
   return (
     <button
       type="button"
@@ -180,7 +190,7 @@ function TuningCard({ store, id, index }: { store: GameStore; id: string; index:
         </span>
       </span>
       <span class="card-body">
-        <span class="card-kind">Tuning</span>
+        <span class="card-kind">{tuning.refinement ? `Refinement${rank}` : 'Tuning'}</span>
         <span class="card-name">{tuning.name}</span>
         <span class="card-text">{tuning.text} For the rest of the run.</span>
       </span>
@@ -467,5 +477,65 @@ function Demolish({ store, uid }: { store: GameStore; uid: string }) {
         {tile}. Undo is free until the season ends.
       </span>
     </div>
+  );
+}
+
+/** Projects (from era 3): big works that turn spare stores into lasting effects. */
+function ProjectsPanel({ store }: { store: GameStore }) {
+  const { content, state } = store;
+  const first = Math.min(...content.projects.map((p) => p.era));
+  if (content.projects.length === 0 || state.era < first || state.status !== 'active') return null;
+  const started = new Map(state.projects.map((p) => [p.id, p]));
+  return (
+    <section aria-label="Projects">
+      <h2>Projects</h2>
+      <div class="quiet small">
+        Big works for the whole settlement. The cost is paid at once; the effect holds for the rest
+        of the run once finished.
+      </div>
+      <ul class="plain projects">
+        {content.projects.map((p) => {
+          const s = started.get(p.id);
+          const cost = Object.entries(p.cost)
+            .map(([res, n]) => `${n} ${res}`)
+            .join(', ');
+          const blocked = projectBlocked(content, state, p.id);
+          const left = s && s.done === null ? s.started + p.seasons - state.turn : 0;
+          return (
+            <li class={`project${s?.done !== null && s ? ' done' : ''}`}>
+              <div class="panel-head">
+                <strong>{p.name}</strong>
+                <span class="quiet small">
+                  {s
+                    ? s.done !== null
+                      ? 'Finished'
+                      : `Ready in ${left} season${left === 1 ? '' : 's'}`
+                    : state.era < p.era
+                      ? `From era ${p.era}`
+                      : `${p.seasons} seasons`}
+                </span>
+              </div>
+              <div class="small">{p.text}</div>
+              {!s && (
+                <div class="row small">
+                  <span class="quiet">{cost}</span>
+                  {state.era >= p.era && (
+                    <button
+                      type="button"
+                      class="button small-button"
+                      disabled={blocked !== null}
+                      title={blocked ?? undefined}
+                      onClick={() => store.dispatch({ type: 'startProject', project: p.id })}
+                    >
+                      Start
+                    </button>
+                  )}
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }

@@ -84,6 +84,7 @@ export function createRun(
     eraGoalsMet: [],
     requestMet: null,
     spent: {},
+    projects: [],
     recentReports: [],
     ledger: { energy: {}, foodMade: 0, foodEaten: 0, citizenSeasons: 0, industry: 0 },
     notices: [],

@@ -3,8 +3,9 @@
  * that comes back. Every command is pure: the input state is never mutated.
  */
 import type { Content } from './content/load';
-import { AUTO_RECIPE } from './content/schema';
+import { AUTO_RECIPE, type Resource } from './content/schema';
 import { demolish, demolishCheck } from './demolish';
+import { projectBlocked } from './projects';
 import { drawCards, isTuning } from './draft';
 import { hexKey } from './hex';
 import { canPlace } from './placement';
@@ -144,6 +145,17 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       } else {
         s.priority.push(uid);
       }
+      return null;
+    }
+    case 'startProject': {
+      const blocked = projectBlocked(content, s, command.project);
+      if (blocked) return blocked;
+      const p = content.projects.find((x) => x.id === command.project)!;
+      for (const [res, n] of Object.entries(p.cost) as [Resource, number][]) {
+        s.stores[res] -= n;
+        flow(s.spent, res, 'used', `Project: ${p.name}`, n);
+      }
+      s.projects = [...s.projects, { id: p.id, started: s.turn, done: null }];
       return null;
     }
     case 'demolish': {

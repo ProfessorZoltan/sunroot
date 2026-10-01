@@ -6,6 +6,7 @@
  */
 import type { Content } from './content/load';
 import type { CityRequest, District, EraGoal, Goal, Vision } from './content/schema';
+import { finishedProjects } from './projects';
 import type { RunState } from './types';
 
 export interface ScoreLine {
@@ -57,6 +58,8 @@ export function scoreRun(content: Content, state: RunState): RunScore {
   if (vision && state.visionAchieved !== null) {
     lines.push({ reason: `vision: ${vision.name}`, points: w.visionBonus });
   }
+  for (const p of finishedProjects(content, state))
+    if (p.effect.score !== 0) lines.push({ reason: p.name, points: p.effect.score });
   if (state.status === 'complete') lines.push({ reason: 'run completed', points: w.completeBonus });
   const total = lines.reduce((sum, l) => sum + l.points, 0);
   const tiers = w.tiers;
@@ -94,6 +97,8 @@ export function seedsForRun(
       points: Math.floor(score / p.seeds.pointsPerSeed),
     },
   ];
+  for (const p of finishedProjects(content, state))
+    if (p.effect.seeds > 0) lines.push({ reason: p.name, points: p.effect.seeds });
   const request = cityRequest(content, state);
   if (request && state.requestMet !== null) {
     lines.push({ reason: `city request: ${request.text}`, points: p.seeds.cityRequest });

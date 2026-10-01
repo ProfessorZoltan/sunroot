@@ -1,5 +1,20 @@
 # Changelog
 
+## A fuller end to a run
+
+- Refinements: once the blueprints and tunings run out, the draft deals refinements, cards that
+  improve a building you have (farms +1 food in summer and autumn, lean workshops, loft rooms...),
+  some takeable twice. Every season keeps a choice.
+- Projects from era 3: big works paid from your stores (Green Terraces, Biochar Beds, Seed Vault,
+  Festival Grounds, The Long Bridge, Sky Garden, Gift to Root City), finished after a few seasons
+  for score, Harmony, wellbeing, healed land or Seeds.
+- Rising expectations from era 3: citizens beyond what civic life serves (Commons Plaza, library,
+  cider press) cost wellbeing. Seasons grow harsher: dearer flood repairs and wilder storms in era
+  3, colder winter nights in era 4. The left panel and the era cards explain each.
+- Graft tiers recalibrated for the higher scores (Sapling from 245, Heartwood from 385), and Seeds
+  are now 1 per 15 points, so about 30% of runs still pay for a Graft alone.
+- `scripts/late-game.ts` reports how the end of a run plays out for the bots.
+
 ## Fast-forward
 
 - **Fast-forward** (Shift+E) ends seasons up to next spring without playback, waiting for each

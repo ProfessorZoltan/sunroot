@@ -168,6 +168,10 @@ export function RevealCard({ store }: { store: GameStore }) {
       .filter((b) => b.draftable && b.minEra === reveal.era)
       .map((b) => b.name);
     const charter = content.rules.charterEras.includes(reveal.era);
+    const projects = content.projects.filter((p) => p.era === reveal.era).map((p) => p.name);
+    const harsher = content.rules.eraModifiers.filter((m) => m.era === reveal.era);
+    const expects =
+      content.rules.expectations?.fromEra === reveal.era ? content.rules.expectations : null;
     const goal = eraGoal(content, reveal.era);
     label = `Era ${reveal.era}: ${name}`;
     body = (
@@ -186,6 +190,11 @@ export function RevealCard({ store }: { store: GameStore }) {
             : ''}
           {charter ? ' A charter awaits: choose one before the season ends.' : ''}
           {blueprints.length > 0 ? ` New blueprints can be drafted: ${blueprints.join(', ')}.` : ''}
+          {projects.length > 0 ? ` New projects can be started: ${projects.join(', ')}.` : ''}
+          {harsher.map((m) => ` ${m.text}`).join('')}
+          {expects
+            ? ` Citizens now expect civic life: beyond ${expects.base} of them, they need a Commons Plaza, library or cider press, or wellbeing suffers.`
+            : ''}
         </p>
       </>
     );
@@ -216,6 +225,19 @@ export function RevealCard({ store }: { store: GameStore }) {
         <div class="small">
           +{content.progression?.seeds.cityRequest ?? 0} Seeds when the run is sent home.
         </div>
+      </>
+    );
+  } else if (reveal.kind === 'project') {
+    const project = content.projects.find((p) => p.id === reveal.id)!;
+    label = `Project finished: ${project.name}`;
+    body = (
+      <>
+        <span class="combo-jewel" style={{ background: '#E0A33B' }} aria-hidden="true">
+          ✦
+        </span>
+        <span class="card-kind">Project finished</span>
+        <h2 class="glass-title">{project.name}</h2>
+        <p>{project.text}</p>
       </>
     );
   } else if (reveal.kind === 'start') {

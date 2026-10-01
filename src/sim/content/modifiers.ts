@@ -17,6 +17,10 @@ const cache = new WeakMap<Content, Map<string, Content>>();
 export interface RunModifierSources {
   tunings: string[];
   charters: string[];
+  /** Harsher seasons hold from their era on. */
+  era?: number;
+  /** Finished projects' modifiers hold too. */
+  projects?: { id: string; done: number | null }[];
   options?: {
     city?: { districts: Record<string, string>; landmarks: string[] };
     expedition?: { twist: string | null };
@@ -38,10 +42,17 @@ export function runModifiers(content: Content, state: RunModifierSources): Modif
     (id) => content.landmarks.find((l) => l.id === id)?.modifiers ?? [],
   );
   const twist = state.options?.expedition?.twist;
+  const harsher = content.rules.eraModifiers
+    .filter((m) => m.era <= (state.era ?? 1))
+    .flatMap((m) => m.modifiers);
   return [
+    ...harsher,
     ...perks,
     ...landmarks,
     ...(content.twists.find((t) => t.id === twist)?.modifiers ?? []),
+    ...(state.projects ?? [])
+      .filter((p) => p.done !== null)
+      .flatMap((p) => content.projects.find((x) => x.id === p.id)?.effect.modifiers ?? []),
     ...state.tunings.flatMap((id) => content.tuningById[id]?.modifiers ?? []),
     ...state.charters.flatMap((id) => content.charterById[id]?.modifiers ?? []),
   ];

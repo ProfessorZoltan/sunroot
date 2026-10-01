@@ -156,7 +156,8 @@ describe('era goals', () => {
   });
 
   it('Bloom: a full year with no shortfall', () => {
-    let s = scenario(DRY, { year: 10 });
+    // A wind spire covers the camp's winter nights, which need more heat in era 4.
+    let s = place(scenario(DRY, { year: 10 }), 'windSpire', 0, 0);
     for (let i = 0; i < 3; i++) s = endSeason(s);
     expect(s.eraGoalsMet).toEqual([]);
     s = endSeason(s);
@@ -221,13 +222,13 @@ describe('the ledger, the score and the Graft', () => {
 });
 
 describe('Seeds', () => {
-  it('a run earns 10 plus 1 for every 14 points of its score, ended early or not', () => {
+  it('a run earns 10 plus 1 for every 15 points of its score, ended early or not', () => {
     const done = endSeason(scenario(DRY, { year: 12, season: 'winter' }));
     const score = scoreRun(content, done).total;
-    expect(seedsForRun(content, done).total).toBe(10 + Math.floor(score / 14));
+    expect(seedsForRun(content, done).total).toBe(10 + Math.floor(score / 15));
     const ended = { ...scenario(DRY), turn: 9, status: 'collapsed' as const };
     expect(seedsForRun(content, ended).total).toBe(
-      10 + Math.floor(scoreRun(content, ended).total / 14),
+      10 + Math.floor(scoreRun(content, ended).total / 15),
     );
     expect(seedsForRun(content, scenario(DRY)).total).toBe(0); // still playing
   });
@@ -235,7 +236,7 @@ describe('Seeds', () => {
   it('only a top-quarter score earns a Graft by itself', () => {
     const graftCost = content.progression!.graftCost;
     // The score that earns exactly a Graft's Seeds sits above the Sapling band.
-    const needed = (graftCost - content.progression!.seeds.base) * 14;
+    const needed = (graftCost - content.progression!.seeds.base) * 15;
     const sapling = content.rules.score.tiers.find((t) => t.id === 'sapling')!.min;
     expect(needed).toBeGreaterThan(sapling);
     expect(canPlantGraft(content, graftCost - 1)).toBe(false);
