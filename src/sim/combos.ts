@@ -90,7 +90,7 @@ export function findFormations(
         }
       }
     } else {
-      const strip = findStrip(state, shape.tiles);
+      const strip = findStrip(state, shape.tiles, shape.gaps);
       if (strip) hits.push({ combo: combo.id, members: [], tiles: strip });
     }
   }
@@ -99,10 +99,11 @@ export function findFormations(
 
 /**
  * An unbroken strip of the given tiles from a tile touching the river to a
- * side edge of the valley (the first or last tile of a row). Returns the
- * strip's tile keys, shortest first, or null.
+ * side edge of the valley (the first or last tile of a row), crossing at most
+ * `gaps` land tiles of other kinds. Returns the strip's tile keys, the fewest
+ * gaps first and then the shortest, or null.
  */
-function findStrip(state: RunState, types: readonly string[]): string[] | null {
+function findStrip(state: RunState, types: readonly string[], gaps = 0): string[] | null {
   const tiles = state.map.tiles;
   const rows = new Map<number, { min: number; max: number }>();
   for (const t of Object.values(tiles)) {
@@ -115,30 +116,41 @@ function findStrip(state: RunState, types: readonly string[]): string[] | null {
     const r = rows.get(row)!;
     return col === r.min || col === r.max;
   };
-  const fits = (key: string) => types.includes(tiles[key]?.type ?? '');
+  const WATER = ['river', 'reservoir'];
+  /** 0 for a strip tile, 1 for a gap (other land), null if it can't be crossed. */
+  const step = (key: string): number | null => {
+    const type = tiles[key]?.type;
+    if (type === undefined || WATER.includes(type)) return null;
+    return types.includes(type) ? 0 : 1;
+  };
   const byRiver = (h: Hex) =>
-    hexNeighbors(h).some((n) => ['river', 'reservoir'].includes(tiles[hexKey(n)]?.type ?? ''));
+    hexNeighbors(h).some((n) => WATER.includes(tiles[hexKey(n)]?.type ?? ''));
+  // Breadth-first over (tile, gaps used), finishing each count of gaps before the next.
+  const id = (key: string, used: number) => `${key}|${used}`;
   const from = new Map<string, string | null>();
-  const queue: string[] = [];
+  const layers: string[][] = Array.from({ length: gaps + 1 }, () => []);
   for (const [key, t] of Object.entries(tiles)) {
-    if (fits(key) && byRiver(t)) {
-      from.set(key, null);
-      queue.push(key);
-    }
+    const cost = step(key);
+    if (cost === null || cost > gaps || !byRiver(t)) continue;
+    from.set(id(key, cost), null);
+    layers[cost]!.push(key);
   }
-  while (queue.length > 0) {
-    const key = queue.shift()!;
-    const t = tiles[key]!;
-    if (isEdge(t)) {
-      const path: string[] = [];
-      for (let k: string | null = key; k !== null; k = from.get(k)!) path.unshift(k);
-      return path;
-    }
-    for (const n of hexNeighbors(t)) {
-      const nk = hexKey(n);
-      if (fits(nk) && !from.has(nk)) {
-        from.set(nk, key);
-        queue.push(nk);
+  for (let used = 0; used <= gaps; used++) {
+    const queue = layers[used]!;
+    for (let i = 0; i < queue.length; i++) {
+      const key = queue[i]!;
+      if (isEdge(tiles[key]!)) {
+        const path: string[] = [];
+        for (let k: string | null = id(key, used); k !== null; k = from.get(k)!)
+          path.unshift(k.split('|')[0]!);
+        return path;
+      }
+      for (const n of hexNeighbors(tiles[key]!)) {
+        const nk = hexKey(n);
+        const cost = step(nk);
+        if (cost === null || used + cost > gaps || from.has(id(nk, used + cost))) continue;
+        from.set(id(nk, used + cost), id(key, used));
+        layers[used + cost]!.push(nk);
       }
     }
   }

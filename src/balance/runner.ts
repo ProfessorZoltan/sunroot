@@ -6,6 +6,7 @@ import {
   scoreRun,
   SEASONS,
   type Content,
+  type RunOptions,
   type RunState,
 } from '../sim';
 import { createRng } from '../sim/rng';
@@ -74,9 +75,20 @@ export function playRun(
   content: Content,
   bot: Bot,
   seed: string,
-  options: { guided?: boolean; sight?: Sight; onSeason?: (state: RunState) => void } = {},
+  options: {
+    guided?: boolean;
+    sight?: Sight;
+    onSeason?: (state: RunState) => void;
+    /** More run options (Root City's gifts, an expedition). */
+    run?: Omit<RunOptions, 'seed'>;
+  } = {},
 ): RunRecord {
-  let state = createRun(content, { seed, guided: options.guided ?? false, visions: true });
+  let state = createRun(content, {
+    ...options.run,
+    seed,
+    guided: options.guided ?? false,
+    visions: true,
+  });
   const rng = createRng(`${seed}:bot:${bot.name}`);
   const record: RunRecord = {
     seed,

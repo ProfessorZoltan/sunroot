@@ -30,7 +30,7 @@ import { snapshot } from '../snapshot';
 import { applyLoopBonuses, checkCombos, findFormations, formationEffects } from '../combos';
 import { effectiveContent } from '../content/modifiers';
 import { dealCharters } from '../draft';
-import { eraGoal, goalMet, visionMet } from '../score';
+import { cityRequest, eraGoal, goalMet, visionMet } from '../score';
 
 export interface ResolveOptions {
   /**
@@ -135,6 +135,12 @@ function advance(content: Content, ctx: SeasonContext): RunState {
   if (state.vision && state.visionAchieved === null && visionMet(content, state)) {
     state.visionAchieved = state.turn;
     report.visionAchieved = true;
+  }
+  // The expedition's city request, once met, stays met.
+  const request = cityRequest(content, state);
+  if (request && state.requestMet === null && goalMet(content, state, request.goal)) {
+    state.requestMet = state.turn;
+    report.requestMet = true;
   }
   // The era's goal, met by the end of any season in the era.
   const goal = eraGoal(content, state.era);

@@ -177,6 +177,20 @@ export const BUILDING_ART: Record<string, Art> = {
     tree(g, c.x + 9, c.y - 4, 4);
     g.circle(c.x + 5, c.y + 7, 1.5).fill({ color: COLORS.flowerPink });
   },
+  ciderPress(g, c) {
+    shadow(g, c, 12);
+    // A timber press house with a barrel and a few apples.
+    g.rect(c.x - 9, c.y - 5, 14, 12).fill({ color: COLORS.wood });
+    g.poly([c.x - 11, c.y - 5, c.x - 2, c.y - 13, c.x + 7, c.y - 5]).fill({ color: ROOF });
+    g.roundRect(c.x + 5, c.y - 1, 7, 9, 2).fill({ color: 0xa8743f });
+    g.rect(c.x + 5, c.y + 2, 7, 1.2).fill({ color: DARK });
+    for (const [dx, dy] of [
+      [-6, 9],
+      [-2, 10],
+      [2, 9],
+    ] as const)
+      g.circle(c.x + dx, c.y + dy, 1.8).fill({ color: 0xc4513f });
+  },
   seedbankLibrary(g, c) {
     shadow(g, c, 13);
     g.rect(c.x - 10, c.y - 6, 20, 14).fill({ color: WALL });

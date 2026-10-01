@@ -4,9 +4,10 @@ A solarpunk settlement builder of short, replayable runs. Each run heals one dam
 it sends home grows a permanent city. The full design is in [docs/DESIGN.md](docs/DESIGN.md).
 
 Built so far: the simulation core, the balance simulator, the map, the interface, the season
-resolution, combos with the Almanac, and the run's structure: eras, visions, scoring and the Graft
-(Milestones 0 to 7 of the build plan, the vertical slice). A whole run of Willow Reach can be played
-to the end with mouse or keyboard, and a run in progress is saved and resumed. See [CHANGELOG.md](CHANGELOG.md) and [docs/DECISIONS.md](docs/DECISIONS.md).
+resolution, combos with the Almanac, the run's structure (eras, visions, scoring and the Graft), and
+Root City between runs (Milestones 0 to 8 of the build plan). Runs of Willow Reach can be played
+one after another with mouse or keyboard, growing Root City; the run in progress and the city are
+saved and resumed. See [CHANGELOG.md](CHANGELOG.md) and [docs/DECISIONS.md](docs/DECISIONS.md).
 
 ## Getting started
 
@@ -19,12 +20,13 @@ npm run check    # typecheck, lint, format check and unit tests
 npm run balance  # balance simulator: 4,000 bot runs -> balance-out/runs.csv and report.md
 ```
 
-The run in progress is saved in the browser as you play, and opening the game again continues it.
-**New run** at the bottom starts another.
+The run in progress and Root City are saved in the browser as you play, and opening the game again
+continues where you were. **New run** at the bottom abandons the run in progress.
 
-URL options: `?seed=<text>` starts a run with that seed, `?new` starts a new run, `?guided=0` skips
-the guided first year, `?visions=0` skips the vision choice, and `?sandbox` unlocks every building
-with 999 materials (sandbox runs are never saved).
+URL options: `?city` shows Root City, `?new` starts the city's next run, `?seed=<text>` starts a run
+with that seed outside the city's teaching and expeditions (`?guided=0` then skips the guided first
+year and `?visions=0` the vision choice), and `?sandbox` unlocks every building with 999 materials
+(sandbox runs are never saved and never reach the city).
 
 ## Playtesting
 
@@ -34,10 +36,17 @@ state. Press **Note** to jot down how a season felt; it is logged with that seas
 
 ## Playing
 
-A run is 12 years of 4 seasons, in 4 eras: Settle, Mend, Flourish and Bloom. It starts with a choice
-of vision, a goal for the run; each new era after the first offers a charter. At the end the score
-sets the tier of the Graft, the district the run sends home to Root City, and you choose which of
-the two districts that match how you played.
+A run is 12 years of 4 seasons, in 4 eras: Settle, Mend, Flourish and Bloom. At the end the score
+sets the tier of the Graft, a district for Root City (you choose which of the two that match how you
+played), and the Seeds the run earns. Planting the Graft costs Seeds; Seeds that can't pay for it
+are banked.
+
+Between runs, in Root City: place the Graft in a slot around the Heartwood, spend Seeds to raise
+districts' tiers, and choose the next expedition: a region, a twist (a Drought Year makes the run
+harder and the Graft a tier higher) and a city request worth bonus Seeds. Districts give each run a
+perk and add a card to its draft; some neighbouring districts form hidden landmarks. Fill all 18
+slots with 6 districts at Heartwood to grow the Sun Tree. New systems join run by run: tunings from
+run 2, charters at each new era from run 3, and a vision (a goal for the run) from run 4.
 
 Pick one of three blueprint cards, then build: choose a building on the right and hover the map.
 The ghost shows exactly what it would do this season, including effects on its neighbours. Click
@@ -49,7 +58,7 @@ skips it, P pauses it.
 
 Buildings combine: neighbours help each other, loops of buildings earn a lasting bonus, hidden shapes
 and evolutions wait to be discovered. Each discovery goes into the Almanac (A), which keeps them
-across runs. Tunings join the draft, and each new era offers a charter.
+across runs.
 
 Keyboard: 1–4 pick a card, letters on the palette pick a building, arrow keys aim, N jumps to the
 next legal site, Enter places, Z undoes, E ends the season, Space skips its resolution, A opens

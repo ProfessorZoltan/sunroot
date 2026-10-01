@@ -3,7 +3,7 @@ import type { GameStore } from '../game/store';
 import { POPULATION_REASONS } from '../game/insight';
 import type { Resource } from '../sim';
 import { LoopsPanel } from './Combos';
-import { EraGoalStatus, VisionStatus } from './RunUi';
+import { EraGoalStatus, ExpeditionStatus, VisionStatus } from './RunUi';
 import { Person, ResourceIcon } from './icons';
 import { TipTable, signed, useTip } from './tips';
 
@@ -32,6 +32,7 @@ export function LeftPanel({ store }: { store: GameStore }) {
       </section>
       <VisionStatus store={store} />
       <EraGoalStatus store={store} />
+      <ExpeditionStatus store={store} />
       <LastSeason store={store} />
       <LoopsPanel store={store} />
     </aside>

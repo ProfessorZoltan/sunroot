@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyRunResult, EMPTY_CITY, type Graft, type RunResult } from '../src/game/city';
+import type { RunResult } from '../src/sim';
 import { GameStore } from '../src/game/store';
 import { graftOffer, seedsForRun } from '../src/sim';
 import { content, scenario } from './helpers';
@@ -77,15 +77,5 @@ describe('the store at the edges of a run', () => {
     expect(store.chooseGraft(graftOffer(content, store.state).options[0]!.district.id)).toBe(false);
     expect(store.bankSeeds()).toBe(true);
     expect(results).toEqual([{ graft: null, earned: store.seedsEarned, spent: 0 }]);
-  });
-});
-
-describe('Root City', () => {
-  it('adds a run: its Graft if one was planted, and the Seeds earned less those spent', () => {
-    const graft = { district: 'mendedCommons' } as Graft;
-    const one = applyRunResult(EMPTY_CITY, { graft: null, earned: 20, spent: 0 });
-    expect(one).toEqual({ version: 1, grafts: [], seeds: 20, runs: 1 });
-    const two = applyRunResult(one, { graft, earned: 30, spent: 35 });
-    expect(two).toEqual({ version: 1, grafts: [graft], seeds: 15, runs: 2 });
   });
 });

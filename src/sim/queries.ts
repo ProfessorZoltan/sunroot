@@ -145,6 +145,7 @@ export function harmonyLines(content: Content, state: RunState): HarmonyLine[] {
   for (const [name, e] of byBuilding) lines.push({ label: `${e.n} ${name}`, amount: e.amount });
   for (const [name, e] of penalties) lines.push({ label: `${e.n} ${name}`, amount: e.amount });
   lines.push(...formationHarmony(content, state));
+  if (harmony.bonus !== 0) lines.push({ label: 'Root City', amount: harmony.bonus });
   if (state.stores.clutter > 0) {
     lines.push({
       label: `${state.stores.clutter} clutter`,

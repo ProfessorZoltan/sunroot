@@ -4,6 +4,7 @@
  * functions of the state, so every number on screen can be tested.
  */
 import {
+  effectiveContent,
   RESOURCES,
   SEASONS,
   harmonyLines,
@@ -53,7 +54,9 @@ export interface Insight {
   foodStorage: number;
 }
 
-export function computeInsight(content: Content, state: RunState, asIs: RunState): Insight {
+export function computeInsight(base: Content, state: RunState, asIs: RunState): Insight {
+  // The numbers as this run plays them: Root City, the twist, tunings and charters.
+  const content = effectiveContent(base, state);
   const now = asIs.lastReport!;
   const current = SEASONS.indexOf(state.season);
   const year: SeasonView[] = SEASONS.map((season, i) => {

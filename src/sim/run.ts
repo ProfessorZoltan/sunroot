@@ -1,5 +1,6 @@
 import type { Content } from './content/load';
 import { RESOURCES, SEASONS } from './content/schema';
+import { effectiveContent } from './content/modifiers';
 import { dealOffer } from './draft';
 import { generateMap } from './map';
 import { computeHarmony } from './queries';
@@ -16,7 +17,7 @@ export interface CreateRunOverrides {
 
 /** Starts a Sprout: the map, the Founders' Camp, the starting stores and the first draft. */
 export function createRun(
-  content: Content,
+  base: Content,
   options: RunOptions,
   overrides: CreateRunOverrides = {},
 ): RunState {
@@ -25,7 +26,13 @@ export function createRun(
     guided: options.guided ?? false,
     sandbox: options.sandbox ?? false,
     visions: options.visions ?? false,
+    tunings: options.tunings ?? true,
+    charters: options.charters ?? true,
+    city: options.city ?? { districts: {}, landmarks: [] },
+    expedition: options.expedition ?? { twist: null, request: null },
   };
+  // Root City's perks and landmarks and the expedition's twist hold from the start.
+  const content = effectiveContent(base, { tunings: [], charters: [], options: opts });
   const generated = overrides.map ? null : generateMap(content, opts.seed);
   const map = overrides.map ?? generated!.map;
   const camp = overrides.camp ?? generated?.camp;
@@ -75,6 +82,7 @@ export function createRun(
     vision: null,
     visionAchieved: null,
     eraGoalsMet: [],
+    requestMet: null,
     ledger: { energy: {}, foodMade: 0, foodEaten: 0, citizenSeasons: 0, industry: 0 },
     notices: [],
     lastReport: null,

@@ -1,6 +1,7 @@
 /**
- * Tunings and charters are data modifiers: for the rest of a run they change
- * numbers in the content (Deep Roots sets an orchard's maturing time to 1).
+ * Tunings, charters, Root City's perks and landmarks, and expedition twists are
+ * data modifiers: for a run they change numbers in the content (Deep Roots sets
+ * an orchard's maturing time to 1).
  * The simulation reads the run's effective content, built here once per
  * combination of cards and cached.
  */
@@ -12,21 +13,49 @@ type Json = Record<string, unknown>;
 
 const cache = new WeakMap<Content, Map<string, Content>>();
 
-/** The content with the run's tunings and charters applied (the content itself when none). */
-export function effectiveContent(
-  content: Content,
-  state: { tunings: string[]; charters: string[] },
-): Content {
-  if (state.tunings.length === 0 && state.charters.length === 0) return content;
-  const key = `${state.tunings.join(',')}|${state.charters.join(',')}`;
+/** What a run carries from Root City and its expedition (see RunOptions). */
+export interface RunModifierSources {
+  tunings: string[];
+  charters: string[];
+  options?: {
+    city?: { districts: Record<string, string>; landmarks: string[] };
+    expedition?: { twist: string | null };
+  };
+}
+
+/**
+ * The modifiers a run plays under, in order: Root City's district perks and
+ * landmarks, the expedition's twist, then the run's tunings and charters.
+ */
+export function runModifiers(content: Content, state: RunModifierSources): Modifier[] {
+  const city = state.options?.city;
+  const tiers = content.rules.score.tiers.map((t) => t.id);
+  const perks = Object.entries(city?.districts ?? {}).flatMap(([id, tier]) => {
+    const perks = content.districts.find((d) => d.id === id)?.perks ?? [];
+    return perks[Math.min(Math.max(0, tiers.indexOf(tier)), perks.length - 1)]?.modifiers ?? [];
+  });
+  const landmarks = (city?.landmarks ?? []).flatMap(
+    (id) => content.landmarks.find((l) => l.id === id)?.modifiers ?? [],
+  );
+  const twist = state.options?.expedition?.twist;
+  return [
+    ...perks,
+    ...landmarks,
+    ...(content.twists.find((t) => t.id === twist)?.modifiers ?? []),
+    ...state.tunings.flatMap((id) => content.tuningById[id]?.modifiers ?? []),
+    ...state.charters.flatMap((id) => content.charterById[id]?.modifiers ?? []),
+  ];
+}
+
+/** The content as the run plays it: Root City, the twist, tunings and charters applied. */
+export function effectiveContent(content: Content, state: RunModifierSources): Content {
+  const modifiers = runModifiers(content, state);
+  if (modifiers.length === 0) return content;
+  const key = JSON.stringify(modifiers);
   let byKey = cache.get(content);
   if (!byKey) cache.set(content, (byKey = new Map()));
   let out = byKey.get(key);
   if (!out) {
-    const modifiers = [
-      ...state.tunings.flatMap((id) => content.tuningById[id]?.modifiers ?? []),
-      ...state.charters.flatMap((id) => content.charterById[id]?.modifiers ?? []),
-    ];
     out = applyModifiers(content, modifiers);
     byKey.set(key, out);
   }
@@ -45,6 +74,7 @@ function applyModifier(data: Json, m: Modifier): void {
   let root: unknown;
   if (m.target === 'rules') root = data.rules;
   else if (m.target === 'event') root = (data.events as Json)[m.id ?? ''];
+  else if (m.target === 'combo') root = (data.combos as Json[]).find((c) => c.id === m.id);
   else root = (data.buildings as Json[]).find((b) => b.id === m.id);
   if (root === undefined) throw new Error(`no ${m.target} ${m.id ?? ''}`);
   const parts = m.path.split('.');

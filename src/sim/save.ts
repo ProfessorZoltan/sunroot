@@ -34,7 +34,7 @@ export function makeSave(state: RunState, savedAt: string): SaveFile {
 }
 
 /** Fields added to the run state after saves began, and their value for an older save. */
-const ADDED_FIELDS: Partial<RunState> = { eraGoalsMet: [] };
+const ADDED_FIELDS: Partial<RunState> = { eraGoalsMet: [], requestMet: null };
 
 export type ReadSave = { ok: true; save: SaveFile } | { ok: false; error: string };
 
@@ -54,6 +54,9 @@ export function readSave(content: Content, data: unknown): ReadSave {
   for (const [key, value] of Object.entries(ADDED_FIELDS)) {
     if (!(key in state)) (state as Record<string, unknown>)[key] = structuredClone(value);
   }
+  // Options added since, with their value before them (Root City's arrived in Milestone 8).
+  if (state.options)
+    state.options = { ...fresh.options, ...state.options, seed: state.options.seed };
   const missing = Object.keys(fresh).filter((k) => !(k in state));
   if (missing.length > 0) return fail(`the run is missing ${missing.join(', ')}`);
   if (state.contentId !== content.id) return fail(`the run is for ${state.contentId}`);

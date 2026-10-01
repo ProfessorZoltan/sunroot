@@ -1,5 +1,26 @@
 # Changelog
 
+## Milestone 8: Root City
+
+- Root City between runs: the Heartwood ringed by 18 district slots. Place the Graft a run planted,
+  spend Seeds to raise districts to Sapling and Heartwood, and choose the next expedition. A full
+  city lets a new Graft replace a district, which composts into half the Seeds spent raising it.
+  Fill every slot with 6 districts at Heartwood to grow the Sun Tree.
+- District perks in every run (the best of each kind counts): cheaper river wheels, starting food,
+  Harmony, an extra workshop run in year 1. Each district also adds a card to future drafts: the
+  Cider Press blueprint, the Spillway and Kiln Loop tunings and the Rewilders charter.
+- Landmarks: the Cider Mill (orchards produce a season sooner) and Heartwood Grove (the Wildway may
+  cross one other tile), found by placing the right districts side by side.
+- Expeditions from run 2: 3 to choose from, each a Willow Reach map with a twist (Drought Year, Long
+  Winter, Wild Storms lift the Graft a tier; Fair Weather doesn't) and a city request worth 5 Seeds.
+  The run shows its expedition on the left, and a card when the request is met.
+- Teaching across runs: run 1 is guided with blueprints only; tunings join in run 2, charters in
+  run 3 and visions in run 4, each announced on a card when the run starts.
+- Root City is saved in the browser and survives reloads; the Grafts kept by earlier builds move in
+  as Grafts waiting to be placed. A Root City button looks at the city during a run.
+- Browser tests play 5 runs in a row through the city, and a test plays 5 bot runs through the store
+  with the city saved and reloaded between them.
+
 ## Seeds by score
 
 - A run earns 10 Seeds plus 1 for every 14 points of its score. Planting its Graft in Root City

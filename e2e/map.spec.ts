@@ -73,6 +73,6 @@ test('the map renders, previews, places, undoes and ends a season', async ({ pag
 test('sandbox: every building is on the palette', async ({ page }) => {
   await page.goto('/?seed=gallery&sandbox');
   await expect(page.locator('#map-host canvas')).toBeVisible();
-  // 25 buildings, plus the compost tool.
-  await expect(page.locator('.palette .tool')).toHaveCount(26);
+  // 25 buildings and the Cider Press (a Root City card), plus the compost tool.
+  await expect(page.locator('.palette .tool')).toHaveCount(27);
 });

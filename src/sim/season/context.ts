@@ -81,6 +81,7 @@ export function emptyReport(state: RunState): SeasonReport {
     evolved: [],
     atRisk: [],
     visionAchieved: false,
+    requestMet: false,
     eraGoalMet: null,
   };
 }

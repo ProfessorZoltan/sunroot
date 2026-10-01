@@ -200,10 +200,12 @@ export function resolveEnergy(ctx: SeasonContext): void {
     const cost = ctx.effects.get(b.uid)?.freeRuns ? 0 : def.recipes.energyPerRun;
     const made: Partial<Record<keyof typeof state.stores, number>> = {};
     let runs = 0;
-    while (runs < def.recipes.maxRuns + def.recipes.nightOnlyRuns) {
+    // The Foundry District's perk: extra runs, on any energy, in the first year.
+    const maxRuns = def.recipes.maxRuns + (state.year === 1 ? def.recipes.firstYearExtraRuns : 0);
+    while (runs < maxRuns + def.recipes.nightOnlyRuns) {
       const inputs = Object.entries(recipe.inputs) as [keyof typeof state.stores, number][];
       if (inputs.some(([res, n]) => state.stores[res] < n)) break;
-      const slots: readonly Slot[] = runs < def.recipes.maxRuns ? SLOTS : ['night'];
+      const slots: readonly Slot[] = runs < maxRuns ? SLOTS : ['night'];
       const slot = slots.find((s) => spare[s] >= cost);
       if (!slot) break;
       spare[slot] -= cost;

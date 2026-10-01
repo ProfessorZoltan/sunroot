@@ -5,7 +5,7 @@
  * open; every weight lives in the content file (see DECISIONS.md).
  */
 import type { Content } from './content/load';
-import type { District, EraGoal, Goal, Vision } from './content/schema';
+import type { CityRequest, District, EraGoal, Goal, Vision } from './content/schema';
 import type { RunState } from './types';
 
 export interface ScoreLine {
@@ -25,6 +25,8 @@ export interface RunScore {
   tier: Tier;
   /** The next tier up and the points still needed, if any. */
   next: { tier: Tier; points: number } | null;
+  /** Tiers the expedition's twist raised the Graft, and the twist's name. */
+  lift: { tiers: number; twist: string } | null;
 }
 
 export function scoreRun(content: Content, state: RunState): RunScore {
@@ -58,15 +60,25 @@ export function scoreRun(content: Content, state: RunState): RunScore {
   if (state.status === 'complete') lines.push({ reason: 'run completed', points: w.completeBonus });
   const total = lines.reduce((sum, l) => sum + l.points, 0);
   const tiers = w.tiers;
-  const reached = tiers.filter((t) => total >= t.min);
-  const tier = reached.at(-1) ?? tiers[0]!;
-  const up = tiers[tiers.indexOf(tier) + 1];
-  return { total, lines, tier, next: up ? { tier: up, points: up.min - total } : null };
+  const scored = Math.max(0, tiers.filter((t) => total >= t.min).length - 1);
+  // A hard twist (a Drought Year) raises the Graft a tier or more.
+  const twist = content.twists.find((t) => t.id === state.options.expedition?.twist);
+  const bonus = twist?.graftTierBonus ?? 0;
+  const at = Math.min(tiers.length - 1, scored + bonus);
+  const up = tiers[at + 1] && tiers[scored + 1];
+  return {
+    total,
+    lines,
+    tier: tiers[at]!,
+    next: up ? { tier: tiers[at + 1]!, points: up.min - total } : null,
+    lift: twist && at > scored ? { tiers: at - scored, twist: twist.name } : null,
+  };
 }
 
 /**
  * Seeds a finished run earns, more for a better run: a base plus the score
- * divided by `pointsPerSeed`, rounded down. City requests come with Milestone 8.
+ * divided by `pointsPerSeed`, rounded down, plus a bonus if the expedition's
+ * city request was met.
  */
 export function seedsForRun(
   content: Content,
@@ -82,6 +94,10 @@ export function seedsForRun(
       points: Math.floor(score / p.seeds.pointsPerSeed),
     },
   ];
+  const request = cityRequest(content, state);
+  if (request && state.requestMet !== null) {
+    lines.push({ reason: `city request: ${request.text}`, points: p.seeds.cityRequest });
+  }
   return { total: lines.reduce((n, l) => n + l.points, 0), lines };
 }
 
@@ -174,6 +190,12 @@ export function visionProgress(content: Content, state: RunState, vision: Vision
 export function visionMet(content: Content, state: RunState): boolean {
   const vision = content.visions.find((v) => v.id === state.vision);
   return vision ? goalMet(content, state, vision.goal) : false;
+}
+
+/** The expedition's city request, if the run has one. */
+export function cityRequest(content: Content, state: RunState): CityRequest | undefined {
+  const id = state.options.expedition?.request;
+  return id ? content.requests.find((r) => r.id === id) : undefined;
 }
 
 /** This era's goal, if it has one. */

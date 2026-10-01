@@ -9,6 +9,7 @@ import {
   axialToOffset,
   canPlace,
   canPlantGraft,
+  effectiveContent,
   graftOffer,
   hexDistance,
   scoreRun,
@@ -27,7 +28,7 @@ import {
   type SeasonReport,
 } from '../sim';
 import { EMPTY_ALMANAC, entryView, recordRun, type Almanac } from './almanac';
-import type { Graft, RunResult } from './city';
+import type { Graft, RunResult } from '../sim';
 import { computeInsight, type Insight } from './insight';
 import type { PhaseName } from './timeline';
 
@@ -47,7 +48,11 @@ export type Reveal =
   | { kind: 'combo'; id: string }
   | { kind: 'era'; era: number }
   | { kind: 'eraGoal'; era: number }
-  | { kind: 'vision'; id: string };
+  | { kind: 'vision'; id: string }
+  /** The expedition's city request met. */
+  | { kind: 'request'; id: string }
+  /** A run begun from Root City: what it brings, and the systems that join this run. */
+  | { kind: 'start'; run: number; joining: string[] };
 
 /** A season being played out on the map (Milestone 5). */
 export interface Resolution {
@@ -86,6 +91,8 @@ export class GameStore {
       onAlmanac?: (almanac: Almanac) => void;
       /** Seeds already banked in Root City. */
       bankedSeeds?: number;
+      /** Cards to show before play begins (a new run's start card). */
+      intro?: Reveal[];
       /** The run was sent home: its Graft planted, or its Seeds banked. */
       onRunEnd?: (result: RunResult) => void;
       /** Every command sent, for the playtest log. */
@@ -99,6 +106,7 @@ export class GameStore {
     this.almanac = options.almanac ?? EMPTY_ALMANAC;
     this.onAlmanac = options.onAlmanac ?? (() => {});
     this.bankedSeeds = options.bankedSeeds ?? 0;
+    this.reveals = options.intro ?? [];
     this.onRunEnd = options.onRunEnd ?? (() => {});
     this.onCommand = options.onCommand ?? (() => {});
     this.onResolution = options.onResolution ?? (() => {});
@@ -135,6 +143,11 @@ export class GameStore {
       };
     }
     return this.cache.asIs;
+  }
+
+  /** The content as this run plays it (Root City's perks, the twist, tunings, charters). */
+  get rules(): Content {
+    return effectiveContent(this.content, this.state);
   }
 
   /** Everything the panels show, for the current state. */
@@ -189,6 +202,9 @@ export class GameStore {
           ...(r.eraGoalMet !== null ? [{ kind: 'eraGoal' as const, era: r.eraGoalMet }] : []),
           ...(r.visionAchieved && this.state.vision
             ? [{ kind: 'vision' as const, id: this.state.vision }]
+            : []),
+          ...(r.requestMet && this.state.options.expedition?.request
+            ? [{ kind: 'request' as const, id: this.state.options.expedition.request }]
             : []),
           ...(this.state.era > era && this.state.status === 'active'
             ? [{ kind: 'era' as const, era: this.state.era }]

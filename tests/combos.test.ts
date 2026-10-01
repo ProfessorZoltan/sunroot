@@ -57,6 +57,9 @@ describe('combo data', () => {
       'Night Shift',
       'Silt Traps',
       'Hive Mind',
+      // Added to drafts by Root City districts (Milestone 8).
+      'Spillway',
+      'Kiln Loop',
     ]);
     expect(content.charters.map((c) => c.name)).toEqual([
       'Repair Culture',
@@ -64,6 +67,7 @@ describe('combo data', () => {
       'Night Market',
       'Seed Savers',
       'Slow Power',
+      'Rewilders', // added to drafts by the Mended Commons (Milestone 8)
     ]);
   });
 });

@@ -35,8 +35,9 @@ export {
   type PreviewKey,
 } from './preview';
 export { generateMap } from './map';
-export { blueprintPool } from './draft';
+export { blueprintPool, cardAllowed } from './draft';
 export {
+  cityRequest,
   eraGoal,
   goalMet,
   goalProgress,
@@ -66,7 +67,38 @@ export {
   type HarmonyLine,
 } from './queries';
 export { projectSeason } from './projection';
-export { effectiveContent } from './content/modifiers';
+export { effectiveContent, runModifiers } from './content/modifiers';
 export { findFormations, placementEvolution } from './combos';
 export { isTuning } from './draft';
 export type * from './types';
+export {
+  applyCityCommand,
+  bestTiers,
+  createCity,
+  districtAt,
+  expeditionOffer,
+  isFull,
+  makeCitySave,
+  needsExpedition,
+  neighborSlots,
+  nextRunOptions,
+  readCity,
+  runCity,
+  slotCount,
+  slotHexes,
+  standingLandmarks,
+  sunTreeGrown,
+  sunTreeProgress,
+  teaching,
+  type CityCommand,
+  type CityDistrict,
+  type CityEvent,
+  type CityResult,
+  type CitySave,
+  type CityState,
+  type Expedition,
+  type Graft,
+  type ReadCity,
+  type RunResult,
+  type Teaching,
+} from './city';

@@ -412,6 +412,22 @@
       }
     },
     {
+      "id": "ciderPress",
+      "name": "Cider Press",
+      "cost": 5,
+      "workers": 1,
+      "kind": "civic",
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland"]
+      },
+      "cider": {
+        "nextTo": ["orchard"],
+        "foodEach": 1,
+        "wellbeingEach": 1,
+        "max": 3
+      }
+    },
+    {
       "id": "seedbankLibrary",
       "name": "Seedbank Library",
       "cost": 6,
@@ -1035,6 +1051,32 @@
           "set": 2
         }
       ]
+    },
+    {
+      "id": "spillway",
+      "name": "Spillway",
+      "text": "Weirs no longer cost fish ponds downstream any food.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "weir",
+          "path": "weir.downstreamFoodPenalty.amount",
+          "set": 0
+        }
+      ]
+    },
+    {
+      "id": "kilnLoop",
+      "name": "Kiln Loop",
+      "text": "Kilns recover their own heat: each firing needs 1 energy instead of 2.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "kiln",
+          "path": "recipes.energyPerRun",
+          "set": 1
+        }
+      ]
     }
   ],
   "charters": [
@@ -1110,6 +1152,25 @@
           "set": 1.5
         }
       ]
+    },
+    {
+      "id": "rewilders",
+      "name": "Rewilders",
+      "text": "Tree nurseries improve a neighbouring tile 2 steps a season; pollinator meadows give +1 more Harmony.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "treeNursery",
+          "path": "improvesNeighborSteps",
+          "set": 2
+        },
+        {
+          "target": "building",
+          "id": "pollinatorMeadow",
+          "path": "harmony",
+          "add": 1
+        }
+      ]
     }
   ],
   "visions": [
@@ -1152,8 +1213,43 @@
         "full": 0.5,
         "sources": ["riverWheel"]
       },
-      "perks": ["River wheels cost 5", "River wheels cost 4", "River wheels cost 3"],
-      "addsToDraft": "Spillway tuning (weirs don't hurt fish)"
+      "green": false,
+      "perks": [
+        {
+          "text": "River wheels cost 5",
+          "modifiers": [
+            {
+              "target": "building",
+              "id": "riverWheel",
+              "path": "cost",
+              "set": 5
+            }
+          ]
+        },
+        {
+          "text": "River wheels cost 4",
+          "modifiers": [
+            {
+              "target": "building",
+              "id": "riverWheel",
+              "path": "cost",
+              "set": 4
+            }
+          ]
+        },
+        {
+          "text": "River wheels cost 3",
+          "modifiers": [
+            {
+              "target": "building",
+              "id": "riverWheel",
+              "path": "cost",
+              "set": 3
+            }
+          ]
+        }
+      ],
+      "adds": "spillway"
     },
     {
       "id": "orchardWard",
@@ -1163,8 +1259,40 @@
         "metric": "foodPerCitizen",
         "full": 1.5
       },
-      "perks": ["Start with +6 food", "Start with +10 food", "Start with +15 food"],
-      "addsToDraft": "Cider Press blueprint (orchard surplus → wellbeing)"
+      "green": true,
+      "perks": [
+        {
+          "text": "Start with +6 food",
+          "modifiers": [
+            {
+              "target": "rules",
+              "path": "start.food",
+              "add": 6
+            }
+          ]
+        },
+        {
+          "text": "Start with +10 food",
+          "modifiers": [
+            {
+              "target": "rules",
+              "path": "start.food",
+              "add": 10
+            }
+          ]
+        },
+        {
+          "text": "Start with +15 food",
+          "modifiers": [
+            {
+              "target": "rules",
+              "path": "start.food",
+              "add": 15
+            }
+          ]
+        }
+      ],
+      "adds": "ciderPress"
     },
     {
       "id": "mendedCommons",
@@ -1174,8 +1302,40 @@
         "metric": "harmony",
         "full": 70
       },
-      "perks": ["Start with +4 Harmony", "Start with +8 Harmony", "Start with +12 Harmony"],
-      "addsToDraft": "Rewilders charter"
+      "green": true,
+      "perks": [
+        {
+          "text": "+4 Harmony all run",
+          "modifiers": [
+            {
+              "target": "rules",
+              "path": "harmony.bonus",
+              "add": 4
+            }
+          ]
+        },
+        {
+          "text": "+8 Harmony all run",
+          "modifiers": [
+            {
+              "target": "rules",
+              "path": "harmony.bonus",
+              "add": 8
+            }
+          ]
+        },
+        {
+          "text": "+12 Harmony all run",
+          "modifiers": [
+            {
+              "target": "rules",
+              "path": "harmony.bonus",
+              "add": 12
+            }
+          ]
+        }
+      ],
+      "adds": "rewilders"
     },
     {
       "id": "foundryDistrict",
@@ -1185,12 +1345,187 @@
         "metric": "industry",
         "full": 6
       },
+      "green": false,
       "perks": [
-        "Workshops get 1 extra run in year 1",
-        "Workshops get 1 extra run in year 1",
-        "Workshops get 1 extra run in year 1"
+        {
+          "text": "Workshops get 1 extra run in year 1",
+          "modifiers": [
+            {
+              "target": "building",
+              "id": "workshop",
+              "path": "recipes.firstYearExtraRuns",
+              "set": 1
+            }
+          ]
+        },
+        {
+          "text": "Workshops get 1 extra run in year 1",
+          "modifiers": [
+            {
+              "target": "building",
+              "id": "workshop",
+              "path": "recipes.firstYearExtraRuns",
+              "set": 1
+            }
+          ]
+        },
+        {
+          "text": "Workshops get 1 extra run in year 1",
+          "modifiers": [
+            {
+              "target": "building",
+              "id": "workshop",
+              "path": "recipes.firstYearExtraRuns",
+              "set": 1
+            }
+          ]
+        }
       ],
-      "addsToDraft": "Kiln Loop tuning"
+      "adds": "kilnLoop"
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "ciderMill",
+      "name": "Cider Mill",
+      "district": "millraceQuarter",
+      "nextTo": {
+        "districts": ["orchardWard"],
+        "count": 1
+      },
+      "text": "The Millrace Quarter next to an Orchard Ward: orchards produce one season sooner.",
+      "hint": "Where the mill race runs past the orchard rows.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "orchard",
+          "path": "maturesAfterSeasons",
+          "add": -1
+        }
+      ]
+    },
+    {
+      "id": "heartwoodGrove",
+      "name": "Heartwood Grove",
+      "district": "mendedCommons",
+      "nextTo": {
+        "green": true,
+        "count": 3
+      },
+      "text": "Mended Commons next to 3 green districts: the Wildway may cross one tile of other land.",
+      "hint": "A commons wrapped in green on three sides.",
+      "modifiers": [
+        {
+          "target": "combo",
+          "id": "wildway",
+          "path": "shape.gaps",
+          "set": 1
+        }
+      ]
+    }
+  ],
+  "twists": [
+    {
+      "id": "fairWeather",
+      "name": "Fair Weather",
+      "text": "The valley as it is."
+    },
+    {
+      "id": "droughtYear",
+      "name": "Drought Year",
+      "text": "Harsher summers: farms more than 1 tile from water lose half their summer food. The Graft is one tier higher.",
+      "modifiers": [
+        {
+          "target": "event",
+          "id": "lowRiver",
+          "path": "farFromWaterDistance",
+          "set": 1
+        }
+      ],
+      "graftTierBonus": 1
+    },
+    {
+      "id": "longWinter",
+      "name": "Long Winter",
+      "text": "Homes need 1 more heat on winter nights. The Graft is one tier higher.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "foundersCamp",
+          "path": "demand.heat.night.3",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "cottage",
+          "path": "demand.heat.night.3",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "treehouseCommons",
+          "path": "demand.heat.night.3",
+          "add": 1
+        }
+      ],
+      "graftTierBonus": 1
+    },
+    {
+      "id": "wildStorms",
+      "name": "Wild Storms",
+      "text": "Storms can damage 2 exposed buildings instead of 1. The Graft is one tier higher.",
+      "modifiers": [
+        {
+          "target": "event",
+          "id": "storm",
+          "path": "disableCount",
+          "set": 2
+        }
+      ],
+      "graftTierBonus": 1
+    }
+  ],
+  "requests": [
+    {
+      "id": "threeLoops",
+      "text": "Close 3 loops.",
+      "goal": {
+        "kind": "loops",
+        "count": 3
+      }
+    },
+    {
+      "id": "harmonyFifty",
+      "text": "Reach Harmony 50.",
+      "goal": {
+        "kind": "harmony",
+        "harmony": 50
+      }
+    },
+    {
+      "id": "greenHalf",
+      "text": "Make half the healable land meadow or woodland.",
+      "goal": {
+        "kind": "greenLand",
+        "share": 0.5
+      }
+    },
+    {
+      "id": "thirtyHoused",
+      "text": "House 30 citizens with wellbeing 60 or more.",
+      "goal": {
+        "kind": "citizens",
+        "citizens": 30,
+        "wellbeing": 60
+      }
+    },
+    {
+      "id": "steadyYear",
+      "text": "A full year with 20 or more citizens and no shortfall.",
+      "goal": {
+        "kind": "noShortfallYear",
+        "minCitizens": 20
+      }
     }
   ],
   "eraGoals": [
@@ -1253,7 +1588,14 @@
       "heartwoodDistricts": 6
     },
     "compostShare": 0.5,
-    "graftCost": 35
+    "graftCost": 35,
+    "expeditionChoices": 3,
+    "teaching": {
+      "guidedUntil": 2,
+      "tunings": 2,
+      "charters": 3,
+      "visions": 4
+    }
   },
   "guidedYear": [
     ["orchard", "apiary", "treeNursery"],

@@ -54,6 +54,24 @@ export interface RunOptions {
   sandbox?: boolean;
   /** Offer a choice of visions (run goals) at the start. The design teaches them from run 4. */
   visions?: boolean;
+  /** Tunings in the draft (from run 2) and charters at new eras (from run 3); both default on. */
+  tunings?: boolean;
+  charters?: boolean;
+  /** What Root City gives this run: its districts' perks and cards, and its landmarks. */
+  city?: RunCity;
+  /** The expedition chosen for this run: its twist and its city request. */
+  expedition?: RunExpedition;
+}
+
+export interface RunCity {
+  /** The best tier of each district type in the city, by district id. */
+  districts: Record<string, string>;
+  landmarks: string[];
+}
+
+export interface RunExpedition {
+  twist: string | null;
+  request: string | null;
 }
 
 export interface DraftState {
@@ -121,6 +139,8 @@ export interface RunState {
   visionAchieved: number | null;
   /** Eras whose goal has been met. */
   eraGoalsMet: number[];
+  /** The turn the expedition's city request was met, or null. */
+  requestMet: number | null;
   ledger: Ledger;
   /** Messages for the player about things that happened between seasons. */
   notices: string[];
@@ -264,6 +284,8 @@ export interface SeasonReport {
   evolved: { uid: string; from: string; into: string }[];
   /** The run's vision was achieved this season. */
   visionAchieved: boolean;
+  /** The expedition's city request was met this season. */
+  requestMet: boolean;
   /** The era whose goal was met this season, if any. */
   eraGoalMet: number | null;
 }

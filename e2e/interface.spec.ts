@@ -82,11 +82,17 @@ test('a whole run, keyboard only, to the end screen', async ({ page }) => {
   await expect(dialog.getByRole('status')).toContainText(
     planted ? 'is on its way to Root City' : 'Seeds are banked',
   );
-  await expect(dialog.getByRole('button', { name: 'Start a new run' })).toBeFocused();
+  await expect(dialog.getByRole('button', { name: 'Go to Root City' })).toBeFocused();
   await page.keyboard.press('Tab');
   await page.keyboard.press('Enter');
   await expect(dialog).toBeHidden();
-  const city = await page.evaluate(() => JSON.parse(localStorage.getItem('sunroot:city')!));
+  const city = await page.evaluate(() =>
+    (
+      window as unknown as {
+        sunroot: { city(): { runs: number; grafts: unknown[]; seeds: number } };
+      }
+    ).sunroot.city(),
+  );
   expect(city.runs).toBe(1);
   expect(city.grafts).toHaveLength(planted ? 1 : 0);
   expect(city.seeds).toBeGreaterThan(0);

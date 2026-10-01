@@ -133,6 +133,8 @@ export const BuildingSchema = z
         maxRuns: int.min(1),
         /** Extra runs allowed on night energy only (the Night Shift tuning). */
         nightOnlyRuns: nonNeg.default(0),
+        /** Extra runs in the run's first year (the Foundry District's perk). */
+        firstYearExtraRuns: nonNeg.default(0),
         energyPerRun: int.min(1),
         defaultRecipe: z.string(),
         options: z.array(RecipeSchema).min(1),
@@ -178,6 +180,20 @@ export const BuildingSchema = z
       })
       .optional(),
     harmony: int.default(0),
+    /**
+     * Turns spare food from neighbouring producing buildings into wellbeing
+     * (the Cider Press): for each of up to `max` neighbours of these types that
+     * yielded food this season, `foodEach` food from the stores (after eating)
+     * becomes `wellbeingEach` wellbeing.
+     */
+    cider: z
+      .object({
+        nextTo: z.array(z.string()).min(1),
+        foodEach: int.min(1),
+        wellbeingEach: int.min(1),
+        max: int.min(1),
+      })
+      .optional(),
     /** On placement the tile improves to this type (never downgrades). */
     setsTile: TileTypeSchema.optional(),
     /** Each season, improve one neighbouring tile this many steps. */
@@ -194,7 +210,7 @@ export const BuildingSchema = z
       .object({
         reservoirTiles: int.min(0),
         floodAreaFactor: z.number().min(0).max(1),
-        downstreamFoodPenalty: z.object({ targets: z.array(z.string()), amount: int.min(1) }),
+        downstreamFoodPenalty: z.object({ targets: z.array(z.string()), amount: nonNeg }),
       })
       .optional(),
     levee: z
@@ -266,6 +282,8 @@ export const RulesSchema = z
     harmony: z.object({
       perTile: z.partialRecord(TileTypeSchema, int),
       perClutter: int,
+      /** Flat Harmony from Root City (the Mended Commons perk). */
+      bonus: int.default(0),
       tiers: z.array(z.object({ min: int, multiplier: z.number().min(0) })).min(1),
       multiplies: z.array(ResourceSchema),
     }),
@@ -359,8 +377,8 @@ export type MapGen = z.infer<typeof MapGenSchema>;
  */
 export const ModifierSchema = z
   .object({
-    target: z.enum(['building', 'rules', 'event']),
-    /** Building or event id (not for rules). */
+    target: z.enum(['building', 'rules', 'event', 'combo']),
+    /** Building, event or combo id (not for rules). */
     id: z.string().optional(),
     path: z.string().min(1),
     set: z.union([z.number(), z.boolean(), z.string()]).optional(),
@@ -446,7 +464,12 @@ export const ComboSchema = z.discriminatedUnion('layer', [
           tiles: z.array(TileTypeSchema).optional(),
         }),
         /** An unbroken strip of these tiles from the river to a side edge of the valley. */
-        z.object({ kind: z.literal('strip'), tiles: z.array(TileTypeSchema).min(1) }),
+        z.object({
+          kind: z.literal('strip'),
+          tiles: z.array(TileTypeSchema).min(1),
+          /** Land tiles of another kind the strip may cross (the Heartwood Grove landmark). */
+          gaps: nonNeg.default(0),
+        }),
       ]),
       effect: z
         .object({
@@ -537,12 +560,54 @@ export const DistrictSchema = z
       /** For `energyShare`: the source types whose share of built energy counts. */
       sources: z.array(z.string()).default([]),
     }),
-    /** The perk at each tier, lowest first, and what it adds to future drafts (Milestone 8). */
-    perks: z.array(z.string()).min(1),
-    addsToDraft: z.string(),
+    /** The perk at each Graft tier, lowest first: what it says and what it changes in a run. */
+    perks: z
+      .array(z.object({ text: z.string(), modifiers: z.array(ModifierSchema) }).strict())
+      .min(1),
+    /** The card (blueprint, tuning or charter) it adds to future drafts; no run offers it otherwise. */
+    adds: z.string(),
+    /** Counts as green for landmarks such as Heartwood Grove. */
+    green: z.boolean().default(false),
   })
   .strict();
 export type District = z.infer<typeof DistrictSchema>;
+
+/** A hidden combo between neighbouring districts in Root City. */
+export const LandmarkSchema = z
+  .object({
+    ...CardText,
+    hint: z.string(),
+    /** This district, next to at least `count` districts of these ids (or green ones). */
+    district: z.string(),
+    nextTo: z
+      .object({
+        districts: z.array(z.string()).default([]),
+        green: z.boolean().default(false),
+        count: int.min(1).default(1),
+      })
+      .strict(),
+    /** What it changes in every run while it stands. */
+    modifiers: z.array(ModifierSchema).min(1),
+  })
+  .strict();
+export type Landmark = z.infer<typeof LandmarkSchema>;
+
+/** An expedition's twist: a lasting change to the run, and how it lifts the Graft. */
+export const TwistSchema = z
+  .object({
+    ...CardText,
+    modifiers: z.array(ModifierSchema).default([]),
+    /** Tiers the Graft rises (up to the highest). */
+    graftTierBonus: nonNeg.default(0),
+  })
+  .strict();
+export type Twist = z.infer<typeof TwistSchema>;
+
+/** An expedition's optional city request, worth bonus Seeds if met. */
+export const RequestSchema = z
+  .object({ id: z.string().regex(/^[a-z][A-Za-z]*$/), text: z.string(), goal: GoalSchema })
+  .strict();
+export type CityRequest = z.infer<typeof RequestSchema>;
 
 /**
  * Seeds and Root City (the designer's numbers, ahead of Milestone 8). Every
@@ -568,6 +633,20 @@ export const ProgressionSchema = z
     ending: z.object({ slots: int.min(1), heartwoodDistricts: int.min(0) }),
     /** A replaced district composts into this share of the Seeds spent upgrading it. */
     compostShare: z.number().min(0).max(1),
+    /** Expeditions offered between runs. */
+    expeditionChoices: int.min(1).default(3),
+    /**
+     * Teaching across runs: the run (1 = the first) from which each system
+     * joins. The guided first year is for runs before `guidedUntil`.
+     */
+    teaching: z
+      .object({
+        guidedUntil: int.min(1),
+        tunings: int.min(1),
+        charters: int.min(1),
+        visions: int.min(1),
+      })
+      .strict(),
   })
   .strict();
 export type Progression = z.infer<typeof ProgressionSchema>;
@@ -594,6 +673,9 @@ export const ContentSchema = z
     visions: z.array(VisionSchema).default([]),
     eraGoals: z.array(EraGoalSchema).default([]),
     districts: z.array(DistrictSchema).default([]),
+    landmarks: z.array(LandmarkSchema).default([]),
+    twists: z.array(TwistSchema).default([]),
+    requests: z.array(RequestSchema).default([]),
     progression: ProgressionSchema.optional(),
     /** Fixed draft offers for the guided first year, spring to winter. */
     guidedYear: z.tuple([

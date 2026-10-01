@@ -1,71 +1,55 @@
 /**
- * Grafts sent home to Root City. Milestone 8 builds the city from these; for
- * now each finished run records the district it sent, kept in the browser.
+ * Where Root City is kept: a versioned city save (src/sim/city.ts) in its
+ * own IndexedDB slot. A city kept by an older build in localStorage (the
+ * Grafts sent home before Milestone 8) is read once and moved over.
  */
-export interface Graft {
-  district: string;
-  tier: string;
-  score: number;
-  /** Seeds the run earned. */
-  seeds: number;
-  seed: string;
-  vision: string | null;
-  visionAchieved: boolean;
-  /** When it was sent (ISO time). */
-  sentAt: string;
+import { createCity, makeCitySave, readCity, type CityState, type Content } from '../sim';
+import type { SaveSlot } from './saves';
+
+export type { CityState, Graft, RunResult } from '../sim';
+
+const OLD_KEY = 'sunroot:city';
+
+export interface LoadedCity {
+  city: CityState;
+  /** Set when a saved city couldn't be read and a new one was begun. */
+  problem: string | null;
 }
 
-/** How a finished run was sent home: its Seeds, and its Graft if it was planted. */
-export interface RunResult {
-  /** Null when the Seeds in hand couldn't pay for planting: the Seeds are banked. */
-  graft: Graft | null;
-  /** Seeds the run earned, and Seeds spent planting its Graft. */
-  earned: number;
-  spent: number;
-}
-
-export interface City {
-  version: 1;
-  grafts: Graft[];
-  /** Seeds in hand: earned and not yet spent. */
-  seeds: number;
-  /** Runs finished and sent home, planted or not. */
-  runs: number;
-}
-
-const KEY = 'sunroot:city';
-export const EMPTY_CITY: City = { version: 1, grafts: [], seeds: 0, runs: 0 };
-
-export function loadCity(storage: Storage | null): City {
-  try {
-    const raw = storage?.getItem(KEY);
-    if (!raw) return EMPTY_CITY;
-    const data = JSON.parse(raw) as Partial<City>;
-    return {
-      version: 1,
-      grafts: Array.isArray(data.grafts) ? data.grafts : [],
-      seeds: typeof data.seeds === 'number' ? data.seeds : 0,
-      runs: typeof data.runs === 'number' ? data.runs : 0,
-    };
-  } catch {
-    return EMPTY_CITY;
+/** The saved city, the old one moved over, or a new one with this seed. */
+export async function loadCity(
+  content: Content,
+  slot: SaveSlot,
+  storage: Storage | null,
+  seed: string,
+): Promise<LoadedCity> {
+  const data = await slot.load();
+  if (data !== undefined) {
+    const read = readCity(content, data, seed);
+    if (read.ok) return { city: read.city, problem: null };
+    return { city: createCity(content, seed), problem: read.error };
   }
-}
-
-export function saveCity(storage: Storage | null, city: City): void {
+  let old: unknown;
   try {
-    storage?.setItem(KEY, JSON.stringify(city));
+    old = JSON.parse(storage?.getItem(OLD_KEY) ?? 'null');
   } catch {
-    // Storage blocked or full: the Graft is kept for this visit only.
+    old = null;
   }
+  if (old) {
+    const read = readCity(content, old, seed);
+    if (read.ok) {
+      await saveCity(slot, read.city, new Date().toISOString());
+      try {
+        storage?.removeItem(OLD_KEY);
+      } catch {
+        // Blocked storage: the old copy stays, and the new save is read first anyway.
+      }
+      return { city: read.city, problem: null };
+    }
+  }
+  return { city: createCity(content, seed), problem: null };
 }
 
-/** The city after a run is sent home. */
-export function applyRunResult(city: City, result: RunResult): City {
-  return {
-    version: 1,
-    grafts: result.graft ? [...city.grafts, result.graft] : city.grafts,
-    seeds: city.seeds + result.earned - result.spent,
-    runs: city.runs + 1,
-  };
+export function saveCity(slot: SaveSlot, city: CityState, savedAt: string): Promise<void> {
+  return slot.save(makeCitySave(city, savedAt));
 }

@@ -1,11 +1,13 @@
 /** Steps 8 and 9: food, population, wellbeing, then scraps, clutter and Harmony. */
 import {
+  byPriority,
   computeHarmony,
   defOf,
   foodStorage,
   harmonyMultiplier,
   housingCapacity,
   isHome,
+  neighborBuildings,
   neighborTiles,
 } from '../queries';
 import type { PopulationReason, WellbeingLine } from '../types';
@@ -44,6 +46,24 @@ export function feedAndGrow(ctx: SeasonContext): void {
     reason = boom && change > 1 ? 'boom' : 'grew';
   }
   state.citizens += change;
+
+  // Cider presses turn spare food from neighbouring producers into wellbeing.
+  const cider: WellbeingLine[] = [];
+  for (const b of byPriority(state)) {
+    const press = defOf(content, b).cider;
+    if (!press || !ctx.active.has(b.uid)) continue;
+    const bearing = neighborBuildings(state, b).filter(
+      (n) => press.nextTo.includes(n.type) && (report.yields[n.uid]?.food ?? 0) > 0,
+    ).length;
+    const n = Math.min(press.max, bearing, Math.floor(state.stores.food / press.foodEach));
+    if (n <= 0) continue;
+    state.stores.food -= n * press.foodEach;
+    cider.push({
+      kind: 'civic',
+      reason: `${defOf(content, b).name}: ${n * press.foodEach} spare food`,
+      amount: n * press.wellbeingEach,
+    });
+  }
 
   // Food beyond storage rots into scraps.
   const storage = foodStorage(content, state);
@@ -102,6 +122,7 @@ export function feedAndGrow(ctx: SeasonContext): void {
       lines.push({ kind: 'civic', reason: `powered ${def.name}`, amount: whenPowered });
     }
   }
+  lines.push(...cider);
   for (const f of formationWellbeing(ctx)) {
     lines.push({ kind: 'formation', reason: f.reason, amount: f.amount });
   }

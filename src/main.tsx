@@ -1,27 +1,49 @@
 /**
  * The web client. It builds a run, draws it with Pixi and lays the
- * interface over it. Only src/sim changes the run, through commands.
+ * interface over it, or shows Root City between runs. Only src/sim changes
+ * the run and the city, through commands.
  *
- * The run in progress is saved as you play and resumed on the next visit.
+ * The run in progress and Root City are saved as you play and resumed on the
+ * next visit. A new player goes straight into their first run; after that,
+ * each run is sent home to Root City, where the next expedition is chosen.
  *
- * URL options: ?seed=<text> (a new run with this seed), ?new (a new run),
- * ?guided=0 (skip the guided first year), ?visions=0 (no vision choice),
- * ?sandbox (everything unlocked, 999 materials; never saved).
+ * URL options: ?city (Root City; read-only while a run is in progress),
+ * ?new (the city's next run), ?seed=<text> (a run with this seed, outside
+ * the city's teaching and expeditions), ?guided=0 (with ?seed: skip the
+ * guided first year), ?visions=0 (with ?seed: no vision choice), ?sandbox
+ * (everything unlocked, 999 materials; never saved).
  */
 import { Application } from 'pixi.js';
 import { render } from 'preact';
 import willowReach from './content/willow-reach.json';
 import { loadAlmanac, saveAlmanac } from './game/almanac';
-import { applyRunResult, loadCity, saveCity } from './game/city';
+import { loadCity, saveCity } from './game/city';
 import { PlayLog } from './game/playlog';
 import { indexedDbSlot, throttled } from './game/saves';
-import { GameStore } from './game/store';
+import { GameStore, type Reveal } from './game/store';
 import { buildTimeline } from './game/timeline';
 import { renderBuildingIcons } from './render/icons';
 import { MapView } from './render/mapView';
 import { COLORS } from './render/palette';
-import { canPlace, createRun, loadContent, makeSave, readSave, type RunState } from './sim';
+import {
+  applyCityCommand,
+  canPlace,
+  createCity,
+  createRun,
+  loadContent,
+  makeSave,
+  needsExpedition,
+  nextRunOptions,
+  readSave,
+  runCity,
+  teaching,
+  type CityState,
+  type RunState,
+} from './sim';
 import { App } from './ui/App';
+import { CityScreen } from './ui/City';
+
+const randomSeed = (prefix: string) => `${prefix}-${Math.floor(Math.random() * 1e9).toString(36)}`;
 
 async function start() {
   const params = new URLSearchParams(location.search);
@@ -30,14 +52,43 @@ async function start() {
   try {
     storage = window.localStorage;
   } catch {
-    // Blocked storage: the Almanac and Grafts last for this visit only.
+    // Blocked storage: the Almanac and the playtest log last for this visit only.
   }
   const sandbox = params.has('sandbox');
-  const slot = indexedDbSlot();
+  const slot = indexedDbSlot('current');
+  const citySlot = indexedDbSlot('city');
+  const root = document.getElementById('app')!;
+
+  // Root City, saved in its own slot (sandbox runs never touch it).
+  const loaded = sandbox
+    ? { city: createCity(content, 'sandbox'), problem: null }
+    : await loadCity(content, citySlot, storage, randomSeed('city'));
+  let city: CityState = loaded.city;
+  let citySaving: Promise<void> = Promise.resolve();
+  const cityStatus = { runs: -1, savedAt: '' };
+  const keepCity = (next: CityState) => {
+    city = next;
+    if (sandbox) return;
+    const savedAt = new Date().toISOString();
+    citySaving = citySaving
+      .then(() => saveCity(citySlot, next, savedAt))
+      .then(() => {
+        cityStatus.runs = next.runs;
+        cityStatus.savedAt = savedAt;
+      });
+  };
+  keepCity(city);
+  /** Root City when it has something to do before a run, otherwise the city's next run. */
+  const nextUrl = () =>
+    needsExpedition(content, city) || city.pending.length > 0 ? '?city' : '?new';
+  const go = (url: string) =>
+    void citySaving.then(() => (location.href = `${location.pathname}${url}`));
 
   // Resume the saved run, unless a new one was asked for.
   let state: RunState | null = null;
-  let resumeNote: string | null = null;
+  let resumeNote: string | null = loaded.problem
+    ? `Root City couldn't be loaded (${loaded.problem}), so it begins again.`
+    : null;
   if (!params.has('seed') && !params.has('new') && !sandbox) {
     const data = await slot.load();
     if (data !== undefined) {
@@ -51,12 +102,49 @@ async function start() {
       }
     }
   }
-  state ??= createRun(content, {
-    seed: params.get('seed') ?? `run-${Math.floor(Math.random() * 1e9).toString(36)}`,
-    guided: params.get('guided') !== '0',
-    sandbox,
-    visions: params.get('visions') !== '0',
-  });
+
+  // Root City: asked for, or there is a Graft to place or an expedition to choose.
+  const cityFirst =
+    !state && !params.has('seed') && !sandbox && nextUrl() === '?city' && !params.has('new');
+  if (params.has('city') || cityFirst || (params.has('new') && nextUrl() === '?city')) {
+    if (params.has('new') || params.has('city')) history.replaceState(null, '', location.pathname);
+    const readOnly = state !== null;
+    render(
+      <CityScreen
+        content={content}
+        initial={city}
+        readOnly={readOnly}
+        onSave={keepCity}
+        onSetOut={() => go('?new')}
+        onBack={() => go('')}
+      />,
+      root,
+    );
+    (window as unknown as { sunroot: unknown }).sunroot = {
+      city: () => city,
+      content,
+      savedCity: cityStatus,
+    };
+    return;
+  }
+
+  let intro: Reveal[] = [];
+  if (!state && (params.has('seed') || sandbox)) {
+    state = createRun(content, {
+      seed: params.get('seed') ?? randomSeed('run'),
+      guided: params.get('guided') !== '0',
+      sandbox,
+      visions: params.get('visions') !== '0',
+      city: sandbox ? undefined : runCity(content, city),
+    });
+  } else if (!state) {
+    // The city's next run: what it teaches, the city's gifts, and the chosen expedition.
+    const run = city.runs + 1;
+    state = createRun(content, nextRunOptions(content, city));
+    const embarked = applyCityCommand(content, city, { type: 'embark' });
+    if (embarked.ok) keepCity(embarked.city);
+    if (run > 1) intro = [{ kind: 'start', run, joining: teaching(content, run).joining }];
+  }
   const seed = state.options.seed;
   // A reload should resume this run, not start yet another.
   if (params.has('new')) history.replaceState(null, '', location.pathname);
@@ -68,13 +156,15 @@ async function start() {
     onResolution: (playing, skipped, s) => log.resolution(playing, skipped, s),
     almanac: loadAlmanac(content, storage),
     onAlmanac: (almanac) => saveAlmanac(content, storage, almanac),
-    // The Graft goes to Root City; the finished run's save is no longer needed.
     // Sent home: the Graft is planted or the Seeds banked; the finished run's save is done with.
-    bankedSeeds: loadCity(storage).seeds,
+    bankedSeeds: sandbox ? 0 : city.seeds,
     onRunEnd: (result) => {
-      saveCity(storage, applyRunResult(loadCity(storage), result));
+      if (sandbox) return;
+      const home = applyCityCommand(content, city, { type: 'sendHome', result });
+      if (home.ok) keepCity(home.city);
       void slot.clear();
     },
+    intro,
   });
   store.message = resumeNote;
   log.begin(store.state);
@@ -103,18 +193,22 @@ async function start() {
     if (document.visibilityState === 'hidden') save();
   });
   save();
-  const newRun = () => {
-    void slot.clear().then(() => {
-      location.href = `${location.pathname}?new`;
-    });
-  };
+  // Abandoning a run, or after sending one home: Root City, or straight on to the next run.
+  const newRun = () => void slot.clear().then(() => go(nextUrl()));
+  const viewCity = () => go('?city');
 
   let view: MapView | null = null;
   let icons: Record<string, string> = {};
-  const root = document.getElementById('app')!;
   const draw = () =>
     render(
-      <App store={store} view={() => view} icons={() => icons} newRun={newRun} log={log} />,
+      <App
+        store={store}
+        view={() => view}
+        icons={() => icons}
+        newRun={newRun}
+        viewCity={sandbox ? undefined : viewCity}
+        log={log}
+      />,
       root,
     );
   draw();
@@ -174,6 +268,8 @@ async function start() {
     content,
     /** The last save written: the turn and when (for the browser tests). */
     saved: status,
+    city: () => city,
+    savedCity: cityStatus,
   };
   icons = await renderBuildingIcons(app);
   draw();

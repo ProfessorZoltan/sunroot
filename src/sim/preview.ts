@@ -10,6 +10,7 @@ import type { Hex } from './hex';
 import { canPlace } from './placement';
 import { resolveSeason, type ResolveOptions } from './season/resolve';
 import { placementEvolution } from './combos';
+import { effectiveContent } from './content/modifiers';
 import { buildingAt } from './queries';
 import type { ComboHit, RunState } from './types';
 
@@ -58,7 +59,8 @@ export function previewPlacement(
   options: ResolveOptions = {},
 ): PlacementPreview {
   before ??= resolveSeason(content, state, options);
-  const def = content.byId[building];
+  // Costs as this run pays them (a Millrace Quarter makes river wheels cheaper).
+  const def = effectiveContent(content, state).byId[building];
   if (!def) return { ok: false, reason: `unknown building ${building}` };
   const site = canPlace(content, state, building, at);
   if (!site.ok) return site;

@@ -61,8 +61,22 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
   for (const id of Object.keys(p?.upgradeCost ?? {})) {
     if (!tierIds.includes(id)) problems.push(`progression names unknown tier ${id}`);
   }
-  for (const d of data.districts)
+  const districtIds = new Set(data.districts.map((d) => d.id));
+  const cardIds = new Set([
+    ...data.buildings.map((b) => b.id),
+    ...data.tunings.map((t) => t.id),
+    ...data.charters.map((c) => c.id),
+  ]);
+  for (const d of data.districts) {
     d.signature.sources.forEach((id) => known(id, `district ${d.id}`));
+    if (!cardIds.has(d.adds)) problems.push(`district ${d.id} adds unknown card ${d.adds}`);
+    if (d.perks.length !== data.rules.score.tiers.length)
+      problems.push(`district ${d.id} needs a perk for each of the ${tierIds.length} tiers`);
+  }
+  for (const l of data.landmarks) {
+    for (const id of [l.district, ...l.nextTo.districts])
+      if (!districtIds.has(id)) problems.push(`landmark ${l.id} names unknown district ${id}`);
+  }
   const cards = new Set(data.buildings.map((b) => b.id));
   for (const t of data.tunings) {
     if (cards.has(t.id)) problems.push(`tuning ${t.id} has the same id as a draft card`);
@@ -91,6 +105,18 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     data.districts.map((d) => d.id),
     'district',
   );
+  unique(
+    data.landmarks.map((l) => l.id),
+    'landmark',
+  );
+  unique(
+    data.twists.map((t) => t.id),
+    'twist',
+  );
+  unique(
+    data.requests.map((r) => r.id),
+    'request',
+  );
   const { harmony } = data.rules;
   if (!harmony.tiers.every((t, i, a) => i === 0 || t.min > a[i - 1]!.min)) {
     problems.push('rules.harmony.tiers must be sorted by min');
@@ -106,9 +132,18 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     tuningById: Object.fromEntries(data.tunings.map((t) => [t.id, t])),
     charterById: Object.fromEntries(data.charters.map((c) => [c.id, c])),
   };
-  // Every tuning and charter must apply cleanly (valid paths, valid results).
+  // Every modifier (tunings, charters, landmarks, twists, perks) must apply cleanly (valid paths, valid results).
   if (options.checkModifiers ?? true) {
-    for (const card of [...data.tunings, ...data.charters]) {
+    const sources = [
+      ...data.tunings,
+      ...data.charters,
+      ...data.landmarks,
+      ...data.twists,
+      ...data.districts.flatMap((d) =>
+        d.perks.map((perk, i) => ({ id: `${d.id} perk ${i + 1}`, modifiers: perk.modifiers })),
+      ),
+    ];
+    for (const card of sources) {
       try {
         applyModifiers(content, card.modifiers);
       } catch (e) {

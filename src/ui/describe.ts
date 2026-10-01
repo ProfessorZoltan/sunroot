@@ -62,6 +62,15 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
   }
   if (def.wellbeing?.whenPowered)
     lines.push(`+${def.wellbeing.whenPowered} wellbeing when powered.`);
+  if (def.cider) {
+    const who = def.cider.nextTo
+      .map((id) => content.byId[id]?.name.toLowerCase() ?? id)
+      .join(' or ');
+    lines.push(
+      `For each neighbouring ${who} that bore food (up to ${def.cider.max}), ` +
+        `${def.cider.foodEach} spare food → +${def.cider.wellbeingEach} wellbeing.`,
+    );
+  }
   if (def.harmony) lines.push(`+${def.harmony} Harmony.`);
   if (def.improvesNeighborSteps) lines.push('Improves a neighbouring tile each season.');
   if (def.weir) lines.push('Halves the flooded area; the river above becomes reservoir.');

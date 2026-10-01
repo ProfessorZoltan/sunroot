@@ -21,6 +21,7 @@ import {
   type Content,
   type Hex,
   type MapState,
+  type RunOptions,
   type RunState,
   type Season,
   type Tile,
@@ -87,12 +88,14 @@ export interface ScenarioOptions {
   citizens?: number;
   wellbeing?: number;
   seed?: string;
+  /** Run options beyond the seed (Root City, the expedition, teaching). */
+  run?: Omit<RunOptions, 'seed'>;
 }
 
 /** A run on a hand-drawn map, optionally moved to another season with everything unlocked. */
 export function scenario(rows: string[], options: ScenarioOptions = {}): RunState {
   const { map, camp } = mapFromAscii(rows);
-  const state = createRun(content, { seed: options.seed ?? 'test' }, { map, camp });
+  const state = createRun(content, { ...options.run, seed: options.seed ?? 'test' }, { map, camp });
   const year = options.year ?? 1;
   const season = options.season ?? 'spring';
   const si = SEASONS.indexOf(season);

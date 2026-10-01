@@ -22,13 +22,16 @@ export function App({
   view,
   icons,
   newRun,
+  viewCity,
   log,
 }: {
   store: GameStore;
   view: () => MapView | null;
   icons: () => Record<string, string>;
-  /** Abandons this run (and its save) and starts another. */
+  /** Abandons this run (and its save), or after a run ends: on to Root City or the next run. */
   newRun: () => void;
+  /** Looks at Root City; the run stays saved. */
+  viewCity?: () => void;
   /** The playtest log, for notes and the CSV download. */
   log?: PlayLog;
 }) {
@@ -160,7 +163,7 @@ export function App({
       const building = Object.entries(liveKeys).find(([, k]) => k === lower)?.[0];
       if (
         building &&
-        live.stores.materials >= content.byId[building]!.cost &&
+        live.stores.materials >= store.rules.byId[building]!.cost &&
         live.status === 'active'
       ) {
         handled();
@@ -194,6 +197,7 @@ export function App({
           onAlmanac={() => setAlmanac(true)}
           onNote={log ? () => setNoting(true) : undefined}
           onNewRun={() => (store.state.status === 'active' ? setAskNewRun(true) : newRun())}
+          onCity={viewCity}
         />
         {help && <Help onClose={() => setHelp(false)} log={log} />}
         {noting && log && (

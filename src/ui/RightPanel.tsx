@@ -113,7 +113,7 @@ function DraftPanel({ store, ui }: { store: GameStore; ui: Ui }) {
           content.byId[id] ? (
             <DraftCard
               content={content}
-              def={content.byId[id]}
+              def={store.rules.byId[id]!}
               icon={ui.icons[id]}
               index={i}
               store={store}
@@ -200,7 +200,8 @@ function BuildPanel({ store, ui }: { store: GameStore; ui: Ui }) {
       <h2>Build</h2>
       <div class="palette" role="group" aria-label="Buildings">
         {paletteOrder(content, state.unlocked).map((id) => {
-          const def = content.byId[id]!;
+          // Numbers as this run plays them (Root City perks, tunings, charters).
+          const def = store.rules.byId[id]!;
           const afford = state.stores.materials >= def.cost;
           const selected = store.selectedBuilding === id;
           const key = ui.hotkeys[id];
@@ -280,7 +281,7 @@ function PlacementPanel({ store }: { store: GameStore }) {
     );
   }
   if (!p) return null;
-  const def = content.byId[p.building]!;
+  const def = store.rules.byId[p.building]!;
   if (!p.preview.ok) {
     return (
       <section class="panel invalid" role="status">
@@ -335,10 +336,10 @@ function PlacementPanel({ store }: { store: GameStore }) {
 }
 
 function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
-  const { content, state } = store;
+  const { state } = store;
   const b = state.buildings[store.inspected!];
   if (!b) return null;
-  const def = content.byId[b.type]!;
+  const def = store.rules.byId[b.type]!;
   const now = store.insight.now;
   const status: string[] = [];
   if (b.damage) {

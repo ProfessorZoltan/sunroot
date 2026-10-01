@@ -13,11 +13,14 @@ export function Footer({
   onAlmanac,
   onNewRun,
   onNote,
+  onCity,
 }: {
   store: GameStore;
   onHelp: () => void;
   onAlmanac: () => void;
   onNewRun: () => void;
+  /** Looks at Root City (the run stays saved). */
+  onCity?: () => void;
   /** Opens a playtest note for this season. */
   onNote?: () => void;
 }) {
@@ -50,6 +53,11 @@ export function Footer({
                   : '')}
       </div>
       <div class="actions">
+        {onCity && (
+          <button type="button" class="button" onClick={onCity}>
+            Root City
+          </button>
+        )}
         <button type="button" class="button" onClick={onNewRun}>
           New run
         </button>

@@ -26,9 +26,11 @@ describe('the draft', () => {
     expect(s.unlocked.sort()).toEqual(
       ['composter', 'cottage', 'floodplainFarm', 'salvageYard', 'solarCanopy', 'workshop'].sort(),
     );
-    // The design's 17, plus the Heat Pump and Solar Thermal Collector (docs/proposals/heat-routes.md).
+    // The design's 17, plus the Heat Pump and Solar Thermal Collector (docs/proposals/heat-routes.md),
+    // plus the Cider Press, which only an Orchard Ward in Root City adds to the draft.
     const draftable = content.buildings.filter((b) => b.draftable && !b.starter).map((b) => b.id);
-    expect(draftable).toHaveLength(17 + 2);
+    expect(draftable).toHaveLength(17 + 2 + 1);
+    expect(blueprintPool(content, s)).not.toContain('ciderPress');
     expect(draftable).toEqual(expect.arrayContaining(['heatPump', 'solarThermalCollector']));
   });
 

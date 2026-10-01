@@ -143,7 +143,9 @@ export function RevealCard({ store }: { store: GameStore }) {
   const key =
     reveal.kind === 'era' || reveal.kind === 'eraGoal'
       ? `${reveal.kind}-${reveal.era}`
-      : `${reveal.kind}-${reveal.id}`;
+      : reveal.kind === 'start'
+        ? `start-${reveal.run}`
+        : `${reveal.kind}-${reveal.id}`;
   useEffect(() => button.current?.focus(), [key]);
   const more = store.reveals.length - 1;
   let label: string;
@@ -201,6 +203,36 @@ export function RevealCard({ store }: { store: GameStore }) {
         {goal.reward.knowledge > 0 && <p>+{goal.reward.knowledge} knowledge.</p>}
       </>
     );
+  } else if (reveal.kind === 'request') {
+    const request = content.requests.find((r) => r.id === reveal.id)!;
+    label = `City request met: ${request.text}`;
+    body = (
+      <>
+        <span class="combo-jewel" style={{ background: '#3A6EA5' }} aria-hidden="true">
+          ✓
+        </span>
+        <span class="card-kind">City request met</span>
+        <h2 class="glass-title">{request.text}</h2>
+        <div class="small">
+          +{content.progression?.seeds.cityRequest ?? 0} Seeds when the run is sent home.
+        </div>
+      </>
+    );
+  } else if (reveal.kind === 'start') {
+    const start = runStart(store, reveal.joining);
+    label = start.title;
+    body = (
+      <>
+        <span class="combo-jewel" style={{ background: '#2E8B6A' }} aria-hidden="true">
+          {reveal.run}
+        </span>
+        <span class="card-kind">Run {reveal.run}</span>
+        <h2 class="glass-title">{start.title}</h2>
+        {start.lines.map((l) => (
+          <p class="small">{l}</p>
+        ))}
+      </>
+    );
   } else {
     const vision = content.visions.find((v) => v.id === reveal.id)!;
     label = `Vision achieved: ${vision.name}`;
@@ -237,6 +269,44 @@ export function RevealCard({ store }: { store: GameStore }) {
       </div>
     </div>
   );
+}
+
+const JOINING: Record<string, string> = {
+  tunings:
+    'New this run: tunings join the draft. A tuning changes a building’s numbers for the rest of the run.',
+  charters:
+    'New this run: charters. At the start of eras 2, 3 and 4, choose one of 3 rules for the rest of the run.',
+  visions: 'New this run: visions. Choose a goal for the run at the start, worth extra score.',
+};
+
+/** What a run begun from Root City brings: its twist, request, the city's gifts, what's new. */
+export function runStart(store: GameStore, joining: string[]): { title: string; lines: string[] } {
+  const { content, state } = store;
+  const twist = content.twists.find((t) => t.id === state.options.expedition?.twist);
+  const request = content.requests.find((r) => r.id === state.options.expedition?.request);
+  const tiers = content.rules.score.tiers;
+  const lines: string[] = [];
+  if (twist) lines.push(`${twist.name}: ${twist.text}`);
+  if (request) {
+    lines.push(
+      `City request: ${request.text} (+${content.progression?.seeds.cityRequest ?? 0} Seeds if met)`,
+    );
+  }
+  const gifts = Object.entries(state.options.city?.districts ?? {}).map(([id, tier]) => {
+    const d = content.districts.find((x) => x.id === id)!;
+    const i = Math.max(
+      0,
+      tiers.findIndex((t) => t.id === tier),
+    );
+    return `${d.name} (${tiers[i]!.name}): ${d.perks[Math.min(i, d.perks.length - 1)]!.text}`;
+  });
+  if (gifts.length > 0) lines.push(`From Root City: ${gifts.join('; ')}.`);
+  for (const id of state.options.city?.landmarks ?? []) {
+    const l = content.landmarks.find((x) => x.id === id);
+    if (l) lines.push(`${l.name}: ${l.text}`);
+  }
+  for (const j of joining) if (JOINING[j]) lines.push(JOINING[j]);
+  return { title: twist ? `Expedition: ${twist.name}` : 'A new Sprout', lines };
 }
 
 /** At the start of eras 2, 3 and 4: choose one charter (keys 1 to 3). */

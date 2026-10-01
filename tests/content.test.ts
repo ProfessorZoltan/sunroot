@@ -4,6 +4,8 @@ import willowReach from '../src/content/willow-reach.json';
 
 /** Buildings added by docs/proposals/heat-routes.md, beyond the design's 23. */
 const HEAT_PROPOSAL = ['heatPump', 'solarThermalCollector'];
+/** Blueprints only a Root City district adds to the draft (the Cider Press). */
+const CITY_CARDS = ['ciderPress'];
 
 const clone = () => structuredClone(willowReach) as typeof willowReach;
 
@@ -12,7 +14,11 @@ describe('content validation', () => {
     const content = loadContent(willowReach);
     const buildings = content.buildings.filter((b) => b.id !== content.campBuilding);
     // Evolved buildings (Milestone 6) are not among the 23: they come from evolutions.
-    expect(buildings.filter((b) => !HEAT_PROPOSAL.includes(b.id) && b.placeable)).toHaveLength(23);
+    expect(
+      buildings.filter(
+        (b) => !HEAT_PROPOSAL.includes(b.id) && !CITY_CARDS.includes(b.id) && b.placeable,
+      ),
+    ).toHaveLength(23);
     expect(HEAT_PROPOSAL.every((id) => content.byId[id])).toBe(true);
     expect(content.byId.floodplainFarm?.yields.food).toEqual([2, 4, 5, 0]);
   });

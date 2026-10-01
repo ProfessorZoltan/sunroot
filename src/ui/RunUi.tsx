@@ -5,7 +5,16 @@
  */
 import { useEffect, useRef } from 'preact/hooks';
 import type { GameStore } from '../game/store';
-import { eraGoal, goalProgress, graftOffer, scoreRun, seedsForRun, visionProgress } from '../sim';
+import {
+  cityRequest,
+  eraGoal,
+  goalProgress,
+  graftOffer,
+  scoreRun,
+  seedsForRun,
+  visionProgress,
+  type Content,
+} from '../sim';
 
 /** At the start of a run: choose one vision (keys 1 and 2). */
 export function VisionPanel({ store }: { store: GameStore }) {
@@ -78,6 +87,51 @@ export function EraGoalStatus({ store }: { store: GameStore }) {
             {progress.text}
             {goal.reward.knowledge > 0 ? ` · +${goal.reward.knowledge} knowledge` : ''}
           </div>
+        </>
+      )}
+    </section>
+  );
+}
+
+/** Left column: the expedition's twist and city request, and how far the request has come. */
+export function ExpeditionStatus({ store }: { store: GameStore }) {
+  const { content, state } = store;
+  const twist = content.twists.find((t) => t.id === state.options.expedition?.twist);
+  const request = cityRequest(content, state);
+  if (!twist && !request) return null;
+  const met = state.requestMet !== null;
+  const progress = request ? goalProgress(content, state, request.goal) : null;
+  const bonus = content.progression?.seeds.cityRequest ?? 0;
+  return (
+    <section aria-label="Expedition">
+      <h2>Expedition</h2>
+      {twist && (
+        <div class="small">
+          <strong>{twist.name}</strong>
+          {twist.modifiers.length > 0 ? `: ${twist.text}` : ''}
+        </div>
+      )}
+      {request && (
+        <>
+          <div class="small">
+            <strong>City request:</strong> {request.text}
+            {met ? ' Met.' : ` +${bonus} Seeds if met.`}
+          </div>
+          {!met && progress && (
+            <>
+              <div
+                class="bar vision-bar"
+                role="progressbar"
+                aria-label="City request progress"
+                aria-valuenow={Math.round(progress.share * 100)}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              >
+                <div class="bar-fill" style={{ width: `${progress.share * 100}%` }} />
+              </div>
+              <div class="quiet small">{progress.text}</div>
+            </>
+          )}
         </>
       )}
     </section>
@@ -186,6 +240,12 @@ export function EndScreen({
             <td>{score.total}</td>
           </tr>
         </table>
+        {score.lift && (
+          <div class="small">
+            The {score.lift.twist} lifted the Graft {score.lift.tiers} tier
+            {score.lift.tiers > 1 ? 's' : ''}, to {score.tier.name}.
+          </div>
+        )}
         {score.next && (
           <div class="small">
             {score.next.points} more points would have made a {score.next.tier.name} Graft.
@@ -218,8 +278,8 @@ export function EndScreen({
                     <span class="card-name">{o.district.name}</span>
                     <span class="card-text">
                       {score.tier.name}:{' '}
-                      {o.district.perks[Math.min(tierIndex, o.district.perks.length - 1)]}. Adds{' '}
-                      {o.district.addsToDraft} to future drafts.
+                      {o.district.perks[Math.min(tierIndex, o.district.perks.length - 1)]!.text}.
+                      Adds {cardLabel(content, o.district.adds)} to future drafts.
                     </span>
                   </span>
                 </button>
@@ -253,7 +313,7 @@ export function EndScreen({
           )}
           {sent && (
             <button type="button" class="button primary" ref={first} onClick={onNewRun}>
-              Start a new run
+              Go to Root City
             </button>
           )}
           <button type="button" class="button" onClick={onClose}>
@@ -263,6 +323,13 @@ export function EndScreen({
       </div>
     </div>
   );
+}
+
+/** A card's name and kind, such as "the Cider Press blueprint". */
+export function cardLabel(content: Content, id: string): string {
+  if (content.tuningById[id]) return `the ${content.tuningById[id].name} tuning`;
+  if (content.charterById[id]) return `the ${content.charterById[id].name} charter`;
+  return `the ${content.byId[id]?.name ?? id} blueprint`;
 }
 
 /** Asks before abandoning the run in progress. */

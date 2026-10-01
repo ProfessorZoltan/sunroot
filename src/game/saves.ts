@@ -11,7 +11,6 @@ export interface SaveSlot {
 
 const DB = 'sunroot';
 const STORE = 'saves';
-const KEY = 'current';
 
 function open(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -43,24 +42,27 @@ function request<T>(
   );
 }
 
-/** The browser's save slot. Every call fails soft: a broken store never breaks the game. */
-export function indexedDbSlot(): SaveSlot {
+/**
+ * A browser save slot: `current` for the run in progress, `city` for Root
+ * City. Every call fails soft: a broken store never breaks the game.
+ */
+export function indexedDbSlot(key = 'current'): SaveSlot {
   const available = typeof indexedDB !== 'undefined';
   return {
     load: () =>
       available
-        ? request('readonly', (s) => s.get(KEY)).catch(() => undefined)
+        ? request('readonly', (s) => s.get(key)).catch(() => undefined)
         : Promise.resolve(undefined),
     save: (data) =>
       available
-        ? request('readwrite', (s) => s.put(data, KEY)).then(
+        ? request('readwrite', (s) => s.put(data, key)).then(
             () => undefined,
             () => undefined,
           )
         : Promise.resolve(),
     clear: () =>
       available
-        ? request('readwrite', (s) => s.delete(KEY)).then(
+        ? request('readwrite', (s) => s.delete(key)).then(
             () => undefined,
             () => undefined,
           )
