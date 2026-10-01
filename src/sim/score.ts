@@ -86,7 +86,7 @@ export function scoreRun(content: Content, state: RunState): RunScore {
 /**
  * Seeds a finished run earns, more for a better run: a base plus the score
  * divided by `pointsPerSeed`, rounded down, plus a bonus if the expedition's
- * city request was met.
+ * city request was met, and more for each Tempest level.
  */
 export function seedsForRun(
   content: Content,
@@ -107,6 +107,10 @@ export function seedsForRun(
   const request = cityRequest(content, state);
   if (request && state.requestMet !== null) {
     lines.push({ reason: `city request: ${request.text}`, points: p.seeds.cityRequest });
+  }
+  const tempest = state.options.expedition?.tempest ?? 0;
+  if (tempest > 0 && content.tempest.seedsPerLevel > 0) {
+    lines.push({ reason: `Tempest ${tempest}`, points: tempest * content.tempest.seedsPerLevel });
   }
   return { total: lines.reduce((n, l) => n + l.points, 0), lines };
 }

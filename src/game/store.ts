@@ -322,6 +322,11 @@ export class GameStore {
     this.keepGoing();
   }
 
+  /** The run's Tempest level (0 for none). */
+  get tempest(): number {
+    return this.state.options.expedition?.tempest ?? 0;
+  }
+
   /** Seeds this run earned (once it has ended). */
   get seedsEarned(): number {
     return seedsForRun(this.content, this.state).total;
@@ -351,18 +356,27 @@ export class GameStore {
       vision: this.state.vision,
       visionAchieved: this.state.visionAchieved !== null,
       sentAt: this.now(),
+      ...(this.tempest > 0 ? { tempest: this.tempest } : {}),
     };
     return this.sendHome({
       graft,
       earned: this.seedsEarned,
       spent: this.content.progression?.graftCost ?? 0,
+      tier: offer.tier.id,
+      tempest: this.tempest,
     });
   }
 
   /** Banks the run's Seeds without planting a Graft (when they can't pay for one). */
   bankSeeds(): boolean {
     if (this.state.status === 'active' || this.result) return false;
-    return this.sendHome({ graft: null, earned: this.seedsEarned, spent: 0 });
+    return this.sendHome({
+      graft: null,
+      earned: this.seedsEarned,
+      spent: 0,
+      tier: graftOffer(this.content, this.state).tier.id,
+      tempest: this.tempest,
+    });
   }
 
   private sendHome(result: RunResult): boolean {

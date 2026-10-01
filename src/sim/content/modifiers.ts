@@ -25,14 +25,15 @@ export interface RunModifierSources {
   projects?: { id: string; done: number | null }[];
   options?: {
     city?: { districts: Record<string, string>; landmarks: string[] };
-    expedition?: { twist: string | null; region?: string | null };
+    expedition?: { twist: string | null; region?: string | null; tempest?: number };
   };
 }
 
 /**
  * The modifiers a run plays under, in order: the expedition's region, the
  * era's harsher seasons, Root City's district perks and landmarks, the
- * expedition's twist, finished projects, then the run's tunings and charters.
+ * expedition's twist, its Tempest level (levels 1 to N), finished projects,
+ * then the run's tunings and charters.
  */
 export function runModifiers(content: Content, state: RunModifierSources): Modifier[] {
   const city = state.options?.city;
@@ -55,6 +56,9 @@ export function runModifiers(content: Content, state: RunModifierSources): Modif
     ...perks,
     ...landmarks,
     ...(content.twists.find((t) => t.id === twist)?.modifiers ?? []),
+    ...content.tempest.levels
+      .slice(0, state.options?.expedition?.tempest ?? 0)
+      .flatMap((l) => l.modifiers),
     ...(state.projects ?? [])
       .filter((p) => p.done !== null)
       .flatMap((p) => content.projects.find((x) => x.id === p.id)?.effect.modifiers ?? []),

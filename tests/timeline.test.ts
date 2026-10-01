@@ -4,15 +4,15 @@ import { act, place as placeAt, playToWinter } from './walkthrough';
 import { content, endSeason, place, scenario, uidAt } from './helpers';
 
 describe('season resolution timeline', () => {
-  it('lasts about 5 seconds: event, day, night, settle', () => {
+  it('lasts about 7.5 seconds: event, day, night, settle', () => {
     const s = endSeason(scenario(['^ . C , ~ , . . ^']));
     const tl = buildTimeline(content, s, s.lastReport!);
-    expect(tl.duration).toBe(5000);
+    expect(tl.duration).toBe(7500);
     expect(tl.phases.map((p) => p.name)).toEqual(['event', 'day', 'night', 'settle']);
     expect(phaseAt(tl, 0)).toBe('event');
     expect(phaseAt(tl, 1400)).toBe('day');
-    expect(phaseAt(tl, 4000)).toBe('night');
-    expect(phaseAt(tl, 4999)).toBe('settle');
+    expect(phaseAt(tl, 5500)).toBe('night');
+    expect(phaseAt(tl, 7499)).toBe('settle');
   });
 
   it('is much shorter with reduced motion', () => {

@@ -29,6 +29,8 @@ export interface Graft {
   sentAt: string;
   /** The run it came from (1 = the first), set when it reaches the city. */
   run?: number;
+  /** The Tempest level it was earned at (missing for none): its mark in the city. */
+  tempest?: number;
 }
 
 /** How a finished run was sent home: its Seeds, and its Graft if it was planted. */
@@ -38,6 +40,9 @@ export interface RunResult {
   /** Seeds the run earned, and Seeds spent planting its Graft. */
   earned: number;
   spent: number;
+  /** The run's Graft tier, planted or not, and its Tempest level: a Heartwood Graft unlocks the next. */
+  tier?: string;
+  tempest?: number;
 }
 
 export interface CityDistrict {
@@ -49,6 +54,8 @@ export interface CityDistrict {
   invested: number;
   /** The run (1 = the first) whose Graft it was. */
   run: number;
+  /** The Tempest level its Graft was earned at (missing for none). */
+  tempest?: number;
 }
 
 /** An expedition on offer: a valley (a map seed and a region), a twist and an optional city request. */
@@ -80,6 +87,10 @@ export interface CityState {
   expedition: Expedition | null;
   /** The number of runs it took to grow the Sun Tree, once grown. */
   sunTree: number | null;
+  /** The highest Tempest level unlocked (missing: none yet). */
+  tempestUnlocked?: number;
+  /** The Tempest level chosen for the next runs (missing: none). */
+  tempest?: number;
 }
 
 export type CityCommand =
@@ -88,13 +99,16 @@ export type CityCommand =
   | { type: 'release' }
   | { type: 'upgrade'; slot: number }
   | { type: 'chooseExpedition'; index: number }
+  /** The Tempest level for the next runs, up to the highest unlocked. */
+  | { type: 'setTempest'; level: number }
   | { type: 'embark' };
 
 /** Something a command brought about, for the interface to reveal. */
 export type CityEvent =
   | { kind: 'landmark'; id: string }
   | { kind: 'sunTree' }
-  | { kind: 'composted'; district: string; seeds: number };
+  | { kind: 'composted'; district: string; seeds: number }
+  | { kind: 'tempest'; level: number };
 
 export type CityResult =
   { ok: true; city: CityState; events: CityEvent[] } | { ok: false; error: string };
@@ -236,6 +250,8 @@ export function nextRunOptions(content: Content, city: CityState): RunOptions {
         region: city.expedition.region ?? null,
       }
     : { twist: null, request: null };
+  const tempest = Math.min(city.tempest ?? 0, city.tempestUnlocked ?? 0);
+  if (tempest > 0) expedition.tempest = tempest;
   return {
     seed: city.expedition?.seed ?? `${city.seed}-${run}`,
     guided: t.guided,
@@ -306,6 +322,16 @@ export function applyCityCommand(
       next.seeds += earned - spent;
       next.runs += 1;
       next.expedition = null;
+      // A Heartwood Graft (planted or not) at a Tempest level unlocks the next.
+      const top = content.rules.score.tiers.at(-1)?.id;
+      const levels = content.tempest.levels.length;
+      if (levels > 0 && command.result.tier === top) {
+        const unlocked = Math.min(levels, (command.result.tempest ?? 0) + 1);
+        if (unlocked > (next.tempestUnlocked ?? 0)) {
+          next.tempestUnlocked = unlocked;
+          events.push({ kind: 'tempest', level: unlocked });
+        }
+      }
       if (graft) {
         if (!content.districts.some((d) => d.id === graft.district))
           return fail(`unknown district ${graft.district}`);
@@ -334,6 +360,7 @@ export function applyCityCommand(
         tier: graft.tier,
         invested: 0,
         run: graft.run ?? next.runs,
+        ...(graft.tempest ? { tempest: graft.tempest } : {}),
       });
       break;
     }
@@ -353,6 +380,14 @@ export function applyCityCommand(
       next.seeds -= cost;
       d.tier = up;
       d.invested += cost;
+      break;
+    }
+    case 'setTempest': {
+      const level = command.level;
+      if (!Number.isInteger(level) || level < 0) return fail('no such Tempest level');
+      if (level > (next.tempestUnlocked ?? 0)) return fail(`Tempest ${level} is not unlocked yet`);
+      if (level === 0) delete next.tempest;
+      else next.tempest = level;
       break;
     }
     case 'chooseExpedition': {

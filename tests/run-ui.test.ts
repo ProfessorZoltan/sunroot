@@ -58,6 +58,8 @@ describe('the store at the edges of a run', () => {
         },
         earned: store.seedsEarned,
         spent: content.progression!.graftCost,
+        tier: offer.tier.id,
+        tempest: 0,
       },
     ]);
     expect(store.chooseGraft(offer.options[0]!.district.id)).toBe(false);
@@ -76,6 +78,14 @@ describe('the store at the edges of a run', () => {
     expect(store.canPlant).toBe(false);
     expect(store.chooseGraft(graftOffer(content, store.state).options[0]!.district.id)).toBe(false);
     expect(store.bankSeeds()).toBe(true);
-    expect(results).toEqual([{ graft: null, earned: store.seedsEarned, spent: 0 }]);
+    expect(results).toEqual([
+      {
+        graft: null,
+        earned: store.seedsEarned,
+        spent: 0,
+        tier: graftOffer(content, store.state).tier.id,
+        tempest: 0,
+      },
+    ]);
   });
 });

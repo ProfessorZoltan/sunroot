@@ -308,7 +308,12 @@ export function runStart(store: GameStore, joining: string[]): { title: string; 
   const request = content.requests.find((r) => r.id === state.options.expedition?.request);
   const tiers = content.rules.score.tiers;
   const region = content.regions.find((r) => r.id === state.options.expedition?.region);
+  const tempest = content.tempest.levels.slice(0, state.options.expedition?.tempest ?? 0);
   const lines: string[] = [];
+  if (tempest.length > 0)
+    lines.push(
+      `Tempest ${tempest.length}: ${tempest.map((l) => `${l.name} (${l.text.replace(/\.$/, '')})`).join('; ')}.`,
+    );
   if (region) lines.push(`${region.name}: ${region.text}`);
   if (twist) lines.push(`${twist.name}: ${twist.text}`);
   if (request) {

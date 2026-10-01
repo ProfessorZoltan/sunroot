@@ -131,6 +131,10 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     data.regions.map((r) => r.id),
     'region',
   );
+  unique(
+    data.tempest.levels.map((l) => l.id),
+    'Tempest level',
+  );
   const { harmony } = data.rules;
   if (!harmony.tiers.every((t, i, a) => i === 0 || t.min > a[i - 1]!.min)) {
     problems.push('rules.harmony.tiers must be sorted by min');
@@ -154,6 +158,11 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
       ...data.landmarks,
       ...data.twists,
       ...data.regions,
+      // Each Tempest level with every level below it, as a run plays it.
+      ...data.tempest.levels.map((l, i) => ({
+        id: l.id,
+        modifiers: data.tempest.levels.slice(0, i + 1).flatMap((x) => x.modifiers),
+      })),
       ...data.rules.eraModifiers.map((m) => ({ id: `era ${m.era}`, modifiers: m.modifiers })),
       ...data.projects.map((p) => ({ id: p.id, modifiers: p.effect.modifiers })),
       ...data.districts.flatMap((d) =>

@@ -296,6 +296,14 @@ export function CityScreen({
             {progress.needed} at Heartwood
           </strong>
         </div>
+        {(city.tempestUnlocked ?? 0) > 0 && (
+          <div class="stat" aria-label="Tempest">
+            <span class="quiet small">Tempest</span>{' '}
+            <strong>
+              {city.tempestUnlocked} of {content.tempest.levels.length} unlocked
+            </strong>
+          </div>
+        )}
         <span class="grow" />
         {audio && <SoundButton engine={audio} />}
         {readOnly && onBack && (
@@ -323,8 +331,8 @@ export function CityScreen({
               const target = !readOnly && pending !== undefined && (!d || full);
               const label = d
                 ? `Slot ${slot + 1}: ${nameOf(content, d.district)}, ${tiers[tierIndex]?.name}${
-                    target ? ' (replace)' : ''
-                  }`
+                    d.tempest ? `, Tempest ${d.tempest}` : ''
+                  }${target ? ' (replace)' : ''}`
                 : `Slot ${slot + 1}: empty${target ? ' (place here)' : ''}`;
               return (
                 <g
@@ -368,6 +376,19 @@ export function CityScreen({
                           />
                         ))}
                       </g>
+                      {d.tempest ? (
+                        // The Tempest mark: the level its Graft was earned at.
+                        <g class="tempest-mark" transform="translate(17,-19)" aria-hidden="true">
+                          <circle r="8.5" fill="#3e4c6d" stroke="#fbf5e6" stroke-width="1.5" />
+                          <path
+                            d="M1.2,-5.5 L-3,0.6 L-0.2,0.6 L-1.4,5.5 L3,-0.8 L0.2,-0.8 Z"
+                            fill="#f2c14e"
+                          />
+                          <text x="10" y="-6" class="tempest-level">
+                            {d.tempest}
+                          </text>
+                        </g>
+                      ) : null}
                     </>
                   )}
                 </g>
@@ -434,6 +455,7 @@ export function CityScreen({
               content={content}
               city={city}
               onChoose={(index) => apply({ type: 'chooseExpedition', index })}
+              onTempest={(level) => apply({ type: 'setTempest', level })}
               onSetOut={() => onSetOut(city)}
             />
           )}
@@ -552,6 +574,7 @@ function DistrictPanel({
     <section class="panel" aria-label="District">
       <span class="card-kind">
         Slot {slot + 1} · from run {placed.run}
+        {placed.tempest ? ` · Tempest ${placed.tempest}` : ''}
       </span>
       <h2>
         {d.name}, {tiers[i]!.name}
@@ -586,11 +609,13 @@ function ExpeditionPanel({
   content,
   city,
   onChoose,
+  onTempest,
   onSetOut,
 }: {
   content: Content;
   city: CityState;
   onChoose: (index: number) => void;
+  onTempest: (level: number) => void;
   onSetOut: () => void;
 }) {
   const offer: Expedition[] = city.runs > 0 ? expeditionOffer(content, city) : [];
@@ -640,10 +665,64 @@ function ExpeditionPanel({
           })}
         </div>
       )}
+      <TempestPicker content={content} city={city} onTempest={onTempest} />
       <button type="button" class="button primary" disabled={!ready} onClick={onSetOut}>
         {ready ? `Set out on run ${city.runs + 1}` : 'Choose an expedition first'}
       </button>
     </section>
+  );
+}
+
+/** The Tempest level for the next runs, once one is unlocked: each adds a hardship and Seeds. */
+function TempestPicker({
+  content,
+  city,
+  onTempest,
+}: {
+  content: Content;
+  city: CityState;
+  onTempest: (level: number) => void;
+}) {
+  const unlocked = city.tempestUnlocked ?? 0;
+  if (unlocked === 0) return null;
+  const chosen = Math.min(city.tempest ?? 0, unlocked);
+  const levels = content.tempest.levels;
+  return (
+    <fieldset class="tempest">
+      <legend>Tempest</legend>
+      <div class="row tempest-levels">
+        {Array.from({ length: unlocked + 1 }, (_, level) => (
+          <label class={`tempest-level-choice${level === chosen ? ' chosen' : ''}`}>
+            <input
+              type="radio"
+              name="tempest"
+              checked={level === chosen}
+              onChange={() => onTempest(level)}
+            />
+            {level === 0 ? 'None' : level}
+          </label>
+        ))}
+      </div>
+      {chosen > 0 ? (
+        <>
+          <p class="small">
+            Tempest {chosen}: +{chosen * content.tempest.seedsPerLevel} Seeds, and its Graft carries
+            the Tempest mark. Hardships:
+          </p>
+          <ul class="small plain">
+            {levels.slice(0, chosen).map((l) => (
+              <li>
+                <strong>{l.name}</strong>: {l.text}
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <p class="small quiet">
+          No Tempest. A Heartwood Graft at your highest level unlocks the next.
+        </p>
+      )}
+    </fieldset>
   );
 }
 

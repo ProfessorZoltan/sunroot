@@ -237,3 +237,47 @@ test('5 runs in a row, with Root City kept between them', async ({ page }) => {
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/city-after-5.png` });
   expect(errors).toEqual([]);
 });
+
+test('Tempest: chosen in Root City, played in the run, its mark on the district', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  // A Heartwood Graft at Tempest 1 placed (with its mark), and Tempest 2 unlocked.
+  const c = city([
+    {
+      type: 'sendHome',
+      result: {
+        graft: { ...graft('orchardWard', 'heartwood'), tempest: 1 },
+        earned: 40,
+        spent: 35,
+        tier: 'heartwood',
+        tempest: 1,
+      },
+    },
+    { type: 'place', slot: 0 },
+  ]);
+  expect(c.tempestUnlocked).toBe(2);
+  await seedCity(page, c);
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Root City' })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: /Slot 1: Orchard Ward, Heartwood, Tempest 1/ }),
+  ).toBeVisible();
+  await expect(page.getByLabel('Tempest', { exact: true })).toContainText('2 of 10 unlocked');
+  const next = page.getByRole('region', { name: 'Next expedition' });
+  await next.getByRole('radio', { name: '2' }).check();
+  await expect(next).toContainText('Tempest 2: +4 Seeds');
+  await expect(next).toContainText('Quick Clutter');
+  expect((await cityNow(page)).tempest).toBe(2);
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/tempest-city.png` });
+  await next.locator('.card.expedition').first().click();
+  await next.getByRole('button', { name: 'Set out on run 2' }).click();
+  const start = page.getByRole('dialog', { name: /Expedition: / });
+  await expect(start).toContainText('Tempest 2: Bitter Nights');
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('region', { name: 'Expedition' })).toContainText(
+    'Tempest 2: Bitter Nights, Quick Clutter.',
+  );
+  expect(errors).toEqual([]);
+});

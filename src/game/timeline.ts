@@ -85,12 +85,16 @@ export interface Timeline {
   river: Hex[];
 }
 
-/** About 5 seconds in full; a short fade when the player prefers reduced motion. */
+/**
+ * About 7.5 seconds in full (the design's 5 felt rushed in playtesting: day and
+ * night are slower, so each building's numbers can be read); a short fade when
+ * the player prefers reduced motion.
+ */
 export const FULL_DURATIONS: Record<PhaseName, number> = {
   event: 1300,
-  day: 2100,
-  night: 1100,
-  settle: 500,
+  day: 3400,
+  night: 1900,
+  settle: 900,
 };
 export const REDUCED_DURATIONS: Record<PhaseName, number> = {
   event: 200,
@@ -202,7 +206,7 @@ export function buildTimeline(
         const start = window.start + ((i % 6) / 6) * (window.end - window.start) * 0.5;
         flows.push({
           t: start,
-          duration: Math.min(900, (window.end - start) * 0.9),
+          duration: Math.min(1400, (window.end - start) * 0.9),
           from: source.at,
           to: sink.at,
           slot,

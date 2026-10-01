@@ -99,13 +99,19 @@ export function ExpeditionStatus({ store }: { store: GameStore }) {
   const twist = content.twists.find((t) => t.id === state.options.expedition?.twist);
   const region = content.regions.find((r) => r.id === state.options.expedition?.region);
   const request = cityRequest(content, state);
-  if (!twist && !request && !region) return null;
+  const tempest = content.tempest.levels.slice(0, state.options.expedition?.tempest ?? 0);
+  if (!twist && !request && !region && tempest.length === 0) return null;
   const met = state.requestMet !== null;
   const progress = request ? goalProgress(content, state, request.goal) : null;
   const bonus = content.progression?.seeds.cityRequest ?? 0;
   return (
     <section aria-label="Expedition">
       <h2>Expedition</h2>
+      {tempest.length > 0 && (
+        <div class="small">
+          <strong>Tempest {tempest.length}</strong>: {tempest.map((l) => l.name).join(', ')}.
+        </div>
+      )}
       {region && (
         <div class="small">
           <strong>{region.name}</strong>
@@ -266,6 +272,19 @@ export function EndScreen({
             <strong>{inHand}</strong> in hand; planting a Graft costs {cost}.
           </div>
         )}
+        {(() => {
+          // Tempest: the mark this run's Graft carries, and the level a Heartwood Graft opens.
+          const levels = content.tempest.levels.length;
+          if (levels === 0) return null;
+          const top = content.rules.score.tiers.at(-1);
+          const next = store.tempest + 1;
+          const lines: string[] = [];
+          if (store.tempest > 0)
+            lines.push(`Played at Tempest ${store.tempest}: its Graft carries the Tempest mark.`);
+          if (score.tier === top && next <= levels)
+            lines.push(`A ${top.name} Graft: Tempest ${next} is open in Root City.`);
+          return lines.length > 0 ? <div class="small">{lines.join(' ')}</div> : null;
+        })()}
         {!sent && store.canPlant && (
           <>
             <h3 class="glass-subtitle">Choose the Graft to plant in Root City</h3>

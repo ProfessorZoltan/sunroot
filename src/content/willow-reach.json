@@ -2404,5 +2404,177 @@
     ["fishPond", "levee", "pollinatorMeadow"],
     ["seedbankLibrary", "kiln", "commonsPlaza"],
     ["riverWheel", "cellBank", "heatWell"]
-  ]
+  ],
+  "tempest": {
+    "seedsPerLevel": 2,
+    "levels": [
+      {
+        "id": "tempestBitterNights",
+        "name": "Bitter Nights",
+        "text": "Homes need 1 more heat on winter nights.",
+        "modifiers": [
+          {
+            "target": "building",
+            "id": "foundersCamp",
+            "path": "demand.heat.night.3",
+            "add": 1
+          },
+          {
+            "target": "building",
+            "id": "cottage",
+            "path": "demand.heat.night.3",
+            "add": 1
+          },
+          {
+            "target": "building",
+            "id": "treehouseCommons",
+            "path": "demand.heat.night.3",
+            "add": 1
+          }
+        ]
+      },
+      {
+        "id": "tempestQuickClutter",
+        "name": "Quick Clutter",
+        "text": "Citizens make scraps faster: one for every 2 citizens instead of 3.",
+        "modifiers": [
+          {
+            "target": "rules",
+            "path": "citizensPerScrap",
+            "add": -1
+          }
+        ]
+      },
+      {
+        "id": "tempestRestless",
+        "name": "Restless People",
+        "text": "The population grows only at wellbeing 70 or more, instead of 60.",
+        "modifiers": [
+          {
+            "target": "rules",
+            "path": "population.growAt",
+            "add": 10
+          }
+        ]
+      },
+      {
+        "id": "tempestThinDrafts",
+        "name": "Thin Drafts",
+        "text": "Drafts offer 2 cards instead of 3.",
+        "modifiers": [
+          {
+            "target": "rules",
+            "path": "draftCards",
+            "add": -1
+          }
+        ]
+      },
+      {
+        "id": "tempestLeanHarvests",
+        "name": "Lean Harvests",
+        "text": "Floodplain farms make 1 less food in summer and autumn.",
+        "modifiers": [
+          {
+            "target": "building",
+            "id": "floodplainFarm",
+            "path": "yields.food.1",
+            "add": -1
+          },
+          {
+            "target": "building",
+            "id": "floodplainFarm",
+            "path": "yields.food.2",
+            "add": -1
+          }
+        ]
+      },
+      {
+        "id": "tempestPaleSun",
+        "name": "Pale Sun",
+        "text": "Solar canopies make 1 less energy on spring and summer days.",
+        "modifiers": [
+          {
+            "target": "building",
+            "id": "solarCanopy",
+            "path": "generation.day.0",
+            "add": -1
+          },
+          {
+            "target": "building",
+            "id": "solarCanopy",
+            "path": "generation.day.1",
+            "add": -1
+          }
+        ]
+      },
+      {
+        "id": "tempestColdAutumns",
+        "name": "Cold Autumns",
+        "text": "Homes need 1 more heat on autumn nights.",
+        "modifiers": [
+          {
+            "target": "building",
+            "id": "foundersCamp",
+            "path": "demand.heat.night.2",
+            "add": 1
+          },
+          {
+            "target": "building",
+            "id": "cottage",
+            "path": "demand.heat.night.2",
+            "add": 1
+          },
+          {
+            "target": "building",
+            "id": "treehouseCommons",
+            "path": "demand.heat.night.2",
+            "add": 1
+          }
+        ]
+      },
+      {
+        "id": "tempestRoughSeasons",
+        "name": "Rough Seasons",
+        "text": "Flood repairs cost 2 more materials, and storms can damage one more exposed building.",
+        "modifiers": [
+          {
+            "target": "event",
+            "id": "flood",
+            "path": "repairCost",
+            "add": 2
+          },
+          {
+            "target": "event",
+            "id": "storm",
+            "path": "disableCount",
+            "add": 1
+          }
+        ]
+      },
+      {
+        "id": "tempestWearyPeople",
+        "name": "Weary People",
+        "text": "Meeting every need no longer lifts wellbeing.",
+        "modifiers": [
+          {
+            "target": "rules",
+            "path": "wellbeing.allNeedsMet",
+            "set": 0
+          }
+        ]
+      },
+      {
+        "id": "tempestHighHopes",
+        "name": "High Hopes",
+        "text": "Civic life serves 10 fewer citizens before expectations cost wellbeing.",
+        "modifiers": [
+          {
+            "target": "rules",
+            "path": "expectations.base",
+            "add": -10
+          }
+        ]
+      }
+    ]
+  }
 }

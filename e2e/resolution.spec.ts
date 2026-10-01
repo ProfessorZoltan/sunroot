@@ -1,5 +1,6 @@
 /**
- * Milestone 5: "each season resolves in about 5 seconds and can be skipped".
+ * Milestone 5: "each season resolves in about 5 seconds and can be skipped" (7.5 since
+ * playtesting asked for a slower day and night).
  */
 import { expect, test, type Page } from '@playwright/test';
 
@@ -17,7 +18,7 @@ const phase = (page: Page) =>
         .sunroot.store.resolution?.phase ?? null,
   );
 
-test('a season plays out in about 5 seconds, through event, day, night and settle', async ({
+test('a season plays out in about 7.5 seconds, through event, day, night and settle', async ({
   page,
 }) => {
   const errors: string[] = [];
@@ -41,7 +42,7 @@ test('a season plays out in about 5 seconds, through event, day, night and settl
       longestFrame: number;
     };
     w.phases = [];
-    // The longest gap between frames: the season ends on the first frame after 5 seconds.
+    // The longest gap between frames: the season ends on the first frame after 7.5 seconds.
     w.longestFrame = 0;
     let last = performance.now();
     const frame = (now: number) => {
@@ -70,9 +71,9 @@ test('a season plays out in about 5 seconds, through event, day, night and settl
   const played = phases.filter(([p], i) => p !== null || i > 1);
   expect(played.map(([p]) => p)).toEqual(['event', 'day', 'night', 'settle', null]);
   const took = played.at(-1)![1] - played[0]![1];
-  // 5 seconds, ending on the next frame (software rendering in CI can make frames slow).
-  expect(took).toBeGreaterThan(4500);
-  expect(took).toBeLessThan(5000 + longestFrame + 500);
+  // 7.5 seconds, ending on the next frame (software rendering in CI can make frames slow).
+  expect(took).toBeGreaterThan(7000);
+  expect(took).toBeLessThan(7500 + longestFrame + 500);
   expect(longestFrame).toBeLessThan(2000);
   await expect(banner).toBeHidden();
   await expect(page.getByRole('button', { name: /End summer/ })).toBeVisible();

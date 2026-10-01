@@ -730,6 +730,20 @@ export const RegionSchema = z
   .strict();
 export type Region = z.infer<typeof RegionSchema>;
 
+/**
+ * Tempest levels (DESIGN.md, Root City and progression): unlocked one at a
+ * time after a Heartwood Graft at the level below. Level N plays with the
+ * hardships of levels 1 to N, and the run earns `seedsPerLevel` more Seeds
+ * for each.
+ */
+export const TempestSchema = z
+  .object({
+    seedsPerLevel: nonNeg,
+    levels: z.array(z.object({ ...CardText, modifiers: z.array(ModifierSchema).min(1) }).strict()),
+  })
+  .strict();
+export type Tempest = z.infer<typeof TempestSchema>;
+
 /** An expedition's optional city request, worth bonus Seeds if met. */
 export const RequestSchema = z
   .object({ id: z.string().regex(/^[a-z][A-Za-z]*$/), text: z.string(), goal: GoalSchema })
@@ -804,6 +818,7 @@ export const ContentSchema = z
     projects: z.array(ProjectSchema).default([]),
     twists: z.array(TwistSchema).default([]),
     regions: z.array(RegionSchema).default([]),
+    tempest: TempestSchema.default({ seedsPerLevel: 0, levels: [] }),
     requests: z.array(RequestSchema).default([]),
     progression: ProgressionSchema.optional(),
     /** Fixed draft offers for the guided first year, spring to winter. */

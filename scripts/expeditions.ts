@@ -1,7 +1,8 @@
 /**
- * How each expedition region and twist plays for the bots: median score, how
- * often runs reach each Graft tier, and how often they collapse, against the
- * valley as it is. Twists are played in The Reach; regions without a twist.
+ * How each expedition region, twist and Tempest level plays for the bots:
+ * median score, how often runs reach each Graft tier, and how often they
+ * collapse, against the valley as it is. Twists and Tempest levels are played
+ * in The Reach; regions without a twist.
  *
  *   npx tsx scripts/expeditions.ts [runs each, default 30] [bot, default balanced] [only: ids, comma-separated]
  */
@@ -27,6 +28,11 @@ const cases: { label: string; expedition: RunExpedition; bonus: number }[] = [
     label: `twist ${t.id}`,
     expedition: { twist: t.id, request: null },
     bonus: t.graftTierBonus,
+  })),
+  ...content.tempest.levels.map((_, i) => ({
+    label: `tempest ${i + 1}`,
+    expedition: { twist: null, request: null, tempest: i + 1 },
+    bonus: 0,
   })),
 ];
 

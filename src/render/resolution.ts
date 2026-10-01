@@ -28,7 +28,8 @@ export interface ResolutionHooks {
   onDone(): void;
 }
 
-const POP_LIFE = 1300;
+/** How long each number and word stays up: long enough to read. */
+const POP_LIFE = 2400;
 
 export class ResolutionPlayer {
   private t = 0;
@@ -502,10 +503,10 @@ export class ResolutionPlayer {
         this.pops.addChild(node);
       }
       const c = hexToPixel(pop.at);
-      const rise = this.reducedMotion ? 0 : 26 * (age / POP_LIFE);
+      const rise = this.reducedMotion ? 0 : 22 * (age / POP_LIFE);
       node.visible = true;
       node.position.set(c.x, c.y - 26 - rise);
-      node.alpha = Math.min(1, age / 150, (POP_LIFE - age) / 300);
+      node.alpha = Math.min(1, age / 150, (POP_LIFE - age) / 400);
     }
   }
 

@@ -1266,3 +1266,39 @@ ul.projects {
 .map-tip .mark-line.coming {
   color: var(--gold-text);
 }
+
+/* Tempest: the picker between runs, and the mark on districts. */
+.tempest {
+  border: 1px solid var(--line, #cdbb92);
+  border-radius: 10px;
+  padding: 6px 10px 8px;
+  margin: 4px 0 10px;
+}
+.tempest legend {
+  font-weight: 700;
+  padding: 0 4px;
+}
+.tempest-levels {
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.tempest-level-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.tempest-level-choice.chosen {
+  background: #3e4c6d;
+  color: #fbf5e6;
+}
+.tempest-mark .tempest-level {
+  font:
+    700 10px Nunito,
+    system-ui,
+    sans-serif;
+  fill: #3e4c6d;
+}

@@ -76,6 +76,8 @@ export interface RunExpedition {
   request: string | null;
   /** The valley's variation (a region id); none for the biome as it is. */
   region?: string | null;
+  /** The Tempest level (0, or missing, for none): its hardships and those below it hold. */
+  tempest?: number;
 }
 
 export interface DraftState {
