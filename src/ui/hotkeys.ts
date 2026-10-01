@@ -9,6 +9,7 @@ export const GLOBAL_KEYS = {
   undo: 'z',
   nextSite: 'n',
   compost: 'k',
+  almanac: 'a',
   help: '?',
 } as const;
 

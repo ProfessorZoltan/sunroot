@@ -229,8 +229,9 @@ describe('other food buildings', () => {
   });
 
   it('Harmony multiplies food per building, rounding down (x1.2 at 40)', () => {
+    // All this woodland also forms a Wildway (+10).
     const woods = [
-      'W W W W W ~ W W W W',
+      'W W W W W ~ . . . W',
       ' W W W W f ~ W W W W',
       'W W W C f ~ W W W W',
       ' W W W W f ~ W W W W',

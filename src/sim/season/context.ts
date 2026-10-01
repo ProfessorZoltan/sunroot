@@ -1,6 +1,6 @@
 import type { Content } from '../content/load';
 import type { Resource, Slot } from '../content/schema';
-import type { BuildingState, RunState, SeasonReport, SlotReport } from '../types';
+import type { BuildingState, ComboHit, RunState, SeasonReport, SlotReport } from '../types';
 
 /** Working data for one season's resolution. `state` is a private clone and may be mutated. */
 export interface SeasonContext {
@@ -18,6 +18,16 @@ export interface SeasonContext {
   foodProduced: number;
   /** `${targetUid}:${giverType}` pairs, so each kind of neighbour bonus applies once. */
   bonusGiven: Set<string>;
+  /** Formations standing this season, found before production. */
+  formations: ComboHit[];
+  /** What standing formations do to each member building. */
+  effects: Map<string, FormationEffect>;
+}
+
+export interface FormationEffect {
+  generation: number;
+  ignoresShade: boolean;
+  freeRuns: boolean;
 }
 
 function emptySlot(): SlotReport {
@@ -64,7 +74,9 @@ export function emptyReport(state: RunState): SeasonReport {
     harmony: { value: state.harmony, multiplier: 1 },
     generated: {},
     shaded: {},
+    combos: [],
     discoveries: [],
+    evolved: [],
   };
 }
 

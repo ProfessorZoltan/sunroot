@@ -22,6 +22,8 @@ function playRun(seed: string, guided = false, onSeason?: (s: RunState) => void)
   while (s.status === 'active') {
     if (s.draft.offer.length > 0)
       apply({ type: 'pickCard', card: s.draft.offer[pickRng(s.draft.offer.length)]! });
+    if (s.charterOffer.length > 0)
+      apply({ type: 'pickCharter', charter: s.charterOffer[pickRng(s.charterOffer.length)]! });
     const options = s.unlocked.slice();
     for (let attempt = 0; attempt < 3; attempt++) {
       const building = options[pickRng(options.length)]!;

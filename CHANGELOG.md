@@ -1,5 +1,36 @@
 # Changelog
 
+## Milestone 6: combos and the Almanac
+
+- All five combo layers from the design, in the content file and checked in step 10 of every
+  season:
+  - Adjacency: Busy Bees, Quiet Spire, Kiln Warmth, Green Doorstep.
+  - Chains: the Kitchen, Gas and River Loops. A loop closes when it runs; from the next season each
+    of its buildings makes +1 for as long as it stands.
+  - Formations: Village Green (+2 wellbeing), Sun Terrace (+1 each, no shade), Mill Race (the
+    workshop runs without energy), Wildway (+10 Harmony).
+  - Evolutions: Winter Garden, Agrivoltaic Field (a canopy built over a farm), Rewilded Ruin,
+    Treehouse Commons.
+- Tunings join the draft: Deep Roots, Mirror Film, Night Shift, Silt Traps and Hive Mind. They are
+  data modifiers applied to the run's content.
+- Charters at the start of eras 2, 3 and 4: Repair Culture, River Keepers, Night Market, Seed Savers
+  and Slow Power.
+- A stained-glass card unfolds for each combo new to the Almanac. The Almanac (A) lists every combo
+  by layer, with silhouettes and hints (5 knowledge for the hidden layers), and keeps discoveries
+  across runs.
+- The placement preview names the combos a building would put to work, with vines on the map. Loops
+  at work glow during the season's resolution. The left column lists closed loops, charters and
+  tunings.
+- Every combo, tuning and charter triggers in a unit test (`tests/combos.test.ts`). The Year 1
+  golden test is unchanged.
+- The balance baseline was refreshed: combos raise every bot's score and cut blackouts and idle
+  seasons ([docs/balance/baseline-report.md](docs/balance/baseline-report.md); the previous one is
+  in `docs/balance/history/`).
+- Four places where the design's combo text and the rules don't fit are raised in DECISIONS.md
+  (C8–C11, Q6, Q7).
+- Fixed: the end-of-run screen could open without focus on its first button (seen in CI after
+  Milestone 5).
+
 ## Milestone 5: season resolution and feel
 
 - Each season now plays out on the map in about 5 seconds: the event (the flood spreads, storms

@@ -4,10 +4,13 @@
  * it there works. The map only ever offers what the simulation allows.
  */
 import { describe, expect, it } from 'vitest';
-import { applyCommand, canPlace, createRun, type RunState } from '../src/sim';
+import { applyCommand, canPlace, createRun, hexKey, type RunState } from '../src/sim';
 import { content } from './helpers';
 
-const ORDER = content.buildings.map((b) => b.id).filter((id) => id !== content.campBuilding);
+// Evolved buildings (Milestone 6) are never placed; they come from evolutions.
+const ORDER = content.buildings
+  .filter((b) => b.placeable && b.id !== content.campBuilding)
+  .map((b) => b.id);
 
 /** Places a weir where its reservoir touches a hill, then the Pumped Reservoir, as a player would. */
 function withWeirBelowABluff(s: RunState): RunState {
@@ -33,7 +36,11 @@ describe('every building can be placed', () => {
   it.each(['seed-a', 'seed-b', 'seed-c', 'willow-reach-golden'])('on %s', (seed) => {
     let s = withWeirBelowABluff(createRun(content, { seed, sandbox: true }));
     for (const id of ORDER.filter((x) => x !== 'weir' && x !== 'pumpedReservoir')) {
-      const site = Object.values(s.map.tiles).find((t) => canPlace(content, s, id, t).ok);
+      // Empty tiles only: a canopy may also be built over a farm, which evolves it.
+      const taken = new Set(Object.values(s.buildings).map((b) => hexKey(b.at)));
+      const site = Object.values(s.map.tiles).find(
+        (t) => !taken.has(hexKey(t)) && canPlace(content, s, id, t).ok,
+      );
       expect(site, `${id} has a legal site`).toBeDefined();
       const result = applyCommand(content, s, { type: 'place', building: id, at: site! });
       expect(result.ok, `${id} places`).toBe(true);
@@ -44,7 +51,7 @@ describe('every building can be placed', () => {
 
   it('sandbox runs unlock everything and start with 999 materials', () => {
     const s = createRun(content, { seed: 'sandbox', sandbox: true });
-    expect(s.unlocked).toHaveLength(content.buildings.length);
+    expect(s.unlocked).toHaveLength(content.buildings.filter((b) => b.placeable).length);
     expect(s.stores.materials).toBe(999);
   });
 });

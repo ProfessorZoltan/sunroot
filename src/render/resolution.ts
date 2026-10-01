@@ -40,6 +40,7 @@ export class ResolutionPlayer {
   private readonly night = new Graphics();
   private readonly light = new Graphics();
   private readonly particles = new Graphics();
+  private readonly glow = new Graphics();
   private readonly pops = new Container();
   private readonly sun = new Graphics();
   private readonly shown = new Map<Pop, Container>();
@@ -54,7 +55,7 @@ export class ResolutionPlayer {
     private readonly reducedMotion = false,
   ) {
     layers.under.addChild(this.water, this.shadows);
-    layers.over.addChild(this.sky, this.night, this.light, this.particles, this.pops);
+    layers.over.addChild(this.sky, this.night, this.light, this.glow, this.particles, this.pops);
     this.night.blendMode = 'multiply';
     layers.screen.addChild(this.sun);
     this.shakeOrigin = { x: layers.shake.position.x, y: layers.shake.position.y };
@@ -91,7 +92,15 @@ export class ResolutionPlayer {
   destroy(): void {
     this.done = true;
     this.layers.shake.position.set(this.shakeOrigin.x, this.shakeOrigin.y);
-    for (const g of [this.water, this.shadows, this.sky, this.night, this.light, this.particles])
+    for (const g of [
+      this.water,
+      this.shadows,
+      this.sky,
+      this.night,
+      this.light,
+      this.glow,
+      this.particles,
+    ])
       g.destroy();
     this.pops.destroy({ children: true });
     this.sun.destroy();
@@ -124,6 +133,7 @@ export class ResolutionPlayer {
     this.drawShadows(isDay ? dawn : null);
     this.drawSky(current, dawn);
     this.drawNight(dusk, settle);
+    this.drawGlow();
     this.drawParticles();
     this.drawPops();
     this.drawSun(current, dawn, dusk);
@@ -219,6 +229,30 @@ export class ResolutionPlayer {
       l.rect(c.x + 2, c.y - 6, 3, 3).fill({ color: 0xffe08a, alpha: depth });
     }
     if (night > 0.15) for (const h of this.timeline.dark) drawCondition(l, hexToPixel(h), 'dark');
+  }
+
+  /** Loops at work glow along their buildings from midday on. */
+  private drawGlow(): void {
+    const g = this.glow.clear();
+    const from = phaseStart(this.timeline, 'day') + 600;
+    if (this.t < from || this.timeline.glow.length === 0) return;
+    const rise = clamp01((this.t - from) / 400);
+    const pulse = this.reducedMotion ? 1 : 0.7 + 0.3 * Math.sin(this.t / 180);
+    for (const group of this.timeline.glow) {
+      const pts = group.map(hexToPixel);
+      for (let i = 1; i < pts.length; i++) {
+        g.moveTo(pts[i - 1]!.x, pts[i - 1]!.y)
+          .lineTo(pts[i]!.x, pts[i]!.y)
+          .stroke({ width: 6, color: COLORS.sunGold, alpha: 0.35 * rise * pulse, cap: 'round' });
+      }
+      for (const p of pts) {
+        g.poly(hexCorners(p, HEX_RADIUS - 3)).stroke({
+          width: 3,
+          color: COLORS.sunGold,
+          alpha: 0.9 * rise * pulse,
+        });
+      }
+    }
   }
 
   /** Light travels from each source to the buildings it powers. */

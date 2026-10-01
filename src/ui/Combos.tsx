@@ -1,0 +1,248 @@
+/**
+ * Combos in the interface (Milestone 6): the Almanac, the stained-glass card
+ * that reveals a discovery, the charter choice, and the loops and charters
+ * on the left.
+ */
+import { useEffect, useRef } from 'preact/hooks';
+import { entryView, LAYER_NAMES } from '../game/almanac';
+import type { GameStore } from '../game/store';
+import { COMBO_LAYERS, type Combo, type ComboLayer } from '../sim';
+
+/** Jewel colour per layer, from the stained-glass palette. */
+export const LAYER_JEWEL: Record<ComboLayer, string> = {
+  adjacency: '#2E8B6A',
+  chain: '#E0A33B',
+  formation: '#3A6EA5',
+  evolution: '#B85C6E',
+};
+
+const LAYER_TEXT: Record<ComboLayer, string> = {
+  adjacency: 'Neighbours that help each other. The placement preview shows them.',
+  chain: 'Close a loop and each building in it makes +1 for as long as it stands.',
+  formation: 'Hidden shapes. Their effect lasts while the shape stands.',
+  evolution: 'A building becomes something new because of its neighbours.',
+};
+
+/** A hexagonal jewel with the layer's glyph, or a dark silhouette. */
+function Jewel({ layer, dark = false }: { layer: ComboLayer; dark?: boolean }) {
+  const glyph = { adjacency: '⬡', chain: '∞', formation: '✦', evolution: '❦' }[layer];
+  return (
+    <span
+      class={`combo-jewel${dark ? ' dark' : ''}`}
+      style={{ background: dark ? undefined : LAYER_JEWEL[layer] }}
+      aria-hidden="true"
+    >
+      {dark ? '?' : glyph}
+    </span>
+  );
+}
+
+export function AlmanacModal({ store, onClose }: { store: GameStore; onClose: () => void }) {
+  const { content, state, almanac } = store;
+  const close = useRef<HTMLButtonElement>(null);
+  useEffect(() => close.current?.focus(), []);
+  const cost = content.rules.knowledge.hint;
+  const known = content.combos.filter((c) => entryView(almanac, state, c) === 'known').length;
+  const canBuy = state.status === 'active' && state.stores.knowledge >= cost;
+  return (
+    <div class="modal-backdrop" onClick={onClose}>
+      <div
+        class="modal almanac"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Almanac"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div class="panel-head">
+          <div>
+            <h2 class="glass-title">The Almanac · {content.name}</h2>
+            <div class="small">
+              {known} of {content.combos.length} discovered. Discoveries are kept across runs.
+            </div>
+          </div>
+          <button type="button" class="button small-button" ref={close} onClick={onClose}>
+            Close
+          </button>
+        </div>
+        {COMBO_LAYERS.map((layer) => (
+          <section class="almanac-layer" aria-label={LAYER_NAMES[layer]}>
+            <h3>
+              {LAYER_NAMES[layer]} <span class="small">{LAYER_TEXT[layer]}</span>
+            </h3>
+            <div class="almanac-grid">
+              {content.combos
+                .filter((c) => c.layer === layer)
+                .map((c) => (
+                  <AlmanacEntry store={store} combo={c} canBuy={canBuy} cost={cost} />
+                ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AlmanacEntry({
+  store,
+  combo,
+  canBuy,
+  cost,
+}: {
+  store: GameStore;
+  combo: Combo;
+  canBuy: boolean;
+  cost: number;
+}) {
+  const view = entryView(store.almanac, store.state, combo);
+  if (view === 'known') {
+    const now = store.state.discoveries.includes(combo.id);
+    return (
+      <article class="almanac-entry known" aria-label={combo.name}>
+        <Jewel layer={combo.layer} />
+        <div>
+          <div class="strong">
+            {combo.name}
+            {now && <span class="found-now"> · found this run</span>}
+          </div>
+          <div class="small">{combo.text}</div>
+        </div>
+      </article>
+    );
+  }
+  return (
+    <article class="almanac-entry silhouette" aria-label="Undiscovered">
+      <Jewel layer={combo.layer} dark />
+      <div>
+        <div class="strong">Undiscovered</div>
+        {view === 'hinted' ? (
+          <div class="small hint">Hint: {combo.hint}</div>
+        ) : (
+          <button
+            type="button"
+            class="button small-button"
+            disabled={!canBuy}
+            onClick={() => store.dispatch({ type: 'buyHint', combo: combo.id })}
+          >
+            Buy a hint · {cost} knowledge
+          </button>
+        )}
+      </div>
+    </article>
+  );
+}
+
+/** The stained-glass card that unfolds when a combo is discovered for the first time. */
+export function DiscoveryCard({ store }: { store: GameStore }) {
+  const id = store.discoveries[0]!;
+  const combo = store.content.comboById[id]!;
+  const button = useRef<HTMLButtonElement>(null);
+  useEffect(() => button.current?.focus(), [id]);
+  const more = store.discoveries.length - 1;
+  return (
+    <div class="modal-backdrop">
+      <div
+        class="modal glass discovery"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Discovered: ${combo.name}`}
+        key={id}
+      >
+        <Jewel layer={combo.layer} />
+        <span class="card-kind">Discovered · {LAYER_NAMES[combo.layer]}</span>
+        <h2 class="glass-title">{combo.name}</h2>
+        <p>{combo.text}</p>
+        <div class="small">Filed in the Almanac.</div>
+        <button
+          type="button"
+          class="button primary"
+          ref={button}
+          onClick={() => store.dismissDiscovery()}
+        >
+          {more > 0 ? `Next discovery (${more} more)` : 'Continue'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** At the start of eras 2, 3 and 4: choose one charter (keys 1 to 3). */
+export function CharterPanel({ store }: { store: GameStore }) {
+  const { content, state } = store;
+  return (
+    <section aria-label="Charter">
+      <h2>Choose a charter</h2>
+      <div class="quiet small">
+        Era {state.era}: {content.rules.eras[state.era - 1]}. A charter lasts the rest of the run.
+        Press 1 to {state.charterOffer.length}.
+      </div>
+      <div class="cards">
+        {state.charterOffer.map((id, i) => {
+          const charter = content.charterById[id]!;
+          return (
+            <button
+              type="button"
+              class="card charter"
+              aria-keyshortcuts={String(i + 1)}
+              onClick={() => store.dispatch({ type: 'pickCharter', charter: id })}
+            >
+              <span class="jewel" style={{ background: '#1E4744' }}>
+                <span class="charter-glyph" aria-hidden="true">
+                  ❧
+                </span>
+              </span>
+              <span class="card-body">
+                <span class="card-kind">Charter</span>
+                <span class="card-name">{charter.name}</span>
+                <span class="card-text">{charter.text}</span>
+              </span>
+              <span class="keycap" aria-hidden="true">
+                {i + 1}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+/** Left column: closed loops, the run's charters and tunings. */
+export function LoopsPanel({ store }: { store: GameStore }) {
+  const { content, state } = store;
+  const loops = state.loops.map((l) => ({ loop: l, combo: content.comboById[l.combo]! }));
+  const empty = loops.length === 0 && state.charters.length === 0 && state.tunings.length === 0;
+  return (
+    <section aria-label="Loops and charters">
+      <h2>Loops</h2>
+      {loops.length === 0 && (
+        <div class="quiet small">
+          No loop closed yet. A composter among working farms closes the Kitchen Loop.
+        </div>
+      )}
+      {loops.map(({ loop, combo }) => (
+        <div class="loop-row small">
+          <span class="loop-mark" aria-hidden="true">
+            ∞
+          </span>
+          <span>
+            <strong>{combo.name}</strong> · {loop.members.length} buildings, +1 each
+            {loop.turn === state.turn - 1 ? ' from this season' : ''}
+          </span>
+        </div>
+      ))}
+      {(state.charters.length > 0 || state.tunings.length > 0) && <div class="divider" />}
+      {state.charters.map((id) => (
+        <div class="small" title={content.charterById[id]!.text}>
+          <strong>Charter:</strong> {content.charterById[id]!.name}
+        </div>
+      ))}
+      {state.tunings.map((id) => (
+        <div class="small" title={content.tuningById[id]!.text}>
+          <strong>Tuning:</strong> {content.tuningById[id]!.name}
+        </div>
+      ))}
+      {empty && <div class="quiet small">Charters come at the start of eras 2, 3 and 4.</div>}
+    </section>
+  );
+}

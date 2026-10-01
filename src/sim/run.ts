@@ -59,6 +59,11 @@ export function createRun(
     priority: ['b0'],
     energyHistory: [],
     discoveries: [],
+    loops: [],
+    tunings: [],
+    charters: [],
+    charterOffer: [],
+    hints: [],
     notices: [],
     lastReport: null,
     history: [],
@@ -66,7 +71,7 @@ export function createRun(
     seasonCommands: [],
   };
   if (opts.sandbox) {
-    state.unlocked = content.buildings.map((b) => b.id);
+    state.unlocked = content.buildings.filter((b) => b.placeable).map((b) => b.id);
     state.stores.materials = 999;
   }
   state.harmony = computeHarmony(content, state);

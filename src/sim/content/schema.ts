@@ -82,6 +82,8 @@ export const BuildingSchema = z
     starter: z.boolean().default(false),
     /** Can appear as a blueprint in the draft. */
     draftable: z.boolean().default(true),
+    /** Can be placed. Evolved buildings (Milestone 6) only come from evolutions. */
+    placeable: z.boolean().default(true),
     /** First era in which the blueprint can be drafted. */
     minEra: int.min(1).default(1),
     floodTolerant: z.boolean().default(false),
@@ -109,6 +111,8 @@ export const BuildingSchema = z
     requiresPower: z.boolean().default(false),
     /** Gains silt from the spring flood and suffers far from water in low river. */
     farmland: z.boolean().default(false),
+    /** Farmland that keeps its yield far from water in low river (the Agrivoltaic Field). */
+    ignoresLowRiver: z.boolean().default(false),
     /** Counts as a pond for the low-river rule. */
     waterBody: z.boolean().default(false),
     generation: SlotSeason.optional(),
@@ -125,6 +129,8 @@ export const BuildingSchema = z
     recipes: z
       .object({
         maxRuns: int.min(1),
+        /** Extra runs allowed on night energy only (the Night Shift tuning). */
+        nightOnlyRuns: nonNeg.default(0),
         energyPerRun: int.min(1),
         defaultRecipe: z.string(),
         options: z.array(RecipeSchema).min(1),
@@ -151,6 +157,8 @@ export const BuildingSchema = z
     neighborFoodBonus: z
       .object({
         amount: int.min(1),
+        /** How far the bonus reaches, in tiles (the Hive Mind tuning makes it 2). */
+        radius: int.min(1).default(1),
         /** Building ids that benefit; omitted means every food-kind building. */
         targets: z.array(z.string()).optional(),
         maxTargets: int.min(1).optional(),
@@ -187,7 +195,13 @@ export const BuildingSchema = z
         downstreamFoodPenalty: z.object({ targets: z.array(z.string()), amount: int.min(1) }),
       })
       .optional(),
-    levee: z.object({ radius: int.min(1) }).optional(),
+    levee: z
+      .object({
+        radius: int.min(1),
+        /** Share of the silt boost protected farms still get (the Silt Traps tuning). */
+        siltShare: z.number().min(0).max(1).default(0),
+      })
+      .optional(),
     storage: z
       .object({
         holds: z.enum(['energy', 'heat']),
@@ -218,6 +232,8 @@ export const EventsSchema = z
       siltBonus: z.number().min(0),
       siltSeasons: z.array(z.enum(SEASONS)),
       repairCost: nonNeg,
+      /** Whether the flood damages buildings that aren't flood-tolerant (River Keepers: no). */
+      damages: z.boolean().default(true),
     }),
     lowRiver: EventBase.extend({
       farFromWaterDistance: int.min(0),
@@ -259,6 +275,8 @@ export const RulesSchema = z
       perUnpoweredHome: int,
       clutterStep: int.min(1),
       perClutterStep: int,
+      /** Wellbeing each season the night slot has no shortfall (the Night Market charter). */
+      nightPowered: int.default(0),
     }),
     population: z.object({
       growAt: int,
@@ -272,6 +290,13 @@ export const RulesSchema = z
     compostPerTileStep: int.min(1),
     knowledge: z.object({ reroll: nonNeg, extraCard: nonNeg, hint: nonNeg }),
     draftCards: int.min(1),
+    /** Salvage gained per unit drawn from a ruin (Repair Culture doubles it). */
+    ruinSalvageFactor: z.number().min(0).default(1),
+    /** Multiplies what flexible consumers (workshops, kilns) make, rounded down (Slow Power). */
+    flexibleOutputFactor: z.number().min(0).default(1),
+    /** Eras whose first season offers a charter, and how many to choose from. */
+    charterEras: z.array(int.min(1)).default([]),
+    charterChoices: int.min(1).default(3),
     /**
      * Provisional end-of-run score for the balance simulator. The real formula
      * and the Graft tier bands are an open design question (Milestone 7).
@@ -314,6 +339,138 @@ export const MapGenSchema = z
   .strict();
 export type MapGen = z.infer<typeof MapGenSchema>;
 
+/**
+ * A data modifier: tunings and charters change numbers in the content for the
+ * rest of a run. `path` is a dot path into a building, the rules or an event
+ * (array indexes allowed, e.g. `generation.day.3`). `add` and `multiply` apply
+ * to every number of an array.
+ */
+export const ModifierSchema = z
+  .object({
+    target: z.enum(['building', 'rules', 'event']),
+    /** Building or event id (not for rules). */
+    id: z.string().optional(),
+    path: z.string().min(1),
+    set: z.union([z.number(), z.boolean(), z.string()]).optional(),
+    add: z.number().optional(),
+    multiply: z.number().optional(),
+  })
+  .strict()
+  .refine((m) => [m.set, m.add, m.multiply].filter((x) => x !== undefined).length === 1, {
+    message: 'a modifier needs exactly one of set, add or multiply',
+  });
+export type Modifier = z.infer<typeof ModifierSchema>;
+
+const CardText = { id: z.string().regex(/^[a-z][A-Za-z]*$/), name: z.string(), text: z.string() };
+
+export const TuningSchema = z.object({ ...CardText, modifiers: z.array(ModifierSchema).min(1) });
+export type Tuning = z.infer<typeof TuningSchema>;
+export const CharterSchema = z.object({ ...CardText, modifiers: z.array(ModifierSchema).min(1) });
+export type Charter = z.infer<typeof CharterSchema>;
+
+/** Next to at least `count` buildings of these types, or tiles of these types. */
+const NextTo = z
+  .object({
+    buildings: z.array(z.string()).optional(),
+    tiles: z.array(TileTypeSchema).optional(),
+    count: int.min(1).default(1),
+  })
+  .strict();
+
+const ComboBase = {
+  id: z.string().regex(/^[a-z][A-Za-z]*$/),
+  name: z.string(),
+  /** What it is and does, shown once discovered. */
+  text: z.string(),
+  /** A nudge towards it, shown on the silhouette (free for adjacency and chains). */
+  hint: z.string(),
+};
+
+export const ComboSchema = z.discriminatedUnion('layer', [
+  /** 1. Adjacency: a building next to the right neighbours (the rule itself lives on the buildings). */
+  z
+    .object({
+      ...ComboBase,
+      layer: z.literal('adjacency'),
+      building: z.string(),
+      nextTo: NextTo,
+      notNextTo: z.array(z.string()).default([]),
+      seasons: PerSeasonFlags.default([true, true, true, true]),
+    })
+    .strict(),
+  /**
+   * 2. Chains: a path of adjacent buildings, one from each link, that all
+   * worked this season. Once closed, each member gets +bonus to the first
+   * resource in `bonusOrder` it makes, every season from the next one on.
+   */
+  z
+    .object({
+      ...ComboBase,
+      layer: z.literal('chain'),
+      links: z
+        .array(z.object({ buildings: z.array(z.string()).min(1), slot: z.enum(SLOTS).optional() }))
+        .min(2),
+      bonus: int.min(1),
+      bonusOrder: z.array(ResourceSchema).min(1),
+    })
+    .strict(),
+  /** 3. Formations: hidden shapes. Their effect lasts while the shape stands. */
+  z
+    .object({
+      ...ComboBase,
+      layer: z.literal('formation'),
+      shape: z.discriminatedUnion('kind', [
+        /** A building ringed by `size` buildings of at least `minTypes` types. */
+        z.object({
+          kind: z.literal('ring'),
+          center: z.string(),
+          size: int.min(1).max(6),
+          minTypes: int.min(1),
+        }),
+        /** Buildings in a straight line, in this order (either direction), on these tiles. */
+        z.object({
+          kind: z.literal('line'),
+          sequence: z.array(z.string()).min(2),
+          tiles: z.array(TileTypeSchema).optional(),
+        }),
+        /** An unbroken strip of these tiles from the river to a side edge of the valley. */
+        z.object({ kind: z.literal('strip'), tiles: z.array(TileTypeSchema).min(1) }),
+      ]),
+      effect: z
+        .object({
+          wellbeing: int.default(0),
+          harmony: int.default(0),
+          /** Extra energy per slot for members of `appliesTo`, in slots where they produce. */
+          generation: int.default(0),
+          ignoresShade: z.boolean().default(false),
+          /** Members of `appliesTo` run without energy. */
+          freeRuns: z.boolean().default(false),
+          appliesTo: z.string().optional(),
+        })
+        .strict(),
+    })
+    .strict(),
+  /** 4. Evolutions: a building becomes another because of its neighbours. */
+  z
+    .object({
+      ...ComboBase,
+      layer: z.literal('evolution'),
+      from: z.string(),
+      into: z.string(),
+      when: z.discriminatedUnion('kind', [
+        z.object({ kind: z.literal('nextTo'), nextTo: NextTo }),
+        /** Its ruin has no salvage left. */
+        z.object({ kind: z.literal('ruinExhausted') }),
+        /** Placing this building on it (a solar canopy on a farm). */
+        z.object({ kind: z.literal('placed'), building: z.string() }),
+      ]),
+    })
+    .strict(),
+]);
+export type Combo = z.infer<typeof ComboSchema>;
+export type ComboLayer = Combo['layer'];
+export const COMBO_LAYERS = ['adjacency', 'chain', 'formation', 'evolution'] as const;
+
 export const ContentSchema = z
   .object({
     id: z.string(),
@@ -330,6 +487,9 @@ export const ContentSchema = z
     events: EventsSchema,
     campBuilding: z.string(),
     buildings: z.array(BuildingSchema).min(1),
+    combos: z.array(ComboSchema).default([]),
+    tunings: z.array(TuningSchema).default([]),
+    charters: z.array(CharterSchema).default([]),
     /** Fixed draft offers for the guided first year, spring to winter. */
     guidedYear: z.tuple([
       z.array(z.string()),

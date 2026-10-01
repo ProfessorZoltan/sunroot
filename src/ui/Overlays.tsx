@@ -6,7 +6,15 @@ import { hexKey, provisionalScore } from '../sim';
 import { Arrow, Sun, Undo, Wind } from './icons';
 import { SEASON_NAMES } from './TopBar';
 
-export function Footer({ store, onHelp }: { store: GameStore; onHelp: () => void }) {
+export function Footer({
+  store,
+  onHelp,
+  onAlmanac,
+}: {
+  store: GameStore;
+  onHelp: () => void;
+  onAlmanac: () => void;
+}) {
   const { content, state } = store;
   const event = content.events[state.forecast.event];
   const next = content.events[state.forecast.next];
@@ -24,11 +32,21 @@ export function Footer({ store, onHelp }: { store: GameStore; onHelp: () => void
         </div>
       </div>
       <div class="message" role="status" aria-live="polite">
-        {store.message ?? (needsPick && !ended ? 'Choose a draft card to end the season.' : '')}
+        {store.message ??
+          (ended
+            ? ''
+            : state.charterOffer.length > 0
+              ? 'Choose a charter to end the season.'
+              : needsPick
+                ? 'Choose a draft card to end the season.'
+                : '')}
       </div>
       <div class="actions">
         <button type="button" class="button" onClick={onHelp} aria-keyshortcuts="?">
           Keys
+        </button>
+        <button type="button" class="button" onClick={onAlmanac} aria-keyshortcuts="A">
+          Almanac
         </button>
         <button
           type="button"
@@ -52,7 +70,7 @@ export function Footer({ store, onHelp }: { store: GameStore; onHelp: () => void
           <button
             type="button"
             class="button primary"
-            disabled={ended || needsPick}
+            disabled={ended || needsPick || state.charterOffer.length > 0}
             onClick={() => store.dispatch({ type: 'endSeason' })}
             aria-keyshortcuts="E"
           >
@@ -147,7 +165,8 @@ export function Help({ onClose }: { onClose: () => void }) {
   const close = useRef<HTMLButtonElement>(null);
   useEffect(() => close.current?.focus(), []);
   const keys: [string, string][] = [
-    ['1 – 4', 'Pick a draft card'],
+    ['1 – 4', 'Pick a draft card (or a charter, when one is offered)'],
+    ['A', 'Open the Almanac'],
     ['R / X', 'Reroll the draft / buy a 4th card (knowledge)'],
     ['Letters on the palette', 'Pick a building to place'],
     ['K', 'Spread compost'],
@@ -191,7 +210,16 @@ export function Help({ onClose }: { onClose: () => void }) {
 export function EndScreen({ store, onClose }: { store: GameStore; onClose: () => void }) {
   const { content, state } = store;
   const first = useRef<HTMLButtonElement>(null);
-  useEffect(() => first.current?.focus(), []);
+  useEffect(() => {
+    // Focus the first button, and again after the next frame in case a closing
+    // overlay or a late re-render took focus away.
+    first.current?.focus();
+    const again = requestAnimationFrame(() => {
+      const dialog = first.current?.closest('[role="dialog"]');
+      if (dialog && !dialog.contains(document.activeElement)) first.current?.focus();
+    });
+    return () => cancelAnimationFrame(again);
+  }, []);
   const score = provisionalScore(content, state);
   const complete = state.status === 'complete';
   const newRun = () => {

@@ -3,8 +3,8 @@
 A solarpunk settlement builder of short, replayable runs. Each run heals one damaged region, and what
 it sends home grows a permanent city. The full design is in [docs/DESIGN.md](docs/DESIGN.md).
 
-Built so far: the simulation core, the balance simulator, the map, the interface and the season
-resolution (Milestones 0 to 5 of the build plan). A whole run of Willow Reach can be played to the end with mouse or
+Built so far: the simulation core, the balance simulator, the map, the interface, the season
+resolution, and combos with the Almanac (Milestones 0 to 6 of the build plan). A whole run of Willow Reach can be played to the end with mouse or
 keyboard. See [CHANGELOG.md](CHANGELOG.md) and [docs/DECISIONS.md](docs/DECISIONS.md).
 
 ## Getting started
@@ -31,8 +31,13 @@ the season when you're ready; the year strip shows each season's energy and fore
 the year with what you have now. Each season then plays out on the map in about 5 seconds: Space
 skips it, P pauses it.
 
+Buildings combine: neighbours help each other, loops of buildings earn a lasting bonus, hidden shapes
+and evolutions wait to be discovered. Each discovery goes into the Almanac (A), which keeps them
+across runs. Tunings join the draft, and each new era offers a charter.
+
 Keyboard: 1–4 pick a card, letters on the palette pick a building, arrow keys aim, N jumps to the
-next legal site, Enter places, Z undoes, E ends the season, ? lists every key.
+next legal site, Enter places, Z undoes, E ends the season, Space skips its resolution, A opens
+the Almanac, ? lists every key.
 
 ## Layout
 

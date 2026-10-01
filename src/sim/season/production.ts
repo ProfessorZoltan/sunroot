@@ -54,7 +54,12 @@ export function generate(ctx: SeasonContext): void {
     const neighbors = neighborBuildings(state, b, occ);
     let adjust = 0;
     const notes: string[] = [];
-    if (def.shading) {
+    const effect = ctx.effects.get(b.uid);
+    if (effect?.generation) {
+      adjust += effect.generation;
+      notes.push(`in a formation +${effect.generation}`);
+    }
+    if (def.shading && !effect?.ignoresShade) {
       const casters = [
         ...neighbors.filter((n) => defOf(content, n).tall).map((n) => hexKey(n.at)),
         ...neighborTiles(state, b.at)
@@ -149,11 +154,16 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
   if (res === 'food' && def.farmland) {
     const flood = content.events.flood;
     if (b.siltYear === state.year && flood.siltSeasons.includes(state.season)) {
-      multiplier *= 1 + flood.siltBonus;
-      lines.push(`× ${1 + flood.siltBonus} silt`);
+      const silt = 1 + flood.siltBonus * (b.siltShare ?? 1);
+      multiplier *= silt;
+      lines.push(`× ${silt} silt`);
     }
     const low = content.events.lowRiver;
-    if (ctx.lowRiver && waterDistance(content, state, b.at) > low.farFromWaterDistance) {
+    if (
+      ctx.lowRiver &&
+      !def.ignoresLowRiver &&
+      waterDistance(content, state, b.at) > low.farFromWaterDistance
+    ) {
       multiplier *= low.farYieldFactor;
       lines.push(`× ${low.farYieldFactor} low river, far from water`);
     }
@@ -185,8 +195,10 @@ export function yieldFor(ctx: SeasonContext, buildings: BuildingState[]): void {
       let amount = computeYield(ctx, b, res);
       if (amount > 0 && res === 'salvage' && def.drawsFromRuin) {
         const tile = tileAt(state, b.at)!;
-        amount = Math.min(amount, tile.salvage ?? 0);
-        tile.salvage = (tile.salvage ?? 0) - amount;
+        const drawn = Math.min(amount, tile.salvage ?? 0);
+        tile.salvage = (tile.salvage ?? 0) - drawn;
+        amount = Math.floor(drawn * content.rules.ruinSalvageFactor);
+        if (amount !== drawn) explain(ctx, b, `${drawn} salvage from the ruin gives ${amount}`);
       }
       addYield(ctx, b, res, amount);
     }
@@ -295,7 +307,13 @@ export function neighborBonuses(ctx: SeasonContext, targets: BuildingState[]): v
       continue;
     }
     let given = 0;
-    for (const target of neighbors) {
+    const reach =
+      bonus.radius > 1
+        ? Object.values(state.buildings)
+            .filter((o) => o.uid !== giver.uid && hexDistance(o.at, giver.at) <= bonus.radius)
+            .sort((a, b) => hexDistance(a.at, giver.at) - hexDistance(b.at, giver.at))
+        : neighbors;
+    for (const target of reach) {
       if (bonus.maxTargets !== undefined && given >= bonus.maxTargets) break;
       if (!eligible.has(target.uid)) continue;
       const tdef = defOf(content, target);

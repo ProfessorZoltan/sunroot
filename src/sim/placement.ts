@@ -1,5 +1,6 @@
 import type { Content } from './content/load';
 import { hexKey, type Hex } from './hex';
+import { placementEvolution } from './combos';
 import { buildingsTouching, neighborTiles, occupancy, tileAt } from './queries';
 import type { RunState } from './types';
 
@@ -17,9 +18,15 @@ export function canPlace(
 ): PlacementCheck {
   const def = content.byId[buildingId];
   if (!def) return { ok: false, reason: `unknown building ${buildingId}` };
+  if (!def.placeable) return { ok: false, reason: `${def.name} can't be built, only evolved` };
   const tile = tileAt(state, at);
   if (!tile) return { ok: false, reason: 'outside the valley' };
-  if (occupancy(state).has(hexKey(at))) return { ok: false, reason: 'tile already has a building' };
+  const occupant = occupancy(state).get(hexKey(at));
+  if (occupant) {
+    // Some buildings evolve when built over another (a solar canopy over a farm).
+    if (placementEvolution(content, buildingId, occupant)) return { ok: true };
+    return { ok: false, reason: 'tile already has a building' };
+  }
   if (!def.placement.tiles.includes(tile.type)) {
     return { ok: false, reason: `${def.name} can't be built on ${tile.type}` };
   }

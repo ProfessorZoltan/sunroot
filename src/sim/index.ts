@@ -5,8 +5,13 @@ export {
   SLOTS,
   RESOURCES,
   TILE_TYPES,
+  COMBO_LAYERS,
   type BuildingDef,
+  type Charter,
+  type Combo,
+  type ComboLayer,
   type EventId,
+  type Tuning,
   type Resource,
   type Season,
   type Slot,
@@ -34,4 +39,7 @@ export {
   type HarmonyLine,
 } from './queries';
 export { projectSeason } from './projection';
+export { effectiveContent } from './content/modifiers';
+export { findFormations, placementEvolution } from './combos';
+export { isTuning } from './draft';
 export type * from './types';

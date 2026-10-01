@@ -8,6 +8,7 @@
 import { Application } from 'pixi.js';
 import { render } from 'preact';
 import willowReach from './content/willow-reach.json';
+import { loadAlmanac, saveAlmanac } from './game/almanac';
 import { GameStore } from './game/store';
 import { buildTimeline } from './game/timeline';
 import { renderBuildingIcons } from './render/icons';
@@ -20,6 +21,12 @@ async function start() {
   const params = new URLSearchParams(location.search);
   const seed = params.get('seed') ?? `run-${Math.floor(Math.random() * 1e9).toString(36)}`;
   const content = loadContent(willowReach);
+  let storage: Storage | null = null;
+  try {
+    storage = window.localStorage;
+  } catch {
+    // Blocked storage: the Almanac lasts for this visit only.
+  }
   const store = new GameStore(
     content,
     createRun(content, {
@@ -27,6 +34,10 @@ async function start() {
       guided: params.get('guided') !== '0',
       sandbox: params.has('sandbox'),
     }),
+    {
+      almanac: loadAlmanac(content, storage),
+      onAlmanac: (almanac) => saveAlmanac(content, storage, almanac),
+    },
   );
 
   let view: MapView | null = null;
@@ -76,6 +87,7 @@ async function start() {
       store.hover,
       store.placement,
       store.tool?.kind === 'compost' ? 'compost' : 'hover',
+      store.vines,
     );
   };
   store.subscribe(drawMap);

@@ -27,8 +27,13 @@ import { applyEvent } from './events';
 import { feedAndGrow, scrapsAndHarmony } from './people';
 import { generate, produce, producePowered, staff } from './production';
 import { snapshot } from '../snapshot';
+import { applyLoopBonuses, checkCombos, findFormations, formationEffects } from '../combos';
+import { effectiveContent } from '../content/modifiers';
+import { dealCharters } from '../draft';
 
-export function resolveSeason(content: Content, input: RunState): RunState {
+export function resolveSeason(base: Content, input: RunState): RunState {
+  // Tunings and charters change the content for the rest of the run.
+  const content = effectiveContent(base, input);
   const state: RunState = { ...snapshot(input), seasonStart: null, seasonCommands: [] };
   state.harmony = computeHarmony(content, state);
   const ctx: SeasonContext = {
@@ -41,17 +46,22 @@ export function resolveSeason(content: Content, input: RunState): RunState {
     lowRiver: false,
     foodProduced: 0,
     bonusGiven: new Set(),
+    formations: [],
+    effects: new Map(),
   };
 
   applyEvent(ctx); // 3
+  ctx.formations = findFormations(content, state);
+  ctx.effects = formationEffects(content, state, ctx.formations);
   staff(ctx);
   generate(ctx); // 4
   produce(ctx);
   resolveEnergy(ctx); // 5, 6, 7
   producePowered(ctx);
+  applyLoopBonuses(ctx);
   feedAndGrow(ctx); // 8
   scrapsAndHarmony(ctx); // 9
-  // 10: combo discovery arrives with Milestone 6.
+  checkCombos(ctx); // 10
 
   return advance(content, ctx);
 }
@@ -154,4 +164,9 @@ function startSeason(content: Content, state: RunState): void {
     }
   }
   state.draft = { offer: dealOffer(content, state), picked: null, extraBought: false };
+  // The first season of some eras offers a charter.
+  const startsEra = state.turn % (content.rules.yearsPerEra * SEASONS.length) === 0;
+  if (startsEra && content.rules.charterEras.includes(state.era)) {
+    state.charterOffer = dealCharters(content, state);
+  }
 }

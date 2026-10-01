@@ -1,4 +1,5 @@
 /** Read-only helpers over run state shared by commands and season resolution. */
+import { formationHarmony } from './combos';
 import type { Content } from './content/load';
 import type { BuildingDef, Season, TileType } from './content/schema';
 import { SEASONS } from './content/schema';
@@ -143,6 +144,7 @@ export function harmonyLines(content: Content, state: RunState): HarmonyLine[] {
   }
   for (const [name, e] of byBuilding) lines.push({ label: `${e.n} ${name}`, amount: e.amount });
   for (const [name, e] of penalties) lines.push({ label: `${e.n} ${name}`, amount: e.amount });
+  lines.push(...formationHarmony(content, state));
   if (state.stores.clutter > 0) {
     lines.push({
       label: `${state.stores.clutter} clutter`,

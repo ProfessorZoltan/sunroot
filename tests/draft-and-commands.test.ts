@@ -50,7 +50,8 @@ describe('the draft', () => {
 
   it('a pick unlocks the blueprint; one pick per season, required before the season ends', () => {
     let s = createRun(content, { seed: 'pick' });
-    const [card, other] = s.draft.offer;
+    const card = s.draft.offer.find((c) => content.byId[c]);
+    const other = s.draft.offer.find((c) => c !== card);
     expect(rejects(s, { type: 'endSeason' })).toMatch(/pick a draft card/);
     expect(rejects(s, { type: 'pickCard', card: 'weirdCard' })).toMatch(/not on offer/);
     s = act(s, { type: 'pickCard', card: card! });

@@ -222,9 +222,12 @@ export class MapView {
     hover: Hex | null,
     placement: Placement | null,
     cursor: 'hover' | 'compost' = 'hover',
+    vines: Hex[][] = [],
   ): void {
     const g = this.overlay.clear();
     for (const child of this.labels.removeChildren()) child.destroy();
+    // Vines grow between the tiles of each combo the placement would form.
+    for (const group of vines) drawVine(g, group.map(hexToPixel));
     if (placement) {
       const { preview, at, building } = placement;
       const c = hexToPixel(at);
@@ -466,6 +469,27 @@ export class MapView {
       { passive: false },
     );
   }
+}
+
+/** A leafy line through the given points. */
+export function drawVine(g: Graphics, pts: Point[]): void {
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1]!;
+    const b = pts[i]!;
+    const mid = {
+      x: (a.x + b.x) / 2 + (b.y - a.y) * 0.18,
+      y: (a.y + b.y) / 2 - (b.x - a.x) * 0.18,
+    };
+    g.moveTo(a.x, a.y)
+      .quadraticCurveTo(mid.x, mid.y, b.x, b.y)
+      .stroke({ width: 3, color: COLORS.good, alpha: 0.85, cap: 'round' });
+    for (const t of [0.3, 0.7]) {
+      const x = (1 - t) * (1 - t) * a.x + 2 * (1 - t) * t * mid.x + t * t * b.x;
+      const y = (1 - t) * (1 - t) * a.y + 2 * (1 - t) * t * mid.y + t * t * b.y;
+      g.ellipse(x + 3, y - 2, 4, 2.2).fill({ color: COLORS.treeLight });
+    }
+  }
+  for (const p of pts) g.circle(p.x, p.y, 3).fill({ color: COLORS.good });
 }
 
 function missingArt(g: Graphics, c: Point): void {

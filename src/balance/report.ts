@@ -466,7 +466,7 @@ function balanceQuestions(
         ? '**It dominates:** more than half of built energy comes from one source.'
         : 'No single built source makes more than half.') +
       ' The mix partly reflects what each bot prefers to build, so compare it with the per-bot table above.' +
-      ' Tunings are not in the game yet (Milestone 6), so "once tunings stack" cannot be answered until then.',
+      ' Tunings and charters are in play; the cards table shows how often each tuning was taken. The bots rank tunings below every blueprint, so stacked tunings are under-tested.',
     '',
   );
 

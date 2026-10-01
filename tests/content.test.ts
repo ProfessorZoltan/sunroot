@@ -11,7 +11,8 @@ describe('content validation', () => {
   it("loads Willow Reach: the camp, the design's 23 buildings and 2 from the heat proposal", () => {
     const content = loadContent(willowReach);
     const buildings = content.buildings.filter((b) => b.id !== content.campBuilding);
-    expect(buildings.filter((b) => !HEAT_PROPOSAL.includes(b.id))).toHaveLength(23);
+    // Evolved buildings (Milestone 6) are not among the 23: they come from evolutions.
+    expect(buildings.filter((b) => !HEAT_PROPOSAL.includes(b.id) && b.placeable)).toHaveLength(23);
     expect(HEAT_PROPOSAL.every((id) => content.byId[id])).toBe(true);
     expect(content.byId.floodplainFarm?.yields.food).toEqual([2, 4, 5, 0]);
   });

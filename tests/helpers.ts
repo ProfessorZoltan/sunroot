@@ -101,7 +101,8 @@ export function scenario(rows: string[], options: ScenarioOptions = {}): RunStat
   state.turn = (year - 1) * 4 + si;
   state.era = Math.min(4, Math.floor((year - 1) / 3) + 1);
   state.forecast = { event: content.calendar[si]!, next: content.calendar[(si + 1) % 4]! };
-  if (options.unlockAll ?? true) state.unlocked = content.buildings.map((b) => b.id);
+  if (options.unlockAll ?? true)
+    state.unlocked = content.buildings.filter((b) => b.placeable).map((b) => b.id);
   state.draft = { offer: [], picked: null, extraBought: false };
   Object.assign(state.stores, { materials: 200 }, options.stores);
   if (options.citizens !== undefined) state.citizens = options.citizens;
@@ -128,12 +129,19 @@ export function place(state: RunState, building: string, col: number, row: numbe
   return act(state, { type: 'place', building, at: at(col, row) });
 }
 
-/** Ends the season, picking the first card on offer if needed. */
+/**
+ * Ends the season, picking the first blueprint on offer if needed. Tunings
+ * and charters change rules, so rule tests never take one by accident: an
+ * offer of only tunings, and any charter offer, are set aside.
+ */
 export function endSeason(state: RunState): RunState {
   let s = state;
   if (s.draft.offer.length > 0 && s.draft.picked === null) {
-    s = act(s, { type: 'pickCard', card: s.draft.offer[0]! });
+    const blueprint = s.draft.offer.find((card) => content.byId[card]);
+    if (blueprint) s = act(s, { type: 'pickCard', card: blueprint });
+    else s = { ...s, draft: { ...s.draft, offer: [] } };
   }
+  if (s.charterOffer.length > 0) s = { ...s, charterOffer: [] };
   return act(s, { type: 'endSeason' });
 }
 

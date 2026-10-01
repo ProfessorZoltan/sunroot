@@ -9,6 +9,7 @@ import {
   neighborTiles,
 } from '../queries';
 import type { PopulationReason, WellbeingLine } from '../types';
+import { formationWellbeing } from '../combos';
 import type { SeasonContext } from './context';
 
 export function feedAndGrow(ctx: SeasonContext): void {
@@ -100,6 +101,12 @@ export function feedAndGrow(ctx: SeasonContext): void {
     if (whenPowered !== 0 && ctx.powered.has(b.uid)) {
       lines.push({ kind: 'civic', reason: `powered ${def.name}`, amount: whenPowered });
     }
+  }
+  for (const f of formationWellbeing(ctx)) {
+    lines.push({ kind: 'formation', reason: f.reason, amount: f.amount });
+  }
+  if (wb.nightPowered !== 0 && report.energy.night.shortfall === 0) {
+    lines.push({ kind: 'charter', reason: 'the night market', amount: wb.nightPowered });
   }
   const total = lines.reduce((sum, l) => sum + l.amount, 0);
   const wellbeingBefore = state.wellbeing;

@@ -31,6 +31,11 @@ export interface BuildingState {
   builtTurn: number;
   /** Year whose flood left silt on this farm. */
   siltYear?: number;
+  /** Share of the silt boost it got (a levee with Silt Traps lets half through). */
+  siltShare?: number;
+  /** The building type it evolved from, and when (Milestone 6). */
+  evolvedFrom?: string;
+  evolvedTurn?: number;
   /** Disabled by an event. Flood damage needs a repair; storm damage clears next season. */
   damage?: { cause: 'flood' | 'storm'; turn: number };
   /** Selected recipe for workshops and kilns. */
@@ -85,8 +90,17 @@ export interface RunState {
   priority: string[];
   /** Energy supplied by source type in recent seasons (for the Mixed Grid bonus). */
   energyHistory: Record<string, number>[];
-  /** Combos discovered this run (Milestone 6). */
+  /** Combos discovered this run, in order. */
   discoveries: string[];
+  /** Closed loops: each keeps its bonus while it stands. */
+  loops: LoopState[];
+  /** Tunings drafted, and charters chosen, in order. */
+  tunings: string[];
+  charters: string[];
+  /** Charters on offer at the start of an era; one must be chosen before the season ends. */
+  charterOffer: string[];
+  /** Almanac hints bought with knowledge this run. */
+  hints: string[];
   /** Messages for the player about things that happened between seasons. */
   notices: string[];
   lastReport: SeasonReport | null;
@@ -96,10 +110,29 @@ export interface RunState {
   seasonCommands: Command[];
 }
 
+export interface LoopState {
+  combo: string;
+  /** The loop's first building (its composter, digester or fish pond). */
+  anchor: string;
+  /** Every building in the loop, anchor first. */
+  members: string[];
+  /** The turn it closed; its bonus starts the season after. */
+  turn: number;
+}
+
+/** A combo at work this season: its buildings (or, for a strip, tile keys). */
+export interface ComboHit {
+  combo: string;
+  members: string[];
+  tiles?: string[];
+}
+
 export type SeasonSnapshot = Omit<RunState, 'seasonStart' | 'seasonCommands'>;
 
 export type Command =
   | { type: 'pickCard'; card: string }
+  | { type: 'pickCharter'; charter: string }
+  | { type: 'buyHint'; combo: string }
   | { type: 'rerollDraft' }
   | { type: 'buyExtraCard' }
   | { type: 'place'; building: string; at: Hex }
@@ -160,7 +193,8 @@ export interface RunReport {
   energy: Record<Slot, number>;
 }
 
-export type WellbeingKind = 'needsMet' | 'hunger' | 'unpowered' | 'clutter' | 'greenery' | 'civic';
+export type WellbeingKind =
+  'needsMet' | 'hunger' | 'unpowered' | 'clutter' | 'greenery' | 'civic' | 'formation' | 'charter';
 
 export interface WellbeingLine {
   kind: WellbeingKind;
@@ -199,7 +233,11 @@ export interface SeasonReport {
   generated: Record<string, { energy: Record<Slot, number>; heat: Record<Slot, number> }>;
   /** Shaded solar per building uid: the keys of the tiles casting the shade. */
   shaded: Record<string, string[]>;
+  /** Combos at work this season (step 10), and the ones discovered for the first time this run. */
+  combos: ComboHit[];
   discoveries: string[];
+  /** Buildings that evolved at the end of this season. */
+  evolved: { uid: string; from: string; into: string }[];
 }
 
 /** Why the population did or didn't change this season. */

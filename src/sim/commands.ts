@@ -3,25 +3,29 @@
  * that comes back. Every command is pure: the input state is never mutated.
  */
 import type { Content } from './content/load';
-import { drawCards } from './draft';
+import { drawCards, isTuning } from './draft';
 import { hexKey } from './hex';
 import { canPlace } from './placement';
-import { computeHarmony, defOf, improveTile, isHome, tileAt } from './queries';
+import { evolve, hintable, placementEvolution } from './combos';
+import { effectiveContent } from './content/modifiers';
+import { buildingAt, computeHarmony, defOf, improveTile, isHome, tileAt } from './queries';
 import { resolveSeason } from './season/resolve';
 import { cloneState, snapshot } from './snapshot';
 import type { Command, CommandResult, RunState } from './types';
 
 const fail = (error: string): CommandResult => ({ ok: false, error });
 
-export function applyCommand(content: Content, state: RunState, command: Command): CommandResult {
+export function applyCommand(base: Content, state: RunState, command: Command): CommandResult {
   if (state.status !== 'active') return fail('the run has ended');
-  if (command.type === 'undo') return undo(content, state);
+  if (command.type === 'undo') return undo(base, state);
   if (command.type === 'endSeason') {
     if (state.draft.offer.length > 0 && state.draft.picked === null) {
       return fail('pick a draft card before ending the season');
     }
-    return { ok: true, state: resolveSeason(content, state) };
+    if (state.charterOffer.length > 0) return fail('choose a charter before ending the season');
+    return { ok: true, state: resolveSeason(base, state) };
   }
+  const content = effectiveContent(base, state);
   const next = cloneState(state);
   const error = mutate(content, next, command);
   if (error) return fail(error);
@@ -38,7 +42,22 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       if (s.draft.picked !== null) return 'already picked a card this season';
       if (!s.draft.offer.includes(command.card)) return `${command.card} is not on offer`;
       s.draft.picked = command.card;
-      if (!s.unlocked.includes(command.card)) s.unlocked.push(command.card);
+      if (isTuning(content, command.card)) s.tunings.push(command.card);
+      else if (!s.unlocked.includes(command.card)) s.unlocked.push(command.card);
+      return null;
+    }
+    case 'pickCharter': {
+      if (!s.charterOffer.includes(command.charter)) return `${command.charter} is not on offer`;
+      s.charters.push(command.charter);
+      s.charterOffer = [];
+      return null;
+    }
+    case 'buyHint': {
+      const reason = hintable(content, s, command.combo);
+      if (reason) return reason;
+      if (s.stores.knowledge < k.hint) return `a hint needs ${k.hint} knowledge`;
+      s.stores.knowledge -= k.hint;
+      s.hints.push(command.combo);
       return null;
     }
     case 'rerollDraft': {
@@ -68,6 +87,13 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       if (!site.ok) return site.reason;
       if (s.stores.materials < def.cost) return `${def.name} costs ${def.cost} materials`;
       s.stores.materials -= def.cost;
+      // A canopy built over a farm becomes part of it (an evolution).
+      const target = buildingAt(s, command.at);
+      const evolution = placementEvolution(content, def.id, target);
+      if (target && evolution) {
+        evolve(s, target, evolution.into);
+        return null;
+      }
       const uid = `b${s.nextUid++}`;
       s.buildings[uid] = {
         uid,

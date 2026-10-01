@@ -58,7 +58,7 @@ export interface Timeline {
   casters: Hex[];
   /** Solar the shade rule dimmed this season, and the tiles that shaded it. */
   shade: { at: Hex; by: Hex[] }[];
-  /** Loops that glow this season (Milestone 6 fills this in). */
+  /** Loops at work this season: each glows along its buildings. */
   glow: Hex[][];
 }
 
@@ -233,7 +233,9 @@ export function buildTimeline(
     damaged: report.damaged.map(at).filter((h): h is Hex => h !== undefined),
     casters,
     shade,
-    glow: [],
+    glow: report.combos
+      .filter((hit) => content.comboById[hit.combo]?.layer === 'chain')
+      .map((hit) => hit.members.map(at).filter((h): h is Hex => h !== undefined)),
   };
 }
 

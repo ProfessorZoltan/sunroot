@@ -9,7 +9,9 @@ import { RESOURCES, SLOTS, type Resource, type Slot } from './content/schema';
 import type { Hex } from './hex';
 import { canPlace } from './placement';
 import { resolveSeason } from './season/resolve';
-import type { RunState } from './types';
+import { placementEvolution } from './combos';
+import { buildingAt } from './queries';
+import type { ComboHit, RunState } from './types';
 
 export type PreviewKey = Resource | `${Slot}Energy` | `${Slot}Heat`;
 
@@ -40,6 +42,10 @@ export type PlacementPreview =
       warnings: string[];
       /** The new building's own math for this season. */
       math: string[];
+      /** Combos this placement would put to work this season (new or grown). */
+      combos: ComboHit[];
+      /** Built over another building, it evolves that building instead (a canopy over a farm). */
+      evolves: { uid: string; into: string } | null;
     };
 
 /** Resolving the unchanged season can be cached by the caller and passed in. */
@@ -57,7 +63,9 @@ export function previewPlacement(
   const placed = applyCommand(content, state, { type: 'place', building, at });
   if (!placed.ok) return { ok: false, reason: placed.error };
   const after = resolveSeason(content, placed.state);
-  const uid = `b${state.nextUid}`;
+  const target = buildingAt(state, at);
+  const evolution = placementEvolution(content, building, target);
+  const uid = target && evolution ? target.uid : `b${state.nextUid}`;
   const b = before.lastReport!;
   const a = after.lastReport!;
 
@@ -111,7 +119,15 @@ export function previewPlacement(
     },
     warnings,
     math: a.math[uid] ?? [],
+    combos: a.combos.filter((hit) => !b.combos.some((x) => sameHit(x, hit))),
+    evolves: target && evolution ? { uid: target.uid, into: evolution.into } : null,
   };
+}
+
+const hitKey = (h: ComboHit) =>
+  `${h.combo}:${[...h.members].sort().join(',')}:${(h.tiles ?? []).join(',')}`;
+function sameHit(a: ComboHit, b: ComboHit): boolean {
+  return hitKey(a) === hitKey(b);
 }
 
 /** The season resolved as things stand, for callers that preview many placements. */

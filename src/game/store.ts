@@ -11,8 +11,10 @@ import {
   hexDistance,
   hexKey,
   offsetToAxial,
+  parseHexKey,
   previewPlacement,
   resolveAsIs,
+  type ComboHit,
   type Command,
   type Content,
   type Hex,
@@ -20,6 +22,7 @@ import {
   type RunState,
   type SeasonReport,
 } from '../sim';
+import { EMPTY_ALMANAC, entryView, recordRun, type Almanac } from './almanac';
 import { computeInsight, type Insight } from './insight';
 import type { PhaseName } from './timeline';
 
@@ -52,6 +55,9 @@ export class GameStore {
   placement: Placement | null = null;
   message: string | null = null;
   resolution: Resolution | null = null;
+  /** Combos new to the Almanac, waiting to be revealed after the resolution. */
+  discoveries: string[] = [];
+  almanac: Almanac;
   private resolutions = 0;
   private listeners = new Set<() => void>();
   private cache: { state: RunState; asIs: RunState; insight: Insight | null } | null = null;
@@ -59,7 +65,13 @@ export class GameStore {
   constructor(
     readonly content: Content,
     public state: RunState,
-  ) {}
+    options: { almanac?: Almanac; onAlmanac?: (almanac: Almanac) => void } = {},
+  ) {
+    this.almanac = options.almanac ?? EMPTY_ALMANAC;
+    this.onAlmanac = options.onAlmanac ?? (() => {});
+  }
+
+  private readonly onAlmanac: (almanac: Almanac) => void;
 
   subscribe(listener: () => void): () => void {
     this.listeners.add(listener);
@@ -111,6 +123,17 @@ export class GameStore {
       if (this.inspected && !this.state.buildings[this.inspected]) this.inspected = null;
       if (this.state.status !== 'active') this.tool = null;
       this.refreshPlacement();
+      // The Almanac keeps what a season found once the season has ended (hints bought
+      // this season can still be undone until then; the Almanac view shows them already).
+      const { almanac, fresh } =
+        command.type === 'endSeason'
+          ? recordRun(this.almanac, this.state)
+          : { almanac: this.almanac, fresh: [] };
+      if (almanac !== this.almanac) {
+        this.almanac = almanac;
+        this.discoveries = [...this.discoveries, ...fresh];
+        this.onAlmanac(almanac);
+      }
     } else {
       this.message = result.error;
     }
@@ -128,6 +151,13 @@ export class GameStore {
   setResolutionPhase(id: number, phase: PhaseName): void {
     if (this.resolution?.id !== id || this.resolution.phase === phase) return;
     this.resolution = { ...this.resolution, phase };
+    this.emit();
+  }
+
+  /** Closes the discovery card on top. */
+  dismissDiscovery(): void {
+    if (this.discoveries.length === 0) return;
+    this.discoveries = this.discoveries.slice(1);
     this.emit();
   }
 
@@ -219,6 +249,29 @@ export class GameStore {
       .map((t) => ({ t, rank: (risky(t) ? 1000 : 0) + hexDistance(t, camp) }))
       .sort((a, b) => a.rank - b.rank)
       .map(({ t }) => ({ q: t.q, r: t.r }));
+  }
+
+  /**
+   * Combos a placement would put to work that the player may see: adjacency
+   * and chains always (the obvious layers), hidden ones once in the Almanac.
+   */
+  visibleCombos(hits: ComboHit[]): ComboHit[] {
+    return hits.filter((h) => {
+      const combo = this.content.comboById[h.combo];
+      if (!combo) return false;
+      if (combo.layer === 'adjacency' || combo.layer === 'chain') return true;
+      return entryView(this.almanac, this.state, combo) === 'known';
+    });
+  }
+
+  /** Vines between the tiles of each visible combo the placement would form. */
+  get vines(): Hex[][] {
+    const p = this.placement;
+    if (!p?.preview.ok) return [];
+    const where = (uid: string) => this.state.buildings[uid]?.at ?? p.at;
+    return this.visibleCombos(p.preview.combos).map((h) =>
+      h.tiles ? h.tiles.map(parseHexKey) : h.members.map(where),
+    );
   }
 
   inspect(uid: string | null): void {

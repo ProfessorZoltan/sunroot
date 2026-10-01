@@ -314,6 +314,46 @@ export const BUILDING_ART: Record<string, Art> = {
     shadow(g, c, 13, 4, 11);
     panel(g, c, 0x8a4a24, 0xf2a14a);
   },
+  // Evolved buildings (Milestone 6).
+  winterGarden(g, c) {
+    BUILDING_ART.greenhouse!(g, c);
+    g.circle(c.x, c.y - 7, 2.5).fill({ color: COLORS.flowerPink });
+    g.circle(c.x - 8, c.y + 4, 1.6).fill({ color: COLORS.fruit });
+    g.circle(c.x + 8, c.y + 4, 1.6).fill({ color: COLORS.sunGold });
+    g.moveTo(c.x - 13, c.y + 9)
+      .quadraticCurveTo(c.x, c.y + 13, c.x + 13, c.y + 9)
+      .stroke({ width: 1.5, color: COLORS.terracotta });
+  },
+  agrivoltaicField(g, c) {
+    BUILDING_ART.floodplainFarm!(g, c);
+    g.moveTo(c.x - 7, c.y + 2)
+      .lineTo(c.x - 7, c.y - 6)
+      .moveTo(c.x + 7, c.y + 2)
+      .lineTo(c.x + 7, c.y - 6)
+      .stroke({ width: 1.5, color: DARK });
+    panel(g, { x: c.x, y: c.y - 10 }, COLORS.solarTeal, 0x9fc6c8);
+  },
+  rewildedRuin(g, c) {
+    shadow(g, c, 13);
+    g.rect(c.x - 12, c.y + 2, 8, 5).fill({ color: COLORS.stone });
+    g.rect(c.x + 2, c.y - 6, 9, 13).fill({ color: 0xb4a88f });
+    g.moveTo(c.x + 3, c.y + 7)
+      .quadraticCurveTo(c.x + 1, c.y - 2, c.x + 6, c.y - 7)
+      .stroke({ width: 1.6, color: COLORS.treeDark });
+    tree(g, c.x - 5, c.y - 5, 5);
+    g.circle(c.x + 9, c.y - 1, 1.5).fill({ color: COLORS.flowerPink });
+    g.circle(c.x - 9, c.y + 1, 1.5).fill({ color: COLORS.flowerPink });
+  },
+  treehouseCommons(g, c) {
+    shadow(g, c, 14, 4, 11);
+    g.rect(c.x - 2, c.y, 4, 11).fill({ color: COLORS.wood });
+    g.circle(c.x, c.y - 4, 12).fill({ color: COLORS.treeLight });
+    g.circle(c.x - 6, c.y - 8, 6).fill({ color: COLORS.treeDark, alpha: 0.35 });
+    house(g, c.x + 1, c.y - 3, 0.7);
+    g.moveTo(c.x - 9, c.y + 10)
+      .lineTo(c.x - 4, c.y + 1)
+      .stroke({ width: 1.2, color: DARK });
+  },
 };
 
 /** Damaged buildings get a grey veil and a crack; blacked-out ones a dim veil. */

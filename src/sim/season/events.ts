@@ -46,15 +46,27 @@ export function applyEvent(ctx: SeasonContext): void {
       const flooded = floodable.filter((k) => !protectedTile(k));
       report.flooded = flooded;
       const occ = occupancy(state);
+      // Levees with Silt Traps let part of the silt through to the farms they protect.
+      const share = Math.max(0, ...levees.map((l) => defOf(content, l).levee!.siltShare));
+      if (share > 0) {
+        for (const key of floodable) {
+          const b = occ.get(key);
+          if (!b || !protectedTile(key) || !defOf(content, b).farmland) continue;
+          b.siltYear = state.year;
+          b.siltShare = share;
+          report.silted.push(b.uid);
+        }
+      }
       for (const key of flooded) {
         const b = occ.get(key);
         if (!b) continue;
         const def = defOf(content, b);
         if (def.farmland) {
           b.siltYear = state.year;
+          b.siltShare = 1;
           report.silted.push(b.uid);
         }
-        if (!def.floodTolerant) {
+        if (!def.floodTolerant && content.events.flood.damages) {
           b.damage = { cause: 'flood', turn: state.turn };
           report.damaged.push(b.uid);
         }

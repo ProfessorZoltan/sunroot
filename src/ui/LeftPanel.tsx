@@ -2,6 +2,7 @@
 import type { GameStore } from '../game/store';
 import { POPULATION_REASONS } from '../game/insight';
 import type { Resource } from '../sim';
+import { LoopsPanel } from './Combos';
 import { Person, ResourceIcon } from './icons';
 import { TipTable, signed, useTip } from './tips';
 
@@ -29,9 +30,7 @@ export function LeftPanel({ store }: { store: GameStore }) {
         <div class="quiet small">Numbers on the right: the change by the end of this season.</div>
       </section>
       <LastSeason store={store} />
-      <section class="coming-soon quiet small">
-        Loops, charters and the Almanac arrive with combos (Milestone 6).
-      </section>
+      <LoopsPanel store={store} />
     </aside>
   );
 }

@@ -21,6 +21,22 @@ const state = (page: Page) =>
     };
   });
 
+/** Esc until the season has played out and every discovery card is closed. */
+async function settle(page: Page) {
+  for (let i = 0; i < 12; i++) {
+    const busy = await page.evaluate(() => {
+      const { store } = (
+        window as unknown as {
+          sunroot: { store: { resolution: unknown; discoveries: string[] } };
+        }
+      ).sunroot;
+      return store.resolution !== null || store.discoveries.length > 0;
+    });
+    if (!busy) return;
+    await page.keyboard.press('Escape');
+  }
+}
+
 test('a whole run, keyboard only, to the end screen', async ({ page }) => {
   test.setTimeout(120_000);
   const errors: string[] = [];
@@ -33,8 +49,9 @@ test('a whole run, keyboard only, to the end screen', async ({ page }) => {
   for (let season = 0; season < 48; season++) {
     const s = await state(page);
     if (s.status !== 'active') break;
-    await page.keyboard.press('Escape'); // skip the last season's resolution
-    await page.keyboard.press('1');
+    await settle(page); // skip the last season's resolution and close discovery cards
+    await page.keyboard.press('1'); // a charter, when one is offered at a new era
+    await page.keyboard.press('1'); // the draft card
     const key = plan[season];
     if (key) {
       await page.keyboard.press(key);
@@ -46,9 +63,11 @@ test('a whole run, keyboard only, to the end screen', async ({ page }) => {
   }
   const end = await state(page);
   expect(['complete', 'collapsed']).toContain(end.status);
-  expect(end.types).toEqual(expect.arrayContaining(['floodplainFarm', 'salvageYard', 'workshop']));
+  expect(end.types).toEqual(expect.arrayContaining(['floodplainFarm', 'workshop']));
+  // The salvage yard may have emptied its ruin and evolved into a Rewilded Ruin.
+  expect(end.types.some((t) => t === 'salvageYard' || t === 'rewildedRuin')).toBe(true);
   const dialog = page.getByRole('dialog', { name: 'The run has ended' });
-  await page.keyboard.press('Escape'); // skip the final season's resolution
+  await settle(page);
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole('button', { name: 'Start a new run' })).toBeFocused();
   await page.keyboard.press('Tab');

@@ -8,6 +8,7 @@ import { useEffect, useReducer, useRef, useState } from 'preact/hooks';
 import type { GameStore } from '../game/store';
 import type { MapView } from '../render/mapView';
 import { paletteHotkeys, GLOBAL_KEYS } from './hotkeys';
+import { AlmanacModal, DiscoveryCard } from './Combos';
 import { LeftPanel } from './LeftPanel';
 import { EndScreen, Footer, ForecastPill, Help, MapTip, ResolutionBanner } from './Overlays';
 import { RightPanel, paletteOrder, type Ui } from './RightPanel';
@@ -30,6 +31,12 @@ export function App({
   const setHelp = (open: boolean) => {
     helpOpen.current = open;
     setHelpState(open);
+  };
+  const [almanac, setAlmanacState] = useState(false);
+  const almanacOpen = useRef(false);
+  const setAlmanac = (open: boolean) => {
+    almanacOpen.current = open;
+    setAlmanacState(open);
   };
   const [endSeen, setEndSeen] = useState(false);
   useEffect(() => store.subscribe(() => rerender(undefined)), [store]);
@@ -62,14 +69,31 @@ export function App({
         }
         if (lower === 'p') return (handled(), store.togglePause());
       }
+      // A discovery card waits for Continue (Enter or Space on its button, or Esc).
+      const revealing = store.discoveries.length > 0 && !store.resolution;
+      if (revealing && !help) {
+        if (key === 'Escape') return (handled(), store.dismissDiscovery());
+        return;
+      }
+      if (almanacOpen.current && !help) {
+        if (key === 'Escape' || lower === GLOBAL_KEYS.almanac)
+          return (handled(), setAlmanac(false));
+        return;
+      }
       if (key === 'Escape') {
         if (help) return setHelp(false);
         if (store.tool) return store.setTool(null);
         return store.inspect(null);
       }
       if (help) return;
+      if (lower === GLOBAL_KEYS.almanac) return (handled(), setAlmanac(true));
       if (/^[1-4]$/.test(key)) {
-        const { draft } = store.state;
+        const { draft, charterOffer } = store.state;
+        const charter = charterOffer[Number(key) - 1];
+        if (charterOffer.length > 0) {
+          if (charter) store.dispatch({ type: 'pickCharter', charter });
+          return handled();
+        }
         const card = draft.offer[Number(key) - 1];
         if (card && !draft.picked) store.dispatch({ type: 'pickCard', card });
         return handled();
@@ -143,9 +167,11 @@ export function App({
           </main>
           <RightPanel store={store} ui={ui} />
         </div>
-        <Footer store={store} onHelp={() => setHelp(true)} />
+        <Footer store={store} onHelp={() => setHelp(true)} onAlmanac={() => setAlmanac(true)} />
         {help && <Help onClose={() => setHelp(false)} />}
-        {ended && !endSeen && !store.resolution && (
+        {almanac && <AlmanacModal store={store} onClose={() => setAlmanac(false)} />}
+        {store.discoveries.length > 0 && !store.resolution && <DiscoveryCard store={store} />}
+        {ended && !endSeen && !store.resolution && store.discoveries.length === 0 && (
           <EndScreen store={store} onClose={() => setEndSeen(true)} />
         )}
       </div>

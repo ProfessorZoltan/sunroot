@@ -196,15 +196,19 @@ export function resolveEnergy(ctx: SeasonContext): void {
     const recipeId = b.recipe ?? def.recipes.defaultRecipe;
     const recipe = def.recipes.options.find((o) => o.id === recipeId)!;
     const used = perSlot();
+    // A Mill Race workshop runs on the river's power; Night Shift adds night-only runs.
+    const cost = ctx.effects.get(b.uid)?.freeRuns ? 0 : def.recipes.energyPerRun;
+    const made: Partial<Record<keyof typeof state.stores, number>> = {};
     let runs = 0;
-    while (runs < def.recipes.maxRuns) {
+    while (runs < def.recipes.maxRuns + def.recipes.nightOnlyRuns) {
       const inputs = Object.entries(recipe.inputs) as [keyof typeof state.stores, number][];
       if (inputs.some(([res, n]) => state.stores[res] < n)) break;
-      const slot = SLOTS.find((s) => spare[s] >= def.recipes!.energyPerRun);
+      const slots: readonly Slot[] = runs < def.recipes.maxRuns ? SLOTS : ['night'];
+      const slot = slots.find((s) => spare[s] >= cost);
       if (!slot) break;
-      spare[slot] -= def.recipes.energyPerRun;
-      used[slot] += def.recipes.energyPerRun;
-      report.energy[slot].sponges += def.recipes.energyPerRun;
+      spare[slot] -= cost;
+      used[slot] += cost;
+      report.energy[slot].sponges += cost;
       for (const [res, n] of inputs) {
         state.stores[res] -= n;
         if (res === 'clutter') report.clutter.recycled += n;
@@ -213,7 +217,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
         keyof typeof state.stores,
         number,
       ][]) {
-        addYield(ctx, b, res, n);
+        made[res] = (made[res] ?? 0) + n;
       }
       if (recipe.heatToNeighborStorage > 0) {
         const well = neighborBuildings(state, b, occ).find(
@@ -224,6 +228,12 @@ export function resolveEnergy(ctx: SeasonContext): void {
       }
       runs++;
     }
+    const factor = content.rules.flexibleOutputFactor;
+    for (const [res, n] of Object.entries(made) as [keyof typeof state.stores, number][]) {
+      addYield(ctx, b, res, Math.floor(n * factor));
+    }
+    if (factor !== 1 && runs > 0) explain(ctx, b, `outputs × ${factor}`);
+    if (cost === 0 && runs > 0) explain(ctx, b, 'runs need no energy (Mill Race)');
     report.runs[b.uid] = { recipe: recipeId, runs, energy: used };
     explain(
       ctx,

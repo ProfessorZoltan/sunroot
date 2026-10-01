@@ -93,9 +93,11 @@ export class Turn {
     return def.workers <= this.freeWorkers();
   }
 
+  /** Empty legal sites (bots don't build canopies over farms). */
   sites(id: string): Tile[] {
+    const taken = occupancyOf(this.state);
     return Object.values(this.state.map.tiles).filter(
-      (t) => canPlace(this.content, this.state, id, t).ok,
+      (t) => !taken.has(hexKey(t)) && canPlace(this.content, this.state, id, t).ok,
     );
   }
 

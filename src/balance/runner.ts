@@ -109,6 +109,11 @@ export function playRun(
     if (state.draft.offer.length > 0 && !state.draft.picked) {
       state = ok(applyCommand(content, state, { type: 'pickCard', card: state.draft.offer[0]! }));
     }
+    // Charters: the first on offer (the offer is already shuffled).
+    if (state.charterOffer.length > 0) {
+      const charter = state.charterOffer[0]!;
+      state = ok(applyCommand(content, state, { type: 'pickCharter', charter }));
+    }
     if (state.draft.picked) {
       record.picks.push(state.draft.picked);
       record.pickTurns[state.draft.picked] = state.turn;

@@ -1,6 +1,7 @@
 /** Right column: the draft, the building palette, and the placement preview or building inspector. */
 import type { GameStore } from '../game/store';
 import type { BuildingDef, Content } from '../sim';
+import { CharterPanel } from './Combos';
 import { describeBuilding } from './describe';
 import { Reroll } from './icons';
 import { SEASON_NAMES } from './TopBar';
@@ -26,7 +27,11 @@ export interface Ui {
 export function RightPanel({ store, ui }: { store: GameStore; ui: Ui }) {
   return (
     <aside class="side" aria-label="Draft and building">
-      <DraftPanel store={store} ui={ui} />
+      {store.state.charterOffer.length > 0 ? (
+        <CharterPanel store={store} />
+      ) : (
+        <DraftPanel store={store} ui={ui} />
+      )}
       <BuildPanel store={store} ui={ui} />
       {store.inspected ? <Inspector store={store} ui={ui} /> : <PlacementPanel store={store} />}
     </aside>
@@ -41,20 +46,29 @@ function DraftPanel({ store, ui }: { store: GameStore; ui: Ui }) {
     return (
       <section>
         <h2>Draft</h2>
-        <div class="quiet small">Every blueprint is unlocked: nothing left to draft.</div>
+        <div class="quiet small">Nothing left to draft this season.</div>
       </section>
     );
   }
   if (picked) {
-    const def = content.byId[picked]!;
+    const tuning = content.tuningById[picked];
     return (
       <section>
         <h2>Drafted</h2>
         <div class="picked">
-          <img src={ui.icons[picked]} alt="" width={32} height={32} />
-          <span>
-            <strong>{def.name}</strong> is on your palette this season.
-          </span>
+          {tuning ? (
+            <span>
+              <strong>{tuning.name}</strong>: {tuning.text.toLowerCase().replace(/\.$/, '')}, for
+              the rest of the run.
+            </span>
+          ) : (
+            <>
+              <img src={ui.icons[picked]} alt="" width={32} height={32} />
+              <span>
+                <strong>{content.byId[picked]!.name}</strong> is on your palette this season.
+              </span>
+            </>
+          )}
         </div>
       </section>
     );
@@ -92,15 +106,19 @@ function DraftPanel({ store, ui }: { store: GameStore; ui: Ui }) {
         </div>
       </div>
       <div class="cards">
-        {offer.map((id, i) => (
-          <DraftCard
-            content={content}
-            def={content.byId[id]!}
-            icon={ui.icons[id]}
-            index={i}
-            store={store}
-          />
-        ))}
+        {offer.map((id, i) =>
+          content.byId[id] ? (
+            <DraftCard
+              content={content}
+              def={content.byId[id]}
+              icon={ui.icons[id]}
+              index={i}
+              store={store}
+            />
+          ) : (
+            <TuningCard store={store} id={id} index={i} />
+          ),
+        )}
       </div>
     </section>
   );
@@ -135,6 +153,33 @@ function DraftCard({
         <span class="card-name">{def.name}</span>
         <span class="card-text">{lines.slice(1, 3).join(' ')}</span>
         <span class="card-cost">{def.cost} materials</span>
+      </span>
+      <span class="keycap" aria-hidden="true">
+        {index + 1}
+      </span>
+    </button>
+  );
+}
+
+/** A tuning card: a small upgrade that lasts the rest of the run. */
+function TuningCard({ store, id, index }: { store: GameStore; id: string; index: number }) {
+  const tuning = store.content.tuningById[id]!;
+  return (
+    <button
+      type="button"
+      class="card"
+      aria-keyshortcuts={String(index + 1)}
+      onClick={() => store.dispatch({ type: 'pickCard', card: id })}
+    >
+      <span class="jewel" style={{ background: '#3A6EA5' }}>
+        <span class="charter-glyph" aria-hidden="true">
+          ✧
+        </span>
+      </span>
+      <span class="card-body">
+        <span class="card-kind">Tuning</span>
+        <span class="card-name">{tuning.name}</span>
+        <span class="card-text">{tuning.text} For the rest of the run.</span>
       </span>
       <span class="keycap" aria-hidden="true">
         {index + 1}
@@ -261,6 +306,20 @@ function PlacementPanel({ store }: { store: GameStore }) {
           <span>{l.label}</span>
         </div>
       ))}
+      {p.preview.evolves && (
+        <div class="combo-line small">
+          Built over the {content.byId[store.state.buildings[p.preview.evolves.uid]!.type]!.name}:
+          it becomes a {content.byId[p.preview.evolves.into]!.name}.
+        </div>
+      )}
+      {store.visibleCombos(p.preview.combos).map((hit) => {
+        const combo = content.comboById[hit.combo]!;
+        return (
+          <div class="combo-line small">
+            {combo.layer === 'chain' ? 'Closes the' : 'Forms'} <strong>{combo.name}</strong>
+          </div>
+        );
+      })}
       {p.preview.warnings.map((w) => (
         <div class="warning small">{w}</div>
       ))}
