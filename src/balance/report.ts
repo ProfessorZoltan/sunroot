@@ -28,6 +28,7 @@ export function toCsv(records: RunRecord[]): string {
     ['vision', (r) => r.vision],
     ['vision_achieved', (r) => r.visionAchieved],
     ['graft', (r) => r.graft.join(';')],
+    ['era_goals', (r) => r.eraGoals.join(';')],
     ['citizens', (r) => r.citizens],
     ['peak_citizens', (r) => r.peakCitizens],
     ['wellbeing', (r) => r.wellbeing],
@@ -121,6 +122,8 @@ export interface ReportMeta {
   command: string;
   contentId: string;
   runsPerBot: number;
+  /** What the bots could see ahead (`forecast` unless stated). */
+  sight?: string;
   bots: { name: string; description: string }[];
 }
 
@@ -135,7 +138,10 @@ export function toReport(records: RunRecord[], meta: ReportMeta): string {
     '# Sunroot balance report',
     `${records.length} runs of ${meta.contentId}: ${meta.runsPerBot} seeds for each of ${bots.length} bots. ` +
       'Every bot plays the same seeds. Scores use the formula and Graft tiers in the content file ' +
-      '(`rules.score`).',
+      '(`rules.score`). ' +
+      ((meta.sight ?? 'forecast') === 'forecast'
+        ? 'Bots see what a player sees: the forecast, not where the storm will strike.'
+        : "Bots see each season exactly as it will resolve, the storm's target included (`--sight outcome`)."),
     `Reproduce with \`${meta.command}\`. Every run is also a row in \`runs.csv\`.`,
   );
 
@@ -266,6 +272,18 @@ export function toReport(records: RunRecord[], meta: ReportMeta): string {
               : '';
             return `${pct(met.length / chose.length)}${when}`;
           }),
+        ];
+      }),
+    ),
+    table(
+      ['Bot', ...[1, 2, 3, 4].map((e) => `Era ${e} goal met`)],
+      bots.map((b) => {
+        const rs = byBot.get(b.name)!;
+        return [
+          b.name,
+          ...[1, 2, 3, 4].map((e) =>
+            pct(rs.filter((r) => r.eraGoals.includes(e)).length / rs.length),
+          ),
         ];
       }),
     ),

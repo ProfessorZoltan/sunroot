@@ -30,9 +30,21 @@ import { snapshot } from '../snapshot';
 import { applyLoopBonuses, checkCombos, findFormations, formationEffects } from '../combos';
 import { effectiveContent } from '../content/modifiers';
 import { dealCharters } from '../draft';
-import { visionMet } from '../score';
+import { eraGoal, goalMet, visionMet } from '../score';
 
-export function resolveSeason(base: Content, input: RunState): RunState {
+export interface ResolveOptions {
+  /**
+   * Forecast what a player can know: the season resolves without drawing
+   * chance outcomes (the storm's target), which are reported as risks instead.
+   */
+  forecast?: boolean;
+}
+
+export function resolveSeason(
+  base: Content,
+  input: RunState,
+  options: ResolveOptions = {},
+): RunState {
   // Tunings and charters change the content for the rest of the run.
   const content = effectiveContent(base, input);
   const state: RunState = { ...snapshot(input), seasonStart: null, seasonCommands: [] };
@@ -47,6 +59,7 @@ export function resolveSeason(base: Content, input: RunState): RunState {
     lowRiver: false,
     foodProduced: 0,
     bonusGiven: new Set(),
+    forecast: options.forecast ?? false,
     formations: [],
     effects: new Map(),
   };
@@ -122,6 +135,13 @@ function advance(content: Content, ctx: SeasonContext): RunState {
   if (state.vision && state.visionAchieved === null && visionMet(content, state)) {
     state.visionAchieved = state.turn;
     report.visionAchieved = true;
+  }
+  // The era's goal, met by the end of any season in the era.
+  const goal = eraGoal(content, state.era);
+  if (goal && !state.eraGoalsMet.includes(state.era) && goalMet(content, state, goal.goal)) {
+    state.eraGoalsMet = [...state.eraGoalsMet, state.era];
+    state.stores.knowledge += goal.reward.knowledge;
+    report.eraGoalMet = state.era;
   }
 
   // Storage: same-season stores empty, heat leaks.

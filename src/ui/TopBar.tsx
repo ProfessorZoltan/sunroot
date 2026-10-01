@@ -2,7 +2,7 @@
 import type { GameStore } from '../game/store';
 import { POPULATION_REASONS, type SeasonView, type SlotView } from '../game/insight';
 import { FULL_DURATIONS, type PhaseName } from '../game/timeline';
-import { harmonyMultiplier, type Content, type Slot } from '../sim';
+import { harmonyMultiplier, type Content, type SeasonReport, type Slot } from '../sim';
 import { Heart, Leaf, Moon, People, Sun } from './icons';
 import { TipTable, useTip, type Row } from './tips';
 
@@ -32,7 +32,7 @@ export function TopBar({ store }: { store: GameStore }) {
         {year.map((sv) => (
           <SeasonBox
             content={content}
-            sv={sv}
+            sv={r && sv.status === 'now' ? actual(sv, r.report) : sv}
             filling={r && sv.status === 'now' ? r.phase : null}
           />
         ))}
@@ -44,6 +44,17 @@ export function TopBar({ store }: { store: GameStore }) {
       </div>
     </header>
   );
+}
+
+/** The season as it actually went (the forecast didn't know the storm's target). */
+function actual(sv: SeasonView, report: SeasonReport): SeasonView {
+  const slot = (s: Slot): SlotView => ({
+    supply: report.energy[s].supply + report.energy[s].storageDischarged,
+    demand: report.energy[s].demand,
+    shortfall: report.energy[s].shortfall,
+    report,
+  });
+  return { ...sv, day: slot('day'), night: slot('night') };
 }
 
 const REVEALED: Record<Slot, PhaseName[]> = {

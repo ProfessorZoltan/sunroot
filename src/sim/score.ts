@@ -5,7 +5,7 @@
  * open; every weight lives in the content file (see DECISIONS.md).
  */
 import type { Content } from './content/load';
-import type { District, Vision } from './content/schema';
+import type { District, EraGoal, Goal, Vision } from './content/schema';
 import type { RunState } from './types';
 
 export interface ScoreLine {
@@ -64,10 +64,31 @@ export function scoreRun(content: Content, state: RunState): RunScore {
   return { total, lines, tier, next: up ? { tier: up, points: up.min - total } : null };
 }
 
+/** Seeds a finished run earns (city requests come with Milestone 8). */
+export function seedsForRun(
+  content: Content,
+  state: RunState,
+): { total: number; lines: ScoreLine[] } {
+  const p = content.progression;
+  if (!p || state.status === 'active') return { total: 0, lines: [] };
+  const lines: ScoreLine[] = [];
+  if (state.status === 'complete') {
+    lines.push({ reason: 'run completed', points: p.seeds.complete });
+    const tier = scoreRun(content, state).tier;
+    const bonus = p.seeds.tierBonus[tier.id] ?? 0;
+    if (bonus > 0) lines.push({ reason: `${tier.name} Graft`, points: bonus });
+  } else {
+    const years = Math.floor(state.turn / 4);
+    const seeds = Math.max(p.seeds.minEnded, years * p.seeds.perYearEnded);
+    lines.push({ reason: `${years} year${years === 1 ? '' : 's'} survived`, points: seeds });
+  }
+  return { total: lines.reduce((n, l) => n + l.points, 0), lines };
+}
+
 /** @deprecated The score before Milestone 7; kept as an alias for old callers. */
 export const provisionalScore = scoreRun;
 
-// --------------------------------------------------------------------- visions
+// ----------------------------------------------------------- visions and goals
 
 export interface VisionProgress {
   /** 0 to 1. */
@@ -76,9 +97,8 @@ export interface VisionProgress {
   text: string;
 }
 
-/** How far a vision has come in this state. */
-export function visionProgress(content: Content, state: RunState, vision: Vision): VisionProgress {
-  const goal = vision.goal;
+/** How far a goal (a vision's or an era's) has come in this state. */
+export function goalProgress(content: Content, state: RunState, goal: Goal): VisionProgress {
   switch (goal.kind) {
     case 'greenLand': {
       const ladder = content.rules.landHealth;
@@ -103,20 +123,32 @@ export function visionProgress(content: Content, state: RunState, vision: Vision
     }
     case 'citizens': {
       const people = Math.min(1, state.citizens / goal.citizens);
-      const mood = Math.min(1, state.wellbeing / Math.max(1, goal.wellbeing));
+      if (goal.wellbeing === 0) {
+        return { share: people, text: `${state.citizens} of ${goal.citizens} citizens` };
+      }
+      const mood = Math.min(1, state.wellbeing / goal.wellbeing);
       return {
         share: Math.min(people, mood),
         text: `${state.citizens} of ${goal.citizens} citizens, wellbeing ${state.wellbeing} of ${goal.wellbeing}`,
       };
     }
+    case 'loops': {
+      const n = state.loops.length;
+      return {
+        share: Math.min(1, n / goal.count),
+        text: `${n} of ${goal.count} loops closed`,
+      };
+    }
+    case 'harmony':
+      return {
+        share: Math.min(1, state.harmony / goal.harmony),
+        text: `Harmony ${state.harmony} of ${goal.harmony}`,
+      };
   }
 }
 
-/** Whether the vision is met at the end of the season just resolved. */
-export function visionMet(content: Content, state: RunState): boolean {
-  const vision = content.visions.find((v) => v.id === state.vision);
-  if (!vision) return false;
-  const goal = vision.goal;
+/** Whether a goal is met at the end of the season just resolved. */
+export function goalMet(content: Content, state: RunState, goal: Goal): boolean {
   if (goal.kind === 'noShortfallYear') {
     const year = state.history.filter((h) => h.year === state.year);
     return year.length === 4 && year.every((h) => litSeason(h, goal.minCitizens));
@@ -124,7 +156,23 @@ export function visionMet(content: Content, state: RunState): boolean {
   if (goal.kind === 'citizens') {
     return state.citizens >= goal.citizens && state.wellbeing >= goal.wellbeing;
   }
-  return visionProgress(content, state, vision).share >= 1;
+  return goalProgress(content, state, goal).share >= 1;
+}
+
+/** How far a vision has come in this state. */
+export function visionProgress(content: Content, state: RunState, vision: Vision): VisionProgress {
+  return goalProgress(content, state, vision.goal);
+}
+
+/** Whether the run's vision is met at the end of the season just resolved. */
+export function visionMet(content: Content, state: RunState): boolean {
+  const vision = content.visions.find((v) => v.id === state.vision);
+  return vision ? goalMet(content, state, vision.goal) : false;
+}
+
+/** This era's goal, if it has one. */
+export function eraGoal(content: Content, era: number): EraGoal | undefined {
+  return content.eraGoals.find((g) => g.era === era);
 }
 
 function litSeason(h: { shortfall: number; citizens: number }, minCitizens: number): boolean {

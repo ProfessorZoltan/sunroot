@@ -6,11 +6,16 @@
 import type { Content } from './content/load';
 import { SEASONS, type Season } from './content/schema';
 import { eraOf, seasonIndex } from './queries';
-import { resolveSeason } from './season/resolve';
+import { resolveSeason, type ResolveOptions } from './season/resolve';
 import { snapshot } from './snapshot';
 import type { RunState, SeasonReport } from './types';
 
-export function projectSeason(content: Content, state: RunState, season: Season): SeasonReport {
+export function projectSeason(
+  content: Content,
+  state: RunState,
+  season: Season,
+  options: ResolveOptions = {},
+): SeasonReport {
   const ahead =
     (SEASONS.indexOf(season) - seasonIndex(state.season) + SEASONS.length) % SEASONS.length;
   const turn = state.turn + ahead;
@@ -25,5 +30,5 @@ export function projectSeason(content: Content, state: RunState, season: Season)
     seasonStart: null,
     seasonCommands: [],
   };
-  return resolveSeason(content, s).lastReport!;
+  return resolveSeason(content, s, options).lastReport!;
 }

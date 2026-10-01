@@ -6,10 +6,13 @@ import { describe, expect, it } from 'vitest';
 import {
   applyCommand,
   createRun,
+  eraGoal,
+  goalProgress,
   graftOffer,
   makeSave,
   readSave,
   scoreRun,
+  seedsForRun,
   SEASONS,
   visionMet,
   visionProgress,
@@ -121,6 +124,52 @@ describe('visions', () => {
   });
 });
 
+describe('era goals', () => {
+  it('are met by the end of any season in their era, once, for 3 knowledge', () => {
+    let s = scenario(DRY, { citizens: 10, stores: { food: 100 } });
+    s = endSeason(s);
+    expect(s.lastReport!.eraGoalMet).toBe(1);
+    expect(s.eraGoalsMet).toEqual([1]);
+    expect(s.stores.knowledge).toBe(3);
+    s = endSeason(s);
+    expect(s.lastReport!.eraGoalMet).toBeNull();
+    expect(s.stores.knowledge).toBe(3);
+  });
+
+  it('each era checks only its own goal', () => {
+    // 10 citizens in era 2: Settle's goal is past, and Mend asks for 2 loops.
+    const mend = endSeason(scenario(DRY, { year: 4, citizens: 10, stores: { food: 100 } }));
+    expect(mend.eraGoalsMet).toEqual([]);
+    const loops = endSeason({
+      ...scenario(DRY, { year: 4 }),
+      loops: [
+        { combo: 'kitchenLoop', anchor: 'b0', members: ['b0'], turn: 0 },
+        { combo: 'gasLoop', anchor: 'b0', members: ['b0'], turn: 0 },
+      ],
+    });
+    expect(loops.eraGoalsMet).toEqual([2]);
+    const flourish = { ...scenario(DRY, { year: 7, stores: { compost: 100 } }) };
+    expect(goalProgress(content, flourish, eraGoal(content, 3)!.goal).text).toMatch(
+      /^Harmony \d+ of 40$/,
+    );
+  });
+
+  it('Bloom: a full year with no shortfall', () => {
+    let s = scenario(DRY, { year: 10 });
+    for (let i = 0; i < 3; i++) s = endSeason(s);
+    expect(s.eraGoalsMet).toEqual([]);
+    s = endSeason(s);
+    expect(s.eraGoalsMet).toEqual([4]);
+  });
+
+  it('an older save without them still loads', () => {
+    const save = JSON.parse(JSON.stringify(makeSave(createRun(content, { seed: 'old' }), 'then')));
+    delete save.state.eraGoalsMet;
+    const read = readSave(content, save);
+    expect(read.ok && read.save.state.eraGoalsMet).toEqual([]);
+  });
+});
+
 describe('the ledger, the score and the Graft', () => {
   it('the ledger adds up the run: energy by source, food, people and industry', () => {
     let s = scenario(DRY, { season: 'summer', stores: { salvage: 4 } });
@@ -167,6 +216,24 @@ describe('the ledger, the score and the Graft', () => {
     expect(offer.signature.energyShare.riverWheel).toBe(1);
     expect(offer.options[0]!.lean).toBeGreaterThan(offer.options[1]!.lean);
     expect(offer.tier).toEqual(scoreRun(content, s).tier);
+  });
+});
+
+describe('Seeds', () => {
+  it('a completed run earns 10, plus 10 for a Sapling Graft or 20 for Heartwood', () => {
+    const done = endSeason(scenario(DRY, { year: 12, season: 'winter' }));
+    const tier = scoreRun(content, done).tier.id;
+    expect(seedsForRun(content, done).total).toBe(
+      10 + ({ seedling: 0, sapling: 10, heartwood: 20 } as Record<string, number>)[tier]!,
+    );
+  });
+
+  it('a run that ends early earns 1 a year survived, at least 3', () => {
+    const ended = (turn: number) =>
+      seedsForRun(content, { ...scenario(DRY), turn, status: 'collapsed' }).total;
+    expect(ended(2)).toBe(3);
+    expect(ended(23)).toBe(5);
+    expect(seedsForRun(content, scenario(DRY)).total).toBe(0); // still playing
   });
 });
 

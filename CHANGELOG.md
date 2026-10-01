@@ -1,5 +1,24 @@
 # Changelog
 
+## Designer's answers, and playtest tools
+
+- Combos and charters as the designer intended: the Sun Terrace is +1 day energy every season;
+  Repair Culture doubles salvage from the same ruin and makes clutter recycling 2 materials; the
+  Winter Garden needs no winter heat and makes 4 food in winter; the Agrivoltaic Field keeps the
+  canopy's energy, the farm's food minus 1 (silt after) and drought immunity.
+- The Mixed Grid counts built sources only and now adds +1 energy in every slot as well as stopping
+  storm damage.
+- Era goals (defaults until playtesting): house 10 citizens, close 2 loops, reach Harmony 40, a full
+  year with no shortfall; each gives 3 knowledge, shown on the left with a card when met.
+- Forecasts: previews no longer reveal which building a storm will hit; they warn about the risk.
+  Bots see only the forecast too (`--sight outcome` for the old behaviour).
+- Seeds: the end screen shows the Seeds a run earns, kept with the Graft for Root City. The
+  progression check (`scripts/progression.ts`) finds the ending comes at run 18 with these numbers
+  (DECISIONS.md Q12).
+- Graft tiers recalibrated: Sapling from 235, Heartwood from 360 (`scripts/calibrate-tiers.ts`).
+- Playtest log: time, undos, cards and notes per season, with a Note button and a CSV download.
+- DESIGN.md's season order is rewritten to match the simulation.
+
 ## Milestone 7: run structure
 
 - Visions: a run starts with a choice of 2 of 3 goals (Restore the Reach, Lantern of the Valley,

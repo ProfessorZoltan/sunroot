@@ -119,6 +119,8 @@ export interface RunState {
   visionOffer: string[];
   vision: string | null;
   visionAchieved: number | null;
+  /** Eras whose goal has been met. */
+  eraGoalsMet: number[];
   ledger: Ledger;
   /** Messages for the player about things that happened between seasons. */
   notices: string[];
@@ -256,10 +258,14 @@ export interface SeasonReport {
   /** Combos at work this season (step 10), and the ones discovered for the first time this run. */
   combos: ComboHit[];
   discoveries: string[];
+  /** In a forecast: buildings the storm could disable (one of them will be, by chance). */
+  atRisk: string[];
   /** Buildings that evolved at the end of this season. */
   evolved: { uid: string; from: string; into: string }[];
   /** The run's vision was achieved this season. */
   visionAchieved: boolean;
+  /** The era whose goal was met this season, if any. */
+  eraGoalMet: number | null;
 }
 
 /** Why the population did or didn't change this season. */

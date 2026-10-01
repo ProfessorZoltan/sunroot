@@ -8,7 +8,7 @@ import type { Content } from './content/load';
 import { RESOURCES, SLOTS, type Resource, type Slot } from './content/schema';
 import type { Hex } from './hex';
 import { canPlace } from './placement';
-import { resolveSeason } from './season/resolve';
+import { resolveSeason, type ResolveOptions } from './season/resolve';
 import { placementEvolution } from './combos';
 import { buildingAt } from './queries';
 import type { ComboHit, RunState } from './types';
@@ -54,15 +54,17 @@ export function previewPlacement(
   state: RunState,
   building: string,
   at: Hex,
-  before: RunState = resolveSeason(content, state),
+  before?: RunState,
+  options: ResolveOptions = {},
 ): PlacementPreview {
+  before ??= resolveSeason(content, state, options);
   const def = content.byId[building];
   if (!def) return { ok: false, reason: `unknown building ${building}` };
   const site = canPlace(content, state, building, at);
   if (!site.ok) return site;
   const placed = applyCommand(content, state, { type: 'place', building, at });
   if (!placed.ok) return { ok: false, reason: placed.error };
-  const after = resolveSeason(content, placed.state);
+  const after = resolveSeason(content, placed.state, options);
   const target = buildingAt(state, at);
   const evolution = placementEvolution(content, building, target);
   const uid = target && evolution ? target.uid : `b${state.nextUid}`;
@@ -89,6 +91,8 @@ export function previewPlacement(
   const event = content.events[a.event];
   if (a.damaged.includes(uid))
     warnings.push(`The ${event.name.toLowerCase()} will disable it this season.`);
+  if (a.atRisk.includes(uid))
+    warnings.push('The storms may disable it: it stands on a hill with no woodland beside it.');
   if (a.unstaffed.includes(uid)) warnings.push('No free worker: it will not run.');
   if (a.blackouts.includes(uid)) warnings.push('Not enough energy: it will be shut off.');
   const newlyDark = a.blackouts.filter((id) => id !== uid && !b.blackouts.includes(id));
@@ -131,6 +135,15 @@ function sameHit(a: ComboHit, b: ComboHit): boolean {
 }
 
 /** The season resolved as things stand, for callers that preview many placements. */
-export function resolveAsIs(content: Content, state: RunState): RunState {
-  return resolveSeason(content, state);
+export function resolveAsIs(
+  content: Content,
+  state: RunState,
+  options: ResolveOptions = {},
+): RunState {
+  return resolveSeason(content, state, options);
+}
+
+/** The season as a player can foresee it: chance outcomes are risks, not results. */
+export function forecastSeason(content: Content, state: RunState): RunState {
+  return resolveSeason(content, state, { forecast: true });
 }

@@ -1,5 +1,6 @@
 /** The footer, the map's forecast pill and building tooltip, keyboard help and the end-of-run screen. */
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
+import { logToCsv, type PlayLog } from '../game/playlog';
 import type { GameStore } from '../game/store';
 import type { MapView } from '../render/mapView';
 import { hexKey } from '../sim';
@@ -11,11 +12,14 @@ export function Footer({
   onHelp,
   onAlmanac,
   onNewRun,
+  onNote,
 }: {
   store: GameStore;
   onHelp: () => void;
   onAlmanac: () => void;
   onNewRun: () => void;
+  /** Opens a playtest note for this season. */
+  onNote?: () => void;
 }) {
   const { content, state } = store;
   const event = content.events[state.forecast.event];
@@ -49,6 +53,16 @@ export function Footer({
         <button type="button" class="button" onClick={onNewRun}>
           New run
         </button>
+        {onNote && (
+          <button
+            type="button"
+            class="button"
+            onClick={onNote}
+            title="A playtest note for this season"
+          >
+            Note
+          </button>
+        )}
         <button type="button" class="button" onClick={onHelp} aria-keyshortcuts="?">
           Keys
         </button>
@@ -170,7 +184,7 @@ export function MapTip({ store, view }: { store: GameStore; view: MapView | null
   );
 }
 
-export function Help({ onClose }: { onClose: () => void }) {
+export function Help({ onClose, log }: { onClose: () => void; log?: PlayLog }) {
   const close = useRef<HTMLButtonElement>(null);
   useEffect(() => close.current?.focus(), []);
   const keys: [string, string][] = [
@@ -208,8 +222,44 @@ export function Help({ onClose }: { onClose: () => void }) {
             </tr>
           ))}
         </table>
+        {log && <LogTools log={log} />}
         <button type="button" class="button" ref={close} onClick={onClose}>
           Close
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** The playtest log: how many seasons it holds, a CSV download, and a reset. */
+function LogTools({ log }: { log: PlayLog }) {
+  const [rows, setRows] = useState(log.rows.length);
+  const download = () => {
+    const blob = new Blob([logToCsv(log.rows)], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `sunroot-playtest-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+  return (
+    <div class="log-tools small">
+      <strong>Playtest log:</strong> {rows} season{rows === 1 ? '' : 's'} recorded, with time spent,
+      undos, cards and your notes (the Note button).
+      <div class="row">
+        <button type="button" class="button small-button" disabled={rows === 0} onClick={download}>
+          Download CSV
+        </button>
+        <button
+          type="button"
+          class="button small-button"
+          disabled={rows === 0}
+          onClick={() => {
+            log.clear();
+            setRows(0);
+          }}
+        >
+          Clear log
         </button>
       </div>
     </div>

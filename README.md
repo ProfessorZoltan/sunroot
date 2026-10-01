@@ -26,6 +26,12 @@ URL options: `?seed=<text>` starts a run with that seed, `?new` starts a new run
 the guided first year, `?visions=0` skips the vision choice, and `?sandbox` unlocks every building
 with 999 materials (sandbox runs are never saved).
 
+## Playtesting
+
+Every season played is logged in the browser: time spent, undos, cards, buildings and the run's
+state. Press **Note** to jot down how a season felt; it is logged with that season. **Keys** (or ?)
+→ **Download CSV** saves the log.
+
 ## Playing
 
 A run is 12 years of 4 seasons, in 4 eras: Settle, Mend, Flourish and Bloom. It starts with a choice
@@ -87,7 +93,7 @@ so saves are just serialized state: `makeSave` wraps one in a versioned envelope
 
 ```sh
 npm run balance                                   # 1000 seeds x 4 bots, all CPU cores
-npm run balance -- --runs 200 --bots greedyFood,balanced --out my-dir --jobs 2 --seed try2
+npm run balance -- --runs 200 --bots greedyFood,balanced --out my-dir --jobs 2 --seed try2 --sight outcome
 ```
 
 Bots play through the same commands a player uses. `runs.csv` has one row per run (score, survival,

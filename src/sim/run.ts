@@ -74,6 +74,7 @@ export function createRun(
       : [],
     vision: null,
     visionAchieved: null,
+    eraGoalsMet: [],
     ledger: { energy: {}, foodMade: 0, foodEaten: 0, citizenSeasons: 0, industry: 0 },
     notices: [],
     lastReport: null,

@@ -3,7 +3,7 @@ import type { GameStore } from '../game/store';
 import { POPULATION_REASONS } from '../game/insight';
 import type { Resource } from '../sim';
 import { LoopsPanel } from './Combos';
-import { VisionStatus } from './RunUi';
+import { EraGoalStatus, VisionStatus } from './RunUi';
 import { Person, ResourceIcon } from './icons';
 import { TipTable, signed, useTip } from './tips';
 
@@ -31,6 +31,7 @@ export function LeftPanel({ store }: { store: GameStore }) {
         <div class="quiet small">Numbers on the right: the change by the end of this season.</div>
       </section>
       <VisionStatus store={store} />
+      <EraGoalStatus store={store} />
       <LastSeason store={store} />
       <LoopsPanel store={store} />
     </aside>

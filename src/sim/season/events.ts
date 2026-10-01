@@ -105,6 +105,11 @@ export function applyEvent(ctx: SeasonContext): void {
           })
           .sort((a, b) => hexKey(a.at).localeCompare(hexKey(b.at)));
         if (exposed.length === 0) break;
+        // A forecast knows which buildings are exposed, not which one the storm will hit.
+        if (ctx.forecast) {
+          report.atRisk = exposed.map((b) => b.uid);
+          break;
+        }
         const hit = exposed[nextInt(state.rng, exposed.length)]!;
         hit.damage = { cause: 'storm', turn: state.turn };
         report.damaged.push(hit.uid);

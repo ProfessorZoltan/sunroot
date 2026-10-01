@@ -6,7 +6,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { entryView, LAYER_NAMES } from '../game/almanac';
 import type { GameStore } from '../game/store';
-import { COMBO_LAYERS, type Combo, type ComboLayer } from '../sim';
+import { COMBO_LAYERS, eraGoal, type Combo, type ComboLayer } from '../sim';
 
 /** Jewel colour per layer, from the stained-glass palette. */
 export const LAYER_JEWEL: Record<ComboLayer, string> = {
@@ -140,7 +140,10 @@ export function RevealCard({ store }: { store: GameStore }) {
   const reveal = store.reveals[0]!;
   const { content } = store;
   const button = useRef<HTMLButtonElement>(null);
-  const key = reveal.kind === 'era' ? `era-${reveal.era}` : `${reveal.kind}-${reveal.id}`;
+  const key =
+    reveal.kind === 'era' || reveal.kind === 'eraGoal'
+      ? `${reveal.kind}-${reveal.era}`
+      : `${reveal.kind}-${reveal.id}`;
   useEffect(() => button.current?.focus(), [key]);
   const more = store.reveals.length - 1;
   let label: string;
@@ -163,6 +166,7 @@ export function RevealCard({ store }: { store: GameStore }) {
       .filter((b) => b.draftable && b.minEra === reveal.era)
       .map((b) => b.name);
     const charter = content.rules.charterEras.includes(reveal.era);
+    const goal = eraGoal(content, reveal.era);
     label = `Era ${reveal.era}: ${name}`;
     body = (
       <>
@@ -175,9 +179,26 @@ export function RevealCard({ store }: { store: GameStore }) {
           Era {reveal.era} of {content.rules.eras.length}: years{' '}
           {(reveal.era - 1) * content.rules.yearsPerEra + 1} to{' '}
           {reveal.era * content.rules.yearsPerEra}.
+          {goal
+            ? ` This era's goal: ${goal.text.charAt(0).toLowerCase()}${goal.text.slice(1)}`
+            : ''}
           {charter ? ' A charter awaits: choose one before the season ends.' : ''}
           {blueprints.length > 0 ? ` New blueprints can be drafted: ${blueprints.join(', ')}.` : ''}
         </p>
+      </>
+    );
+  } else if (reveal.kind === 'eraGoal') {
+    const goal = eraGoal(content, reveal.era)!;
+    const name = content.rules.eras[reveal.era - 1] ?? `Era ${reveal.era}`;
+    label = `Era goal met: ${goal.text}`;
+    body = (
+      <>
+        <span class="combo-jewel" style={{ background: '#E0A33B' }} aria-hidden="true">
+          ✓
+        </span>
+        <span class="card-kind">Era goal · {name}</span>
+        <h2 class="glass-title">{goal.text}</h2>
+        {goal.reward.knowledge > 0 && <p>+{goal.reward.knowledge} knowledge.</p>}
       </>
     );
   } else {

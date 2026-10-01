@@ -33,6 +33,9 @@ export function makeSave(state: RunState, savedAt: string): SaveFile {
   };
 }
 
+/** Fields added to the run state after saves began, and their value for an older save. */
+const ADDED_FIELDS: Partial<RunState> = { eraGoalsMet: [] };
+
 export type ReadSave = { ok: true; save: SaveFile } | { ok: false; error: string };
 
 /** Checks a save (parsed JSON) before it is used. */
@@ -47,6 +50,10 @@ export function readSave(content: Content, data: unknown): ReadSave {
   if (!state || typeof state !== 'object') return fail('the save has no run');
   const fresh = createRun(content, { seed: 'shape' });
   if (state.version !== fresh.version) return fail(`run version ${state.version} is not supported`);
+  // Fields added since run version 2 began, with the value a run had before them.
+  for (const [key, value] of Object.entries(ADDED_FIELDS)) {
+    if (!(key in state)) (state as Record<string, unknown>)[key] = structuredClone(value);
+  }
   const missing = Object.keys(fresh).filter((k) => !(k in state));
   if (missing.length > 0) return fail(`the run is missing ${missing.join(', ')}`);
   if (state.contentId !== content.id) return fail(`the run is for ${state.contentId}`);

@@ -37,18 +37,18 @@ The game alternates between a permanent home, **Root City**, and short runs call
 
 **Turns are seasons.** Play is turn-based: the player builds during a season, then ends it and watches it resolve. This is easier to learn than real time, rewards planning, and keeps the simulation deterministic and testable.
 
-**Order of each season:**
+**Order of each season** (rewritten to match the simulation, which passes the Year 1 test; see DECISIONS.md C1 and C3):
 
-1. Draft: pick 1 of 3 cards (a blueprint or a tuning).
+1. Choose: pick 1 of 3 draft cards (a blueprint or a tuning). The first season of a run also offers a vision, and the first season of eras 2 to 4 a charter.
 2. Build: place buildings. Undo is free until the season ends.
 3. The season's event happens (announced one season ahead).
-4. Production: generators and producers yield.
-5. Flexible consumers use spare energy in each slot.
+4. Production: citizens staff buildings in priority order (damaged buildings don't run). Generators make energy, and the Mixed Grid adds its bonus. Producers yield, multiplied by Harmony and silt and then adjusted by flat bonuses. Composters and digesters convert scraps and biomass, and neighbour bonuses apply.
+5. Storage reserves the spare day energy it needs to cover a night shortfall it can already see. Flexible consumers then use what is spare in each slot.
 6. Storage charges from what is still spare.
-7. Demand is paid; storage discharges into shortfalls; blackouts shut buildings off by priority.
+7. Demand is paid, heat first by free heat, then heat pumps, then energy. Storage discharges into shortfalls, and blackouts shut buildings off by priority. Buildings that need power (greenhouses, the library) yield only if they were powered. Closed loops add their bonus.
 8. Food is eaten, population grows or shrinks, wellbeing updates.
-9. Scraps and clutter update, then Harmony.
-10. Combo discovery check: new chains, formations and evolutions are revealed and recorded.
+9. Scraps left over from last season become clutter, this season's new scraps are added, then Harmony updates.
+10. Combo check: evolutions happen, combos at work are recorded, and first discoveries are revealed. The vision and the era goal are checked.
 
 **Ending a run.** A run ends after 48 seasons, or early if wellbeing reaches 0. The score sets the Graft tier, and every run earns Seeds.
 

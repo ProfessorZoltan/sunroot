@@ -5,7 +5,7 @@
  */
 import { useEffect, useRef } from 'preact/hooks';
 import type { GameStore } from '../game/store';
-import { graftOffer, scoreRun, visionProgress } from '../sim';
+import { eraGoal, goalProgress, graftOffer, scoreRun, seedsForRun, visionProgress } from '../sim';
 
 /** At the start of a run: choose one vision (keys 1 and 2). */
 export function VisionPanel({ store }: { store: GameStore }) {
@@ -44,6 +44,42 @@ export function VisionPanel({ store }: { store: GameStore }) {
           );
         })}
       </div>
+    </section>
+  );
+}
+
+/** Left column: this era's goal and how far it has come. */
+export function EraGoalStatus({ store }: { store: GameStore }) {
+  const { content, state } = store;
+  const goal = eraGoal(content, state.era);
+  if (!goal || state.status !== 'active') return null;
+  const done = state.eraGoalsMet.includes(state.era);
+  const progress = goalProgress(content, state, goal.goal);
+  return (
+    <section aria-label="Era goal">
+      <h2>Era goal</h2>
+      <div class="small">
+        <strong>{content.rules.eras[state.era - 1]}:</strong> {goal.text}
+        {done ? ' Met.' : ''}
+      </div>
+      {!done && (
+        <>
+          <div
+            class="bar vision-bar"
+            role="progressbar"
+            aria-label="Era goal progress"
+            aria-valuenow={Math.round(progress.share * 100)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
+            <div class="bar-fill" style={{ width: `${progress.share * 100}%` }} />
+          </div>
+          <div class="quiet small">
+            {progress.text}
+            {goal.reward.knowledge > 0 ? ` · +${goal.reward.knowledge} knowledge` : ''}
+          </div>
+        </>
+      )}
     </section>
   );
 }
@@ -107,6 +143,7 @@ export function EndScreen({
     return () => cancelAnimationFrame(again);
   }, [sent]);
   const score = scoreRun(content, state);
+  const seeds = seedsForRun(content, state);
   const offer = graftOffer(content, state);
   const tierIndex = content.rules.score.tiers.indexOf(score.tier);
   const complete = state.status === 'complete';
@@ -145,6 +182,12 @@ export function EndScreen({
         {score.next && (
           <div class="small">
             {score.next.points} more points would have made a {score.next.tier.name} Graft.
+          </div>
+        )}
+        {seeds.total > 0 && (
+          <div class="small seeds">
+            Seeds earned: <strong>{seeds.total}</strong> (
+            {seeds.lines.map((l) => `${l.reason} ${l.points}`).join(', ')}).
           </div>
         )}
         {!sent ? (
@@ -223,6 +266,54 @@ export function NewRunDialog({
           </button>
           <button type="button" class="button primary" onClick={onConfirm}>
             Start a new run
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** A playtest note, kept with the season being played. */
+export function NoteDialog({
+  season,
+  onSave,
+  onClose,
+}: {
+  season: string;
+  onSave: (text: string) => void;
+  onClose: () => void;
+}) {
+  const text = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => text.current?.focus(), []);
+  return (
+    <div class="modal-backdrop" onClick={onClose}>
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Playtest note"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') onClose();
+          if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) onSave(text.current?.value ?? '');
+        }}
+      >
+        <h2>Note for {season}</h2>
+        <p class="small quiet">
+          Bored, stuck, surprised? It goes into the playtest log with this season (Help → Download
+          CSV).
+        </p>
+        <textarea ref={text} rows={4} aria-label="Note" />
+        <div class="row">
+          <button type="button" class="button" onClick={onClose}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="button primary"
+            onClick={() => onSave(text.current?.value ?? '')}
+          >
+            Save note
           </button>
         </div>
       </div>

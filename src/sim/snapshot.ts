@@ -43,6 +43,7 @@ export function snapshot(state: SeasonSnapshot): SeasonSnapshot {
     visionOffer: [...state.visionOffer],
     vision: state.vision,
     visionAchieved: state.visionAchieved,
+    eraGoalsMet: [...state.eraGoalsMet],
     ledger: state.ledger,
     notices: [...state.notices],
     lastReport: state.lastReport,

@@ -11,6 +11,7 @@ import {
   graftOffer,
   hexDistance,
   scoreRun,
+  seedsForRun,
   hexKey,
   offsetToAxial,
   parseHexKey,
@@ -42,7 +43,10 @@ export const COMPOST_TOOL = 'compost';
 
 /** A card shown after a season plays out: a combo new to the Almanac, a new era, a vision met. */
 export type Reveal =
-  { kind: 'combo'; id: string } | { kind: 'era'; era: number } | { kind: 'vision'; id: string };
+  | { kind: 'combo'; id: string }
+  | { kind: 'era'; era: number }
+  | { kind: 'eraGoal'; era: number }
+  | { kind: 'vision'; id: string };
 
 /** A season being played out on the map (Milestone 5). */
 export interface Resolution {
@@ -78,6 +82,10 @@ export class GameStore {
       almanac?: Almanac;
       onAlmanac?: (almanac: Almanac) => void;
       onGraft?: (graft: Graft) => void;
+      /** Every command sent, for the playtest log. */
+      onCommand?: (command: Command, ok: boolean, before: RunState, after: RunState) => void;
+      /** A season's resolution started, or ended (played out or skipped). */
+      onResolution?: (playing: boolean, skipped: boolean, state: RunState) => void;
       /** The time, for the Graft's record (the simulation has no clock). */
       now?: () => string;
     } = {},
@@ -85,11 +93,20 @@ export class GameStore {
     this.almanac = options.almanac ?? EMPTY_ALMANAC;
     this.onAlmanac = options.onAlmanac ?? (() => {});
     this.onGraft = options.onGraft ?? (() => {});
+    this.onCommand = options.onCommand ?? (() => {});
+    this.onResolution = options.onResolution ?? (() => {});
     this.now = options.now ?? (() => new Date().toISOString());
   }
 
   private readonly onAlmanac: (almanac: Almanac) => void;
   private readonly onGraft: (graft: Graft) => void;
+  private readonly onCommand: (
+    command: Command,
+    ok: boolean,
+    before: RunState,
+    after: RunState,
+  ) => void;
+  private readonly onResolution: (playing: boolean, skipped: boolean, state: RunState) => void;
   private readonly now: () => string;
 
   subscribe(listener: () => void): () => void {
@@ -105,7 +122,8 @@ export class GameStore {
     if (this.cache?.state !== this.state) {
       this.cache = {
         state: this.state,
-        asIs: resolveAsIs(this.content, this.state),
+        // What a player can foresee: the storm's target is a risk, not a result.
+        asIs: resolveAsIs(this.content, this.state, { forecast: true }),
         insight: null,
       };
     }
@@ -122,13 +140,16 @@ export class GameStore {
   /** Sends a command; on failure the reason is shown instead. */
   dispatch(command: Command): boolean {
     // Acting during a resolution skips the rest of it.
-    this.resolution = null;
+    this.skipResolution();
     const before = command.type === 'endSeason' ? this.insight : null;
     const era = this.state.era;
+    const previous = this.state;
     const result = applyCommand(this.content, this.state, command);
+    this.onCommand(command, result.ok, previous, result.ok ? result.state : previous);
     if (result.ok) {
       this.state = result.state;
       if (before) {
+        this.onResolution(true, false, this.state);
         this.resolution = {
           id: ++this.resolutions,
           report: this.state.lastReport!,
@@ -158,6 +179,7 @@ export class GameStore {
         this.reveals = [
           ...this.reveals,
           ...fresh.map((id) => ({ kind: 'combo' as const, id })),
+          ...(r.eraGoalMet !== null ? [{ kind: 'eraGoal' as const, era: r.eraGoalMet }] : []),
           ...(r.visionAchieved && this.state.vision
             ? [{ kind: 'vision' as const, id: this.state.vision }]
             : []),
@@ -176,8 +198,17 @@ export class GameStore {
   /** Ends the resolution being played (when it finishes, or the player skips it). */
   finishResolution(id?: number): void {
     if (!this.resolution || (id !== undefined && this.resolution.id !== id)) return;
+    // Called with the id when it plays to the end; without one when the player skips.
     this.resolution = null;
+    this.onResolution(false, id === undefined, this.state);
     this.emit();
+  }
+
+  /** Any action during a resolution skips the rest of it. */
+  private skipResolution(): void {
+    if (!this.resolution) return;
+    this.resolution = null;
+    this.onResolution(false, true, this.state);
   }
 
   setResolutionPhase(id: number, phase: PhaseName): void {
@@ -203,6 +234,7 @@ export class GameStore {
       district,
       tier: offer.tier.id,
       score: score.total,
+      seeds: seedsForRun(this.content, this.state).total,
       seed: this.state.options.seed,
       vision: this.state.vision,
       visionAchieved: this.state.visionAchieved !== null,
@@ -224,7 +256,7 @@ export class GameStore {
   }
 
   setTool(tool: Tool | null): void {
-    if (tool) this.resolution = null;
+    if (tool) this.skipResolution();
     this.tool = tool;
     this.message = null;
     if (tool) this.inspected = null;
@@ -245,7 +277,7 @@ export class GameStore {
 
   /** A click uses the tool in hand (which stays in hand), or inspects a building. */
   clickAt(hex: Hex): void {
-    this.resolution = null;
+    this.skipResolution();
     if (this.tool?.kind === 'build') {
       this.dispatch({ type: 'place', building: this.tool.building, at: hex });
     } else if (this.tool?.kind === 'compost') {
@@ -344,7 +376,9 @@ export class GameStore {
     this.placement = {
       building,
       at: this.hover,
-      preview: previewPlacement(this.content, this.state, building, this.hover, this.asIs()),
+      preview: previewPlacement(this.content, this.state, building, this.hover, this.asIs(), {
+        forecast: true,
+      }),
     };
   }
 }

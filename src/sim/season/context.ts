@@ -18,6 +18,8 @@ export interface SeasonContext {
   foodProduced: number;
   /** `${targetUid}:${giverType}` pairs, so each kind of neighbour bonus applies once. */
   bonusGiven: Set<string>;
+  /** A forecast: chance outcomes (the storm's target) are not drawn, only reported as risks. */
+  forecast: boolean;
   /** Formations standing this season, found before production. */
   formations: ComboHit[];
   /** What standing formations do to each member building. */
@@ -77,7 +79,9 @@ export function emptyReport(state: RunState): SeasonReport {
     combos: [],
     discoveries: [],
     evolved: [],
+    atRisk: [],
     visionAchieved: false,
+    eraGoalMet: null,
   };
 }
 

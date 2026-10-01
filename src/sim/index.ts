@@ -11,6 +11,8 @@ export {
   type Combo,
   type ComboLayer,
   type District,
+  type EraGoal,
+  type Goal,
   type Vision,
   type EventId,
   type Tuning,
@@ -23,7 +25,9 @@ export * from './hex';
 export { createRun, type CreateRunOverrides } from './run';
 export { applyCommand } from './commands';
 export { canPlace, type PlacementCheck } from './placement';
+export type { ResolveOptions } from './season/resolve';
 export {
+  forecastSeason,
   previewPlacement,
   resolveAsIs,
   type PlacementPreview,
@@ -33,11 +37,15 @@ export {
 export { generateMap } from './map';
 export { blueprintPool } from './draft';
 export {
+  eraGoal,
+  goalMet,
+  goalProgress,
   graftOffer,
   leanOf,
   provisionalScore,
   runSignature,
   scoreRun,
+  seedsForRun,
   visionMet,
   visionProgress,
   type GraftOffer,

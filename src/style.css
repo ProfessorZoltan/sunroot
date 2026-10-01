@@ -915,3 +915,23 @@ select:focus-visible {
   color: var(--glass-text);
   font-weight: 700;
 }
+
+/* ---------------------------------------------------------------- playtest */
+
+.log-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+.modal textarea {
+  width: 100%;
+  font: inherit;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1.5px solid var(--line-strong);
+  background: var(--panel);
+  color: var(--ink);
+  resize: vertical;
+}

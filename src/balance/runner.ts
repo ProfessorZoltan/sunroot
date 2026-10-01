@@ -10,7 +10,7 @@ import {
 } from '../sim';
 import { createRng } from '../sim/rng';
 import type { Bot } from './bots';
-import { Turn } from './turn';
+import { Turn, type Sight } from './turn';
 
 export interface RunRecord {
   seed: string;
@@ -25,6 +25,8 @@ export interface RunRecord {
   visionAchieved: number;
   /** The two districts offered as the Graft, best match first. */
   graft: string[];
+  /** Eras whose goal was met. */
+  eraGoals: number[];
   citizens: number;
   peakCitizens: number;
   wellbeing: number;
@@ -72,7 +74,7 @@ export function playRun(
   content: Content,
   bot: Bot,
   seed: string,
-  options: { guided?: boolean; onSeason?: (state: RunState) => void } = {},
+  options: { guided?: boolean; sight?: Sight; onSeason?: (state: RunState) => void } = {},
 ): RunRecord {
   let state = createRun(content, { seed, guided: options.guided ?? false, visions: true });
   const rng = createRng(`${seed}:bot:${bot.name}`);
@@ -86,6 +88,7 @@ export function playRun(
     vision: '',
     visionAchieved: -1,
     graft: [],
+    eraGoals: [],
     citizens: 0,
     peakCitizens: state.citizens,
     wellbeing: 0,
@@ -122,7 +125,7 @@ export function playRun(
     const era = state.era;
     for (const card of state.draft.offer) record.offered[card] = (record.offered[card] ?? 0) + 1;
     if (state.draft.offer.length === 0) record.emptyDraftSeasons += 1;
-    const turn = new Turn(content, state, rng);
+    const turn = new Turn(content, state, rng, options.sight ?? 'forecast');
     bot.playSeason(turn);
     state = turn.state;
     if (state.draft.offer.length > 0 && !state.draft.picked) {
@@ -190,6 +193,7 @@ export function playRun(
   record.vision = state.vision ?? '';
   record.visionAchieved = state.visionAchieved ?? -1;
   record.graft = graftOffer(content, state).options.map((o) => o.district.id);
+  record.eraGoals = [...state.eraGoalsMet];
   record.citizens = state.citizens;
   record.wellbeing = state.wellbeing;
   record.harmony = state.harmony;

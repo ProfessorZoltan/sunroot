@@ -5,6 +5,7 @@
  */
 import {
   applyCommand,
+  forecastSeason,
   canPlace,
   hexDistance,
   hexKey,
@@ -19,6 +20,9 @@ import {
 } from '../sim';
 import { nextFloat, type RngState } from '../sim/rng';
 
+export type Sight = 'forecast' | 'outcome';
+export const SIGHTS: readonly Sight[] = ['forecast', 'outcome'];
+
 export class Turn {
   /** Build-phase actions taken this season (not counting the draft pick). */
   actions = 0;
@@ -28,6 +32,12 @@ export class Turn {
     readonly content: Content,
     public state: RunState,
     readonly rng: RngState,
+    /**
+     * What the bot can see ahead: `forecast` is what a player sees (chance
+     * outcomes such as the storm's target stay unknown); `outcome` is the
+     * season exactly as it will resolve.
+     */
+    readonly sight: Sight = 'forecast',
   ) {}
 
   apply(command: Command): boolean {
@@ -54,7 +64,9 @@ export class Turn {
     if (this.peeked) return this.peeked;
     const result = applyCommand(this.content, this.state, { type: 'endSeason' });
     if (!result.ok) return null;
-    this.peeked = { state: result.state, report: result.state.lastReport! };
+    const state =
+      this.sight === 'forecast' ? forecastSeason(this.content, this.state) : result.state;
+    this.peeked = { state, report: state.lastReport! };
     return this.peeked;
   }
 

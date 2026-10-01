@@ -484,23 +484,41 @@ export type ComboLayer = Combo['layer'];
 export const COMBO_LAYERS = ['adjacency', 'chain', 'formation', 'evolution'] as const;
 
 /** Run goals: one is chosen at the start of a run. */
-export const VisionSchema = z
+/** A goal a run can meet: the target of a vision or of an era. */
+export const GoalSchema = z.discriminatedUnion('kind', [
+  /** This share of the healable land (the land-health ladder) is meadow or woodland. */
+  z.object({ kind: z.literal('greenLand'), share: z.number().min(0).max(1) }),
+  /**
+   * A full calendar year, spring to winter, without a shortfall in any slot,
+   * with at least `minCitizens` citizens at the end of every season of it.
+   */
+  z.object({ kind: z.literal('noShortfallYear'), minCitizens: int.min(0).default(0) }),
+  /** At least this many citizens, at this wellbeing or more. */
+  z.object({ kind: z.literal('citizens'), citizens: int.min(1), wellbeing: int.min(0).default(0) }),
+  /** At least this many loops closed. */
+  z.object({ kind: z.literal('loops'), count: int.min(1) }),
+  /** Harmony at least this high. */
+  z.object({ kind: z.literal('harmony'), harmony: int.min(1) }),
+]);
+export type Goal = z.infer<typeof GoalSchema>;
+
+export const VisionSchema = z.object({ ...CardText, goal: GoalSchema }).strict();
+export type Vision = z.infer<typeof VisionSchema>;
+
+/**
+ * Era goals: a small goal for each era, met by the end of any season in it.
+ * The design's risk table asks for them without defining them (Q9); these are
+ * the designer's defaults until playtesting.
+ */
+export const EraGoalSchema = z
   .object({
-    ...CardText,
-    goal: z.discriminatedUnion('kind', [
-      /** This share of the healable land (the land-health ladder) is meadow or woodland. */
-      z.object({ kind: z.literal('greenLand'), share: z.number().min(0).max(1) }),
-      /**
-       * A full calendar year, spring to winter, without a shortfall in any slot,
-       * with at least `minCitizens` citizens at the end of every season of it.
-       */
-      z.object({ kind: z.literal('noShortfallYear'), minCitizens: int.min(0).default(0) }),
-      /** At least this many citizens at this wellbeing or more. */
-      z.object({ kind: z.literal('citizens'), citizens: int.min(1), wellbeing: int.min(0) }),
-    ]),
+    era: int.min(1),
+    text: z.string(),
+    goal: GoalSchema,
+    reward: z.object({ knowledge: nonNeg.default(0) }),
   })
   .strict();
-export type Vision = z.infer<typeof VisionSchema>;
+export type EraGoal = z.infer<typeof EraGoalSchema>;
 
 /** What a run's signature is measured by, for the Graft offer. */
 export const SIGNATURE_METRICS = ['energyShare', 'foodPerCitizen', 'harmony', 'industry'] as const;
@@ -526,6 +544,32 @@ export const DistrictSchema = z
   .strict();
 export type District = z.infer<typeof DistrictSchema>;
 
+/**
+ * Seeds and Root City (the designer's numbers, ahead of Milestone 8). Every
+ * run earns Seeds; Seeds raise districts' tiers; the ending is a full city
+ * with enough Heartwood districts.
+ */
+export const ProgressionSchema = z
+  .object({
+    seeds: z.object({
+      /** A run that reached the end of year 12, plus a bonus by Graft tier id. */
+      complete: nonNeg,
+      tierBonus: z.record(z.string(), nonNeg),
+      /** A run that ended early: this many per year survived, at least `minEnded`. */
+      perYearEnded: nonNeg,
+      minEnded: nonNeg,
+      /** An expedition's city request met (Milestone 8). */
+      cityRequest: nonNeg,
+    }),
+    /** Seeds to raise a district to this tier id from the one below. */
+    upgradeCost: z.record(z.string(), nonNeg),
+    ending: z.object({ slots: int.min(1), heartwoodDistricts: int.min(0) }),
+    /** A replaced district composts into this share of the Seeds spent upgrading it. */
+    compostShare: z.number().min(0).max(1),
+  })
+  .strict();
+export type Progression = z.infer<typeof ProgressionSchema>;
+
 export const ContentSchema = z
   .object({
     id: z.string(),
@@ -546,7 +590,9 @@ export const ContentSchema = z
     tunings: z.array(TuningSchema).default([]),
     charters: z.array(CharterSchema).default([]),
     visions: z.array(VisionSchema).default([]),
+    eraGoals: z.array(EraGoalSchema).default([]),
     districts: z.array(DistrictSchema).default([]),
+    progression: ProgressionSchema.optional(),
     /** Fixed draft offers for the guided first year, spring to winter. */
     guidedYear: z.tuple([
       z.array(z.string()),

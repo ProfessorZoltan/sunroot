@@ -52,6 +52,18 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     }
   }
   for (const c of data.combos) checkCombo(c, known);
+  for (const g of data.eraGoals) {
+    if (g.era > data.rules.eras.length)
+      problems.push(`era goal for era ${g.era}, but there are ${data.rules.eras.length} eras`);
+  }
+  const tierIds = data.rules.score.tiers.map((t) => t.id);
+  const p = data.progression;
+  for (const id of [
+    ...Object.keys(p?.seeds.tierBonus ?? {}),
+    ...Object.keys(p?.upgradeCost ?? {}),
+  ]) {
+    if (!tierIds.includes(id)) problems.push(`progression names unknown tier ${id}`);
+  }
   for (const d of data.districts)
     d.signature.sources.forEach((id) => known(id, `district ${d.id}`));
   const cards = new Set(data.buildings.map((b) => b.id));

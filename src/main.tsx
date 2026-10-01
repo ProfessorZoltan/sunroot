@@ -13,6 +13,7 @@ import { render } from 'preact';
 import willowReach from './content/willow-reach.json';
 import { loadAlmanac, saveAlmanac } from './game/almanac';
 import { loadCity, saveCity } from './game/city';
+import { PlayLog } from './game/playlog';
 import { debounced, indexedDbSlot } from './game/saves';
 import { GameStore } from './game/store';
 import { buildTimeline } from './game/timeline';
@@ -60,17 +61,26 @@ async function start() {
   // A reload should resume this run, not start yet another.
   if (params.has('new')) history.replaceState(null, '', location.pathname);
 
+  // The playtest log: a row per season, kept in the browser (not for sandbox runs).
+  const log = new PlayLog(content, sandbox ? null : storage);
   const store = new GameStore(content, state, {
+    onCommand: (command, ok, before, after) => log.command(command, ok, before, after),
+    onResolution: (playing, skipped, s) => log.resolution(playing, skipped, s),
     almanac: loadAlmanac(content, storage),
     onAlmanac: (almanac) => saveAlmanac(content, storage, almanac),
     // The Graft goes to Root City; the finished run's save is no longer needed.
     onGraft: (graft) => {
       const city = loadCity(storage);
-      saveCity(storage, { ...city, grafts: [...city.grafts, graft] });
+      saveCity(storage, {
+        ...city,
+        grafts: [...city.grafts, graft],
+        seeds: city.seeds + graft.seeds,
+      });
       void slot.clear();
     },
   });
   store.message = resumeNote;
+  log.begin(store.state);
 
   // Save as you play (not sandbox runs, which are for trying things out).
   const save = () => {
@@ -94,7 +104,10 @@ async function start() {
   let icons: Record<string, string> = {};
   const root = document.getElementById('app')!;
   const draw = () =>
-    render(<App store={store} view={() => view} icons={() => icons} newRun={newRun} />, root);
+    render(
+      <App store={store} view={() => view} icons={() => icons} newRun={newRun} log={log} />,
+      root,
+    );
   draw();
 
   const host = document.getElementById('map-host')!;

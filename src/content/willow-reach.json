@@ -93,12 +93,12 @@
         {
           "id": "sapling",
           "name": "Sapling",
-          "min": 240
+          "min": 235
         },
         {
           "id": "heartwood",
           "name": "Heartwood",
-          "min": 375
+          "min": 360
         }
       ]
     },
@@ -1193,6 +1193,72 @@
       "addsToDraft": "Kiln Loop tuning"
     }
   ],
+  "eraGoals": [
+    {
+      "era": 1,
+      "text": "House 10 citizens.",
+      "goal": {
+        "kind": "citizens",
+        "citizens": 10
+      },
+      "reward": {
+        "knowledge": 3
+      }
+    },
+    {
+      "era": 2,
+      "text": "Close 2 loops.",
+      "goal": {
+        "kind": "loops",
+        "count": 2
+      },
+      "reward": {
+        "knowledge": 3
+      }
+    },
+    {
+      "era": 3,
+      "text": "Reach Harmony 40.",
+      "goal": {
+        "kind": "harmony",
+        "harmony": 40
+      },
+      "reward": {
+        "knowledge": 3
+      }
+    },
+    {
+      "era": 4,
+      "text": "Go a full year, spring to winter, with no energy shortfall.",
+      "goal": {
+        "kind": "noShortfallYear"
+      },
+      "reward": {
+        "knowledge": 3
+      }
+    }
+  ],
+  "progression": {
+    "seeds": {
+      "complete": 10,
+      "tierBonus": {
+        "sapling": 10,
+        "heartwood": 20
+      },
+      "perYearEnded": 1,
+      "minEnded": 3,
+      "cityRequest": 5
+    },
+    "upgradeCost": {
+      "sapling": 20,
+      "heartwood": 40
+    },
+    "ending": {
+      "slots": 18,
+      "heartwoodDistricts": 6
+    },
+    "compostShare": 0.5
+  },
   "guidedYear": [
     ["orchard", "apiary", "treeNursery"],
     ["fishPond", "levee", "pollinatorMeadow"],

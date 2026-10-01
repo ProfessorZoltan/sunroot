@@ -13,6 +13,7 @@ import { join } from 'node:path';
 import { BOTS } from './bots';
 import { toCsv, toReport } from './report';
 import { simulate } from './simulate';
+import { SIGHTS, type Sight } from './turn';
 
 export interface CliOptions {
   runsPerBot: number;
@@ -21,6 +22,7 @@ export interface CliOptions {
   seedPrefix: string;
   jobs: number;
   guided: boolean;
+  sight: Sight;
 }
 
 export function parseArgs(argv: string[]): CliOptions {
@@ -31,6 +33,7 @@ export function parseArgs(argv: string[]): CliOptions {
     seedPrefix: 'balance',
     jobs: availableParallelism(),
     guided: false,
+    sight: 'forecast',
   };
   for (let i = 0; i < argv.length; i++) {
     const flag = argv[i]!;
@@ -62,9 +65,16 @@ export function parseArgs(argv: string[]): CliOptions {
       case '--guided':
         options.guided = true;
         break;
+      case '--sight': {
+        const sight = value();
+        if (!SIGHTS.includes(sight as Sight))
+          throw new Error(`--sight must be one of ${SIGHTS.join(', ')}`);
+        options.sight = sight as Sight;
+        break;
+      }
       case '--help':
         throw new Error(
-          'usage: npm run balance -- [--runs N] [--bots a,b] [--out dir] [--seed prefix] [--jobs N] [--guided]',
+          'usage: npm run balance -- [--runs N] [--bots a,b] [--out dir] [--seed prefix] [--jobs N] [--guided] [--sight forecast|outcome]',
         );
       default:
         throw new Error(`unknown option ${flag} (try --help)`);
@@ -106,6 +116,7 @@ export async function main(argv: string[], log: (line: string) => void = console
     `--bots ${options.bots.join(',')}`,
     `--seed ${options.seedPrefix}`,
     ...(options.guided ? ['--guided'] : []),
+    `--sight ${options.sight}`,
   ].join(' ');
   writeFileSync(
     reportPath,
@@ -113,6 +124,7 @@ export async function main(argv: string[], log: (line: string) => void = console
       command,
       contentId: 'willowReach',
       runsPerBot: options.runsPerBot,
+      sight: options.sight,
       bots: options.bots.map((b) => ({ name: b, description: BOTS[b]!.description })),
     }),
   );

@@ -46,6 +46,7 @@ describe('the store at the edges of a run', () => {
         district: pick,
         tier: offer.tier.id,
         score: expect.any(Number),
+        seeds: expect.any(Number),
         seed: 'test',
         vision: null,
         visionAchieved: false,

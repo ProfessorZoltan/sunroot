@@ -4,6 +4,7 @@ import { loadContent, type Content } from '../sim';
 import willowReach from '../content/willow-reach.json';
 import { BOTS } from './bots';
 import { playRun, type RunRecord } from './runner';
+import type { Sight } from './turn';
 
 export interface Job {
   bot: string;
@@ -15,6 +16,8 @@ export interface SimulateOptions {
   bots: string[];
   seedPrefix: string;
   guided: boolean;
+  /** What bots see ahead (default: the forecast, as a player does). */
+  sight?: Sight;
   jobs: number;
   onProgress?: (done: number, total: number) => void;
 }
@@ -33,8 +36,13 @@ export function planJobs(
   return jobs;
 }
 
-export function runJobs(content: Content, jobs: Job[], guided: boolean): RunRecord[] {
-  return jobs.map((j) => playRun(content, BOTS[j.bot]!, j.seed, { guided }));
+export interface PlayOptions {
+  guided: boolean;
+  sight: Sight;
+}
+
+export function runJobs(content: Content, jobs: Job[], play: PlayOptions): RunRecord[] {
+  return jobs.map((j) => playRun(content, BOTS[j.bot]!, j.seed, play));
 }
 
 /** Plays every job and returns records ordered as the jobs were planned. */
@@ -42,10 +50,11 @@ export async function simulate(options: SimulateOptions): Promise<RunRecord[]> {
   for (const bot of options.bots) if (!BOTS[bot]) throw new Error(`unknown bot ${bot}`);
   const jobs = planJobs(options);
   const content = loadWillowReach();
+  const play: PlayOptions = { guided: options.guided, sight: options.sight ?? 'forecast' };
   if (options.jobs <= 1 || jobs.length < 8) {
     const out: RunRecord[] = [];
     jobs.forEach((j, i) => {
-      out.push(playRun(content, BOTS[j.bot]!, j.seed, { guided: options.guided }));
+      out.push(playRun(content, BOTS[j.bot]!, j.seed, play));
       options.onProgress?.(i + 1, jobs.length);
     });
     return out;
@@ -70,7 +79,7 @@ export async function simulate(options: SimulateOptions): Promise<RunRecord[]> {
             }
             const start = next;
             next = Math.min(jobs.length, next + batch);
-            worker.postMessage({ start, jobs: jobs.slice(start, next), guided: options.guided });
+            worker.postMessage({ start, jobs: jobs.slice(start, next), play });
           };
           worker.on('message', (msg: { start: number; records: RunRecord[] }) => {
             msg.records.forEach((r, i) => (results[msg.start + i] = r));

@@ -11,7 +11,8 @@ import { paletteHotkeys, GLOBAL_KEYS } from './hotkeys';
 import { AlmanacModal, RevealCard } from './Combos';
 import { LeftPanel } from './LeftPanel';
 import { Footer, ForecastPill, Help, MapTip, ResolutionBanner } from './Overlays';
-import { EndScreen, NewRunDialog } from './RunUi';
+import { EndScreen, NewRunDialog, NoteDialog } from './RunUi';
+import type { PlayLog } from '../game/playlog';
 import { RightPanel, paletteOrder, type Ui } from './RightPanel';
 import { TipProvider } from './tips';
 import { TopBar } from './TopBar';
@@ -21,12 +22,15 @@ export function App({
   view,
   icons,
   newRun,
+  log,
 }: {
   store: GameStore;
   view: () => MapView | null;
   icons: () => Record<string, string>;
   /** Abandons this run (and its save) and starts another. */
   newRun: () => void;
+  /** The playtest log, for notes and the CSV download. */
+  log?: PlayLog;
 }) {
   const [, rerender] = useReducer((n: number, _: undefined) => n + 1, 0);
   const [help, setHelpState] = useState(false);
@@ -44,6 +48,12 @@ export function App({
   };
   const [endSeen, setEndSeen] = useState(false);
   const [askNewRun, setAskNewRun] = useState(false);
+  const [noting, setNotingState] = useState(false);
+  const notingOpen = useRef(false);
+  const setNoting = (open: boolean) => {
+    notingOpen.current = open;
+    setNotingState(open);
+  };
   useEffect(() => store.subscribe(() => rerender(undefined)), [store]);
 
   const { content, state } = store;
@@ -64,6 +74,7 @@ export function App({
       if ((e.ctrlKey || e.metaKey) && lower === 'z')
         return (handled(), void store.dispatch({ type: 'undo' }));
       if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (notingOpen.current) return; // typing a note
       const help = helpOpen.current;
       if (key === '?') return (handled(), setHelp(!help));
       if (store.resolution && !help) {
@@ -181,9 +192,20 @@ export function App({
           store={store}
           onHelp={() => setHelp(true)}
           onAlmanac={() => setAlmanac(true)}
+          onNote={log ? () => setNoting(true) : undefined}
           onNewRun={() => (store.state.status === 'active' ? setAskNewRun(true) : newRun())}
         />
-        {help && <Help onClose={() => setHelp(false)} />}
+        {help && <Help onClose={() => setHelp(false)} log={log} />}
+        {noting && log && (
+          <NoteDialog
+            season={`${store.state.season}, year ${store.state.year}`}
+            onSave={(text) => {
+              log.note(store.state, text);
+              setNoting(false);
+            }}
+            onClose={() => setNoting(false)}
+          />
+        )}
         {askNewRun && <NewRunDialog onConfirm={newRun} onClose={() => setAskNewRun(false)} />}
         {almanac && <AlmanacModal store={store} onClose={() => setAlmanac(false)} />}
         {store.reveals.length > 0 && !store.resolution && <RevealCard store={store} />}
