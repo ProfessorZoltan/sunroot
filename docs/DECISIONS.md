@@ -281,6 +281,25 @@ tiers count in the Heartwood share.
 | Big Families               | 389          | 100%              | 73%       | 0%        | 0          | `scripts/expeditions.ts` |
 | Scavengers' Valley         | 385          | 100%              | 50%       | 0%        | 0          | `scripts/expeditions.ts` |
 
+### Tempest for the bots
+
+The balanced bot, 30 runs at each level, in The Reach with no twist; the usual valley scores 390
+(57% Heartwood). Level N includes the hardships of levels 1 to N. No run collapsed. Slow Healing
+barely touches the bots; it bites players who heal the land by hand.
+
+| Level | Adds            | Median score | Heartwood | Source                   |
+| ----- | --------------- | ------------ | --------- | ------------------------ |
+| 1     | Bitter Nights   | 386          | 53%       | `scripts/expeditions.ts` |
+| 2     | Thin Drafts     | 384          | 47%       | `scripts/expeditions.ts` |
+| 3     | Quick Clutter   | 383          | 43%       | `scripts/expeditions.ts` |
+| 4     | Slow Healing    | 387          | 53%       | `scripts/expeditions.ts` |
+| 5     | Restless People | 380          | 37%       | `scripts/expeditions.ts` |
+| 6     | Cold Autumns    | 366          | 23%       | `scripts/expeditions.ts` |
+| 7     | Rough Seasons   | 365          | 13%       | `scripts/expeditions.ts` |
+| 8     | Weary People    | 347          | 10%       | `scripts/expeditions.ts` |
+| 9     | High Hopes      | 338          | 13%       | `scripts/expeditions.ts` |
+| 10    | Cramped Homes   | 332          | 7%        | `scripts/expeditions.ts` |
+
 ## Deferred to later milestones
 
 - The world map that heals as runs are completed, Tempest levels, and biome unlocks (Highland,
