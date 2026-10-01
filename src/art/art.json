@@ -1,0 +1,11 @@
+{
+  "source": "art/incoming (see its README.md); made by scripts/import-art.ts",
+  "frame": [256, 320],
+  "tileCentre": [128, 186.75],
+  "tileWidth": 200,
+  "ground": ["pumpedReservoir", "rewildedRuin", "salvageYard", "weir", "windSpire"],
+  "pivots": {
+    "riverWheel": [111, 154.5],
+    "windSpire": [127, 90.5]
+  }
+}

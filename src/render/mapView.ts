@@ -5,7 +5,7 @@
  * river flow, buildings, then the overlay (hover, ghost, preview numbers).
  */
 import type { Application } from 'pixi.js';
-import { Container, Graphics, Text } from 'pixi.js';
+import { Container, Graphics, Text, type Sprite } from 'pixi.js';
 import type { PhaseName, Timeline } from '../game/timeline';
 import type { Content } from '../sim/content/load';
 import { hexKey, type Hex } from '../sim/hex';
@@ -29,6 +29,14 @@ import { drawMarkBadges, drawMarkTiles } from './markArt';
 import { ambientFor, drawAmbient, type Ambient } from './ambient';
 import { drawBird, drawDeer, drawOtter, drawSeason, wildlifeFor, type Wildlife } from './seasonArt';
 import { dashedLine, drawFogTile, drawTile } from './tileArt';
+import {
+  artSprite,
+  buildingTexture,
+  hasGround,
+  rotorSprite,
+  rotorTexture,
+  tileTexture,
+} from './sprites';
 
 export interface MapViewEvents {
   onHover(hex: Hex | null): void;
@@ -75,7 +83,15 @@ export class MapView {
   private readonly marksOver = new Graphics();
   private marks: Mark[] = [];
   private readonly underFx = new Container();
+  /** Buildings, back to front: hand-made sprites or procedural drawings. */
+  private readonly buildingLayer = new Container();
+  /** Damage and blackout veils over the buildings. */
   private readonly buildings = new Graphics();
+  /** Tiles, back to front, with the buildings drawn with their own tile in their place. */
+  private readonly tileLayer = new Container();
+  /** Wind spire blades and river wheels, turning (not cached). */
+  private readonly rotors = new Container();
+  private readonly spinning = new Map<Sprite, number>();
   private readonly wildlife = new Graphics();
   private readonly overFx = new Container();
   private readonly overlay = new Graphics();
@@ -103,13 +119,14 @@ export class MapView {
     this.shaker.addChild(this.world);
     // The ground and the buildings change only with the run, so each is drawn once into
     // a texture (at the current zoom) instead of re-rasterizing every shape each frame.
-    this.ground.addChild(this.terrain, this.seasonLayer, this.flow);
-    this.built.addChild(this.buildings);
+    this.ground.addChild(this.terrain, this.tileLayer, this.seasonLayer, this.flow);
+    this.built.addChild(this.buildingLayer, this.buildings);
     this.world.addChild(
       this.ground,
       this.marksUnder,
       this.underFx,
       this.built,
+      this.rotors,
       this.marksOver,
       this.wildlife,
       this.overFx,
@@ -130,6 +147,8 @@ export class MapView {
     this.lastTick = now;
     this.clock += dt;
     this.player?.update(dt);
+    if (!this.reducedMotion)
+      for (const [rotor, speed] of this.spinning) rotor.rotation += (dt / 1000) * speed;
     // Clouds, smoke and the rest are always about: the wildlife layer redraws each frame.
     if (!this.reducedMotion) this.drawWildlife();
   };
@@ -192,8 +211,17 @@ export class MapView {
     const signature = Object.values(state.map.tiles)
       .map((t) => t.type[0])
       .join('');
-    if (signature !== this.mapSignature) {
-      this.mapSignature = signature;
+    // Art changes with winter, and buildings drawn with their own tile take a tile's place.
+    const terrainSignature = [
+      signature,
+      state.season === 'winter',
+      ...Object.values(state.buildings)
+        .filter((b) => hasGround(b.type))
+        .map((b) => `${b.type}@${hexKey(b.at)}`)
+        .sort(),
+    ].join('|');
+    if (terrainSignature !== this.mapSignature) {
+      this.mapSignature = terrainSignature;
       this.drawTerrain(state);
       this.ground.updateCacheTexture();
       if (!this.bounds) {
@@ -206,7 +234,13 @@ export class MapView {
     const seasonSignature = `${signature}|${state.turn}|${Object.keys(state.buildings).length}|${state.harmony}`;
     if (seasonSignature !== this.seasonSignature) {
       this.seasonSignature = seasonSignature;
-      drawSeason(this.seasonLayer, this.content, state);
+      // Hand-made tiles have their own seasons' look: the procedural blossom and snow skip them.
+      drawSeason(
+        this.seasonLayer,
+        this.content,
+        state,
+        (key) => tileTexture(state.map.tiles[key]!.type, key, state.season) !== null,
+      );
       this.ground.updateCacheTexture();
       this.animals = wildlifeFor(this.content, state);
       this.ambient = ambientFor(this.content, state);
@@ -427,8 +461,29 @@ export class MapView {
   private drawTerrain(state: RunState): void {
     const g = this.terrain.clear();
     for (const h of fogHexes(state.map)) drawFogTile(g, hexToPixel(h));
+    for (const child of this.tileLayer.removeChildren()) child.destroy();
+    const grounded = new Map(
+      Object.values(state.buildings)
+        .filter((b) => hasGround(b.type))
+        .map((b) => [hexKey(b.at), b.type]),
+    );
+    // Row by row, so each row covers the side band of the row behind it.
     const tiles = Object.entries(state.map.tiles).sort(([, a], [, b]) => a.r - b.r || a.q - b.q);
-    for (const [key, tile] of tiles) drawTile(g, tile, hexToPixel(tile), key);
+    let procedural: Graphics | null = null;
+    for (const [key, tile] of tiles) {
+      const c = hexToPixel(tile);
+      const own = grounded.get(key);
+      const texture = own
+        ? buildingTexture(own, state.season)
+        : tileTexture(tile.type, key, state.season);
+      if (texture) {
+        this.tileLayer.addChild(artSprite(texture, c));
+        procedural = null;
+        continue;
+      }
+      if (!procedural) this.tileLayer.addChild((procedural = new Graphics()));
+      drawTile(procedural, tile, c, key);
+    }
 
     // The river's flow line runs through tile centres and on into the fog.
     const f = this.flow.clear();
@@ -443,7 +498,13 @@ export class MapView {
         ...centres,
         extend(centres.at(-2)!, centres.at(-1)!),
       ];
-      dashedLine(f, path, 10, 9, { width: 3, color: 0xcfe7ee });
+      // Over painted water the current is a lighter touch.
+      const painted = tileTexture('river', state.map.river[0]!, state.season) !== null;
+      dashedLine(f, path, 10, 9, {
+        width: painted ? 2 : 3,
+        color: 0xcfe7ee,
+        alpha: painted ? 0.45 : 1,
+      });
     }
   }
 
@@ -475,12 +536,32 @@ export class MapView {
     this.drawnBuildings = { state, resolving };
     const g = this.buildings.clear();
     const report = state.lastReport;
+    for (const child of this.buildingLayer.removeChildren()) child.destroy();
+    for (const child of this.rotors.removeChildren()) child.destroy();
+    this.spinning.clear();
     const sorted = Object.values(state.buildings).sort(
       (a, b) => a.at.r - b.at.r || a.at.q - b.at.q,
     );
+    let procedural: Graphics | null = null;
     for (const b of sorted) {
       const c = hexToPixel(b.at);
-      (BUILDING_ART[b.type] ?? missingArt)(g, c);
+      const texture = buildingTexture(b.type, state.season);
+      // Buildings drawn with their own tile are part of the terrain.
+      if (texture && !hasGround(b.type)) {
+        this.buildingLayer.addChild(artSprite(texture, c));
+        procedural = null;
+      } else if (!texture) {
+        if (!procedural) this.buildingLayer.addChild((procedural = new Graphics()));
+        (BUILDING_ART[b.type] ?? missingArt)(procedural, c);
+      }
+      const rotor = rotorTexture(b.type, state.season);
+      const sprite = rotor ? rotorSprite(b.type, rotor, c) : null;
+      if (sprite) {
+        // Blades turn quickly, a river wheel slowly; a damaged one stands still.
+        sprite.rotation = (b.at.q * 1.7 + b.at.r) % (Math.PI * 2);
+        this.rotors.addChild(sprite);
+        if (!b.damage) this.spinning.set(sprite, b.type === 'windSpire' ? 1.6 : 0.6);
+      }
       if (b.damage) drawCondition(g, c, 'damaged');
       // While the season resolves, blackouts show when night falls.
       else if (report?.blackouts.includes(b.uid) && !this.player) drawCondition(g, c, 'dark');
@@ -489,6 +570,19 @@ export class MapView {
   }
 
   private ghost(building: string, c: Point, alpha = 0.75): void {
+    const texture = buildingTexture(building, this.state?.season ?? 'spring');
+    if (texture) {
+      const sprite = artSprite(texture, c);
+      sprite.alpha = alpha;
+      this.labels.addChild(sprite);
+      const rotor = rotorTexture(building, this.state?.season ?? 'spring');
+      const blades = rotor ? rotorSprite(building, rotor, c) : null;
+      if (blades) {
+        blades.alpha = alpha;
+        this.labels.addChild(blades);
+      }
+      return;
+    }
     const g = new Graphics();
     (BUILDING_ART[building] ?? missingArt)(g, c);
     g.alpha = alpha;

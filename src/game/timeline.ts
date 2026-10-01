@@ -69,8 +69,9 @@ export interface Timeline {
   flows: Flow[];
   /** Flooded tiles, each with the moment the water reaches it. */
   flood: { t: number; key: string }[];
-  /** Homes lit at night; blacked-out buildings go dark. */
+  /** Homes lit at night (and what each is); blacked-out buildings go dark. */
   lit: Hex[];
+  litTypes: string[];
   dark: Hex[];
   damaged: Hex[];
   /** Everything tall enough to cast a shadow: tall buildings and woodland. */
@@ -279,12 +280,11 @@ export function buildTimeline(
     }
   }
 
-  const lit = Object.values(after.buildings)
-    .filter(
-      (b) =>
-        (content.byId[b.type]?.housing ?? 0) > 0 && !report.blackouts.includes(b.uid) && !b.damage,
-    )
-    .map((b) => b.at);
+  const litHomes = Object.values(after.buildings).filter(
+    (b) =>
+      (content.byId[b.type]?.housing ?? 0) > 0 && !report.blackouts.includes(b.uid) && !b.damage,
+  );
+  const lit = litHomes.map((b) => b.at);
 
   const shade = Object.entries(report.shaded)
     .map(([uid, keys]) => ({ at: at(uid), by: keys.map(parseHexKey) }))
@@ -310,6 +310,7 @@ export function buildTimeline(
     flows,
     flood,
     lit,
+    litTypes: litHomes.map((b) => b.type),
     dark,
     damaged: report.damaged.map(at).filter((h): h is Hex => h !== undefined),
     casters,

@@ -1,5 +1,15 @@
 # Changelog
 
+## Hand-made art
+
+- The map is drawn with hand-made storybook papercraft: every tile type (two summer looks and
+  winter) and every building (summer and winter), lit windows at night, turning wind spire blades
+  and river wheels. The interface's building icons come from it too.
+- The hexes are a little flatter to match the art.
+- `scripts/import-art.ts` brings art from `art/incoming/` into the game; `docs/ART.md` describes it.
+- The procedural art export (`scripts/export-art.ts`, `docs/art/`) is gone: the hand-made art
+  replaces it.
+
 ## Harder hard twists
 
 - Drought Year: in summer every farm keeps only a quarter of its food, however near the water.

@@ -32,12 +32,19 @@ const WASH: Record<string, { color: number; alpha: number } | null> = {
   winter: { color: 0xeef5fa, alpha: 0.22 },
 };
 
-export function drawSeason(g: Graphics, content: Content, state: RunState): void {
+export function drawSeason(
+  g: Graphics,
+  content: Content,
+  state: RunState,
+  /** Tiles with hand-made art, which shows its own season: no wash or specks there. */
+  hasArt: (key: string) => boolean = () => false,
+): void {
   g.clear();
   const wash = WASH[state.season];
   const specks = LAND_SPECKS[state.season]!;
   const occupied = new Set(Object.values(state.buildings).map((b) => hexKey(b.at)));
   for (const [key, tile] of Object.entries(state.map.tiles)) {
+    if (hasArt(key)) continue;
     const c = hexToPixel(tile);
     if (wash && tile.type !== 'river' && tile.type !== 'reservoir') {
       g.circle(c.x, c.y, 24).fill(wash);
@@ -56,6 +63,7 @@ export function drawSeason(g: Graphics, content: Content, state: RunState): void
   if (state.season === 'winter') {
     // Frost along the river's banks.
     for (const key of state.map.river) {
+      if (hasArt(key)) continue;
       const c = hexToPixel(state.map.tiles[key]!);
       g.ellipse(c.x - 12, c.y + 6, 7, 3).fill({ color: 0xf6fbff, alpha: 0.7 });
       g.ellipse(c.x + 11, c.y - 7, 6, 2.5).fill({ color: 0xf6fbff, alpha: 0.7 });

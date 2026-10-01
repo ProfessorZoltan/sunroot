@@ -10,6 +10,7 @@ import { parseHexKey } from '../sim/hex';
 import { drawCondition } from './buildingArt';
 import { HEX_RADIUS, hexCorners, hexToPixel, type Bounds, type Point } from './layout';
 import { COLORS } from './palette';
+import { artSprite, windowsTexture } from './sprites';
 
 export interface ResolutionLayers {
   /** World space, over the terrain and under the buildings (water, shadows). */
@@ -47,6 +48,8 @@ export class ResolutionPlayer {
   private readonly light = new Graphics();
   private readonly particles = new Graphics();
   private readonly glow = new Graphics();
+  /** Hand-made homes' lit windows, over the night. */
+  private readonly windows = new Container();
   private readonly pops = new Container();
   private readonly sun = new Graphics();
   private readonly shown = new Map<Pop, Container>();
@@ -66,6 +69,7 @@ export class ResolutionPlayer {
       this.eventMarks,
       this.weather,
       this.night,
+      this.windows,
       this.light,
       this.glow,
       this.particles,
@@ -115,12 +119,14 @@ export class ResolutionPlayer {
       this.shadows,
       this.sky,
       this.night,
+      this.windows,
       this.light,
       this.glow,
       this.particles,
     ])
       g.destroy();
     this.pops.destroy({ children: true });
+    this.windows.destroy({ children: true });
     this.sun.destroy();
   }
 
@@ -413,13 +419,24 @@ export class ResolutionPlayer {
       color: mix(0xffffff, 0x4d5f96, depth),
     });
     const pulse = this.reducedMotion ? 1 : 0.85 + 0.15 * Math.sin(this.t / 140);
-    for (const h of this.timeline.lit) {
+    if (this.windows.children.length === 0 && depth > 0) this.makeWindows();
+    this.windows.alpha = depth;
+    this.timeline.lit.forEach((h, i) => {
       const c = hexToPixel(h);
       l.circle(c.x, c.y - 4, 16).fill({ color: COLORS.sunGold, alpha: 0.22 * depth * pulse });
+      // Hand-made homes light their own windows (the sprites above); others get two squares.
+      if (windowsTexture(this.timeline.litTypes[i] ?? '')) return;
       l.rect(c.x - 5, c.y - 6, 3, 3).fill({ color: 0xffe08a, alpha: depth });
       l.rect(c.x + 2, c.y - 6, 3, 3).fill({ color: 0xffe08a, alpha: depth });
-    }
+    });
     if (night > 0.15) for (const h of this.timeline.dark) drawCondition(l, hexToPixel(h), 'dark');
+  }
+
+  private makeWindows(): void {
+    this.timeline.lit.forEach((h, i) => {
+      const texture = windowsTexture(this.timeline.litTypes[i] ?? '');
+      if (texture) this.windows.addChild(artSprite(texture, hexToPixel(h)));
+    });
   }
 
   /** Loops at work glow along their buildings from midday on. */

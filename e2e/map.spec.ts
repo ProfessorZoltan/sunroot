@@ -36,6 +36,12 @@ test('the map renders, previews, places, undoes and ends a season', async ({ pag
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/?seed=willow-reach-golden&visions=0');
   await expect(page.locator('#map-host canvas')).toBeVisible();
+  // The hand-made art: every tile type (2 summer, 1 winter) and building (summer, winter), the
+  // homes' lit windows and the turning rotors.
+  await page.waitForFunction(() => 'sunroot' in window);
+  expect(
+    await page.evaluate(() => (window as unknown as { sunroot: { art: number } }).sunroot.art),
+  ).toBe(96);
   await expect(page.getByText('Choose one')).toBeVisible();
 
   // The canvas has actually drawn the valley (not a blank paper colour).

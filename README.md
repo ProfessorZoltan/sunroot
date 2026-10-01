@@ -5,7 +5,8 @@ it sends home grows a permanent city. The full design is in [docs/DESIGN.md](doc
 
 Built so far: the simulation core, the balance simulator, the map, the interface, the season
 resolution, combos with the Almanac, the run's structure (eras, visions, scoring and the Graft),
-Root City between runs, and sound (Milestones 0 to 9 of the build plan). Runs of Willow Reach can
+Root City between runs, and sound (Milestones 0 to 9 of the build plan), drawn with hand-made
+papercraft art ([docs/ART.md](docs/ART.md)). Runs of Willow Reach can
 be played one after another with mouse or keyboard, growing Root City; the run in progress and the
 city are saved and resumed. See [CHANGELOG.md](CHANGELOG.md) and [docs/DECISIONS.md](docs/DECISIONS.md).
 

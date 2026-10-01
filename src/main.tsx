@@ -11,8 +11,7 @@
  * ?new (the city's next run), ?seed=<text> (a run with this seed, outside
  * the city's teaching and expeditions), ?guided=0 (with ?seed: skip the
  * guided first year), ?visions=0 (with ?seed: no vision choice), ?sandbox
- * (everything unlocked, 999 materials; never saved), ?art (every tile and
- * building in the frame hand-made art is delivered in; scripts/export-art.ts).
+ * (everything unlocked, 999 materials; never saved).
  */
 import { Application } from 'pixi.js';
 import { render } from 'preact';
@@ -25,8 +24,8 @@ import { PlayLog } from './game/playlog';
 import { indexedDbSlot, throttled } from './game/saves';
 import { GameStore, type Reveal } from './game/store';
 import { buildTimeline } from './game/timeline';
-import { renderArtSheet } from './render/artSheet';
 import { renderBuildingIcons } from './render/icons';
+import { artLoaded, iconUrl, loadArt } from './render/sprites';
 import { MapView } from './render/mapView';
 import { COLORS } from './render/palette';
 import {
@@ -52,13 +51,6 @@ const randomSeed = (prefix: string) => `${prefix}-${Math.floor(Math.random() * 1
 async function start() {
   const params = new URLSearchParams(location.search);
   const content = loadContent(willowReach);
-  if (params.has('art')) {
-    // The art sheet: rendered off screen and handed to scripts/export-art.ts.
-    const app = new Application();
-    await app.init({ width: 64, height: 96, backgroundAlpha: 0, antialias: true });
-    (window as unknown as { sunrootArt: unknown }).sunrootArt = await renderArtSheet(app, content);
-    return;
-  }
   let storage: Storage | null = null;
   try {
     storage = window.localStorage;
@@ -240,7 +232,25 @@ async function start() {
       root,
     );
   draw();
-
+  // For the browser tests: in place before the map is set up (the map view joins when ready).
+  (window as unknown as { sunroot: unknown }).sunroot = {
+    store,
+    get view() {
+      return view;
+    },
+    seed,
+    canPlace,
+    content,
+    /** The last save written: the turn and when (for the browser tests). */
+    saved: status,
+    /** Textures of hand-made art loaded (for the browser tests). */
+    get art() {
+      return artLoaded();
+    },
+    city: () => city,
+    savedCity: cityStatus,
+    audio,
+  };
   const host = document.getElementById('map-host')!;
   const app = new Application();
   await app.init({
@@ -250,6 +260,9 @@ async function start() {
     autoDensity: true,
     resolution: Math.min(window.devicePixelRatio || 1, 2),
   });
+  // Hand-made art (src/art), where there is any; the rest is drawn in code. Loaded before the
+  // canvas is shown, so the map appears drawn.
+  await loadArt();
   host.appendChild(app.canvas);
   view = new MapView(app, content, {
     onHover: (hex) => store.hoverAt(hex),
@@ -289,20 +302,8 @@ async function start() {
   };
   store.subscribe(drawMap);
   drawMap();
-  // Exposed for debugging and the browser tests.
-  (window as unknown as { sunroot: unknown }).sunroot = {
-    store,
-    view,
-    seed,
-    canPlace,
-    content,
-    /** The last save written: the turn and when (for the browser tests). */
-    saved: status,
-    city: () => city,
-    savedCity: cityStatus,
-    audio,
-  };
   icons = await renderBuildingIcons(app);
+  for (const id of Object.keys(icons)) icons[id] = iconUrl(id) ?? icons[id]!;
   draw();
 }
 
