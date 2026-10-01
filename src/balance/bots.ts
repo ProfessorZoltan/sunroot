@@ -56,14 +56,17 @@ function peekOr<T>(
 const shortfall = (slot: 'day' | 'night') => (t: Turn) =>
   peekOr(t, (p) => p.report.energy[slot].shortfall + p.report.blackouts.length, 0);
 
+/**
+ * Food still wanted by the end of this season: a season of eating in store
+ * (two before winter, when farms rest), but never more than storage holds.
+ */
 const foodGap = (t: Turn) =>
   peekOr(
     t,
     (p) => {
-      const buffer = t.state.season === 'autumn' ? 3 : 2;
-      return (
-        Math.max(0, t.state.citizens * buffer - p.state.stores.food) + p.report.food.unfed * 10
-      );
+      const seasons = t.state.season === 'autumn' ? 2 : 1;
+      const want = Math.min(t.state.citizens * seasons, t.foodStorage() - 5);
+      return Math.max(0, want - p.state.stores.food) + p.report.food.unfed * 10;
     },
     0,
   );

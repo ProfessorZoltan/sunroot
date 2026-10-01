@@ -1,5 +1,16 @@
 # Changelog
 
+## Is food too easy?
+
+- Answered: no. The balance report said food was too easy (1.77× made over eaten, 41% rotting),
+  but the bots kept a food buffer larger than storage could hold, so they kept building farms
+  whose food could only rot. With a buffer they can store, the bots that build food only to need
+  make 1.13× what they eat and 8% rots, and food still needs tending every season. No game numbers
+  changed (DECISIONS.md Q8).
+- The report answers the food question from the bots that build food only to need, and shows
+  hunger per bot.
+- `scripts/food-analysis.ts` breaks a run's food down by source and year.
+
 ## Milestone 6: combos and the Almanac
 
 - All five combo layers from the design, in the content file and checked in step 10 of every

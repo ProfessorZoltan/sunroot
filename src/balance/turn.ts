@@ -78,6 +78,13 @@ export class Turn {
     return this.state.citizens - used;
   }
 
+  foodStorage(): number {
+    return Object.values(this.state.buildings).reduce(
+      (sum, b) => sum + this.content.byId[b.type]!.foodStorage,
+      0,
+    );
+  }
+
   housing(): number {
     return Object.values(this.state.buildings).reduce(
       (sum, b) => sum + this.content.byId[b.type]!.housing,

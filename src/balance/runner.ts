@@ -1,5 +1,12 @@
 /** Plays one run with a bot and records what the balance report needs. */
-import { applyCommand, createRun, provisionalScore, SEASONS, type Content } from '../sim';
+import {
+  applyCommand,
+  createRun,
+  provisionalScore,
+  SEASONS,
+  type Content,
+  type RunState,
+} from '../sim';
 import { createRng } from '../sim/rng';
 import type { Bot } from './bots';
 import { Turn } from './turn';
@@ -57,7 +64,7 @@ export function playRun(
   content: Content,
   bot: Bot,
   seed: string,
-  options: { guided?: boolean } = {},
+  options: { guided?: boolean; onSeason?: (state: RunState) => void } = {},
 ): RunRecord {
   let state = createRun(content, { seed, guided: options.guided ?? false });
   const rng = createRng(`${seed}:bot:${bot.name}`);
@@ -124,6 +131,7 @@ export function playRun(
     }
 
     state = ok(applyCommand(content, state, { type: 'endSeason' }));
+    options.onSeason?.(state);
     const r = state.lastReport!;
     const si = SEASONS.indexOf(r.season);
     if (r.blackouts.length > 0) record.blackoutsBySeason[si]! += 1;

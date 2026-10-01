@@ -403,13 +403,16 @@ function balanceQuestions(
   const out: string[] = [];
   const smart = records.filter((r) => r.bot !== 'random');
 
-  // Food.
-  const made = sum(smart.map((r) => r.foodMadeAfterY1));
-  const eaten = sum(smart.map((r) => r.foodEatenAfterY1));
-  const rotted = sum(smart.map((r) => r.foodRotted));
-  const seasonsAfterY1 = sum(smart.map((r) => Math.max(0, r.seasons - 4)));
+  // Food: judged by the bots that build food only to need (greedyFood spends
+  // everything on food on purpose, so its surplus answers a different question).
+  const toNeed = smart.filter((r) => r.bot !== 'greedyFood');
+  const made = sum(toNeed.map((r) => r.foodMadeAfterY1));
+  const eaten = sum(toNeed.map((r) => r.foodEatenAfterY1));
+  const rotted = sum(toNeed.map((r) => r.foodRotted));
+  const unfed = sum(toNeed.map((r) => r.unfedCitizenSeasons));
+  const seasonsAfterY1 = sum(toNeed.map((r) => Math.max(0, r.seasons - 4)));
   const fullShare =
-    sum(smart.map((r) => r.storageFullSeasons)) / Math.max(1, sum(smart.map((r) => r.seasons)));
+    sum(toNeed.map((r) => r.storageFullSeasons)) / Math.max(1, sum(toNeed.map((r) => r.seasons)));
   const ratio = eaten === 0 ? 0 : made / eaten;
   out.push(
     '### Is food too easy after Year 1? Do farms outpace population?',
@@ -419,6 +422,7 @@ function balanceQuestions(
         'Food made / eaten after Year 1',
         'Share of food made that rots',
         'Seasons ending with storage full',
+        'Unfed citizen-seasons per run',
       ],
       bots.map((b) => {
         const rs = byBot.get(b)!;
@@ -431,6 +435,7 @@ function balanceQuestions(
           pct(
             sum(rs.map((r) => r.storageFullSeasons)) / Math.max(1, sum(rs.map((r) => r.seasons))),
           ),
+          fixed(sum(rs.map((r) => r.unfedCitizenSeasons)) / Math.max(1, rs.length), 1),
         ];
       }),
     ),
@@ -438,12 +443,17 @@ function balanceQuestions(
     seasonsAfterY1 === 0
       ? 'Not enough seasons after Year 1 to say.'
       : ratio > 1.3
-        ? `**Yes.** The non-random bots make ${fixed(ratio, 2)}× the food they eat after Year 1; ` +
+        ? `**Yes.** The bots that build food only to need make ${fixed(ratio, 2)}× the food they eat after Year 1; ` +
           `${pct(rotted / Math.max(1, made))} of it rots, and ${pct(fullShare)} of seasons end with storage full. ` +
           (sum(smart.map((r) => r.scrapsFromRot)) > 0
             ? 'Rotting food becomes scraps, then clutter, so the surplus is not just wasted: it costs wellbeing and Harmony.'
             : 'Rotting food becomes biomass, so the surplus is wasted but does no harm.')
-        : `**No.** The non-random bots make ${fixed(ratio, 2)}× the food they eat after Year 1.`,
+        : `**No.** The bots that build food only to need (all but random and greedyFood) make ` +
+          `${fixed(ratio, 2)}× the food they eat after Year 1, and ${pct(rotted / Math.max(1, made))} of it rots. ` +
+          (unfed === 0
+            ? 'Nobody goes hungry, but only because they keep building farms as people arrive: food needs attention every season, and the random bot, which ignores it, mostly collapses from hunger.'
+            : `Hunger is rare: ${fixed(unfed / Math.max(1, toNeed.length), 3)} unfed citizen-seasons per run. ` +
+              'Food needs attention every season, though: the random bot, which ignores it, mostly collapses from hunger.'),
     '',
   );
 
