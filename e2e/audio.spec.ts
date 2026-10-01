@@ -43,13 +43,10 @@ test('sound: notes for what you do, music that plays, and an off switch', async 
   expect((await audio(page)).layers).toBe(1);
 
   // Off, and still off after a reload.
-  const button = page.getByRole('button', { name: 'Sound on' });
+  const button = page.getByRole('button', { name: 'Sound', exact: true });
   await expect(button).toHaveAttribute('aria-pressed', 'true');
   await button.click();
-  await expect(page.getByRole('button', { name: 'Sound off' })).toHaveAttribute(
-    'aria-pressed',
-    'false',
-  );
+  await expect(button).toHaveAttribute('aria-pressed', 'false');
   await page.reload();
   await expect(page.locator('#map-host canvas')).toBeVisible();
   expect((await audio(page)).settings.on).toBe(false);

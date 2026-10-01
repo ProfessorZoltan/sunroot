@@ -266,7 +266,7 @@ export function applyLoopBonuses(ctx: SeasonContext): void {
       const made = ctx.report.yields[uid] ?? {};
       const res = combo.bonusOrder.find((r) => (made[r] ?? 0) > 0);
       if (!res) continue;
-      addYield(ctx, b, res, combo.bonus);
+      addYield(ctx, b, res, combo.bonus, `${combo.name} bonus`);
       explain(ctx, b, `+${combo.bonus} ${res} from the ${combo.name}`);
     }
   }

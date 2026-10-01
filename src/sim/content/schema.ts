@@ -64,12 +64,21 @@ export const BUILDING_KINDS = [
 ] as const;
 export type BuildingKind = (typeof BUILDING_KINDS)[number];
 
+/**
+ * A building with several recipes can be set to Auto: each run uses the first
+ * recipe, in the order listed (salvage, then clutter), whose inputs are in
+ * store and whose `autoAtLeast` stores are met.
+ */
+export const AUTO_RECIPE = 'auto';
+
 const RecipeSchema = z.object({
   id: z.string(),
   inputs: z.partialRecord(ResourceSchema, nonNeg).default({}),
   outputs: z.partialRecord(ResourceSchema, nonNeg).default({}),
   /** Heat delivered free to a neighbouring heat well per run (kiln). */
   heatToNeighborStorage: nonNeg.default(0),
+  /** On Auto, this recipe runs only while these stores are at least this high. */
+  autoAtLeast: z.partialRecord(ResourceSchema, nonNeg).default({}),
 });
 
 export const BuildingSchema = z
@@ -336,6 +345,30 @@ export const RulesSchema = z
       /** Graft tiers from lowest; a run reaches the highest tier whose `min` its score meets. */
       tiers: z.array(z.object({ id: z.string(), name: z.string(), min: int.min(0) })).min(1),
     }),
+    /**
+     * Demolishing a building: the energy the work takes in this season's slot,
+     * the rubble it leaves (a share of the building's cost, at least 1), which
+     * becomes salvage instead of clutter while one of `salvagedBy` stands, and
+     * what the tile becomes (tiles of the `keeps` types stay as they are).
+     */
+    demolition: z
+      .object({
+        energy: nonNeg,
+        slot: z.enum(['day', 'night']),
+        rubbleShare: z.number().min(0),
+        salvagedBy: z.array(z.string()).default([]),
+        tileBecomes: TileTypeSchema,
+        keeps: z.array(TileTypeSchema).default([]),
+      })
+      .strict()
+      .default({
+        energy: 2,
+        slot: 'day',
+        rubbleShare: 0.5,
+        salvagedBy: [],
+        tileBecomes: 'barren',
+        keeps: [],
+      }),
     /** How many visions are offered at the start of a run (when visions are on). */
     visionChoices: int.min(1).default(2),
     mixedGrid: z.object({

@@ -21,7 +21,7 @@ import {
   byPriority,
 } from '../queries';
 import type { RunState, SeasonSummary } from '../types';
-import { emptyReport, type SeasonContext } from './context';
+import { emptyReport, flow, type SeasonContext } from './context';
 import { resolveEnergy } from './energy';
 import { applyEvent, mixedGridBonus } from './events';
 import { feedAndGrow, scrapsAndHarmony } from './people';
@@ -62,6 +62,7 @@ export function resolveSeason(
     forecast: options.forecast ?? false,
     formations: [],
     effects: new Map(),
+    demolitions: input.seasonCommands.filter((c) => c.type === 'demolish').length,
   };
 
   applyEvent(ctx); // 3
@@ -132,6 +133,9 @@ function advance(content: Content, ctx: SeasonContext): RunState {
   };
   state.history = [...state.history, summary];
   state.lastReport = report;
+  // The last 4 seasons' reports: the last of each season, for the season report.
+  state.recentReports = [...state.recentReports, report].slice(-4);
+  state.spent = {};
   if (state.vision && state.visionAchieved === null && visionMet(content, state)) {
     state.visionAchieved = state.turn;
     report.visionAchieved = true;
@@ -147,6 +151,7 @@ function advance(content: Content, ctx: SeasonContext): RunState {
   if (goal && !state.eraGoalsMet.includes(state.era) && goalMet(content, state, goal.goal)) {
     state.eraGoalsMet = [...state.eraGoalsMet, state.era];
     state.stores.knowledge += goal.reward.knowledge;
+    flow(report.flows, 'knowledge', 'made', 'Era goal met', goal.reward.knowledge);
     report.eraGoalMet = state.era;
   }
 
@@ -202,6 +207,8 @@ function startSeason(content: Content, state: RunState): void {
       const cost = content.events.flood.repairCost;
       if (state.stores.materials >= cost) {
         state.stores.materials -= cost;
+        if (state.lastReport)
+          flow(state.lastReport.flows, 'materials', 'used', 'Flood repairs', cost, b.uid);
         delete b.damage;
         state.notices.push(`Repaired ${def.name} after the flood for ${cost} materials`);
       } else {

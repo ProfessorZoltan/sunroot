@@ -17,6 +17,7 @@ export function Footer({
   onNote,
   onCity,
   audio,
+  onReport,
 }: {
   store: GameStore;
   onHelp: () => void;
@@ -27,6 +28,8 @@ export function Footer({
   audio?: AudioEngine;
   /** Opens a playtest note for this season. */
   onNote?: () => void;
+  /** Opens the season report. */
+  onReport?: () => void;
 }) {
   const { content, state } = store;
   const event = content.events[state.forecast.event];
@@ -41,7 +44,9 @@ export function Footer({
           <div class="strong">
             This season ends with: {event.name.toLowerCase()} · then {next.name.toLowerCase()}
           </div>
-          <div class="quiet small">{event.description}</div>
+          <div class="quiet small clamp" title={event.description}>
+            {event.description}
+          </div>
         </div>
       </div>
       <div class="message" role="status" aria-live="polite">
@@ -57,10 +62,22 @@ export function Footer({
                   : '')}
       </div>
       <div class="actions">
+        {onReport && (
+          <button
+            type="button"
+            class="button"
+            disabled={state.recentReports.length === 0}
+            onClick={onReport}
+            aria-label="Season report"
+            title="What each resource was made and used by, season by season"
+          >
+            Report
+          </button>
+        )}
         {audio && <SoundButton engine={audio} />}
         {onCity && (
-          <button type="button" class="button" onClick={onCity}>
-            Root City
+          <button type="button" class="button" onClick={onCity} aria-label="Root City">
+            City
           </button>
         )}
         <button type="button" class="button" onClick={onNewRun}>
@@ -219,6 +236,7 @@ export function Help({
     ['Enter', 'Place at the aimed tile'],
     ['Esc', 'Stop placing, close panels'],
     ['Z or Ctrl+Z', 'Undo (free until the season ends)'],
+    ['Delete', 'Demolish the building in the inspector'],
     ['E', 'End the season'],
     ['Space / Esc', 'Skip the season playing out'],
     ['P', 'Pause or resume the season playing out'],

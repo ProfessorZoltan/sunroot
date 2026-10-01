@@ -12,7 +12,7 @@ import {
 } from '../queries';
 import type { PopulationReason, WellbeingLine } from '../types';
 import { formationWellbeing } from '../combos';
-import type { SeasonContext } from './context';
+import { flow, type SeasonContext } from './context';
 
 export function feedAndGrow(ctx: SeasonContext): void {
   const { content, state, report } = ctx;
@@ -22,6 +22,7 @@ export function feedAndGrow(ctx: SeasonContext): void {
   const need = state.citizens * rules.foodPerCitizen;
   const eaten = Math.min(state.stores.food, need);
   state.stores.food -= eaten;
+  flow(report.flows, 'food', 'used', 'Citizens eat', eaten);
   const unfed = rules.foodPerCitizen > 0 ? Math.ceil((need - eaten) / rules.foodPerCitizen) : 0;
   const spareFood = ctx.foodProduced - need;
 
@@ -58,6 +59,7 @@ export function feedAndGrow(ctx: SeasonContext): void {
     const n = Math.min(press.max, bearing, Math.floor(state.stores.food / press.foodEach));
     if (n <= 0) continue;
     state.stores.food -= n * press.foodEach;
+    flow(report.flows, 'food', 'used', defOf(content, b).name, n * press.foodEach, b.uid);
     cider.push({
       kind: 'civic',
       reason: `${defOf(content, b).name}: ${n * press.foodEach} spare food`,
@@ -69,7 +71,11 @@ export function feedAndGrow(ctx: SeasonContext): void {
   const storage = foodStorage(content, state);
   const rotted = Math.max(0, state.stores.food - storage);
   state.stores.food -= rotted;
-  if (rules.rotsInto === 'biomass') state.stores.biomass += rotted;
+  flow(report.flows, 'food', 'used', 'Rotted (beyond storage)', rotted);
+  if (rules.rotsInto === 'biomass') {
+    state.stores.biomass += rotted;
+    flow(report.flows, 'biomass', 'made', 'Rotted food', rotted);
+  }
 
   report.food = { produced: ctx.foodProduced, eaten, unfed, rotted, storage };
   report.population = { before, change, after: state.citizens, reason };
@@ -140,9 +146,13 @@ export function scrapsAndHarmony(ctx: SeasonContext): void {
   const { content, state, report } = ctx;
   const fromScraps = state.stores.scraps;
   state.stores.clutter += fromScraps;
+  flow(report.flows, 'scraps', 'used', 'Left over: became clutter', fromScraps);
+  flow(report.flows, 'clutter', 'made', 'Scraps left over', fromScraps);
   const fromCitizens = Math.floor(state.citizens / content.rules.citizensPerScrap);
   const fromRot = content.rules.rotsInto === 'scraps' ? report.food.rotted : 0;
   state.stores.scraps = fromCitizens + fromRot;
+  flow(report.flows, 'scraps', 'made', 'Citizens', fromCitizens);
+  flow(report.flows, 'scraps', 'made', 'Rotted food', fromRot);
   report.clutter = { ...report.clutter, fromScraps, total: state.stores.clutter };
   report.scraps = { fromCitizens, fromRot, total: state.stores.scraps };
   state.harmony = computeHarmony(content, state);

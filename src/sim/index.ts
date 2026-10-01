@@ -6,6 +6,7 @@ export {
   RESOURCES,
   TILE_TYPES,
   COMBO_LAYERS,
+  AUTO_RECIPE,
   type BuildingDef,
   type BuildingKind,
   type Charter,
@@ -103,3 +104,4 @@ export {
   type RunResult,
   type Teaching,
 } from './city';
+export { demolishCheck, type DemolishCheck } from './demolish';

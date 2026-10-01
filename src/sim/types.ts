@@ -141,6 +141,10 @@ export interface RunState {
   eraGoalsMet: number[];
   /** The turn the expedition's city request was met, or null. */
   requestMet: number | null;
+  /** What this season's commands spent so far (building, rerolls, hints), for the season report. */
+  spent: Flows;
+  /** The reports of the last 4 seasons, oldest first: the last one of each season. */
+  recentReports: SeasonReport[];
   ledger: Ledger;
   /** Messages for the player about things that happened between seasons. */
   notices: string[];
@@ -179,6 +183,8 @@ export type Command =
   | { type: 'buyExtraCard' }
   | { type: 'place'; building: string; at: Hex }
   | { type: 'spreadCompost'; at: Hex }
+  /** Removes a building: energy this season, rubble, and the tile reverts (see rules.demolition). */
+  | { type: 'demolish'; uid: string }
   | { type: 'setRecipe'; uid: string; recipe: string }
   | { type: 'setDigesterSlot'; uid: string; slot: Slot }
   | { type: 'setPriority'; order: string[] }
@@ -230,9 +236,12 @@ export interface SlotReport {
 }
 
 export interface RunReport {
+  /** The building's setting: a recipe id, or `auto`. */
   recipe: string;
   runs: number;
   energy: Record<Slot, number>;
+  /** Runs of each recipe (Auto can mix them). */
+  byRecipe: Record<string, number>;
 }
 
 export type WellbeingKind =
@@ -244,7 +253,18 @@ export interface WellbeingLine {
   amount: number;
 }
 
+/** Where a resource came from or went, by what (a building's name, "citizens eat"...). */
+export type FlowLines = Record<string, { amount: number; count: number }>;
+
+/** Every unit of a resource made and used in a season: start + made − used = end. */
+export type Flows = Partial<Record<Resource, { made: FlowLines; used: FlowLines }>>;
+
 export interface SeasonReport {
+  /**
+   * Each resource made and used this season, by what: building, spending
+   * during the season, eating, rot, bonuses, repairs. It balances exactly.
+   */
+  flows: Flows;
   turn: number;
   year: number;
   season: Season;

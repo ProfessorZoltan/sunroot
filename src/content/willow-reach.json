@@ -72,6 +72,14 @@
       "excludeSources": ["foundersCamp"],
       "bonusPerSlot": 1
     },
+    "demolition": {
+      "energy": 2,
+      "slot": "day",
+      "rubbleShare": 0.5,
+      "salvagedBy": ["salvageYard"],
+      "tileBecomes": "barren",
+      "keeps": ["hill", "floodplain", "river", "reservoir", "ruin"]
+    },
     "charterEras": [2, 3, 4],
     "charterChoices": 3,
     "score": {
@@ -317,7 +325,7 @@
       "recipes": {
         "maxRuns": 2,
         "energyPerRun": 2,
-        "defaultRecipe": "salvage",
+        "defaultRecipe": "auto",
         "options": [
           {
             "id": "salvage",
@@ -335,6 +343,9 @@
             },
             "outputs": {
               "materials": 1
+            },
+            "autoAtLeast": {
+              "clutter": 5
             }
           }
         ]

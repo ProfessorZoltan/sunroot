@@ -34,7 +34,12 @@ export function makeSave(state: RunState, savedAt: string): SaveFile {
 }
 
 /** Fields added to the run state after saves began, and their value for an older save. */
-const ADDED_FIELDS: Partial<RunState> = { eraGoalsMet: [], requestMet: null };
+const ADDED_FIELDS: Partial<RunState> = {
+  eraGoalsMet: [],
+  requestMet: null,
+  spent: {},
+  recentReports: [],
+};
 
 export type ReadSave = { ok: true; save: SaveFile } | { ok: false; error: string };
 

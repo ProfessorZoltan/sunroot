@@ -156,12 +156,13 @@ export function playToWinter() {
   state = act(state, { type: 'endSeason' });
   const spring = state.lastReport!;
   expect(totals(state)).toEqual({ materials: 11, food: 8, citizens: 6 });
-  // Solar powers the first workshop run; the flood leaves silt on the new farm.
+  // Solar powers the first workshop run (on Auto, salvage comes first); the flood leaves silt.
   const workshop = buildingAt(state, sites.workshop);
   expect(spring.runs[workshop.uid]).toEqual({
-    recipe: 'salvage',
+    recipe: 'auto',
     runs: 1,
     energy: { day: 2, night: 0 },
+    byRecipe: { salvage: 1 },
   });
   expect(spring.energy.day.bySource.solarCanopy).toBe(3);
   expect(buildingAt(state, sites.farm1).siltYear).toBe(1);

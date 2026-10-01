@@ -1,3 +1,4 @@
+import { copyFlows } from './season/context';
 import type { BuildingState, MapState, RunState, SeasonSnapshot } from './types';
 
 /**
@@ -7,7 +8,7 @@ import type { BuildingState, MapState, RunState, SeasonSnapshot } from './types'
  * field is added to the state and not copied here.
  *
  * Parts that are written once and then only replaced, never changed in place,
- * are shared between copies: `lastReport`, `history`, `energyHistory`, `loops`, `ledger`, the
+ * are shared between copies: `lastReport`, `recentReports`, `history`, `energyHistory`, `loops`, `ledger`, the
  * season-start snapshot, past commands, `options`, and the map's `river` and
  * `floodOrder` lists. Code must never mutate those in place.
  */
@@ -45,6 +46,8 @@ export function snapshot(state: SeasonSnapshot): SeasonSnapshot {
     visionAchieved: state.visionAchieved,
     eraGoalsMet: [...state.eraGoalsMet],
     requestMet: state.requestMet,
+    spent: copyFlows(state.spent),
+    recentReports: state.recentReports,
     ledger: state.ledger,
     notices: [...state.notices],
     lastReport: state.lastReport,

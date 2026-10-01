@@ -10,11 +10,11 @@
  * what is still spare; demand is paid, storage discharges into shortfalls and
  * any gap left becomes a blackout, shutting buildings off lowest priority first.
  */
-import type { Slot } from '../content/schema';
-import { SLOTS } from '../content/schema';
+import type { Resource, Slot } from '../content/schema';
+import { AUTO_RECIPE, SLOTS } from '../content/schema';
 import { byPriority, defOf, neighborBuildings, occupancy } from '../queries';
 import type { BuildingState } from '../types';
-import { addYield, explain, type SeasonContext } from './context';
+import { addYield, explain, flow, type SeasonContext } from './context';
 
 type PerSlot = Record<Slot, number>;
 const perSlot = (): PerSlot => ({ day: 0, night: 0 });
@@ -45,10 +45,14 @@ export function resolveEnergy(ctx: SeasonContext): void {
     freeHeat[slot] = Object.values(report.energy[slot].heat.bySource).reduce((a, b) => a + b, 0);
   }
 
+  // Demolition work this season: demand that can't be shut off.
+  const demolition = perSlot();
+  demolition[content.rules.demolition.slot] = ctx.demolitions * content.rules.demolition.energy;
+
   /** What the buildings that are still on need in a slot. */
   const settle = (slot: Slot, off: Set<string>): Settlement => {
     const on = active.filter((b) => !off.has(b.uid));
-    const energy = on.reduce((sum, b) => sum + energyOf(b, slot), 0);
+    const energy = on.reduce((sum, b) => sum + energyOf(b, slot), 0) + demolition[slot];
     const heat = on.reduce((sum, b) => sum + heatOf(b, slot), 0);
     const free = Math.min(heat, freeHeat[slot]);
     let rest = heat - free;
@@ -92,6 +96,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
       const d = energyOf(b, slot) + heatOf(b, slot);
       if (d > 0) r.demandBy[b.type] = (r.demandBy[b.type] ?? 0) + d;
     }
+    if (demolition[slot] > 0) r.demandBy.demolition = demolition[slot];
     Object.assign(r.heat, {
       demand: s.heat,
       free: s.free,
@@ -194,17 +199,27 @@ export function resolveEnergy(ctx: SeasonContext): void {
     const def = defOf(content, b);
     if (!def.recipes) continue;
     const recipeId = b.recipe ?? def.recipes.defaultRecipe;
-    const recipe = def.recipes.options.find((o) => o.id === recipeId)!;
+    // Auto: each run uses the first recipe whose inputs are in store (salvage, then clutter).
+    const choices =
+      recipeId === AUTO_RECIPE
+        ? def.recipes.options
+        : def.recipes.options.filter((o) => o.id === recipeId);
     const used = perSlot();
     // A Mill Race workshop runs on the river's power; Night Shift adds night-only runs.
     const cost = ctx.effects.get(b.uid)?.freeRuns ? 0 : def.recipes.energyPerRun;
     const made: Partial<Record<keyof typeof state.stores, number>> = {};
+    const byRecipe: Record<string, number> = {};
     let runs = 0;
     // The Foundry District's perk: extra runs, on any energy, in the first year.
     const maxRuns = def.recipes.maxRuns + (state.year === 1 ? def.recipes.firstYearExtraRuns : 0);
     while (runs < maxRuns + def.recipes.nightOnlyRuns) {
+      const has = (needs: Partial<Record<Resource, number>>) =>
+        Object.entries(needs).every(([res, n]) => state.stores[res as Resource] >= n);
+      const recipe = choices.find(
+        (o) => has(o.inputs) && (recipeId !== AUTO_RECIPE || has(o.autoAtLeast)),
+      );
+      if (!recipe) break;
       const inputs = Object.entries(recipe.inputs) as [keyof typeof state.stores, number][];
-      if (inputs.some(([res, n]) => state.stores[res] < n)) break;
       const slots: readonly Slot[] = runs < maxRuns ? SLOTS : ['night'];
       const slot = slots.find((s) => spare[s] >= cost);
       if (!slot) break;
@@ -213,6 +228,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
       report.energy[slot].sponges += cost;
       for (const [res, n] of inputs) {
         state.stores[res] -= n;
+        flow(report.flows, res, 'used', `${def.name} runs`, n, b.uid);
         if (res === 'clutter') report.clutter.recycled += n;
       }
       for (const [res, n] of Object.entries(recipe.outputs) as [
@@ -228,6 +244,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
         if (well)
           well.stored = (well.stored ?? 0) + Math.min(recipe.heatToNeighborStorage, room(well));
       }
+      byRecipe[recipe.id] = (byRecipe[recipe.id] ?? 0) + 1;
       runs++;
     }
     const factor = content.rules.flexibleOutputFactor;
@@ -236,11 +253,14 @@ export function resolveEnergy(ctx: SeasonContext): void {
     }
     if (factor !== 1 && runs > 0) explain(ctx, b, `outputs × ${factor}`);
     if (cost === 0 && runs > 0) explain(ctx, b, 'runs need no energy (Mill Race)');
-    report.runs[b.uid] = { recipe: recipeId, runs, energy: used };
+    report.runs[b.uid] = { recipe: recipeId, runs, energy: used, byRecipe };
+    const which = Object.entries(byRecipe)
+      .map(([id, n]) => `${n} ${id}`)
+      .join(' and ');
     explain(
       ctx,
       b,
-      `${runs} ${recipeId} runs using ${used.day} day and ${used.night} night energy`,
+      `${runs > 0 ? which : `0 ${recipeId}`} runs using ${used.day} day and ${used.night} night energy`,
     );
   }
 

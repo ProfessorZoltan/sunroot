@@ -1,9 +1,9 @@
 /** Right column: the draft, the building palette, and the placement preview or building inspector. */
 import type { GameStore } from '../game/store';
-import type { BuildingDef, Content } from '../sim';
+import { AUTO_RECIPE, demolishCheck, type BuildingDef, type Content } from '../sim';
 import { CharterPanel } from './Combos';
 import { VisionPanel } from './RunUi';
-import { describeBuilding } from './describe';
+import { autoText, describeBuilding } from './describe';
 import { Reroll } from './icons';
 import { SEASON_NAMES } from './TopBar';
 import { signed } from './tips';
@@ -386,6 +386,7 @@ function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
               store.dispatch({ type: 'setRecipe', uid: b.uid, recipe: e.currentTarget.value })
             }
           >
+            <option value={AUTO_RECIPE}>{autoText(def.recipes.options)}</option>
             {def.recipes.options.map((o) => (
               <option value={o.id}>
                 {o.id === 'salvage'
@@ -417,6 +418,7 @@ function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
           slot
         </label>
       )}
+      <Demolish store={store} uid={b.uid} />
       {b.uid !== 'b0' && (
         <div class="small control">
           Priority {rank + 1} of {state.priority.length}: staffed in order, shut off last-first in a
@@ -442,5 +444,28 @@ function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
         </div>
       )}
     </section>
+  );
+}
+
+/** Demolish, with what it will cost: energy this season, rubble, what the tile becomes. */
+function Demolish({ store, uid }: { store: GameStore; uid: string }) {
+  const check = demolishCheck(store.rules, store.state, uid);
+  if (!check.ok) return null;
+  const tile = check.tile ? `; the tile becomes ${check.tile}` : '';
+  return (
+    <div class="small control">
+      <button
+        type="button"
+        class="button small-button"
+        aria-keyshortcuts="Delete"
+        onClick={() => store.dispatch({ type: 'demolish', uid })}
+      >
+        Demolish
+      </button>{' '}
+      <span class="quiet">
+        {check.energy} {check.slot} energy this season, leaves {check.rubble} {check.into}
+        {tile}. Undo is free until the season ends.
+      </span>
+    </div>
   );
 }

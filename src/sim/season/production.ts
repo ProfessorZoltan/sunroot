@@ -14,7 +14,7 @@ import {
   waterDistance,
 } from '../queries';
 import type { BuildingState } from '../types';
-import { addHeat, addSupply, addYield, explain, type SeasonContext } from './context';
+import { addHeat, addSupply, addYield, explain, flow, type SeasonContext } from './context';
 
 const EPSILON = 1e-9;
 
@@ -211,6 +211,14 @@ export function forage(ctx: SeasonContext): void {
     if (amount > 0) {
       ctx.state.stores.materials += amount;
       ctx.report.forage += amount;
+      flow(
+        ctx.report.flows,
+        'materials',
+        'made',
+        `${defOf(ctx.content, b).name} foraging`,
+        amount,
+        b.uid,
+      );
       explain(ctx, b, `forages ${amount} materials`);
     }
   }
@@ -241,11 +249,17 @@ export function nurture(ctx: SeasonContext): void {
   }
 }
 
-function takeInputs(ctx: SeasonContext, inputs: readonly Resource[], max: number): number {
+function takeInputs(
+  ctx: SeasonContext,
+  b: BuildingState,
+  inputs: readonly Resource[],
+  max: number,
+): number {
   let taken = 0;
   for (const res of inputs) {
     const t = Math.min(max - taken, ctx.state.stores[res]);
     ctx.state.stores[res] -= t;
+    flow(ctx.report.flows, res, 'used', defOf(ctx.content, b).name, t, b.uid);
     taken += t;
   }
   return taken;
@@ -264,7 +278,7 @@ export function convert(ctx: SeasonContext): void {
         runs < d.maxRuns &&
         d.inputs.reduce((s, r) => s + state.stores[r], 0) >= d.inputPerRun
       ) {
-        takeInputs(ctx, d.inputs, d.inputPerRun);
+        takeInputs(ctx, b, d.inputs, d.inputPerRun);
         runs++;
       }
       if (runs > 0) {
@@ -279,7 +293,7 @@ export function convert(ctx: SeasonContext): void {
     }
     if (def.composter) {
       const c = def.composter;
-      const taken = takeInputs(ctx, c.inputs, c.maxInput);
+      const taken = takeInputs(ctx, b, c.inputs, c.maxInput);
       const out = Math.floor((taken * c.outputPerFullRun) / c.maxInput);
       addYield(ctx, b, c.output, out);
       explain(ctx, b, `composted ${taken} scraps and biomass into ${out} ${c.output}`);
@@ -324,9 +338,17 @@ export function neighborBonuses(ctx: SeasonContext, targets: BuildingState[]): v
       if (bonus.costs) {
         if (state.stores[bonus.costs.resource] < bonus.costs.amount) break;
         state.stores[bonus.costs.resource] -= bonus.costs.amount;
+        flow(
+          ctx.report.flows,
+          bonus.costs.resource,
+          'used',
+          `${def.name} bonuses`,
+          bonus.costs.amount,
+          giver.uid,
+        );
       }
       ctx.bonusGiven.add(tag);
-      addYield(ctx, target, 'food', bonus.amount);
+      addYield(ctx, target, 'food', bonus.amount, `${def.name} bonus`);
       explain(ctx, target, `+${bonus.amount} food from a neighbouring ${def.name}`);
       if (def.composter) ctx.report.bonuses.compost += bonus.amount;
       else ctx.report.bonuses.apiary += bonus.amount;

@@ -52,6 +52,18 @@ export function commandCues(
     // Only combos the player can see: a sound must not give away a hidden formation.
     for (const layer of layersOf(content, visible))
       cues.push({ cue: `combo:${layer}`, notes: after(0.75, comboChord(layer)) });
+  } else if (command.type === 'demolish') {
+    const type = before.buildings[command.uid]?.type;
+    const note = type ? buildingNote(content, type) : null;
+    // The building's note, low and short, falling a fifth.
+    if (note)
+      cues.push({
+        cue: `demolish:${type}`,
+        notes: [
+          { ...note, midi: note.midi - 12, voice: 'pluck', length: 0.5 },
+          { ...note, at: 0.25, midi: note.midi - 19, voice: 'pluck', length: 1 },
+        ],
+      });
   } else if (command.type === 'pickCard' && content.byId[command.card]) {
     const note = buildingNote(content, command.card);
     cues.push({ cue: `pick:${command.card}`, notes: [{ ...note, gain: note.gain * 0.6 }] });

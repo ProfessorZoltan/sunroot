@@ -1,5 +1,6 @@
 import { applyModifiers } from './modifiers';
 import {
+  AUTO_RECIPE,
   ContentSchema,
   type BuildingDef,
   type Charter,
@@ -37,6 +38,7 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     if (!byId[id]) problems.push(`${where} names unknown building ${id}`);
   };
   known(data.campBuilding, 'campBuilding');
+  data.rules.demolition.salvagedBy.forEach((id) => known(id, 'rules.demolition.salvagedBy'));
   data.guidedYear.forEach((offer, i) => offer.forEach((id) => known(id, `guidedYear[${i}]`)));
   for (const b of data.buildings) {
     b.neighborFoodBonus?.targets?.forEach((id) => known(id, `${b.id}.neighborFoodBonus`));
@@ -47,8 +49,9 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     if (b.placement.adjacentToBuildings && !b.placement.adjacentTo) {
       problems.push(`${b.id}.placement.adjacentToBuildings needs adjacentTo`);
     }
-    if (b.recipes && !b.recipes.options.some((o) => o.id === b.recipes!.defaultRecipe)) {
-      problems.push(`${b.id}.recipes.defaultRecipe is not one of its options`);
+    const auto = b.recipes?.defaultRecipe === AUTO_RECIPE && b.recipes.options.length > 1;
+    if (b.recipes && !auto && !b.recipes.options.some((o) => o.id === b.recipes!.defaultRecipe)) {
+      problems.push(`${b.id}.recipes.defaultRecipe is not one of its options (or auto)`);
     }
   }
   for (const c of data.combos) checkCombo(c, known);

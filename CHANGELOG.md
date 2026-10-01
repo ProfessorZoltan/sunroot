@@ -1,5 +1,18 @@
 # Changelog
 
+## Playtest requests
+
+- Season report: **Report** in the footer, or "report" on a season in the year strip, shows the last
+  spring, summer, autumn and winter: every resource made and used and by what (bonuses apart), the
+  energy by source and use, combos and bonuses at work, workshop runs and wellbeing. The simulation
+  keeps a ledger of every resource that balances exactly, season by season.
+- Demolish a building from the inspector (or Delete): 2 day energy this season, rubble of half its
+  cost as clutter (salvage while a Salvage Yard stands); flat land turns barren, hills, floodplain,
+  river and ruins stay. Undo is free until the season ends.
+- Workshops now default to Auto: salvage first, then clutter once there are 5 or more. Before, a
+  workshop only recycled clutter if switched to it in the inspector, so clutter piled up unnoticed.
+- The footer's buttons are shorter, so the forecast keeps its room.
+
 ## Milestone 9: audio
 
 - Sound, all synthesized in code: each building plays a note when placed (a marimba for food, a

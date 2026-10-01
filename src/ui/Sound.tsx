@@ -21,7 +21,7 @@ export function SoundButton({ engine }: { engine: AudioEngine }) {
         engine.update({ on: !on });
       }}
     >
-      {on ? 'Sound on' : 'Sound off'}
+      Sound
     </button>
   );
 }

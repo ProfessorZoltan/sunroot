@@ -64,6 +64,9 @@ Sound starts with your first click or key press: buildings play notes, combos pl
 the music gains an instrument at each Harmony tier. **Sound** in the footer turns it off; the keys
 panel (?) has the volumes.
 
+**Report** at the bottom shows what made and used each resource in the last of each season.
+Click a building to inspect it; Delete demolishes it (for some energy and rubble).
+
 Keyboard: 1–4 pick a card, letters on the palette pick a building, arrow keys aim, N jumps to the
 next legal site, Enter places, Z undoes, E ends the season, Space skips its resolution, A opens
 the Almanac, ? lists every key.

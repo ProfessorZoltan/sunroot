@@ -15,6 +15,8 @@ import { EndScreen, NewRunDialog, NoteDialog } from './RunUi';
 import type { PlayLog } from '../game/playlog';
 import type { AudioEngine } from '../audio/engine';
 import { RightPanel, paletteOrder, type Ui } from './RightPanel';
+import { SeasonReportDialog } from './SeasonReport';
+import type { Season } from '../sim';
 import { TipProvider } from './tips';
 import { TopBar } from './TopBar';
 
@@ -54,6 +56,13 @@ export function App({
     setAlmanacState(open);
   };
   const [endSeen, setEndSeen] = useState(false);
+  // The season report: open on the last report of a season, or the latest.
+  const [report, setReportState] = useState<Season | 'latest' | null>(null);
+  const reportOpen = useRef(false);
+  const setReport = (open: Season | 'latest' | null) => {
+    reportOpen.current = open !== null;
+    setReportState(open);
+  };
   const [askNewRun, setAskNewRun] = useState(false);
   const [noting, setNotingState] = useState(false);
   const notingOpen = useRef(false);
@@ -82,6 +91,10 @@ export function App({
         return (handled(), void store.dispatch({ type: 'undo' }));
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (notingOpen.current) return; // typing a note
+      if (reportOpen.current) {
+        if (key === 'Escape') return (handled(), setReport(null));
+        return;
+      }
       const help = helpOpen.current;
       if (key === '?') return (handled(), setHelp(!help));
       if (store.resolution && !help) {
@@ -127,6 +140,13 @@ export function App({
         return handled();
       }
       if (key === 'Enter' && store.tool && !onButton) return (handled(), store.confirm());
+      // Delete (or Backspace) demolishes the building in the inspector.
+      if ((key === 'Delete' || key === 'Backspace') && store.inspected && !store.tool) {
+        handled();
+        const uid = store.inspected;
+        if (store.dispatch({ type: 'demolish', uid })) store.inspect(null);
+        return;
+      }
       if (key.startsWith('Arrow')) {
         handled();
         const dx = key === 'ArrowLeft' ? -1 : key === 'ArrowRight' ? 1 : 0;
@@ -185,7 +205,7 @@ export function App({
   return (
     <TipProvider>
       <div class="screen">
-        <TopBar store={store} />
+        <TopBar store={store} onReport={(season) => setReport(season)} />
         <div class="middle">
           <LeftPanel store={store} />
           <main class="map-wrap" aria-label="Map of the valley">
@@ -202,6 +222,7 @@ export function App({
           onNote={log ? () => setNoting(true) : undefined}
           onNewRun={() => (store.state.status === 'active' ? setAskNewRun(true) : newRun())}
           onCity={viewCity}
+          onReport={() => setReport('latest')}
           audio={audio}
         />
         {help && <Help onClose={() => setHelp(false)} log={log} audio={audio} />}
@@ -213,6 +234,13 @@ export function App({
               setNoting(false);
             }}
             onClose={() => setNoting(false)}
+          />
+        )}
+        {report && (
+          <SeasonReportDialog
+            store={store}
+            season={report === 'latest' ? undefined : report}
+            onClose={() => setReport(null)}
           />
         )}
         {askNewRun && <NewRunDialog onConfirm={newRun} onClose={() => setAskNewRun(false)} />}

@@ -40,6 +40,7 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
       );
     }
     lines.push(`Up to ${def.recipes.maxRuns} runs a season.`);
+    if (def.recipes.options.length > 1) lines.push(`${autoText(def.recipes.options)}.`);
   }
   if (def.composter) {
     lines.push(
@@ -78,6 +79,20 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
   if (def.floodTolerant) lines.push('Survives the flood.');
   if (def.workers) lines.push(`Needs ${def.workers} worker.`);
   return lines;
+}
+
+/** What Auto does, such as "Auto: salvage, then clutter once there are 5 or more". */
+export function autoText(
+  options: { id: string; autoAtLeast: Partial<Record<string, number>> }[],
+): string {
+  return `Auto: ${options
+    .map((o) => {
+      const min = Object.entries(o.autoAtLeast)
+        .map(([res, n]) => `${n} or more ${res}`)
+        .join(' and ');
+      return min ? `${o.id} once there are ${min}` : o.id;
+    })
+    .join(', then ')}`;
 }
 
 function cap(s: string): string {

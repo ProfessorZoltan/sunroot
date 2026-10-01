@@ -2,7 +2,7 @@
 import type { GameStore } from '../game/store';
 import { POPULATION_REASONS, type SeasonView, type SlotView } from '../game/insight';
 import { FULL_DURATIONS, type PhaseName } from '../game/timeline';
-import { harmonyMultiplier, type Content, type SeasonReport, type Slot } from '../sim';
+import { harmonyMultiplier, type Content, type Season, type SeasonReport, type Slot } from '../sim';
 import { Heart, Leaf, Moon, People, Sun } from './icons';
 import { TipTable, useTip, type Row } from './tips';
 
@@ -13,7 +13,14 @@ export const SEASON_NAMES = {
   winter: 'Winter',
 } as const;
 
-export function TopBar({ store }: { store: GameStore }) {
+export function TopBar({
+  store,
+  onReport,
+}: {
+  store: GameStore;
+  /** Opens the season report on the last report of a season. */
+  onReport?: (season: Season) => void;
+}) {
   const { content, state } = store;
   const insight = store.insight;
   // While a season resolves, the strip shows the year as it was and fills that season's slots.
@@ -32,6 +39,11 @@ export function TopBar({ store }: { store: GameStore }) {
         {year.map((sv) => (
           <SeasonBox
             content={content}
+            onReport={
+              onReport && !r && state.recentReports.some((x) => x.season === sv.season)
+                ? () => onReport(sv.season)
+                : undefined
+            }
             sv={r && sv.status === 'now' ? actual(sv, r.report) : sv}
             filling={r && sv.status === 'now' ? r.phase : null}
           />
@@ -66,10 +78,13 @@ function SeasonBox({
   content,
   sv,
   filling = null,
+  onReport,
 }: {
   content: Content;
   sv: SeasonView;
   filling?: PhaseName | null;
+  /** Opens the report for the last season of this kind, if there is one. */
+  onReport?: () => void;
 }) {
   const short = sv.day.shortfall + sv.night.shortfall;
   const label = filling
@@ -91,6 +106,17 @@ function SeasonBox({
         <span class={`season-state ${short > 0 ? 'bad' : sv.status === 'now' ? 'gold' : 'quiet'}`}>
           {label}
         </span>
+        {onReport && (
+          <button
+            type="button"
+            class="season-report-link"
+            aria-label={`Report for the last ${SEASON_NAMES[sv.season].toLowerCase()}`}
+            title={`Report for the last ${SEASON_NAMES[sv.season].toLowerCase()}`}
+            onClick={onReport}
+          >
+            report
+          </button>
+        )}
       </div>
       <div class="slots">
         <SlotMeter content={content} sv={sv} slot="day" view={sv.day} filling={filling} />
@@ -181,7 +207,11 @@ function EnergyTip({
     );
   }
   const name = (id: string) =>
-    id === 'mixedGrid' ? 'Mixed Grid bonus' : (content.byId[id]?.name ?? id);
+    id === 'mixedGrid'
+      ? 'Mixed Grid bonus'
+      : id === 'demolition'
+        ? 'Demolition work'
+        : (content.byId[id]?.name ?? id);
   const supply: Row[] = Object.entries(r.bySource).map(([id, n]) => ({
     label: name(id),
     amount: n,

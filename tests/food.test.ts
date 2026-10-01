@@ -278,3 +278,33 @@ describe('other food buildings', () => {
     expect(s.stores.salvage).toBe(10);
   });
 });
+
+describe('workshops on Auto (the default)', () => {
+  const MAP = [
+    '^ ^ ^ , ~ , , , ^ ^',
+    ' ^ ^ , , ~ , , , ^ ^',
+    '^ , C , ~ , , , , ^',
+    ' ^ , , , ~ , , , , ^',
+  ];
+  const runs = (stores: { salvage: number; clutter: number }) => {
+    let s = scenario(MAP, { season: 'summer', stores });
+    s = place(s, 'workshop', 6, 2);
+    for (const c of [5, 6, 7]) s = place(s, 'solarCanopy', c, 3);
+    expect(s.buildings[uidAt(s, 6, 2)]!.recipe).toBe('auto');
+    return endSeason(s).lastReport!.runs[uidAt(s, 6, 2)]!.byRecipe;
+  };
+
+  it('use salvage first', () => {
+    expect(runs({ salvage: 10, clutter: 10 })).toEqual({ salvage: 2 });
+  });
+
+  it('recycle clutter once there are 5 or more (when it starts to cost wellbeing)', () => {
+    expect(runs({ salvage: 0, clutter: 4 })).toEqual({});
+    expect(runs({ salvage: 0, clutter: 6 })).toEqual({ clutter: 1 });
+    expect(runs({ salvage: 0, clutter: 7 })).toEqual({ clutter: 2 });
+  });
+
+  it('mix the two in one season when salvage runs short', () => {
+    expect(runs({ salvage: 2, clutter: 9 })).toEqual({ salvage: 1, clutter: 1 });
+  });
+});

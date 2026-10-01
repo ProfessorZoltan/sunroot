@@ -214,6 +214,7 @@ describe('storage and demand', () => {
       recipe: 'fire',
       runs: 2,
       energy: { day: 2, night: 2 },
+      byRecipe: { fire: 2 },
     });
     expect(r.yields[uidAt(s, 5, 2)]?.materials).toBe(4);
     expect(s.buildings[uidAt(s, 5, 3)]!.stored).toBe(2 - 1);

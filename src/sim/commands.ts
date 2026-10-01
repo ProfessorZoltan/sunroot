@@ -3,12 +3,15 @@
  * that comes back. Every command is pure: the input state is never mutated.
  */
 import type { Content } from './content/load';
+import { AUTO_RECIPE } from './content/schema';
+import { demolish, demolishCheck } from './demolish';
 import { drawCards, isTuning } from './draft';
 import { hexKey } from './hex';
 import { canPlace } from './placement';
 import { evolve, hintable, placementEvolution } from './combos';
 import { effectiveContent } from './content/modifiers';
 import { buildingAt, computeHarmony, defOf, improveTile, isHome, tileAt } from './queries';
+import { flow } from './season/context';
 import { resolveSeason } from './season/resolve';
 import { cloneState, snapshot } from './snapshot';
 import type { Command, CommandResult, RunState } from './types';
@@ -64,6 +67,7 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       if (reason) return reason;
       if (s.stores.knowledge < k.hint) return `a hint needs ${k.hint} knowledge`;
       s.stores.knowledge -= k.hint;
+      flow(s.spent, 'knowledge', 'used', 'Almanac hints', k.hint);
       s.hints.push(command.combo);
       return null;
     }
@@ -71,6 +75,7 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       if (s.draft.picked !== null) return 'already picked a card this season';
       if (s.stores.knowledge < k.reroll) return `rerolling needs ${k.reroll} knowledge`;
       s.stores.knowledge -= k.reroll;
+      flow(s.spent, 'knowledge', 'used', 'Rerolling the draft', k.reroll);
       const count = content.rules.draftCards + (s.draft.extraBought ? 1 : 0);
       s.draft.offer = drawCards(content, s, count);
       return null;
@@ -82,6 +87,7 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       const [card] = drawCards(content, s, 1, s.draft.offer);
       if (!card) return 'no more blueprints to draw';
       s.stores.knowledge -= k.extraCard;
+      flow(s.spent, 'knowledge', 'used', 'A 4th draft card', k.extraCard);
       s.draft.offer.push(card);
       s.draft.extraBought = true;
       return null;
@@ -94,6 +100,7 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       if (!site.ok) return site.reason;
       if (s.stores.materials < def.cost) return `${def.name} costs ${def.cost} materials`;
       s.stores.materials -= def.cost;
+      flow(s.spent, 'materials', 'used', `Building: ${def.name}`, def.cost);
       // A canopy built over a farm becomes part of it (an evolution).
       const target = buildingAt(s, command.at);
       const evolution = placementEvolution(content, def.id, target);
@@ -139,6 +146,13 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       }
       return null;
     }
+    case 'demolish': {
+      const check = demolishCheck(content, s, command.uid);
+      const err = demolish(content, s, command.uid);
+      if (err) return err;
+      flow(s.spent, check.into, 'made', 'Demolition rubble', check.rubble);
+      return null;
+    }
     case 'spreadCompost': {
       const tile = tileAt(s, command.at);
       if (!tile) return 'outside the valley';
@@ -146,13 +160,15 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       if (s.stores.compost < cost) return `spreading compost needs ${cost} compost`;
       if (!improveTile(content, tile, 1)) return `compost can't improve ${tile.type}`;
       s.stores.compost -= cost;
+      flow(s.spent, 'compost', 'used', 'Spread on the land', cost);
       return null;
     }
     case 'setRecipe': {
       const b = s.buildings[command.uid];
       const recipes = b && defOf(content, b).recipes;
       if (!b || !recipes) return 'that building has no recipes';
-      if (!recipes.options.some((o) => o.id === command.recipe))
+      const auto = command.recipe === AUTO_RECIPE && recipes.options.length > 1;
+      if (!auto && !recipes.options.some((o) => o.id === command.recipe))
         return `unknown recipe ${command.recipe}`;
       b.recipe = command.recipe;
       return null;
