@@ -59,6 +59,11 @@ test('the season report shows what made and used each resource', async ({ page }
     'true',
   );
   await expect(dialog).toContainText('Citizens eat');
+  // The Sankey: a node per source, resource and use; focusing one shows its numbers.
+  const sankey = dialog.getByRole('img', { name: /Where each resource came from and went/ });
+  await expect(sankey).toBeVisible();
+  await dialog.getByRole('button', { name: /^Food: / }).focus();
+  await expect(dialog.locator('.sankey-tip')).toContainText('Food made and used');
   await expect(dialog).toContainText('Floodplain Farm');
   await dialog.getByRole('tab', { name: 'Spring, year 1' }).click();
   await expect(dialog).toContainText('Building: Floodplain Farm');

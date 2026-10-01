@@ -1167,3 +1167,68 @@ ul.flow li {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 4px 24px;
 }
+
+/* ---------------------------------------------------------------- Sankey */
+
+.sankey {
+  position: relative;
+  margin: 4px 0 12px;
+}
+.sankey svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.sankey-band {
+  transition: fill-opacity 120ms;
+}
+.sankey-node {
+  cursor: default;
+}
+.sankey-node:focus {
+  outline: none;
+}
+.sankey-node:focus-visible rect {
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+.sankey-label {
+  font: 600 12px var(--ui);
+  fill: var(--ink);
+  paint-order: stroke;
+  stroke: var(--card);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+.sankey-label.resource {
+  font-weight: 800;
+}
+.sankey-label.store {
+  font-style: italic;
+  fill: var(--quiet);
+}
+.sankey-value {
+  font-weight: 400;
+  fill: var(--quiet);
+}
+.sankey-tip {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 260px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--card);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 2px 8px rgba(47, 59, 46, 0.15);
+  font-size: 12px;
+}
+.sankey-tip strong {
+  font-size: 15px;
+}
+.sankey-tip span {
+  color: var(--quiet);
+}

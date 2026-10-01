@@ -17,6 +17,7 @@ import {
   type Slot,
 } from '../sim';
 import { LAYER_NAMES } from '../game/almanac';
+import { SankeyDiagram } from './Sankey';
 import { SEASON_NAMES } from './TopBar';
 
 const RESOURCE_NAMES: Record<Resource, string> = {
@@ -341,6 +342,7 @@ export function SeasonReportDialog({
                     : ''}
                 </p>
                 <h3>Resources</h3>
+                <SankeyDiagram flows={report.flows} />
                 <Resources report={report} />
                 <h3>Energy</h3>
                 <Energy content={content} report={report} />

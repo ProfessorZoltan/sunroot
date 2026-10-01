@@ -1,5 +1,11 @@
 # Changelog
 
+## Season report Sankey
+
+- The season report opens with a Sankey diagram of the season's resources: what made each one, the
+  resources, and what used them, with stock drawn from or kept in the stores. Hover or focus a band
+  or node for its numbers.
+
 ## Playtest requests
 
 - Season report: **Report** in the footer, or "report" on a season in the year strip, shows the last
