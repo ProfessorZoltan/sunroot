@@ -2470,39 +2470,32 @@
         ]
       },
       {
-        "id": "tempestLeanHarvests",
-        "name": "Lean Harvests",
-        "text": "Floodplain farms make 1 less food in summer and autumn.",
+        "id": "tempestSlowHealing",
+        "name": "Slow Healing",
+        "text": "Spreading compost takes 3 compost per step of healing instead of 2.",
         "modifiers": [
           {
-            "target": "building",
-            "id": "floodplainFarm",
-            "path": "yields.food.1",
-            "add": -1
-          },
-          {
-            "target": "building",
-            "id": "floodplainFarm",
-            "path": "yields.food.2",
-            "add": -1
+            "target": "rules",
+            "path": "compostPerTileStep",
+            "add": 1
           }
         ]
       },
       {
-        "id": "tempestPaleSun",
-        "name": "Pale Sun",
-        "text": "Solar canopies make 1 less energy on spring and summer days.",
+        "id": "tempestCrampedHomes",
+        "name": "Cramped Homes",
+        "text": "Cottages and treehouses house 1 fewer citizen.",
         "modifiers": [
           {
             "target": "building",
-            "id": "solarCanopy",
-            "path": "generation.day.0",
+            "id": "cottage",
+            "path": "housing",
             "add": -1
           },
           {
             "target": "building",
-            "id": "solarCanopy",
-            "path": "generation.day.1",
+            "id": "treehouseCommons",
+            "path": "housing",
             "add": -1
           }
         ]
