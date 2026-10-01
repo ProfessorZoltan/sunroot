@@ -11,6 +11,7 @@ import {
   createRun,
   effectiveContent,
   expeditionOffer,
+  forecastSeason,
   generateMap,
   hexDistance,
   hexKey,
@@ -20,6 +21,7 @@ import {
   type RunExpedition,
   type RunState,
 } from '../src/sim';
+import { computeInsight } from '../src/game/insight';
 import { content, endSeason, place, scenario, uidAt } from './helpers';
 
 const SEEDS = Array.from({ length: 40 }, (_, i) => `valley-${i}`);
@@ -326,5 +328,18 @@ describe('the hard twists bite (asked for in playtesting)', () => {
     s = endSeason(s);
     expect(s.lastReport!.damaged).toHaveLength(1);
     expect(Object.values(s.buildings).some((b) => b.damage)).toBe(false);
+  });
+});
+
+describe("a run's modifiers apply once", () => {
+  it('the year strip forecasts a Long Winter without applying it twice', () => {
+    const s = run('winter-forecast', { twist: 'longWinter', request: null });
+    const insight = computeInsight(content, s, forecastSeason(content, s));
+    const winter = insight.year[3]!.day.report!;
+    const rules = effectiveContent(content, s);
+    // Solar canopies make 0 by day in a Long Winter, not less: the forecast resolves.
+    expect(rules.byId.solarCanopy!.generation!.day[3]).toBe(0);
+    expect(winter.season).toBe('winter');
+    expect(() => effectiveContent(rules, s)).toThrow(/already applied/);
   });
 });

@@ -71,7 +71,8 @@ export function computeInsight(base: Content, state: RunState, asIs: RunState): 
       return { season, status: 'done', day: slot('day'), night: slot('night') };
     }
     // A player sees forecasts: chance outcomes (the storm's target) stay unknown.
-    const report = i === current ? now : projectSeason(content, state, season, { forecast: true });
+    // projectSeason applies the run's modifiers itself: it takes the base content.
+    const report = i === current ? now : projectSeason(base, state, season, { forecast: true });
     const slot = (s: Slot): SlotView => ({
       supply: report.energy[s].supply + report.energy[s].storageDischarged,
       demand: report.energy[s].demand,

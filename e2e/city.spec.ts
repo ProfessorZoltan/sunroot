@@ -209,8 +209,11 @@ test('5 runs in a row, with Root City kept between them', async ({ page }) => {
       await next.locator('.card.expedition').first().click();
       await next.getByRole('button', { name: `Set out on run ${run}` }).click();
     }
-    // A new page for each run: give it time to load on a busy machine.
-    await expect(page.locator('#map-host canvas')).toBeVisible({ timeout: 15_000 });
+    // A new page for each run: give it time to load on a busy machine. A page error (a run that
+    // can't start) shows in the message.
+    await expect(page.locator('#map-host canvas'), errors.join('\n')).toBeVisible({
+      timeout: 15_000,
+    });
     await playToEnd(page);
     const dialog = page.getByRole('dialog', { name: 'The run has ended' });
     await expect(dialog).toBeVisible();

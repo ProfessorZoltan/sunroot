@@ -12,6 +12,8 @@ import type { Modifier } from './schema';
 type Json = Record<string, unknown>;
 
 const cache = new WeakMap<Content, Map<string, Content>>();
+/** Contents with modifiers already applied: applying a run's modifiers twice is a bug. */
+const derived = new WeakSet<Content>();
 
 /** What a run carries from Root City and its expedition (see RunOptions). */
 export interface RunModifierSources {
@@ -63,6 +65,9 @@ export function runModifiers(content: Content, state: RunModifierSources): Modif
 
 /** The content as the run plays it: Root City, the twist, tunings and charters applied. */
 export function effectiveContent(content: Content, state: RunModifierSources): Content {
+  if (derived.has(content)) {
+    throw new Error('effectiveContent needs the base content: these modifiers are already applied');
+  }
   const modifiers = runModifiers(content, state);
   if (modifiers.length === 0) return content;
   const key = JSON.stringify(modifiers);
@@ -71,6 +76,7 @@ export function effectiveContent(content: Content, state: RunModifierSources): C
   let out = byKey.get(key);
   if (!out) {
     out = applyModifiers(content, modifiers);
+    derived.add(out);
     byKey.set(key, out);
   }
   return out;

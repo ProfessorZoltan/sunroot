@@ -8,6 +8,9 @@
 - Wild Storms: storms can damage 3 buildings anywhere on open land, the Mixed Grid can't stop them,
   and storm damage lasts until repaired for 3 materials.
 - Lean Start: 5 materials, 4 food and 4 citizens.
+- Fixed: the year strip's forecasts applied the run's twist, Root City's perks, tunings and
+  charters twice (Mirror Film's +1 winter solar counted as +2, for example); with Long Winter it
+  could stop a run from starting. Applying them twice is now an error.
 - Storms gain three settings, as data: which tiles are exposed, whether the Mixed Grid shelters,
   and a repair cost (hills, yes and none, as before, without the twist).
 
