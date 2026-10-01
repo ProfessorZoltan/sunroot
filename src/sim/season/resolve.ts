@@ -165,9 +165,11 @@ function advance(content: Content, ctx: SeasonContext): RunState {
     if (!s.carriesOver) b.stored = 0;
     else b.stored = Math.max(0, (b.stored ?? 0) - s.decayPerSeason);
   }
-  // Storm damage lasts one season.
-  for (const b of Object.values(state.buildings)) {
-    if (b.damage?.cause === 'storm') delete b.damage;
+  // Storm damage lasts one season, unless storms need repairs (Wild Storms).
+  if (content.events.storm.repairCost === 0) {
+    for (const b of Object.values(state.buildings)) {
+      if (b.damage?.cause === 'storm') delete b.damage;
+    }
   }
 
   state.turn += 1;
@@ -190,7 +192,7 @@ function advance(content: Content, ctx: SeasonContext): RunState {
   return state;
 }
 
-/** Start-of-season upkeep: orchards mature, flood damage is repaired, the draft is dealt. */
+/** Start-of-season upkeep: orchards mature, flood (and storm) damage is repaired, the draft is dealt. */
 function startSeason(content: Content, state: RunState): void {
   for (const b of byPriority(state)) {
     const def = defOf(content, b);
@@ -206,16 +208,25 @@ function startSeason(content: Content, state: RunState): void {
         state.notices.push(`${def.name} matured and turned its tile to ${def.matureTileBecomes}`);
       }
     }
-    if (b.damage?.cause === 'flood') {
-      const cost = content.events.flood.repairCost;
+    if (b.damage) {
+      // Flood damage, and storm damage when storms need repairs: repaired once it can be paid for.
+      const event = b.damage.cause === 'flood' ? 'flood' : 'storm';
+      const cost = content.events[event].repairCost;
       if (state.stores.materials >= cost) {
         state.stores.materials -= cost;
         if (state.lastReport)
-          flow(state.lastReport.flows, 'materials', 'used', 'Flood repairs', cost, b.uid);
+          flow(
+            state.lastReport.flows,
+            'materials',
+            'used',
+            event === 'flood' ? 'Flood repairs' : 'Storm repairs',
+            cost,
+            b.uid,
+          );
         delete b.damage;
-        state.notices.push(`Repaired ${def.name} after the flood for ${cost} materials`);
+        state.notices.push(`Repaired ${def.name} after the ${event} for ${cost} materials`);
       } else {
-        state.notices.push(`${def.name} is still flood-damaged: repairs need ${cost} materials`);
+        state.notices.push(`${def.name} is still ${event}-damaged: repairs need ${cost} materials`);
       }
     }
   }

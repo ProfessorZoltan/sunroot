@@ -267,7 +267,15 @@ export const EventsSchema = z
       farFromWaterDistance: int.min(0),
       farYieldFactor: z.number().min(0).max(1),
     }),
-    storm: EventBase.extend({ disableCount: nonNeg }),
+    storm: EventBase.extend({
+      disableCount: nonNeg,
+      /** The tiles whose buildings the storm can damage (unless next to woodland). */
+      exposedOn: z.array(TileTypeSchema).min(1).default(['hill']),
+      /** Whether a Mixed Grid keeps the storm from damaging anything. */
+      mixedGridShelters: z.boolean().default(true),
+      /** 0: storm damage lasts the season. More: it lasts until repaired, for these materials. */
+      repairCost: nonNeg.default(0),
+    }),
     freeze: EventBase,
   })
   .strict();
@@ -279,7 +287,7 @@ export const ModifierSchema = z
     /** Building, event or combo id (not for rules or the map generator). */
     id: z.string().optional(),
     path: z.string().min(1),
-    set: z.union([z.number(), z.boolean(), z.string()]).optional(),
+    set: z.union([z.number(), z.boolean(), z.string(), z.array(z.string())]).optional(),
     add: z.number().optional(),
     multiply: z.number().optional(),
   })

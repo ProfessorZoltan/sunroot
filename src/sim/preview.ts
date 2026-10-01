@@ -8,6 +8,7 @@ import type { Content } from './content/load';
 import { RESOURCES, SLOTS, type Resource, type Slot } from './content/schema';
 import type { Hex } from './hex';
 import { canPlace } from './placement';
+import { standsOn, tileAt } from './queries';
 import { resolveSeason, type ResolveOptions } from './season/resolve';
 import { placementEvolution } from './combos';
 import { effectiveContent } from './content/modifiers';
@@ -94,7 +95,9 @@ export function previewPlacement(
   if (a.damaged.includes(uid))
     warnings.push(`The ${event.name.toLowerCase()} will disable it this season.`);
   if (a.atRisk.includes(uid))
-    warnings.push('The storms may disable it: it stands on a hill with no woodland beside it.');
+    warnings.push(
+      `The storms may disable it: it stands ${standsOn(tileAt(state, at)?.type)} with no woodland beside it.`,
+    );
   if (a.unstaffed.includes(uid)) warnings.push('No free worker: it will not run.');
   if (a.blackouts.includes(uid)) warnings.push('Not enough energy: it will be shut off.');
   const newlyDark = a.blackouts.filter((id) => id !== uid && !b.blackouts.includes(id));

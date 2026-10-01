@@ -219,9 +219,9 @@ describe('new twists change how a run plays', () => {
     expect(storms.events.storm.disableCount).toBe(2);
   });
 
-  it('Lean Start: half the stores, the Graft a tier higher', () => {
+  it('Lean Start: 5 materials, 4 food and 4 citizens, the Graft a tier higher', () => {
     const s = run('lean', { twist: 'leanStart', request: null });
-    expect([s.stores.materials, s.stores.food]).toEqual([10, 6]);
+    expect([s.stores.materials, s.stores.food, s.citizens]).toEqual([5, 4, 4]);
     expect(content.twists.find((t) => t.id === 'leanStart')!.graftTierBonus).toBe(1);
   });
 
@@ -257,5 +257,74 @@ describe('new twists change how a run plays', () => {
       );
     expect(harmony(s, 0) - harmony(s, 3)).toBe(6);
     expect(harmony(plain, 0) - harmony(plain, 3)).toBe(3);
+  });
+});
+
+describe('the hard twists bite (asked for in playtesting)', () => {
+  const rulesOf = (id: string | null) =>
+    effectiveContent(content, { tunings: [], charters: [], options: twist(id).run });
+
+  it('Drought Year: every farm keeps a quarter of its summer food, even beside the river', () => {
+    const summer = (id: string | null) => {
+      let s = scenario(RIVER, { ...twist(id), season: 'summer' });
+      s = place(s, 'floodplainFarm', 5, 1); // next to the river
+      s = endSeason(s);
+      return { food: s.lastReport!.yields[uidAt(s, 5, 1)]!.food!, dried: s.lastReport!.dried };
+    };
+    const plain = summer(null);
+    const dry = summer('droughtYear');
+    expect(plain.dried).toEqual([]);
+    expect(dry.dried).toHaveLength(1);
+    expect(dry.food).toBeLessThanOrEqual(Math.ceil(plain.food / 4));
+  });
+
+  it('Long Winter: colder nights from autumn to spring, and weaker solar', () => {
+    const base = rulesOf(null);
+    const cold = rulesOf('longWinter');
+    for (const home of ['foundersCamp', 'cottage', 'treehouseCommons']) {
+      const night = (c: typeof base) => c.byId[home]!.demand!.heat.night;
+      expect(night(cold)[3]! - night(base)[3]!).toBe(4);
+      expect(night(cold)[2]! - night(base)[2]!).toBe(3);
+      expect(night(cold)[0]! - night(base)[0]!).toBe(2);
+    }
+    const solar = (c: typeof base) => c.byId.solarCanopy!.generation!.day;
+    expect(solar(cold)[2]).toBe(solar(base)[2]! - 1);
+    expect(solar(cold)[3]).toBe(Math.max(0, solar(base)[3]! - 1));
+  });
+
+  it('Wild Storms: open land is exposed, the Mixed Grid gives no shelter, damage waits for repairs', () => {
+    const mixed = { solarCanopy: 10, riverWheel: 10, windSpire: 10 };
+    const autumn = (id: string | null, materials = 200) => {
+      let s = scenario(RIVER, { ...twist(id), season: 'autumn' });
+      s = { ...s, energyHistory: [mixed, mixed, mixed, mixed] };
+      s = place(s, 'cottage', 7, 3); // barren land, not a hill
+      s = { ...s, stores: { ...s.stores, materials } };
+      return endSeason(s);
+    };
+    const calm = autumn(null);
+    expect(calm.lastReport!.exposed).toEqual([]);
+    const wild = autumn('wildStorms');
+    expect(wild.lastReport!.mixedGrid).toBe(true);
+    expect(wild.lastReport!.damaged).toContain(uidAt(wild, 7, 3));
+    // Repaired at the start of winter for 3 materials, like flood damage...
+    expect(wild.buildings[uidAt(wild, 7, 3)]!.damage).toBeUndefined();
+    expect(wild.notices).toContain('Repaired Cottage after the storm for 3 materials');
+    // ...and still damaged while there is nothing to repair it with.
+    const broke = autumn('wildStorms', 0);
+    expect(broke.buildings[uidAt(broke, 7, 3)]!.damage?.cause).toBe('storm');
+    expect(broke.notices).toContain('Cottage is still storm-damaged: repairs need 3 materials');
+    expect(rulesOf('wildStorms').events.storm.repairCost).toBe(3);
+  });
+
+  it('without the twist, storms stay as they were: hills only, a season of damage, the Mixed Grid shelters', () => {
+    const storm = content.events.storm;
+    expect(storm.exposedOn).toEqual(['hill']);
+    expect(storm.mixedGridShelters).toBe(true);
+    expect(storm.repairCost).toBe(0);
+    let s = scenario(HILLS, { season: 'autumn' });
+    s = place(s, 'windSpire', 9, 1);
+    s = endSeason(s);
+    expect(s.lastReport!.damaged).toHaveLength(1);
+    expect(Object.values(s.buildings).some((b) => b.damage)).toBe(false);
   });
 });

@@ -1,7 +1,7 @@
 /** Step 3: the season's event. */
 import { hexDistance, hexKey } from '../hex';
 import { nextInt } from '../rng';
-import { defOf, neighborTiles, occupancy, tileAt } from '../queries';
+import { defOf, neighborTiles, occupancy, stormExposed, tileAt } from '../queries';
 import type { SeasonContext } from './context';
 
 /**
@@ -94,21 +94,15 @@ export function applyEvent(ctx: SeasonContext): void {
       ctx.lowRiver = true;
       break;
     case 'storm': {
-      report.exposed = state.priority.filter((uid) => {
-        const b = state.buildings[uid]!;
-        if (tileAt(state, b.at)?.type !== 'hill') return false;
-        return !neighborTiles(state, b.at).some((t) => t.type === 'woodland');
-      });
-      if (report.mixedGrid) break;
+      report.exposed = state.priority.filter((uid) =>
+        stormExposed(content, state, state.buildings[uid]!),
+      );
+      if (report.mixedGrid && content.events.storm.mixedGridShelters) break;
       const count = content.events.storm.disableCount;
       for (let i = 0; i < count; i++) {
         const exposed = state.priority
           .map((uid) => state.buildings[uid]!)
-          .filter((b) => {
-            if (b.damage) return false;
-            if (tileAt(state, b.at)?.type !== 'hill') return false;
-            return !neighborTiles(state, b.at).some((t) => t.type === 'woodland');
-          })
+          .filter((b) => !b.damage && stormExposed(content, state, b))
           .sort((a, b) => hexKey(a.at).localeCompare(hexKey(b.at)));
         if (exposed.length === 0) break;
         // A forecast knows which buildings are exposed, not which one the storm will hit.

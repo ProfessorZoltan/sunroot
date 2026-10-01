@@ -9,6 +9,7 @@
  */
 import {
   hexKey,
+  standsOn,
   parseHexKey,
   SEASONS,
   type Content,
@@ -71,7 +72,9 @@ export function mapMarks(content: Content, state: RunState, forecast: SeasonRepo
         false,
         b.damage.cause === 'flood'
           ? `Flood-damaged: idle until repaired for ${flood.repairCost} materials.`
-          : 'Storm-damaged: idle this season.',
+          : content.events.storm.repairCost > 0
+            ? `Storm-damaged: idle until repaired for ${content.events.storm.repairCost} materials.`
+            : 'Storm-damaged: idle this season.',
       );
     }
   }
@@ -106,9 +109,15 @@ export function mapMarks(content: Content, state: RunState, forecast: SeasonRepo
       add(atOf(uid), 'dry', true, `Low river: the ${name(uid)} is far from water and loses food.`);
   } else if (event === 'storm') {
     for (const uid of forecast.exposed) {
-      if (forecast.mixedGrid)
+      if (forecast.mixedGrid && content.events.storm.mixedGridShelters)
         add(atOf(uid), 'calm', true, `The Mixed Grid shelters the ${name(uid)} from the storm.`);
-      else add(atOf(uid), 'exposed', true, `Exposed on a hill: the storm could damage it.`);
+      else
+        add(
+          atOf(uid),
+          'exposed',
+          true,
+          `Exposed ${standsOn(state.map.tiles[hexKey(atOf(uid) ?? { q: 0, r: 0 })]?.type)}: the storm could damage it.`,
+        );
     }
   } else if (event === 'freeze') {
     const si = SEASONS.indexOf(state.season);

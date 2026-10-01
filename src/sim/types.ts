@@ -298,7 +298,7 @@ export interface SeasonReport {
   sheltered: string[];
   /** Buildings that lost food to the low river (far from water). */
   dried: string[];
-  /** Buildings a storm could damage: on a hill, not next to woodland (unless the Mixed Grid holds). */
+  /** Buildings a storm could damage: on exposed land (hills), not next to woodland (unless the Mixed Grid holds). */
   exposed: string[];
   silted: string[];
   damaged: string[];

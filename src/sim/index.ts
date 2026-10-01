@@ -66,6 +66,7 @@ export {
   computeHarmony,
   harmonyLines,
   harmonyMultiplier,
+  standsOn,
   waterDistance,
   type HarmonyLine,
 } from './queries';

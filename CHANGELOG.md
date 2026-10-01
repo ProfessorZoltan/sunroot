@@ -1,5 +1,16 @@
 # Changelog
 
+## Harder hard twists
+
+- Drought Year: in summer every farm keeps only a quarter of its food, however near the water.
+- Long Winter: homes need 4 more heat on winter nights, 3 more in autumn and 2 more in spring;
+  solar canopies make 1 less by day in autumn and winter.
+- Wild Storms: storms can damage 3 buildings anywhere on open land, the Mixed Grid can't stop them,
+  and storm damage lasts until repaired for 3 materials.
+- Lean Start: 5 materials, 4 food and 4 citizens.
+- Storms gain three settings, as data: which tiles are exposed, whether the Mixed Grid shelters,
+  and a repair cost (hills, yes and none, as before, without the twist).
+
 ## More varied expeditions
 
 - Each expedition now sets out to a **region**, a variation of Willow Reach's valley, shown on its

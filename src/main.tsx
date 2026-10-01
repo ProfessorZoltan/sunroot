@@ -266,7 +266,7 @@ async function start() {
     view!.setState(store.state);
     if (r && r.id !== playing) {
       playing = r.id;
-      const timeline = buildTimeline(content, store.state, r.report, {
+      const timeline = buildTimeline(store.rules, store.state, r.report, {
         reducedMotion: motion.matches,
       });
       view!.playResolution(timeline, {

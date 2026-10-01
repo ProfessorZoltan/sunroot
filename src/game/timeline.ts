@@ -265,11 +265,12 @@ export function buildTimeline(
   }
   if (report.event === 'storm') {
     const struck = new Set(report.damaged);
+    const sheltered = report.mixedGrid && content.events.storm.mixedGridShelters;
     for (const uid of report.exposed) {
       if (struck.has(uid)) continue;
-      fx(report.mixedGrid ? 'calm' : 'exposed', at(uid), across(at(uid) ?? { q: 0, r: 0 }));
+      fx(sheltered ? 'calm' : 'exposed', at(uid), across(at(uid) ?? { q: 0, r: 0 }));
     }
-    if (report.mixedGrid && camp) fx('calm', camp, ev.start + 200, 'Mixed Grid: no damage', 'good');
+    if (sheltered && camp) fx('calm', camp, ev.start + 200, 'Mixed Grid: no damage', 'good');
   }
   if (report.event === 'freeze') {
     for (const b of Object.values(after.buildings)) {

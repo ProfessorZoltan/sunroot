@@ -75,6 +75,27 @@ export function isHome(def: BuildingDef): boolean {
   return def.housing > 0;
 }
 
+/** Whether a storm can damage this building: on exposed land, with no woodland beside it. */
+export function stormExposed(content: Content, state: RunState, b: BuildingState): boolean {
+  const type = tileAt(state, b.at)?.type;
+  if (!type || !content.events.storm.exposedOn.includes(type)) return false;
+  return !neighborTiles(state, b.at).some((t) => t.type === 'woodland');
+}
+
+/** Where a building stands, as a sentence says it: "on a hill", "on barren land". */
+export function standsOn(type: TileType | undefined): string {
+  const places: Partial<Record<TileType, string>> = {
+    hill: 'on a hill',
+    barren: 'on barren land',
+    scrub: 'on scrub',
+    meadow: 'in a meadow',
+    floodplain: 'on the floodplain',
+    woodland: 'in woodland',
+    ruin: 'in a ruin',
+  };
+  return (type && places[type]) ?? 'in the open';
+}
+
 export function isWaterTile(type: TileType): boolean {
   return type === 'river' || type === 'reservoir';
 }

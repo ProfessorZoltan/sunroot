@@ -1877,13 +1877,19 @@
     {
       "id": "droughtYear",
       "name": "Drought Year",
-      "text": "Harsher summers: farms more than 1 tile from water lose half their summer food. The Graft is one tier higher.",
+      "text": "A dry year: in summer every farm loses three quarters of its food, however near the water. The Graft is one tier higher.",
       "modifiers": [
         {
           "target": "event",
           "id": "lowRiver",
           "path": "farFromWaterDistance",
-          "set": 1
+          "set": 0
+        },
+        {
+          "target": "event",
+          "id": "lowRiver",
+          "path": "farYieldFactor",
+          "set": 0.25
         }
       ],
       "graftTierBonus": 1
@@ -1891,25 +1897,73 @@
     {
       "id": "longWinter",
       "name": "Long Winter",
-      "text": "Homes need 1 more heat on winter nights. The Graft is one tier higher.",
+      "text": "Homes need 4 more heat on winter nights, 3 more in autumn and 2 more in spring, and solar canopies make 1 less by day in autumn and winter. The Graft is one tier higher.",
       "modifiers": [
         {
           "target": "building",
           "id": "foundersCamp",
           "path": "demand.heat.night.3",
-          "add": 1
+          "add": 4
+        },
+        {
+          "target": "building",
+          "id": "foundersCamp",
+          "path": "demand.heat.night.2",
+          "add": 3
+        },
+        {
+          "target": "building",
+          "id": "foundersCamp",
+          "path": "demand.heat.night.0",
+          "add": 2
         },
         {
           "target": "building",
           "id": "cottage",
           "path": "demand.heat.night.3",
-          "add": 1
+          "add": 4
+        },
+        {
+          "target": "building",
+          "id": "cottage",
+          "path": "demand.heat.night.2",
+          "add": 3
+        },
+        {
+          "target": "building",
+          "id": "cottage",
+          "path": "demand.heat.night.0",
+          "add": 2
         },
         {
           "target": "building",
           "id": "treehouseCommons",
           "path": "demand.heat.night.3",
-          "add": 1
+          "add": 4
+        },
+        {
+          "target": "building",
+          "id": "treehouseCommons",
+          "path": "demand.heat.night.2",
+          "add": 3
+        },
+        {
+          "target": "building",
+          "id": "treehouseCommons",
+          "path": "demand.heat.night.0",
+          "add": 2
+        },
+        {
+          "target": "building",
+          "id": "solarCanopy",
+          "path": "generation.day.2",
+          "add": -1
+        },
+        {
+          "target": "building",
+          "id": "solarCanopy",
+          "path": "generation.day.3",
+          "add": -1
         }
       ],
       "graftTierBonus": 1
@@ -1917,13 +1971,31 @@
     {
       "id": "wildStorms",
       "name": "Wild Storms",
-      "text": "Storms can damage 2 exposed buildings instead of 1. The Graft is one tier higher.",
+      "text": "Storms can damage 3 buildings anywhere on open land, not just hills (woodland beside them still shelters them), the Mixed Grid can't stop them, and each repair costs 3 materials. The Graft is one tier higher.",
       "modifiers": [
         {
           "target": "event",
           "id": "storm",
           "path": "disableCount",
-          "set": 2
+          "set": 3
+        },
+        {
+          "target": "event",
+          "id": "storm",
+          "path": "exposedOn",
+          "set": ["hill", "barren", "scrub", "meadow", "floodplain"]
+        },
+        {
+          "target": "event",
+          "id": "storm",
+          "path": "mixedGridShelters",
+          "set": false
+        },
+        {
+          "target": "event",
+          "id": "storm",
+          "path": "repairCost",
+          "set": 3
         }
       ],
       "graftTierBonus": 1
@@ -2000,17 +2072,22 @@
     {
       "id": "leanStart",
       "name": "Lean Start",
-      "text": "The Sprout sets out with half the usual stores: 10 materials and 6 food. The Graft is one tier higher.",
+      "text": "The Sprout sets out with 5 materials, 4 food and 4 citizens. The Graft is one tier higher.",
       "modifiers": [
         {
           "target": "rules",
           "path": "start.materials",
-          "set": 10
+          "set": 5
         },
         {
           "target": "rules",
           "path": "start.food",
-          "set": 6
+          "set": 4
+        },
+        {
+          "target": "rules",
+          "path": "start.citizens",
+          "set": 4
         }
       ],
       "graftTierBonus": 1
