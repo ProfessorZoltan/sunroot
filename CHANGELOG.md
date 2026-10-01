@@ -3,8 +3,8 @@
 ## Tempest
 
 - Tempest levels 1 to 10: a Heartwood Graft at your highest level opens the next. Each level adds
-  a lasting hardship to those below it (Bitter Nights, Quick Clutter, Restless People, Thin Drafts,
-  Slow Healing, Cramped Homes, Cold Autumns, Rough Seasons, Weary People, High Hopes). Choose the level
+  a lasting hardship to those below it (Bitter Nights, Thin Drafts, Quick Clutter, Slow Healing,
+  Restless People, Cold Autumns, Rough Seasons, Weary People, High Hopes, Cramped Homes). Choose the level
   in Root City with the expedition.
 - Rewards: 2 more Seeds per level, and the Tempest mark: the Graft's district shows the level it
   was earned at.

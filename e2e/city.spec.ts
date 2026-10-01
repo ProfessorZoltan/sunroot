@@ -268,7 +268,7 @@ test('Tempest: chosen in Root City, played in the run, its mark on the district'
   const next = page.getByRole('region', { name: 'Next expedition' });
   await next.getByRole('radio', { name: '2' }).check();
   await expect(next).toContainText('Tempest 2: +4 Seeds');
-  await expect(next).toContainText('Quick Clutter');
+  await expect(next).toContainText('Thin Drafts');
   expect((await cityNow(page)).tempest).toBe(2);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/tempest-city.png` });
   await next.locator('.card.expedition').first().click();
@@ -277,7 +277,7 @@ test('Tempest: chosen in Root City, played in the run, its mark on the district'
   await expect(start).toContainText('Tempest 2: Bitter Nights');
   await page.keyboard.press('Enter');
   await expect(page.getByRole('region', { name: 'Expedition' })).toContainText(
-    'Tempest 2: Bitter Nights, Quick Clutter.',
+    'Tempest 2: Bitter Nights, Thin Drafts.',
   );
   expect(errors).toEqual([]);
 });

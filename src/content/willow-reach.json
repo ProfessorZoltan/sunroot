@@ -2434,30 +2434,6 @@
         ]
       },
       {
-        "id": "tempestQuickClutter",
-        "name": "Quick Clutter",
-        "text": "Citizens make scraps faster: one for every 2 citizens instead of 3.",
-        "modifiers": [
-          {
-            "target": "rules",
-            "path": "citizensPerScrap",
-            "add": -1
-          }
-        ]
-      },
-      {
-        "id": "tempestRestless",
-        "name": "Restless People",
-        "text": "The population grows only at wellbeing 70 or more, instead of 60.",
-        "modifiers": [
-          {
-            "target": "rules",
-            "path": "population.growAt",
-            "add": 10
-          }
-        ]
-      },
-      {
         "id": "tempestThinDrafts",
         "name": "Thin Drafts",
         "text": "Drafts offer 2 cards instead of 3.",
@@ -2470,33 +2446,38 @@
         ]
       },
       {
-        "id": "tempestSlowHealing",
-        "name": "Slow Healing",
-        "text": "Spreading compost takes 3 compost per step of healing instead of 2.",
+        "id": "tempestQuickClutter",
+        "name": "Quick Clutter",
+        "text": "Citizens make scraps faster: one for every 2 citizens instead of 3.",
         "modifiers": [
           {
             "target": "rules",
-            "path": "compostPerTileStep",
-            "add": 1
+            "path": "citizensPerScrap",
+            "add": -1
           }
         ]
       },
       {
-        "id": "tempestCrampedHomes",
-        "name": "Cramped Homes",
-        "text": "Cottages and treehouses house 1 fewer citizen.",
+        "id": "tempestSlowHealing",
+        "name": "Slow Healing",
+        "text": "Spreading compost takes 4 compost per step of healing instead of 2.",
         "modifiers": [
           {
-            "target": "building",
-            "id": "cottage",
-            "path": "housing",
-            "add": -1
-          },
+            "target": "rules",
+            "path": "compostPerTileStep",
+            "add": 2
+          }
+        ]
+      },
+      {
+        "id": "tempestRestless",
+        "name": "Restless People",
+        "text": "The population grows only at wellbeing 70 or more, instead of 60.",
+        "modifiers": [
           {
-            "target": "building",
-            "id": "treehouseCommons",
-            "path": "housing",
-            "add": -1
+            "target": "rules",
+            "path": "population.growAt",
+            "add": 10
           }
         ]
       },
@@ -2565,6 +2546,19 @@
             "target": "rules",
             "path": "expectations.base",
             "add": -10
+          }
+        ]
+      },
+      {
+        "id": "tempestCrampedHomes",
+        "name": "Cramped Homes",
+        "text": "Cottages house 2 citizens instead of 3.",
+        "modifiers": [
+          {
+            "target": "building",
+            "id": "cottage",
+            "path": "housing",
+            "add": -1
           }
         ]
       }

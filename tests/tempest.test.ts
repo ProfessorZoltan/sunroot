@@ -69,14 +69,14 @@ describe('Tempest levels', () => {
     expect(four.byId.cottage!.demand!.heat.night[3]).toBe(
       base.byId.cottage!.demand!.heat.night[3]! + 1,
     );
-    expect(four.rules.citizensPerScrap).toBe(base.rules.citizensPerScrap - 1);
-    expect(four.rules.population.growAt).toBe(base.rules.population.growAt + 10);
     expect(four.rules.draftCards).toBe(base.rules.draftCards - 1);
+    expect(four.rules.citizensPerScrap).toBe(base.rules.citizensPerScrap - 1);
+    expect(four.rules.compostPerTileStep).toBe(base.rules.compostPerTileStep + 2);
     // Level 5's hardship is not in level 4.
-    expect(four.rules.compostPerTileStep).toBe(base.rules.compostPerTileStep);
-    expect(rulesAt(5).rules.compostPerTileStep).toBe(base.rules.compostPerTileStep + 1);
-    expect(rulesAt(6).byId.cottage!.housing).toBe(base.byId.cottage!.housing - 1);
-    expect(rulesAt(9).rules.wellbeing.allNeedsMet).toBe(0);
+    expect(four.rules.population.growAt).toBe(base.rules.population.growAt);
+    expect(rulesAt(5).rules.population.growAt).toBe(base.rules.population.growAt + 10);
+    expect(rulesAt(8).rules.wellbeing.allNeedsMet).toBe(0);
+    expect(rulesAt(10).byId.cottage!.housing).toBe(base.byId.cottage!.housing - 1);
     expect(rulesAt(10).rules.expectations!.base).toBe(base.rules.expectations!.base - 10);
   });
 
