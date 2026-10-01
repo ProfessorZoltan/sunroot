@@ -207,6 +207,8 @@ export interface HeatReport {
   direct: number;
   /** Free heat put into Heat Wells. */
   stored: number;
+  /** Free heat nothing could use or store. */
+  unused: number;
 }
 
 export interface SlotReport {

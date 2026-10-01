@@ -1,11 +1,11 @@
 /**
- * The season report's Sankey diagram, laid out as plain data (tested apart
- * from the drawing). Three columns: what made each resource (and stock drawn
- * from the stores), the resources, and what used them (and stock kept). Built
- * from the season's ledger, which balances, so every resource node's inflow
- * equals its outflow by construction.
+ * The season report's Sankey diagrams, laid out as plain data (tested apart
+ * from the drawing). Three columns: what made each group's units (a resource,
+ * or a slot's energy), the groups, and what used them. Built from ledgers that
+ * balance, so every group node's inflow equals its outflow; a resource's
+ * stock drawn from or kept in the stores is shown as its own source or use.
  */
-import { RESOURCES, type Flows, type Resource } from '../sim';
+import { RESOURCES, type FlowLines, type Flows, type Resource } from '../sim';
 
 /** Resource colours, checked with the dataviz validator against the report's surface (#fffbf0). */
 export const RESOURCE_COLORS: Record<Resource, string> = {
@@ -22,6 +22,46 @@ export const RESOURCE_COLORS: Record<Resource, string> = {
 export const FROM_STORES = 'From stores';
 export const INTO_STORES = 'Into stores';
 
+/** A middle node: a resource, or a slot's energy and heat. */
+export interface SankeyGroup {
+  key: string;
+  label: string;
+  color: string;
+  made: FlowLines;
+  used: FlowLines;
+  /** Show any imbalance as drawn from (or kept in) the stores. */
+  stores?: boolean;
+}
+
+export const RESOURCE_NAMES: Record<Resource, string> = {
+  materials: 'Materials',
+  food: 'Food',
+  biomass: 'Biomass',
+  salvage: 'Salvage',
+  compost: 'Compost',
+  knowledge: 'Knowledge',
+  scraps: 'Scraps',
+  clutter: 'Clutter',
+};
+
+/** A season's resource ledger as Sankey groups, in the usual resource order. */
+export function resourceGroups(flows: Flows): SankeyGroup[] {
+  return RESOURCES.flatMap((r) => {
+    const f = flows[r];
+    if (!f || (Object.keys(f.made).length === 0 && Object.keys(f.used).length === 0)) return [];
+    return [
+      {
+        key: r,
+        label: RESOURCE_NAMES[r],
+        color: RESOURCE_COLORS[r],
+        made: f.made,
+        used: f.used,
+        stores: true,
+      },
+    ];
+  });
+}
+
 export interface SankeyNode {
   id: string;
   label: string;
@@ -30,7 +70,9 @@ export interface SankeyNode {
   value: number;
   /** Buildings counted on the line (×3), when more than one. */
   count: number;
-  resource?: Resource;
+  /** For a middle node: its group's key and colour. */
+  group?: string;
+  color?: string;
   y: number;
   h: number;
 }
@@ -38,7 +80,8 @@ export interface SankeyNode {
 export interface SankeyLink {
   source: string;
   target: string;
-  resource: Resource;
+  /** The middle node's group, which colours the band. */
+  group: string;
   value: number;
   /** Where the band leaves its source and reaches its target (top edges), and its width. */
   sy: number;
@@ -53,51 +96,50 @@ export interface SankeyLayout {
 }
 
 export function sankeyLayout(
-  flows: Flows,
+  groups: SankeyGroup[],
   options: { pad?: number; minHeight?: number; rowHeight?: number } = {},
 ): SankeyLayout {
   const pad = options.pad ?? 14;
   const nodes = new Map<string, SankeyNode>();
   const links: SankeyLink[] = [];
-  const node = (id: string, label: string, column: 0 | 1 | 2, resource?: Resource) => {
+  const node = (id: string, label: string, column: 0 | 1 | 2) => {
     let n = nodes.get(id);
-    if (!n) nodes.set(id, (n = { id, label, column, value: 0, count: 1, resource, y: 0, h: 0 }));
+    if (!n) nodes.set(id, (n = { id, label, column, value: 0, count: 1, y: 0, h: 0 }));
     return n;
   };
-  const resources = RESOURCES.filter((r) => {
-    const f = flows[r];
-    return f && (Object.keys(f.made).length > 0 || Object.keys(f.used).length > 0);
-  });
-  for (const res of resources) {
-    const f = flows[res]!;
-    const made = Object.values(f.made).reduce((n, l) => n + l.amount, 0);
-    const used = Object.values(f.used).reduce((n, l) => n + l.amount, 0);
-    const mid = node(`res:${res}`, res, 1, res);
+  for (const g of groups) {
+    const made = Object.values(g.made).reduce((n, l) => n + l.amount, 0);
+    const used = Object.values(g.used).reduce((n, l) => n + l.amount, 0);
+    const mid = node(`mid:${g.key}`, g.label, 1);
+    mid.group = g.key;
+    mid.color = g.color;
     const into = (id: string, label: string, amount: number, count = 1) => {
       if (amount <= 0) return;
       const n = node(id, label, 0);
       n.count = Math.max(n.count, count);
       n.value += amount;
-      links.push({ source: id, target: mid.id, resource: res, value: amount, sy: 0, ty: 0, w: 0 });
+      links.push({ source: id, target: mid.id, group: g.key, value: amount, sy: 0, ty: 0, w: 0 });
     };
     const out = (id: string, label: string, amount: number, count = 1) => {
       if (amount <= 0) return;
       const n = node(id, label, 2);
       n.count = Math.max(n.count, count);
       n.value += amount;
-      links.push({ source: mid.id, target: id, resource: res, value: amount, sy: 0, ty: 0, w: 0 });
+      links.push({ source: mid.id, target: id, group: g.key, value: amount, sy: 0, ty: 0, w: 0 });
     };
-    for (const [label, l] of Object.entries(f.made)) into(`src:${label}`, label, l.amount, l.count);
-    for (const [label, l] of Object.entries(f.used)) out(`use:${label}`, label, l.amount, l.count);
-    // Stock drawn from, or kept in, the stores balances the node.
-    into(`src:${FROM_STORES}`, FROM_STORES, used - made);
-    out(`use:${INTO_STORES}`, INTO_STORES, made - used);
+    for (const [label, l] of Object.entries(g.made)) into(`src:${label}`, label, l.amount, l.count);
+    for (const [label, l] of Object.entries(g.used)) out(`use:${label}`, label, l.amount, l.count);
+    if (g.stores) {
+      // Stock drawn from, or kept in, the stores balances the node.
+      into(`src:${FROM_STORES}`, FROM_STORES, used - made);
+      out(`use:${INTO_STORES}`, INTO_STORES, made - used);
+    }
     mid.value = Math.max(made, used);
   }
 
-  // Order: resources in their usual order; the others by the resources they touch
-  // (weighted by amount), so bands cross as little as possible.
-  const rank = new Map(resources.map((r, i) => [`res:${r}`, i]));
+  // Order: groups as given; the others by the groups they touch (weighted by
+  // amount), so bands cross as little as possible.
+  const rank = new Map(groups.map((g, i) => [`mid:${g.key}`, i]));
   const centre = (n: SankeyNode) => {
     const mine = links.filter((l) => l.source === n.id || l.target === n.id);
     const total = mine.reduce((s, l) => s + l.value, 0);

@@ -286,6 +286,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
     const r = report.energy[slot];
     r.shortfall = short[slot];
     r.unused = spare[slot];
+    r.heat.unused = spareHeat[slot];
     if (short[slot] === 0) continue;
     const available = r.supply + r.storageDischarged;
     let gap = settle(slot, off).demand - available;

@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { GameStore } from '../game/store';
 import {
+  energyLedger,
   RESOURCES,
   type Content,
   type FlowLines,
@@ -18,6 +19,7 @@ import {
 } from '../sim';
 import { LAYER_NAMES } from '../game/almanac';
 import { SankeyDiagram } from './Sankey';
+import { resourceGroups, type SankeyGroup } from './sankey';
 import { SEASON_NAMES } from './TopBar';
 
 const RESOURCE_NAMES: Record<Resource, string> = {
@@ -30,6 +32,15 @@ const RESOURCE_NAMES: Record<Resource, string> = {
   scraps: 'Scraps',
   clutter: 'Clutter',
 };
+
+/** Energy and heat count 1 for 1: one Sankey group for each slot. */
+function energyGroups(content: Content, report: SeasonReport): SankeyGroup[] {
+  const ledger = energyLedger(content, report);
+  return [
+    { key: 'day', label: 'Day', color: '#eda100', ...ledger.day },
+    { key: 'night', label: 'Night', color: '#4a3aa7', ...ledger.night },
+  ];
+}
 
 function Lines({ lines, sign }: { lines: FlowLines | undefined; sign: '+' | '−' }) {
   const entries = Object.entries(lines ?? {}).sort((a, b) => b[1].amount - a[1].amount);
@@ -342,9 +353,18 @@ export function SeasonReportDialog({
                     : ''}
                 </p>
                 <h3>Resources</h3>
-                <SankeyDiagram flows={report.flows} />
+                <SankeyDiagram
+                  groups={resourceGroups(report.flows)}
+                  label="Where each resource came from and went this season. The table below has every value."
+                  unit="made and used"
+                />
                 <Resources report={report} />
-                <h3>Energy</h3>
+                <h3>Energy and heat</h3>
+                <SankeyDiagram
+                  groups={energyGroups(content, report)}
+                  label="Where the day's and the night's energy and heat came from and went. The table below has every value."
+                  unit="supplied and used"
+                />
                 <Energy content={content} report={report} />
                 <Bonuses store={store} report={report} />
               </div>

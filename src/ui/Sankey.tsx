@@ -1,16 +1,17 @@
 /**
- * The season's resources as a Sankey diagram: what made each one, on the
- * left; the resources in the middle; what used them, on the right. Band
- * widths are amounts. Hovering or focusing a node or band shows its numbers
- * and highlights its bands; the table below the diagram holds every value.
+ * A Sankey diagram for the season report: what made each group's units on
+ * the left (a resource, or a slot's energy and heat), the groups in the
+ * middle, what used them on the right. Band widths are amounts. Hovering or
+ * focusing a node or band shows its numbers and highlights its bands; the
+ * tables below the diagrams hold every value.
  */
 import { useRef, useState } from 'preact/hooks';
-import type { Flows, Resource } from '../sim';
+import { SHORT } from '../sim';
 import {
   FROM_STORES,
   INTO_STORES,
-  RESOURCE_COLORS,
   sankeyLayout,
+  type SankeyGroup,
   type SankeyLink,
   type SankeyNode,
 } from './sankey';
@@ -20,17 +21,6 @@ const NODE = 10;
 const X = [200, 450, 680] as const;
 /** Room above and below for the labels of the first and last nodes. */
 const MARGIN = 10;
-
-const NAMES: Record<Resource, string> = {
-  materials: 'Materials',
-  food: 'Food',
-  biomass: 'Biomass',
-  salvage: 'Salvage',
-  compost: 'Compost',
-  knowledge: 'Knowledge',
-  scraps: 'Scraps',
-  clutter: 'Clutter',
-};
 
 function bandPath(l: SankeyLink, x0: number, x1: number): string {
   const xm = (x0 + x1) / 2;
@@ -49,15 +39,26 @@ interface Tip {
   text: string;
 }
 
-export function SankeyDiagram({ flows }: { flows: Flows }) {
-  const layout = sankeyLayout(flows);
+export function SankeyDiagram({
+  groups,
+  label,
+  unit,
+}: {
+  groups: SankeyGroup[];
+  /** What the diagram shows, for screen readers. */
+  label: string;
+  /** What a middle node's tooltip calls its flow ("made and used"). */
+  unit: string;
+}) {
+  const layout = sankeyLayout(groups);
+  const groupOf = new Map(groups.map((g) => [g.key, g]));
   const byId = new Map(layout.nodes.map((n) => [n.id, n]));
   const [focus, setFocus] = useState<{ node?: string; link?: number } | null>(null);
   const [tip, setTip] = useState<Tip | null>(null);
   const box = useRef<HTMLDivElement>(null);
   if (layout.links.length === 0) return null;
 
-  const nameOf = (n: SankeyNode) => (n.resource ? NAMES[n.resource] : n.label);
+  const nameOf = (n: SankeyNode) => n.label;
   const lit = (l: SankeyLink, i: number) =>
     !focus ||
     focus.link === i ||
@@ -68,15 +69,15 @@ export function SankeyDiagram({ flows }: { flows: Flows }) {
   };
   const nodeTip = (n: SankeyNode): Omit<Tip, 'x' | 'y'> => {
     if (n.column === 1) {
-      const f = flows[n.resource!]!;
-      const made = Object.values(f.made).reduce((s, l) => s + l.amount, 0);
-      const used = Object.values(f.used).reduce((s, l) => s + l.amount, 0);
-      return { value: `+${made} −${used}`, text: `${nameOf(n)} made and used` };
+      const g = groupOf.get(n.group!)!;
+      const made = Object.values(g.made).reduce((s, l) => s + l.amount, 0);
+      const used = Object.values(g.used).reduce((s, l) => s + l.amount, 0);
+      return { value: `+${made} −${used}`, text: `${nameOf(n)} ${unit}` };
     }
     const into = layout.links.filter((l) => l.source === n.id || l.target === n.id);
     return {
       value: String(n.value),
-      text: `${n.label}: ${into.map((l) => `${l.value} ${l.resource}`).join(', ')}`,
+      text: `${n.label}: ${into.map((l) => `${l.value} ${groupOf.get(l.group)!.label.toLowerCase()}`).join(', ')}`,
     };
   };
   const show = (node: SankeyNode, where: { x: number; y: number }) => {
@@ -95,7 +96,7 @@ export function SankeyDiagram({ flows }: { flows: Flows }) {
       <svg
         viewBox={`0 ${-MARGIN} ${WIDTH} ${layout.height + 2 * MARGIN}`}
         role="img"
-        aria-label="Where each resource came from and went, this season. The table below has every value."
+        aria-label={label}
       >
         <g>
           {layout.links.map((l, i) => {
@@ -105,7 +106,7 @@ export function SankeyDiagram({ flows }: { flows: Flows }) {
               <path
                 class="sankey-band"
                 d={bandPath(l, X[s.column] + NODE, X[t.column])}
-                fill={RESOURCE_COLORS[l.resource]}
+                fill={groupOf.get(l.group)!.color}
                 fill-opacity={focus ? (lit(l, i) ? 0.6 : 0.08) : 0.32}
                 onPointerMove={(e) => {
                   setFocus({ link: i });
@@ -122,6 +123,7 @@ export function SankeyDiagram({ flows }: { flows: Flows }) {
         {layout.nodes.map((n) => {
           const x = X[n.column];
           const store = n.label === FROM_STORES || n.label === INTO_STORES;
+          const short = n.label === SHORT;
           const label = `${nameOf(n)}${n.count > 1 ? ` ×${n.count}` : ''}`;
           const textX = n.column === 0 ? x - 8 : x + NODE + 8;
           return (
@@ -140,14 +142,14 @@ export function SankeyDiagram({ flows }: { flows: Flows }) {
                 width={NODE}
                 height={n.h}
                 rx={2}
-                fill={n.resource ? RESOURCE_COLORS[n.resource] : store ? '#cdbb92' : '#8b9386'}
+                fill={n.color ?? (short ? '#a3401f' : store ? '#cdbb92' : '#8b9386')}
               />
               <text
                 x={textX}
                 y={n.y + n.h / 2}
                 dy="0.35em"
                 text-anchor={n.column === 0 ? 'end' : 'start'}
-                class={`sankey-label${n.column === 1 ? ' resource' : ''}${store ? ' store' : ''}`}
+                class={`sankey-label${n.column === 1 ? ' resource' : ''}${store ? ' store' : ''}${short ? ' short' : ''}`}
               >
                 {label}
                 <tspan class="sankey-value"> {n.value}</tspan>

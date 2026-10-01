@@ -1232,3 +1232,6 @@ ul.flow li {
 .sankey-tip span {
   color: var(--quiet);
 }
+.sankey-label.short {
+  fill: var(--bad);
+}

@@ -1,7 +1,9 @@
 # Changelog
 
-## Season report Sankey
+## Season report Sankeys
 
+- A second Sankey shows energy and heat: what supplied the day and the night (generators, free
+  heat, heat pumps, storage, and any shortfall in red) and what used them.
 - The season report opens with a Sankey diagram of the season's resources: what made each one, the
   resources, and what used them, with stock drawn from or kept in the stores. Hover or focus a band
   or node for its numbers.

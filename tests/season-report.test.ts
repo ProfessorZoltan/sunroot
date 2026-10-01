@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { BOTS } from '../src/balance/bots';
 import { Turn } from '../src/balance/turn';
-import { applyCommand, createRun, RESOURCES, type RunState } from '../src/sim';
+import { applyCommand, createRun, energyLedger, RESOURCES, type RunState } from '../src/sim';
 import { createRng } from '../src/sim/rng';
 import { content, endSeason, place, scenario } from './helpers';
 
@@ -40,6 +40,15 @@ function checkRun(bot: string, seed: string): number {
       const used = sum(flows[res]?.used);
       expect(start[res] + made - used, `${bot} ${seed} turn ${s.turn} ${res}`).toBe(
         next.stores[res],
+      );
+    }
+    // Energy and heat balance too, slot by slot.
+    const energy = energyLedger(content, next.lastReport!);
+    for (const slot of ['day', 'night'] as const) {
+      const sum = (lines: Record<string, { amount: number }>) =>
+        Object.values(lines).reduce((n, l) => n + l.amount, 0);
+      expect(sum(energy[slot].made), `${bot} ${seed} turn ${s.turn} ${slot} energy`).toBe(
+        sum(energy[slot].used),
       );
     }
     s = next;

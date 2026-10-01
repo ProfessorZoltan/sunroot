@@ -64,6 +64,12 @@ test('the season report shows what made and used each resource', async ({ page }
   await expect(sankey).toBeVisible();
   await dialog.getByRole('button', { name: /^Food: / }).focus();
   await expect(dialog.locator('.sankey-tip')).toContainText('Food made and used');
+  // The energy and heat Sankey: a node for each slot.
+  await expect(
+    dialog.getByRole('img', { name: /Where the day's and the night's energy/ }),
+  ).toBeVisible();
+  await dialog.getByRole('button', { name: /^Night: / }).focus();
+  await expect(dialog.locator('.sankey-tip')).toContainText('Night supplied and used');
   await expect(dialog).toContainText('Floodplain Farm');
   await dialog.getByRole('tab', { name: 'Spring, year 1' }).click();
   await expect(dialog).toContainText('Building: Floodplain Farm');

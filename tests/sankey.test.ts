@@ -2,8 +2,15 @@
 import { describe, expect, it } from 'vitest';
 import { playRun } from '../src/balance/runner';
 import { BOTS } from '../src/balance/bots';
-import { RESOURCES, type SeasonReport } from '../src/sim';
-import { FROM_STORES, INTO_STORES, RESOURCE_COLORS, sankeyLayout } from '../src/ui/sankey';
+import { energyLedger, RESOURCES, type SeasonReport } from '../src/sim';
+import {
+  FROM_STORES,
+  INTO_STORES,
+  RESOURCE_COLORS,
+  resourceGroups,
+  sankeyLayout,
+  type SankeyGroup,
+} from '../src/ui/sankey';
 import { content } from './helpers';
 
 const reports: SeasonReport[] = [];
@@ -20,7 +27,7 @@ describe('the Sankey layout', () => {
 
   it('conserves every resource: in = out = the node', () => {
     for (const r of reports) {
-      const { nodes, links } = sankeyLayout(r.flows);
+      const { nodes, links } = sankeyLayout(resourceGroups(r.flows));
       for (const n of nodes.filter((n) => n.column === 1)) {
         const into = links.filter((l) => l.target === n.id).reduce((s, l) => s + l.value, 0);
         const out = links.filter((l) => l.source === n.id).reduce((s, l) => s + l.value, 0);
@@ -32,24 +39,24 @@ describe('the Sankey layout', () => {
 
   it('shows every line of the ledger, and stock drawn or kept for what it does not explain', () => {
     const r = reports[20]!;
-    const { links } = sankeyLayout(r.flows);
+    const { links } = sankeyLayout(resourceGroups(r.flows));
     for (const res of RESOURCES) {
       const f = r.flows[res];
       if (!f) continue;
       for (const [label, l] of Object.entries(f.made))
         expect(links).toContainEqual(
-          expect.objectContaining({ source: `src:${label}`, resource: res, value: l.amount }),
+          expect.objectContaining({ source: `src:${label}`, group: res, value: l.amount }),
         );
       for (const [label, l] of Object.entries(f.used))
         expect(links).toContainEqual(
-          expect.objectContaining({ target: `use:${label}`, resource: res, value: l.amount }),
+          expect.objectContaining({ target: `use:${label}`, group: res, value: l.amount }),
         );
       const net =
         Object.values(f.made).reduce((s, l) => s + l.amount, 0) -
         Object.values(f.used).reduce((s, l) => s + l.amount, 0);
       const store = links.find(
         (l) =>
-          l.resource === res &&
+          l.group === res &&
           (l.source === `src:${FROM_STORES}` || l.target === `use:${INTO_STORES}`),
       );
       expect(store?.value ?? 0).toBe(Math.abs(net));
@@ -58,7 +65,7 @@ describe('the Sankey layout', () => {
 
   it('keeps nodes apart, bands inside their nodes, and everything inside the height', () => {
     for (const r of reports) {
-      const { nodes, links, height } = sankeyLayout(r.flows);
+      const { nodes, links, height } = sankeyLayout(resourceGroups(r.flows));
       for (const c of [0, 1, 2]) {
         const col = nodes.filter((n) => n.column === c).sort((a, b) => a.y - b.y);
         for (let i = 1; i < col.length; i++)
@@ -80,5 +87,25 @@ describe('the Sankey layout', () => {
 
   it('colours every resource', () => {
     for (const res of RESOURCES) expect(RESOURCE_COLORS[res]).toMatch(/^#[0-9a-f]{6}$/);
+  });
+
+  it('lays out energy and heat by slot too, and every slot balances', () => {
+    for (const r of reports) {
+      const ledger = energyLedger(content, r);
+      const groups: SankeyGroup[] = (['day', 'night'] as const).map((slot) => ({
+        key: slot,
+        label: slot,
+        color: '#000000',
+        ...ledger[slot],
+      }));
+      const { nodes, links } = sankeyLayout(groups);
+      for (const n of nodes.filter((n) => n.column === 1)) {
+        const into = links.filter((l) => l.target === n.id).reduce((s, l) => s + l.value, 0);
+        const out = links.filter((l) => l.source === n.id).reduce((s, l) => s + l.value, 0);
+        expect(into).toBe(out);
+      }
+      // No stores nodes: energy balances without them.
+      expect(nodes.some((n) => n.label === FROM_STORES || n.label === INTO_STORES)).toBe(false);
+    }
   });
 });
