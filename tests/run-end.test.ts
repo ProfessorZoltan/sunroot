@@ -5,6 +5,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   applyCommand,
+  canPlantGraft,
   createRun,
   eraGoal,
   goalProgress,
@@ -220,20 +221,25 @@ describe('the ledger, the score and the Graft', () => {
 });
 
 describe('Seeds', () => {
-  it('a completed run earns 10, plus 10 for a Sapling Graft or 20 for Heartwood', () => {
+  it('a run earns 10 plus 1 for every 14 points of its score, ended early or not', () => {
     const done = endSeason(scenario(DRY, { year: 12, season: 'winter' }));
-    const tier = scoreRun(content, done).tier.id;
-    expect(seedsForRun(content, done).total).toBe(
-      10 + ({ seedling: 0, sapling: 10, heartwood: 20 } as Record<string, number>)[tier]!,
+    const score = scoreRun(content, done).total;
+    expect(seedsForRun(content, done).total).toBe(10 + Math.floor(score / 14));
+    const ended = { ...scenario(DRY), turn: 9, status: 'collapsed' as const };
+    expect(seedsForRun(content, ended).total).toBe(
+      10 + Math.floor(scoreRun(content, ended).total / 14),
     );
+    expect(seedsForRun(content, scenario(DRY)).total).toBe(0); // still playing
   });
 
-  it('a run that ends early earns 1 a year survived, at least 3', () => {
-    const ended = (turn: number) =>
-      seedsForRun(content, { ...scenario(DRY), turn, status: 'collapsed' }).total;
-    expect(ended(2)).toBe(3);
-    expect(ended(23)).toBe(5);
-    expect(seedsForRun(content, scenario(DRY)).total).toBe(0); // still playing
+  it('only a top-quarter score earns a Graft by itself', () => {
+    const graftCost = content.progression!.graftCost;
+    // The score that earns exactly a Graft's Seeds sits above the Sapling band.
+    const needed = (graftCost - content.progression!.seeds.base) * 14;
+    const sapling = content.rules.score.tiers.find((t) => t.id === 'sapling')!.min;
+    expect(needed).toBeGreaterThan(sapling);
+    expect(canPlantGraft(content, graftCost - 1)).toBe(false);
+    expect(canPlantGraft(content, graftCost)).toBe(true);
   });
 });
 

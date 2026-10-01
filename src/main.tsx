@@ -12,7 +12,7 @@ import { Application } from 'pixi.js';
 import { render } from 'preact';
 import willowReach from './content/willow-reach.json';
 import { loadAlmanac, saveAlmanac } from './game/almanac';
-import { loadCity, saveCity } from './game/city';
+import { applyRunResult, loadCity, saveCity } from './game/city';
 import { PlayLog } from './game/playlog';
 import { indexedDbSlot, throttled } from './game/saves';
 import { GameStore } from './game/store';
@@ -69,13 +69,10 @@ async function start() {
     almanac: loadAlmanac(content, storage),
     onAlmanac: (almanac) => saveAlmanac(content, storage, almanac),
     // The Graft goes to Root City; the finished run's save is no longer needed.
-    onGraft: (graft) => {
-      const city = loadCity(storage);
-      saveCity(storage, {
-        ...city,
-        grafts: [...city.grafts, graft],
-        seeds: city.seeds + graft.seeds,
-      });
+    // Sent home: the Graft is planted or the Seeds banked; the finished run's save is done with.
+    bankedSeeds: loadCity(storage).seeds,
+    onRunEnd: (result) => {
+      saveCity(storage, applyRunResult(loadCity(storage), result));
       void slot.clear();
     },
   });
@@ -86,7 +83,7 @@ async function start() {
   // change, then at most every 300 ms, and again when the page is hidden or closed.
   const status = { turn: -1, savedAt: '' };
   const save = () => {
-    if (sandbox || store.graft) return;
+    if (sandbox || store.result) return;
     const savedAt = new Date().toISOString();
     const turn = store.state.turn;
     void slot.save(makeSave(store.state, savedAt)).then(() => {

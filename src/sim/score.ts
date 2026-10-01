@@ -64,25 +64,31 @@ export function scoreRun(content: Content, state: RunState): RunScore {
   return { total, lines, tier, next: up ? { tier: up, points: up.min - total } : null };
 }
 
-/** Seeds a finished run earns (city requests come with Milestone 8). */
+/**
+ * Seeds a finished run earns, more for a better run: a base plus the score
+ * divided by `pointsPerSeed`, rounded down. City requests come with Milestone 8.
+ */
 export function seedsForRun(
   content: Content,
   state: RunState,
 ): { total: number; lines: ScoreLine[] } {
   const p = content.progression;
   if (!p || state.status === 'active') return { total: 0, lines: [] };
-  const lines: ScoreLine[] = [];
-  if (state.status === 'complete') {
-    lines.push({ reason: 'run completed', points: p.seeds.complete });
-    const tier = scoreRun(content, state).tier;
-    const bonus = p.seeds.tierBonus[tier.id] ?? 0;
-    if (bonus > 0) lines.push({ reason: `${tier.name} Graft`, points: bonus });
-  } else {
-    const years = Math.floor(state.turn / 4);
-    const seeds = Math.max(p.seeds.minEnded, years * p.seeds.perYearEnded);
-    lines.push({ reason: `${years} year${years === 1 ? '' : 's'} survived`, points: seeds });
-  }
+  const score = scoreRun(content, state).total;
+  const lines: ScoreLine[] = [
+    { reason: 'every run', points: p.seeds.base },
+    {
+      reason: `score ${score} ÷ ${p.seeds.pointsPerSeed}`,
+      points: Math.floor(score / p.seeds.pointsPerSeed),
+    },
+  ];
   return { total: lines.reduce((n, l) => n + l.points, 0), lines };
+}
+
+/** Whether Seeds in hand (banked plus this run's) pay for planting the run's Graft. */
+export function canPlantGraft(content: Content, seeds: number): boolean {
+  const cost = content.progression?.graftCost ?? 0;
+  return seeds >= cost;
 }
 
 /** @deprecated The score before Milestone 7; kept as an alias for old callers. */

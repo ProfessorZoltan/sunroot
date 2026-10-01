@@ -28,7 +28,7 @@ Sunroot is a solarpunk settlement builder of short, replayable runs: each run he
 
 ## Game structure
 
-The game alternates between a permanent home, **Root City**, and short runs called **Sprouts**. Each Sprout founds a settlement in a new region and ends by sending a **Graft**, a new district, back to Root City.
+The game alternates between a permanent home, **Root City**, and short runs called **Sprouts**. Each Sprout founds a settlement in a new region and earns **Seeds**; a good enough run, or Seeds saved from earlier runs, plants a **Graft**, a new district, in Root City.
 
 - **Root City:** the permanent hub. Districts planted there grant small perks and add new cards to future drafts.
 - **Sprout (a run):** 12 in-game years of 4 seasons each, so 48 turns, about 45 to 60 minutes. Split into 4 eras of 3 years: Settle, Mend, Flourish, Bloom.
@@ -50,7 +50,7 @@ The game alternates between a permanent home, **Root City**, and short runs call
 9. Scraps left over from last season become clutter, this season's new scraps are added, then Harmony updates.
 10. Combo check: evolutions happen, combos at work are recorded, and first discoveries are revealed. The vision and the era goal are checked.
 
-**Ending a run.** A run ends after 48 seasons, or early if wellbeing reaches 0. The score sets the Graft tier, and every run earns Seeds.
+**Ending a run.** A run ends after 48 seasons, or early if wellbeing reaches 0. The score sets the Graft tier and the Seeds earned; planting the Graft costs Seeds, and Seeds that can't pay for it are banked for later runs.
 
 ## Economy and core rules
 
@@ -199,7 +199,7 @@ Progress between runs mostly adds variety, not power, so runs stay a test of ski
 
 **Between runs** (1 to 2 minutes)
 
-1. **Place the Graft** in Root City.
+1. **Place the Graft** in Root City, if the Seeds paid for it.
 2. **Spend Seeds** to raise a district's tier.
 3. **Choose the next expedition** from 3 options, each showing a region, a twist (for example *Drought Year*: harsher summers, Graft one tier higher) and an optional city request (for example "close 3 loops") worth bonus Seeds.
 

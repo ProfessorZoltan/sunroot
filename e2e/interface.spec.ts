@@ -70,16 +70,26 @@ test('a whole run, keyboard only, to the end screen', async ({ page }) => {
   await settle(page);
   await expect(dialog).toBeVisible();
   await expect(dialog).toContainText(/Score: (Seedling|Sapling|Heartwood) Graft/);
-  // The first Graft on offer has focus: send it home, then look at the valley.
-  await expect(dialog.getByRole('button', { name: /runs/ }).first()).toBeFocused();
+  // If the Seeds pay for a Graft, the first one on offer has focus; otherwise
+  // banking the Seeds does. Either way Enter sends the run home.
+  const planted = await dialog.getByRole('button', { name: /runs/ }).first().isVisible();
+  await expect(
+    planted
+      ? dialog.getByRole('button', { name: /runs/ }).first()
+      : dialog.getByRole('button', { name: 'Bank the Seeds' }),
+  ).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect(dialog.getByRole('status')).toContainText('is on its way to Root City');
+  await expect(dialog.getByRole('status')).toContainText(
+    planted ? 'is on its way to Root City' : 'Seeds are banked',
+  );
   await expect(dialog.getByRole('button', { name: 'Start a new run' })).toBeFocused();
   await page.keyboard.press('Tab');
   await page.keyboard.press('Enter');
   await expect(dialog).toBeHidden();
   const city = await page.evaluate(() => JSON.parse(localStorage.getItem('sunroot:city')!));
-  expect(city.grafts).toHaveLength(1);
+  expect(city.runs).toBe(1);
+  expect(city.grafts).toHaveLength(planted ? 1 : 0);
+  expect(city.seeds).toBeGreaterThan(0);
   expect(errors).toEqual([]);
 });
 

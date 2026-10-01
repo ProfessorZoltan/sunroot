@@ -8,6 +8,7 @@ import {
   applyCommand,
   axialToOffset,
   canPlace,
+  canPlantGraft,
   graftOffer,
   hexDistance,
   scoreRun,
@@ -26,7 +27,7 @@ import {
   type SeasonReport,
 } from '../sim';
 import { EMPTY_ALMANAC, entryView, recordRun, type Almanac } from './almanac';
-import type { Graft } from './city';
+import type { Graft, RunResult } from './city';
 import { computeInsight, type Insight } from './insight';
 import type { PhaseName } from './timeline';
 
@@ -69,8 +70,10 @@ export class GameStore {
   /** Cards waiting to be shown once the season has played out. */
   reveals: Reveal[] = [];
   almanac: Almanac;
-  /** The Graft this run sent home, once chosen. */
-  graft: Graft | null = null;
+  /** How this run was sent home, once it has been. */
+  result: RunResult | null = null;
+  /** Seeds banked in Root City before this run's. */
+  readonly bankedSeeds: number;
   private resolutions = 0;
   private listeners = new Set<() => void>();
   private cache: { state: RunState; asIs: RunState; insight: Insight | null } | null = null;
@@ -81,7 +84,10 @@ export class GameStore {
     options: {
       almanac?: Almanac;
       onAlmanac?: (almanac: Almanac) => void;
-      onGraft?: (graft: Graft) => void;
+      /** Seeds already banked in Root City. */
+      bankedSeeds?: number;
+      /** The run was sent home: its Graft planted, or its Seeds banked. */
+      onRunEnd?: (result: RunResult) => void;
       /** Every command sent, for the playtest log. */
       onCommand?: (command: Command, ok: boolean, before: RunState, after: RunState) => void;
       /** A season's resolution started, or ended (played out or skipped). */
@@ -92,14 +98,15 @@ export class GameStore {
   ) {
     this.almanac = options.almanac ?? EMPTY_ALMANAC;
     this.onAlmanac = options.onAlmanac ?? (() => {});
-    this.onGraft = options.onGraft ?? (() => {});
+    this.bankedSeeds = options.bankedSeeds ?? 0;
+    this.onRunEnd = options.onRunEnd ?? (() => {});
     this.onCommand = options.onCommand ?? (() => {});
     this.onResolution = options.onResolution ?? (() => {});
     this.now = options.now ?? (() => new Date().toISOString());
   }
 
   private readonly onAlmanac: (almanac: Almanac) => void;
-  private readonly onGraft: (graft: Graft) => void;
+  private readonly onRunEnd: (result: RunResult) => void;
   private readonly onCommand: (
     command: Command,
     ok: boolean,
@@ -224,23 +231,52 @@ export class GameStore {
     this.emit();
   }
 
-  /** Sends the run's Graft home: one of the districts offered at the end of the run. */
+  /** Seeds this run earned (once it has ended). */
+  get seedsEarned(): number {
+    return seedsForRun(this.content, this.state).total;
+  }
+
+  /** Seeds in hand at the end of the run: banked ones plus this run's. */
+  get seedsInHand(): number {
+    return this.bankedSeeds + this.seedsEarned;
+  }
+
+  /** Whether the Seeds in hand pay for planting this run's Graft. */
+  get canPlant(): boolean {
+    return this.state.status !== 'active' && canPlantGraft(this.content, this.seedsInHand);
+  }
+
+  /** Plants one of the districts offered at the end of the run, paying its Seeds. */
   chooseGraft(district: string): boolean {
-    if (this.state.status === 'active' || this.graft) return false;
+    if (this.state.status === 'active' || this.result || !this.canPlant) return false;
     const offer = graftOffer(this.content, this.state);
     if (!offer.options.some((o) => o.district.id === district)) return false;
-    const score = scoreRun(this.content, this.state);
-    this.graft = {
+    const graft: Graft = {
       district,
       tier: offer.tier.id,
-      score: score.total,
-      seeds: seedsForRun(this.content, this.state).total,
+      score: scoreRun(this.content, this.state).total,
+      seeds: this.seedsEarned,
       seed: this.state.options.seed,
       vision: this.state.vision,
       visionAchieved: this.state.visionAchieved !== null,
       sentAt: this.now(),
     };
-    this.onGraft(this.graft);
+    return this.sendHome({
+      graft,
+      earned: this.seedsEarned,
+      spent: this.content.progression?.graftCost ?? 0,
+    });
+  }
+
+  /** Banks the run's Seeds without planting a Graft (when they can't pay for one). */
+  bankSeeds(): boolean {
+    if (this.state.status === 'active' || this.result) return false;
+    return this.sendHome({ graft: null, earned: this.seedsEarned, spent: 0 });
+  }
+
+  private sendHome(result: RunResult): boolean {
+    this.result = result;
+    this.onRunEnd(result);
     this.emit();
     return true;
   }

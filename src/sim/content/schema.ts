@@ -552,15 +552,17 @@ export type District = z.infer<typeof DistrictSchema>;
 export const ProgressionSchema = z
   .object({
     seeds: z.object({
-      /** A run that reached the end of year 12, plus a bonus by Graft tier id. */
-      complete: nonNeg,
-      tierBonus: z.record(z.string(), nonNeg),
-      /** A run that ended early: this many per year survived, at least `minEnded`. */
-      perYearEnded: nonNeg,
-      minEnded: nonNeg,
+      /** Seeds = base + the run's score ÷ pointsPerSeed, rounded down: better runs earn more. */
+      base: nonNeg,
+      pointsPerSeed: int.min(1),
       /** An expedition's city request met (Milestone 8). */
       cityRequest: nonNeg,
     }),
+    /**
+     * Seeds to plant a run's Graft in Root City. Only a run in about the top
+     * quarter earns this much by itself; otherwise Seeds are banked for later.
+     */
+    graftCost: nonNeg,
     /** Seeds to raise a district to this tier id from the one below. */
     upgradeCost: z.record(z.string(), nonNeg),
     ending: z.object({ slots: int.min(1), heartwoodDistricts: int.min(0) }),

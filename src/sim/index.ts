@@ -46,6 +46,7 @@ export {
   runSignature,
   scoreRun,
   seedsForRun,
+  canPlantGraft,
   visionMet,
   visionProgress,
   type GraftOffer,

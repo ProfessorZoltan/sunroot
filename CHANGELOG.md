@@ -1,5 +1,13 @@
 # Changelog
 
+## Seeds by score
+
+- A run earns 10 Seeds plus 1 for every 14 points of its score. Planting its Graft in Root City
+  costs 35, so only about the best quarter of runs pays for one alone; otherwise the end screen
+  banks the Seeds for the next run, and a player can bank them instead of planting. Upgrades now
+  cost 15 and 30. The ending moves from run 18 to about 19 for a skilled player, 21 for a learner
+  and 34 for a steady energy-first player (DECISIONS.md Q12).
+
 ## Designer's answers, and playtest tools
 
 - Combos and charters as the designer intended: the Sun Terrace is +1 day energy every season;

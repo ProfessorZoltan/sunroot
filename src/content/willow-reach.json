@@ -1240,24 +1240,20 @@
   ],
   "progression": {
     "seeds": {
-      "complete": 10,
-      "tierBonus": {
-        "sapling": 10,
-        "heartwood": 20
-      },
-      "perYearEnded": 1,
-      "minEnded": 3,
+      "base": 10,
+      "pointsPerSeed": 14,
       "cityRequest": 5
     },
     "upgradeCost": {
-      "sapling": 20,
-      "heartwood": 40
+      "sapling": 15,
+      "heartwood": 30
     },
     "ending": {
       "slots": 18,
       "heartwoodDistricts": 6
     },
-    "compostShare": 0.5
+    "compostShare": 0.5,
+    "graftCost": 35
   },
   "guidedYear": [
     ["orchard", "apiary", "treeNursery"],

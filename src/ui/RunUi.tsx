@@ -119,7 +119,11 @@ export function VisionStatus({ store }: { store: GameStore }) {
   );
 }
 
-/** The end of a run: the score and its Graft tier, then the Graft to send home. */
+/**
+ * The end of a run: the score and its Graft tier, the Seeds it earned, then
+ * the Graft to plant in Root City if the Seeds in hand pay for it. Otherwise,
+ * or if the player chooses, the Seeds are banked for a later run.
+ */
 export function EndScreen({
   store,
   onClose,
@@ -131,7 +135,8 @@ export function EndScreen({
 }) {
   const { content, state } = store;
   const first = useRef<HTMLButtonElement>(null);
-  const sent = store.graft !== null;
+  const result = store.result;
+  const sent = result !== null;
   useEffect(() => {
     // Focus the first button, and again after the next frame in case a closing
     // overlay or a late re-render took focus away.
@@ -148,8 +153,10 @@ export function EndScreen({
   const tierIndex = content.rules.score.tiers.indexOf(score.tier);
   const complete = state.status === 'complete';
   const vision = content.visions.find((v) => v.id === state.vision);
-  const chosen = store.graft
-    ? content.districts.find((d) => d.id === store.graft!.district)
+  const cost = content.progression?.graftCost ?? 0;
+  const inHand = store.seedsInHand;
+  const chosen = result?.graft
+    ? content.districts.find((d) => d.id === result.graft!.district)
     : undefined;
   return (
     <div class="modal-backdrop">
@@ -187,12 +194,14 @@ export function EndScreen({
         {seeds.total > 0 && (
           <div class="small seeds">
             Seeds earned: <strong>{seeds.total}</strong> (
-            {seeds.lines.map((l) => `${l.reason} ${l.points}`).join(', ')}).
+            {seeds.lines.map((l) => `${l.reason}: ${l.points}`).join(', ')}).{' '}
+            {store.bankedSeeds > 0 ? `With ${store.bankedSeeds} banked, ` : ''}
+            <strong>{inHand}</strong> in hand; planting a Graft costs {cost}.
           </div>
         )}
-        {!sent ? (
+        {!sent && store.canPlant && (
           <>
-            <h3 class="glass-subtitle">Choose the Graft to send to Root City</h3>
+            <h3 class="glass-subtitle">Choose the Graft to plant in Root City</h3>
             <div class="graft-options">
               {offer.options.map((o, i) => (
                 <button
@@ -217,12 +226,31 @@ export function EndScreen({
               ))}
             </div>
           </>
-        ) : (
+        )}
+        {!sent && !store.canPlant && (
+          <p class="small">
+            Not enough Seeds to plant a Graft: {cost - inHand} more are needed. Bank them, and a
+            later run can add to them.
+          </p>
+        )}
+        {sent && (
           <p class="graft-sent" role="status">
-            The {chosen?.name ?? 'Graft'} is on its way to Root City as a {score.tier.name} Graft.
+            {result.graft
+              ? `The ${chosen?.name ?? 'Graft'} is on its way to Root City as a ${score.tier.name} Graft. ${inHand - result.spent} Seeds are banked.`
+              : `${inHand} Seeds are banked in Root City for the next run.`}
           </p>
         )}
         <div class="row">
+          {!sent && (
+            <button
+              type="button"
+              class={store.canPlant ? 'button' : 'button primary'}
+              ref={store.canPlant ? undefined : first}
+              onClick={() => store.bankSeeds()}
+            >
+              {store.canPlant ? 'Bank the Seeds instead' : 'Bank the Seeds'}
+            </button>
+          )}
           {sent && (
             <button type="button" class="button primary" ref={first} onClick={onNewRun}>
               Start a new run

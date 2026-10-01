@@ -58,10 +58,7 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
   }
   const tierIds = data.rules.score.tiers.map((t) => t.id);
   const p = data.progression;
-  for (const id of [
-    ...Object.keys(p?.seeds.tierBonus ?? {}),
-    ...Object.keys(p?.upgradeCost ?? {}),
-  ]) {
+  for (const id of Object.keys(p?.upgradeCost ?? {})) {
     if (!tierIds.includes(id)) problems.push(`progression names unknown tier ${id}`);
   }
   for (const d of data.districts)
