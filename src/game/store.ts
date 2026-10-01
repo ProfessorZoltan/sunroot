@@ -19,6 +19,7 @@ import {
   parseHexKey,
   previewPlacement,
   resolveAsIs,
+  SEASONS,
   type ComboHit,
   type Command,
   type Content,
@@ -93,6 +94,8 @@ export class GameStore {
       bankedSeeds?: number;
       /** Cards to show before play begins (a new run's start card). */
       intro?: Reveal[];
+      /** Runs fast-forward's next step soon (a short pause, so each season shows). */
+      defer?: (step: () => void) => void;
       /** The run was sent home: its Graft planted, or its Seeds banked. */
       onRunEnd?: (result: RunResult) => void;
       /** Every command sent, for the playtest log. */
@@ -107,12 +110,14 @@ export class GameStore {
     this.onAlmanac = options.onAlmanac ?? (() => {});
     this.bankedSeeds = options.bankedSeeds ?? 0;
     this.reveals = options.intro ?? [];
+    this.defer = options.defer ?? ((step) => setTimeout(step, 160));
     this.onRunEnd = options.onRunEnd ?? (() => {});
     this.onCommand = options.onCommand ?? (() => {});
     this.onResolution = options.onResolution ?? (() => {});
     this.now = options.now ?? (() => new Date().toISOString());
   }
 
+  private readonly defer: (step: () => void) => void;
   private readonly onAlmanac: (almanac: Almanac) => void;
   private readonly onRunEnd: (result: RunResult) => void;
   private readonly onCommand: (
@@ -215,6 +220,8 @@ export class GameStore {
       this.message = result.error;
     }
     this.emit();
+    // A choice fast-forward was waiting for has been made: carry on.
+    if (result.ok && command.type !== 'endSeason') this.keepGoing();
     return result.ok;
   }
 
@@ -225,6 +232,69 @@ export class GameStore {
     this.resolution = null;
     this.onResolution(false, id === undefined, this.state);
     this.emit();
+    this.keepGoing();
+  }
+
+  // ------------------------------------------------------------------ fast-forward
+
+  /** While fast-forwarding: the turn it runs up to (the next spring). */
+  fastForwardTo: number | null = null;
+
+  /**
+   * Ends seasons one after another, skipping their playback, until next spring.
+   * It waits for choices (a card, a charter, a vision) and cards being read,
+   * then carries on; it stops if the season would end short of energy or with
+   * citizens unfed, and when the run ends.
+   */
+  fastForward(): void {
+    if (this.state.status !== 'active') return;
+    const seasons = SEASONS.length;
+    this.fastForwardTo = (Math.floor(this.state.turn / seasons) + 1) * seasons;
+    this.message = null;
+    this.emit();
+    this.keepGoing();
+  }
+
+  stopFastForward(message: string | null = null): void {
+    if (this.fastForwardTo === null) return;
+    this.fastForwardTo = null;
+    this.message = message;
+    this.emit();
+  }
+
+  /** What fast-forward is waiting for, or null when it can end the season. */
+  get fastForwardWaiting(): string | null {
+    const s = this.state;
+    if (s.visionOffer.length > 0) return 'Choose a vision to carry on.';
+    if (s.charterOffer.length > 0) return 'Choose a charter to carry on.';
+    if (s.draft.offer.length > 0 && !s.draft.picked) return 'Pick a card to carry on.';
+    return null;
+  }
+
+  private keepGoing(): void {
+    if (this.fastForwardTo === null) return;
+    this.defer(() => this.step());
+  }
+
+  private step(): void {
+    if (this.fastForwardTo === null) return;
+    if (this.state.status !== 'active') return this.stopFastForward();
+    if (this.state.turn >= this.fastForwardTo) return this.stopFastForward('A year went by.');
+    if (this.resolution) return this.finishResolution();
+    if (this.reveals.length > 0 || this.fastForwardWaiting) return; // carries on when done
+    // Never coast into trouble: stop if this season would end short or hungry.
+    const now = this.insight.now;
+    const short = now.energy.day.shortfall + now.energy.night.shortfall;
+    if (short > 0)
+      return this.stopFastForward(
+        `Fast-forward stopped: this season would end ${short} energy short.`,
+      );
+    if (now.food.unfed > 0)
+      return this.stopFastForward(
+        `Fast-forward stopped: ${now.food.unfed} citizens would go hungry this season.`,
+      );
+    if (!this.dispatch({ type: 'endSeason' })) return this.stopFastForward(this.message);
+    this.finishResolution();
   }
 
   /** Any action during a resolution skips the rest of it. */
@@ -245,6 +315,7 @@ export class GameStore {
     if (this.reveals.length === 0) return;
     this.reveals = this.reveals.slice(1);
     this.emit();
+    this.keepGoing();
   }
 
   /** Seeds this run earned (once it has ended). */

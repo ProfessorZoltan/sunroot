@@ -111,6 +111,11 @@ export function App({
         if (key === 'Escape') return (handled(), store.dismissReveal());
         return;
       }
+      // Esc stops fast-forward.
+      if (store.fastForwardTo !== null && key === 'Escape' && !help) {
+        handled();
+        return store.stopFastForward();
+      }
       if (almanacOpen.current && !help) {
         if (key === 'Escape' || lower === GLOBAL_KEYS.almanac)
           return (handled(), setAlmanac(false));
@@ -167,6 +172,7 @@ export function App({
         if (store.hover) map?.ensureVisible(store.hover);
         return handled();
       }
+      if (lower === GLOBAL_KEYS.endSeason && e.shiftKey) return (handled(), store.fastForward());
       if (lower === GLOBAL_KEYS.endSeason)
         return (handled(), void store.dispatch({ type: 'endSeason' }));
       if (lower === GLOBAL_KEYS.undo) return (handled(), void store.dispatch({ type: 'undo' }));

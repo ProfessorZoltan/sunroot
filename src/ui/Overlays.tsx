@@ -53,13 +53,15 @@ export function Footer({
         {store.message ??
           (ended
             ? ''
-            : state.visionOffer.length > 0
-              ? 'Choose a vision to end the season.'
-              : state.charterOffer.length > 0
-                ? 'Choose a charter to end the season.'
-                : needsPick
-                  ? 'Choose a draft card to end the season.'
-                  : '')}
+            : store.fastForwardTo !== null
+              ? `Fast-forwarding to spring, year ${store.fastForwardTo / 4 + 1}. ${store.fastForwardWaiting ?? ''}`
+              : state.visionOffer.length > 0
+                ? 'Choose a vision to end the season.'
+                : state.charterOffer.length > 0
+                  ? 'Choose a charter to end the season.'
+                  : needsPick
+                    ? 'Choose a draft card to end the season.'
+                    : '')}
       </div>
       <div class="actions">
         {onReport && (
@@ -108,6 +110,27 @@ export function Footer({
         >
           <Undo size={16} /> Undo
         </button>
+        {store.fastForwardTo !== null ? (
+          <button
+            type="button"
+            class="button"
+            onClick={() => store.stopFastForward()}
+            aria-keyshortcuts="Escape"
+          >
+            Stop
+          </button>
+        ) : (
+          <button
+            type="button"
+            class="button"
+            disabled={ended}
+            onClick={() => store.fastForward()}
+            aria-keyshortcuts="Shift+E"
+            title="End seasons until next spring, pausing for choices and stopping before a shortfall or hunger (Shift+E)"
+          >
+            Fast-forward
+          </button>
+        )}
         {store.resolution ? (
           <button
             type="button"
@@ -238,6 +261,7 @@ export function Help({
     ['Z or Ctrl+Z', 'Undo (free until the season ends)'],
     ['Delete', 'Demolish the building in the inspector'],
     ['E', 'End the season'],
+    ['Shift+E', 'Fast-forward to next spring (pauses for choices; Esc stops)'],
     ['Space / Esc', 'Skip the season playing out'],
     ['P', 'Pause or resume the season playing out'],
     ['+ / − / 0', 'Zoom in / out / fit the valley'],

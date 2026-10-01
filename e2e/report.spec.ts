@@ -124,3 +124,25 @@ test('a building can be demolished from the inspector, or with Delete', async ({
   await expect.poll(async () => (await ids()).length).toBe(1);
   expect(errors).toEqual([]);
 });
+
+test('fast-forward ends seasons, waiting for each card, and Esc stops it', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/?seed=willow-reach-golden&visions=0');
+  await expect(page.locator('#map-host canvas')).toBeVisible();
+  const turn = () => page.evaluate(() => (window as unknown as Win).sunroot.store.state.turn);
+  await page.keyboard.press('1');
+  await page.keyboard.press('Shift+E');
+  await expect.poll(turn).toBe(1);
+  // Summer deals a card: fast-forward waits for it.
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Pick a card to carry on' }),
+  ).toBeVisible();
+  await page.keyboard.press('1');
+  await expect.poll(turn).toBe(2);
+  await page.getByRole('button', { name: 'Stop' }).click();
+  await page.keyboard.press('1');
+  await page.waitForTimeout(500);
+  expect(await turn()).toBe(2);
+  expect(errors).toEqual([]);
+});

@@ -1,5 +1,11 @@
 # Changelog
 
+## Fast-forward
+
+- **Fast-forward** (Shift+E) ends seasons up to next spring without playback, waiting for each
+  card, charter or vision and carrying on once chosen; it stops before a season would end short of
+  energy or with citizens hungry. Esc stops it.
+
 ## Season report Sankeys
 
 - A second Sankey shows energy and heat: what supplied the day and the night (generators, free
