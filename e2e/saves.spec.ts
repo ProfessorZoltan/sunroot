@@ -49,7 +49,14 @@ test('a run is saved as you play and resumed when you come back', async ({ page 
   expect(before.vision).not.toBeNull();
 
   // Leave, come back without a seed: the same run, where it was.
-  await page.waitForTimeout(800); // the autosave settles
+  // The autosave has written this season.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => (window as unknown as { sunroot: { saved: { turn: number } } }).sunroot.saved.turn,
+      ),
+    )
+    .toBe(1);
   await page.goto('/');
   await expect(page.locator('#map-host canvas')).toBeVisible();
   await expect.poll(() => run(page)).toEqual(before);

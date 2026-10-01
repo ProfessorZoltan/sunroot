@@ -18,6 +18,8 @@
 - Graft tiers recalibrated: Sapling from 235, Heartwood from 360 (`scripts/calibrate-tiers.ts`).
 - Playtest log: time, undos, cards and notes per season, with a Note button and a CSV download.
 - DESIGN.md's season order is rewritten to match the simulation.
+- Fixed: autosave waited until changes settled, so leaving the page just after an action could
+  lose it. It now saves at once (then at most every 300 ms) and again when the page is hidden.
 
 ## Milestone 7: run structure
 

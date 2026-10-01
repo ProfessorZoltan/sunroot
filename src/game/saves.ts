@@ -83,14 +83,27 @@ export function memorySlot(initial?: unknown): SaveSlot {
   };
 }
 
-/** Saves after changes settle, at most every `delay` ms. */
-export function debounced(save: () => void, delay = 400): () => void {
+/**
+ * Runs `save` at once, then at most every `gap` ms while calls keep coming,
+ * always finishing with one more run after the last call.
+ */
+export function throttled(save: () => void, gap = 300): () => void {
+  let last = -Infinity;
   let timer: ReturnType<typeof setTimeout> | null = null;
   return () => {
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(() => {
-      timer = null;
+    const wait = last + gap - Date.now();
+    if (wait <= 0 && !timer) {
+      last = Date.now();
       save();
-    }, delay);
+      return;
+    }
+    timer ??= setTimeout(
+      () => {
+        timer = null;
+        last = Date.now();
+        save();
+      },
+      Math.max(0, wait),
+    );
   };
 }

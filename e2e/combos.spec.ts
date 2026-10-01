@@ -41,8 +41,11 @@ test('a discovery unfolds as a card, and the Almanac keeps it', async ({ page })
   await expect(card).toBeVisible();
   await expect(card).toContainText('Filed in the Almanac');
   // Close every card (there may be more than one), then open the Almanac.
-  for (let i = 0; i < 5 && (await page.getByRole('dialog').count()) > 0; i++) {
-    await page.keyboard.press('Enter');
+  for (let i = 0; i < 8 && (await page.getByRole('dialog').count()) > 0; i++) {
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: /Continue|Next/ })
+      .click();
   }
   await page.keyboard.press('a');
   const almanac = page.getByRole('dialog', { name: 'Almanac' });

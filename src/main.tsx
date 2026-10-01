@@ -14,7 +14,7 @@ import willowReach from './content/willow-reach.json';
 import { loadAlmanac, saveAlmanac } from './game/almanac';
 import { loadCity, saveCity } from './game/city';
 import { PlayLog } from './game/playlog';
-import { debounced, indexedDbSlot } from './game/saves';
+import { indexedDbSlot, throttled } from './game/saves';
 import { GameStore } from './game/store';
 import { buildTimeline } from './game/timeline';
 import { renderBuildingIcons } from './render/icons';
@@ -82,16 +82,28 @@ async function start() {
   store.message = resumeNote;
   log.begin(store.state);
 
-  // Save as you play (not sandbox runs, which are for trying things out).
+  // Save as you play (not sandbox runs, which are for trying things out): at once after a
+  // change, then at most every 300 ms, and again when the page is hidden or closed.
+  const status = { turn: -1, savedAt: '' };
   const save = () => {
-    if (!sandbox && !store.graft) void slot.save(makeSave(store.state, new Date().toISOString()));
+    if (sandbox || store.graft) return;
+    const savedAt = new Date().toISOString();
+    const turn = store.state.turn;
+    void slot.save(makeSave(store.state, savedAt)).then(() => {
+      status.turn = turn;
+      status.savedAt = savedAt;
+    });
   };
-  const autosave = debounced(save);
+  const autosave = throttled(save, 300);
   let saved = store.state;
   store.subscribe(() => {
     if (store.state === saved) return;
     saved = store.state;
     autosave();
+  });
+  addEventListener('pagehide', save);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') save();
   });
   save();
   const newRun = () => {
@@ -157,7 +169,15 @@ async function start() {
   store.subscribe(drawMap);
   drawMap();
   // Exposed for debugging and the browser tests.
-  (window as unknown as { sunroot: unknown }).sunroot = { store, view, seed, canPlace, content };
+  (window as unknown as { sunroot: unknown }).sunroot = {
+    store,
+    view,
+    seed,
+    canPlace,
+    content,
+    /** The last save written: the turn and when (for the browser tests). */
+    saved: status,
+  };
   icons = await renderBuildingIcons(app);
   draw();
 }
