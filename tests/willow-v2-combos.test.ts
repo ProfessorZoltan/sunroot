@@ -47,6 +47,11 @@ describe('Bath Loop', () => {
     s = build(s, 'bathhouse', [[2, 1]]);
     s = build(s, 'reedBed', [[3, 1]]);
     if (kiln) s = build(s, 'kiln', [[2, 0]]);
+    // Day energy for the kiln's own 1 and its firings.
+    s = build(s, 'solarCanopy', [
+      [5, 0],
+      [6, 0],
+    ]);
     return s;
   };
 

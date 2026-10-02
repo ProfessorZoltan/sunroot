@@ -1,5 +1,17 @@
 # Changelog
 
+## Day energy for industry; energy and heat apart; storage gauges
+
+- **Salvage Yards, Workshops and Kilns need 1 day energy** to work, and workshop and kiln runs use
+  spare day energy only. The Year 1 walkthrough's winter now ends at 9 materials, and a Cell Bank
+  no longer covers that winter night (for review).
+- Graft tiers follow the lower scores: Sapling from 215, Heartwood from 345.
+- **Energy and heat are shown apart**: season cards, their tooltips and the season report list
+  energy use and heat needs separately, with energy turned into heat as its own line (and ⚡ on
+  the card).
+- **Storage gauges**: hover or open a cell bank, reservoir or heat well to see how full it is now,
+  where it will stand when the season ends, and what it charges and gives.
+
 ## Type
 
 - Numbers are set in Atkinson Hyperlegible Next, easier to read at a glance; titles stay in

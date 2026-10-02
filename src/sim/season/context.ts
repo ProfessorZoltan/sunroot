@@ -52,6 +52,7 @@ function emptySlot(): SlotReport {
     bySource: {},
     supply: 0,
     demandBy: {},
+    heatBy: {},
     demand: 0,
     heat: {
       demand: 0,
@@ -91,6 +92,7 @@ export function emptyReport(state: RunState): SeasonReport {
     commute: null,
     heat: null,
     neighborHeat: [],
+    storage: {},
     cold: [],
     exposed: [],
     silted: [],

@@ -7,6 +7,7 @@ import { edgesAround } from '../sim/edges';
 import type { AudioEngine } from '../audio/engine';
 import { logToCsv, type PlayLog } from '../game/playlog';
 import type { GameStore } from '../game/store';
+import { gaugeLines, type StorageGauge } from '../game/storageInfo';
 import type { MapView } from '../render/mapView';
 import { hexKey } from '../sim';
 import { Sun } from './icons';
@@ -64,6 +65,7 @@ export function MapTip({ store, view }: { store: GameStore; view: MapView | null
   const hedgeSides = edgesAround(store.hover).filter((e) => state.hedges.includes(e)).length;
   const walks = commuteAt(store.rules, state, store.commuteForecast, store.hover);
   const heat = heatAt(store.rules, state, store.heatForecast, store.hover, store.coldForecast);
+  const gauge = b ? store.storageOf(b.uid) : null;
   const math = (b ? (store.insight.now.math[b.uid] ?? []) : []).filter(
     (l) => water.length === 0 || !l.startsWith('water:'),
   );
@@ -98,7 +100,31 @@ export function MapTip({ store, view }: { store: GameStore; view: MapView | null
       {heat.map((l) => (
         <div class="small heat-line">{l}</div>
       ))}
+      {gauge && <StorageGaugeView gauge={gauge} />}
       {math.slice(0, 6).map((l) => (
+        <div class="small">{l}</div>
+      ))}
+    </div>
+  );
+}
+
+/** How full a store of energy or heat is: a bar for now, a mark for the season's end. */
+export function StorageGaugeView({ gauge }: { gauge: StorageGauge }) {
+  const pct = (n: number) => `${Math.round((100 * n) / Math.max(1, gauge.capacity))}%`;
+  return (
+    <div class={`storage-gauge ${gauge.holds}`}>
+      <div
+        class="gauge-bar"
+        role="meter"
+        aria-label={`${gauge.holds === 'heat' ? 'Heat' : 'Energy'} stored`}
+        aria-valuemin={0}
+        aria-valuemax={gauge.capacity}
+        aria-valuenow={gauge.now}
+      >
+        <div class="gauge-fill" style={{ width: pct(gauge.now) }} />
+        <div class="gauge-after" style={{ left: pct(gauge.after) }} title="When the season ends" />
+      </div>
+      {gaugeLines(gauge).map((l) => (
         <div class="small">{l}</div>
       ))}
     </div>

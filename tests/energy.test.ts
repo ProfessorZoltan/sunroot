@@ -115,9 +115,11 @@ describe('storage and demand', () => {
     s = endSeason(s);
     const r = s.lastReport!;
     expect(r.energy.day.supply).toBe(4); // camp 2 + solar 1 + 1
-    expect(r.energy.day.reserved).toBe(4);
-    expect(r.energy.night.storageDischarged).toBe(3);
-    expect(r.energy.night.shortfall).toBe(3);
+    // The workshop needs 1 day energy to work: 3 spare is reserved, and returns 2.
+    expect(r.energy.day.demandBy.workshop).toBe(1);
+    expect(r.energy.day.reserved).toBe(3);
+    expect(r.energy.night.storageDischarged).toBe(2);
+    expect(r.energy.night.shortfall).toBe(4);
     expect(r.runs[uidAt(s, 6, 3)]?.runs).toBe(0);
   });
 
@@ -206,18 +208,21 @@ describe('storage and demand', () => {
     let s = scenario(VALLEY, { season: 'summer' });
     s = place(s, 'kiln', 5, 2);
     s = place(s, 'heatWell', 5, 3);
+    s = place(s, 'solarCanopy', 7, 3);
     expect(hexDistance(at(5, 2), at(5, 3))).toBe(1);
-    // Summer: camp 2 / 2. The kiln runs once on day, once on night; the well gets 2 free heat.
+    // Summer: camp 2 and solar 4 by day, less the kiln's own 1: it fires twice, by day only;
+    // the well gets 2 free heat.
     s = endSeason(s);
     const r = s.lastReport!;
     expect(r.runs[uidAt(s, 5, 2)]).toEqual({
       recipe: 'fire',
       runs: 2,
-      energy: { day: 2, night: 2 },
+      energy: { day: 4, night: 0 },
       byRecipe: { fire: 2 },
     });
     expect(r.yields[uidAt(s, 5, 2)]?.materials).toBe(4);
-    expect(s.buildings[uidAt(s, 5, 3)]!.stored).toBe(2 - 1);
+    // 2 free from the kiln, then the spare 1 by day and 2 by night, less 1 at the season's end.
+    expect(s.buildings[uidAt(s, 5, 3)]!.stored).toBe(2 + 1 + 2 - 1);
   });
 
   it('greenhouses and libraries only produce when powered', () => {

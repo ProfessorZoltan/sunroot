@@ -270,6 +270,8 @@ describe('other food buildings', () => {
   it('a workshop set to recycle turns 2 energy and 2 clutter into 1 material', () => {
     let s = scenario(RIVER, { season: 'summer', stores: { clutter: 5, salvage: 10 } });
     s = place(s, 'workshop', 7, 3);
+    // Its runs draw on day energy only, after the 1 it needs to work: solar for 2 runs.
+    s = place(s, 'solarCanopy', 6, 3);
     s = act(s, { type: 'setRecipe', uid: uidAt(s, 7, 3), recipe: 'clutter' });
     s = endSeason(s);
     expect(s.lastReport!.runs[uidAt(s, 7, 3)]?.runs).toBe(2);

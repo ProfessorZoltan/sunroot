@@ -457,6 +457,7 @@ describe('charters', () => {
       let x = scenario(map, { season: 'summer', stores: { clutter: 4 } });
       if (charter) x = withCharter('repairCulture', x);
       x = place(x, 'workshop', 7, 2);
+      x = place(x, 'solarCanopy', 8, 2); // day energy for 2 runs
       x = act(x, { type: 'setRecipe', uid: uidAt(x, 7, 2), recipe: 'clutter' });
       return endSeason(x).lastReport!.yields[uidAt(x, 7, 2)]!.materials;
     };
@@ -490,6 +491,7 @@ describe('charters', () => {
   it('Slow Power: workshops and kilns make 50% more', () => {
     let s = withCharter('slowPower', scenario(LAND, { season: 'autumn', stores: { salvage: 4 } }));
     s = place(s, 'solarCanopy', 7, 2);
+    s = place(s, 'solarCanopy', 8, 2); // autumn: 2 each, for the workshop's 1 and 2 runs
     s = place(s, 'workshop', 6, 2);
     s = endSeason(s);
     expect(s.lastReport!.yields[uidAt(s, 6, 2)]!.materials).toBe(9); // 2 runs x 3, x 1.5

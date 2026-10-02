@@ -219,6 +219,11 @@ export const BuildingSchema = z
         maxRuns: int.min(1),
         /** Extra runs allowed on night energy only (the Night Shift tuning). */
         nightOnlyRuns: nonNeg.default(0),
+        /** The slots its regular runs may draw spare energy from (Night Shift's runs are night only). */
+        runSlots: z
+          .array(z.enum(['day', 'night']))
+          .min(1)
+          .default(['day', 'night']),
         /** Extra runs in the run's first year (the Foundry District's perk). */
         firstYearExtraRuns: nonNeg.default(0),
         /** 0 for a recipe that needs no energy (the Mushroom Cellar). */

@@ -155,22 +155,23 @@ function Energy({ content, report }: { content: Content; report: SeasonReport })
               <strong>−{e.storageCharged}</strong>
             </li>
           )}
-          {e.heat.free > 0 && (
-            <li class="quiet">
-              <span>Heat paid by free heat</span>
-              <strong>{e.heat.free}</strong>
+          {e.heat.direct + (e.heat.gridLoss ?? 0) > 0 && (
+            <li>
+              <span>Turned into heat, 1 for 1</span>
+              <strong>−{e.heat.direct + (e.heat.gridLoss ?? 0)}</strong>
             </li>
           )}
-          {e.heat.pumped > 0 && (
-            <li class="quiet">
-              <span>Heat from heat pumps (for {e.heat.pumpEnergy} energy)</span>
-              <strong>{e.heat.pumped}</strong>
+          {e.heat.pumpEnergy > 0 && (
+            <li>
+              <span>Heat pumps</span>
+              <strong>−{e.heat.pumpEnergy}</strong>
             </li>
           )}
         </ul>
         <div class={`small strong ${e.shortfall > 0 ? 'bad' : 'quiet'}`}>
           {e.shortfall > 0 ? `Short by ${e.shortfall}` : `${e.unused} unused`}
         </div>
+        {e.heat.demand > 0 && <HeatColumn e={e} name={name} />}
       </td>
     );
   };
@@ -189,6 +190,57 @@ function Energy({ content, report }: { content: Content; report: SeasonReport })
         </tr>
       </tbody>
     </table>
+  );
+}
+
+/** Heat, apart from energy: what needed it and what paid it. */
+function HeatColumn({
+  e,
+  name,
+}: {
+  e: SeasonReport['energy']['day'];
+  name: (id: string) => string;
+}) {
+  const h = e.heat;
+  const neighbor = h.neighbor ?? 0;
+  const cold = h.cold ?? 0;
+  const wells = Math.max(0, h.demand - h.free - neighbor - h.pumped - h.direct - cold);
+  const paid: [string, number][] = [
+    ['Solar thermal', h.free],
+    ['A warm neighbour', neighbor],
+    ['Heat wells', wells],
+    [`Heat pumps (for ${h.pumpEnergy} energy)`, h.pumped],
+    ['Energy, turned into heat', h.direct],
+  ];
+  return (
+    <div class="heat-column">
+      <div class="small strong">Heat needed {h.demand}</div>
+      <ul class="plain flow">
+        {Object.entries(e.heatBy ?? {}).map(([id, n]) => (
+          <li>
+            <span>{name(id)}</span>
+            <strong>{n}</strong>
+          </li>
+        ))}
+      </ul>
+      <div class="small strong">Paid by</div>
+      <ul class="plain flow">
+        {paid
+          .filter(([, n]) => n > 0)
+          .map(([label, n]) => (
+            <li>
+              <span>{label}</span>
+              <strong>{n}</strong>
+            </li>
+          ))}
+        {cold > 0 && (
+          <li class="bad">
+            <span>Nothing: cold</span>
+            <strong>{cold}</strong>
+          </li>
+        )}
+      </ul>
+    </div>
   );
 }
 

@@ -272,7 +272,9 @@ describe('Coppice Wood (a player action)', () => {
   });
 
   it('stopped, it grows back into woodland after 2 seasons', () => {
-    let s = coppice(build(start(GROVE), 'workshop', [[2, 1]]), 2, 0);
+    // Solar for the workshop's day energy, so a blackout doesn't wear the crowded camp down.
+    let s = build(build(start(GROVE), 'workshop', [[2, 1]]), 'solarCanopy', [[4, 1]]);
+    s = coppice(s, 2, 0);
     s = end(s);
     const uid = uidAt(s, 2, 0);
     s = act(s, { type: 'stopCoppice', uid }, W);

@@ -123,6 +123,8 @@ describe('Solar Thermal Collector', () => {
       s = place(s, 'cottage', 3, 1);
       s = place(s, 'heatWell', 7, 4);
       s = place(s, 'workshop', 6, 3);
+      // Winter solar 1: with the camp's 2, the workshop's own 1 and one 2-energy run.
+      s = place(s, 'solarCanopy', 8, 1);
       if (collector) s = place(s, 'solarThermalCollector', 7, 3);
       return endSeason(s);
     };
@@ -198,10 +200,11 @@ describe('the Year 1 winter with heat routes (proposal worked example)', () => {
     expect(night.heat).toMatchObject({ demand: 3, pumped: 3, direct: 0 });
     expect(night.demand).toBe(2);
     expect(night.shortfall).toBe(0);
-    expect(walk.totals(s).materials).toBe(10 - 7 + 2 + 3);
+    // The salvage yard and workshop need 1 day energy each: none is left for a workshop run.
+    expect(walk.totals(s).materials).toBe(10 - 7 + 2);
   });
 
-  it('a collector and a Heat Well cover it, ending the year at 5 materials', () => {
+  it('a collector and a Heat Well cover it, ending the year at 2 materials', () => {
     const s = winterWith([
       ['solarThermalCollector', (sites) => sites.cellBank],
       ['heatWell', (sites) => sites.wheel],
@@ -209,6 +212,6 @@ describe('the Year 1 winter with heat routes (proposal worked example)', () => {
     const r = s.lastReport!;
     expect(r.energy.night.shortfall).toBe(0);
     expect(r.blackouts).toEqual([]);
-    expect(walk.totals(s)).toEqual({ materials: 10 - 10 + 2 + 3, food: 11, citizens: 8 });
+    expect(walk.totals(s)).toEqual({ materials: 10 - 10 + 2, food: 11, citizens: 8 });
   });
 });

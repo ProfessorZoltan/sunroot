@@ -13,7 +13,7 @@
  * | Spring | Farm, Salvage Yard, Workshop, Solar Canopy | 11        | 8    | 6        | 12 in; the channel carries 1 to the farm      |
  * | Summer | 2nd farm (meadow), Cottage                 | 12        | 11   | 7        | 4 in; the channel carries 2; 2 flow on        |
  * | Autumn | Composter, Orchard                         | 10        | 17   | 8        | 8 in; the channel carries 2                   |
- * | Winter | River Wheel                                | 12        | 9    | 8        | 6 in; nothing drinks; the wheel makes 2 a slot |
+ * | Winter | River Wheel                                | 9         | 9    | 8        | 6 in; nothing drinks; the wheel makes 2 a slot |
  */
 import { describe, expect, it } from 'vitest';
 import { canPlace, createRun, hexKey, hexNeighbors, type Hex, type RunState } from '../src/sim';
@@ -42,7 +42,7 @@ function waterSites(state: RunState) {
 }
 
 describe('Year 1 walkthrough with water (proposed golden)', () => {
-  it('builds beside the camp channel and ends the year at 12 materials, 9 food, 8 citizens', () => {
+  it('builds beside the camp channel and ends the year at 9 materials, 9 food, 8 citizens', () => {
     let state = createRun(W, { seed: GOLDEN_SEED, guided: true });
     expect(totals(state)).toEqual({ materials: 20, food: 12, citizens: 6 });
     expect(
@@ -93,7 +93,8 @@ describe('Year 1 walkthrough with water (proposed golden)', () => {
     state = act(state, { type: 'pickCard', card: 'riverWheel' }, W);
     state = place(state, 'riverWheel', sites.wheel, W);
     state = act(state, { type: 'endSeason' }, W);
-    expect(totals(state)).toEqual({ materials: 12, food: 9, citizens: 8 });
+    // The salvage yard and workshop need 1 day energy each: one workshop run, not two.
+    expect(totals(state)).toEqual({ materials: 9, food: 9, citizens: 8 });
     const winter = state.lastReport!;
     // Winter's 6 turns the wheel at ⌈6 ÷ 4⌉ = 2 a slot, the old table's winter value.
     expect(winter.generated[buildingAt(state, sites.wheel).uid]!.energy).toEqual({

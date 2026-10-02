@@ -56,6 +56,15 @@ interface Settlement {
 
 export function resolveEnergy(ctx: SeasonContext): void {
   const { content, state, si, report } = ctx;
+  // Every change to what a store holds goes through here, so the report can say, per store,
+  // what it charged and gave this season.
+  const setStored = (b: BuildingState, value: number) => {
+    const before = b.stored ?? 0;
+    const trace = (report.storage[b.uid] ??= { start: before, charged: 0, given: 0 });
+    if (value > before) trace.charged += value - before;
+    else trace.given += before - value;
+    b.stored = value;
+  };
   const active = byPriority(state).filter((b) => ctx.active.has(b.uid));
 
   const energyOf = (b: BuildingState, slot: Slot) =>
@@ -127,7 +136,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
                 ? Math.min(owed, n.stored ?? 0)
                 : Math.min(owed, 1 - (relayed[slot].get(n.uid) ?? 0));
           if (t <= 0) continue;
-          if (k === 1) n.stored = (n.stored ?? 0) - t;
+          if (k === 1) setStored(n, (n.stored ?? 0) - t);
           if (k === 2) relayed[slot].set(n.uid, (relayed[slot].get(n.uid) ?? 0) + t);
           owed -= t;
           give(slot, n, b, t);
@@ -222,9 +231,12 @@ export function resolveEnergy(ctx: SeasonContext): void {
     const r = report.energy[slot];
     const s = settle(slot, new Set());
     r.demand = s.demand;
+    // Energy and heat stay apart: what each building type needs of each.
     for (const b of active) {
-      const d = energyOf(b, slot) + heatOf(b, slot);
-      if (d > 0) r.demandBy[b.type] = (r.demandBy[b.type] ?? 0) + d;
+      const e = energyOf(b, slot);
+      const h = heatOf(b, slot);
+      if (e > 0) r.demandBy[b.type] = (r.demandBy[b.type] ?? 0) + e;
+      if (h > 0) r.heatBy[b.type] = (r.heatBy[b.type] ?? 0) + h;
     }
     if (demolition[slot] > 0) r.demandBy.demolition = demolition[slot];
     Object.assign(r.heat, {
@@ -318,7 +330,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
       .sort(nearestTo(well))) {
       const t = directLeft[slot].get(b.uid)!;
       if (t > (well.stored ?? 0)) continue;
-      well.stored = (well.stored ?? 0) - t;
+      setStored(well, (well.stored ?? 0) - t);
       directLeft[slot].set(b.uid, 0);
       wellLinks.push({ slot, from: well.uid, to: b.uid, amount: t });
       report.energy[slot].storageDischarged += t;
@@ -334,7 +346,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
     report.energy[slot].storageDischarged += amount;
   };
   const charge = (b: BuildingState, slot: Slot, amount: number) => {
-    b.stored = (b.stored ?? 0) + amount;
+    setStored(b, (b.stored ?? 0) + amount);
     spare[slot] -= amount;
     report.energy[slot].storageCharged += amount;
   };
@@ -343,7 +355,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
     const { numerator, denominator } = storageDef(b).returns;
     const deliverable = Math.floor(((b.stored ?? 0) * numerator) / denominator);
     const give = Math.min(want, deliverable);
-    b.stored = (b.stored ?? 0) - Math.ceil((give * denominator) / numerator);
+    setStored(b, (b.stored ?? 0) - Math.ceil((give * denominator) / numerator));
     return give;
   };
 
@@ -360,7 +372,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
       if (s.holds === 'heat') {
         // Each heat a well pays saves the grid `gridCost` energy.
         const give = Math.min(Math.ceil(short[slot] / gridCost), reachable(b, slot), b.stored ?? 0);
-        b.stored = (b.stored ?? 0) - give;
+        setStored(b, (b.stored ?? 0) - give);
         payFromWell(b, slot, give);
         heatPaid[slot] += give;
         discharge(slot, Math.min(short[slot], give * gridCost));
@@ -386,7 +398,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
       takeSpare(w, 'day', fromHeat);
       spareHeat.day -= fromHeat;
       const fromPumps = pumpInto(w, 'day', want - fromHeat);
-      w.stored = (w.stored ?? 0) + fromHeat + fromPumps;
+      setStored(w, (w.stored ?? 0) + fromHeat + fromPumps);
       report.energy.day.heat.stored += fromHeat + fromPumps;
       payWhole(w, 'night');
     }
@@ -411,7 +423,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
       if (give > fromHeat) {
         charge(b, 'day', give - fromHeat);
         report.energy.day.reserved += give - fromHeat;
-        b.stored! -= give - fromHeat;
+        setStored(b, b.stored! - (give - fromHeat));
       }
       payFromWell(b, 'night', give);
       heatPaid.night += give;
@@ -455,7 +467,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
       );
       if (!recipe) break;
       const inputs = Object.entries(recipe.inputs) as [keyof typeof state.stores, number][];
-      const slots: readonly Slot[] = runs < maxRuns ? SLOTS : ['night'];
+      const slots: readonly Slot[] = runs < maxRuns ? def.recipes.runSlots : ['night'];
       const slot = slots.find((s) => spare[s] >= cost);
       if (!slot) break;
       spare[slot] -= cost;
@@ -491,7 +503,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
           (n) => defOf(content, n).storage?.holds === 'heat' && room(n) > 0,
         );
         if (well)
-          well.stored = (well.stored ?? 0) + Math.min(recipe.heatToNeighborStorage, room(well));
+          setStored(well, (well.stored ?? 0) + Math.min(recipe.heatToNeighborStorage, room(well)));
       }
       byRecipe[recipe.id] = (byRecipe[recipe.id] ?? 0) + 1;
       runs++;
@@ -519,13 +531,13 @@ export function resolveEnergy(ctx: SeasonContext): void {
       if (storageDef(b).holds === 'heat') {
         const heat = Math.min(spareNear(b, slot), room(b));
         takeSpare(b, slot, heat);
-        b.stored = (b.stored ?? 0) + heat;
+        setStored(b, (b.stored ?? 0) + heat);
         spareHeat[slot] -= heat;
         report.energy[slot].heat.stored += heat;
         if (!gridHeat) {
           // Energy becomes heat only through a pump.
           const pumped = pumpInto(b, slot, room(b));
-          b.stored = (b.stored ?? 0) + pumped;
+          setStored(b, (b.stored ?? 0) + pumped);
           report.energy[slot].heat.stored += pumped;
           continue;
         }

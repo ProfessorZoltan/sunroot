@@ -272,8 +272,10 @@ export interface SlotReport {
   /** Energy generated, by source building type. */
   bySource: Record<string, number>;
   supply: number;
-  /** Energy and heat demanded, by building type, before free heat and heat pumps. */
+  /** Energy each building type needs in this slot (its heat is apart, in `heatBy`). */
   demandBy: Record<string, number>;
+  /** Heat each building type needs in this slot, however it is paid. */
+  heatBy: Record<string, number>;
   /**
    * Energy the slot's buildings need: their energy demand, plus heat paid
    * directly, plus the energy drawn by heat pumps.
@@ -428,6 +430,13 @@ export interface HeatLink {
   amount: number;
 }
 
+/** What a store of energy or heat did this season: what it held at the start, charged and gave. */
+export interface StorageTrace {
+  start: number;
+  charged: number;
+  given: number;
+}
+
 export interface SeasonReport {
   /**
    * Each resource made and used this season, by what: building, spending
@@ -451,6 +460,8 @@ export interface SeasonReport {
   /** Which source heated which building, while local heat is on. */
   heat: HeatLink[] | null;
   /** Heat a neighbouring kiln or heat well gave to a building that takes it (the Bathhouse). */
+  /** Per store of energy or heat (by uid), the stores that charged or gave anything. */
+  storage: Record<string, StorageTrace>;
   neighborHeat: HeatLink[];
   /** Buildings shut off cold this season (no grid heat, and no source reached them). */
   cold: string[];

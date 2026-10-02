@@ -39,6 +39,7 @@ import type { Graft, RunResult, TileType } from '../sim';
 import { coppiceCombo, coppiceProblem } from '../sim/combos';
 import { edgeKey, hedgeProblem } from '../sim/edges';
 import { computeInsight, type Insight } from './insight';
+import { storageGauge, type StorageGauge } from './storageInfo';
 import { mapMarks, type Mark } from './marks';
 import type { PhaseName } from './timeline';
 
@@ -668,6 +669,11 @@ export class GameStore {
   inspect(uid: string | null): void {
     this.inspected = uid;
     this.emit();
+  }
+
+  /** How full a store of energy or heat is, now and when the season ends as things stand. */
+  storageOf(uid: string): StorageGauge | null {
+    return storageGauge(this.rules, this.state, this.asIs(), uid);
   }
 
   /** A terrain the map highlights (the others dimmed), so tile types stay easy to read. */

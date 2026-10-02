@@ -202,14 +202,17 @@ function HeatCell({
   const met = heat ? heat.demand - (heat.cold ?? 0) : 0;
   const shown = filling === null || REVEALED[slot].includes(filling);
   const cold = shown && met < needed;
+  // Runs 1 to 3: energy may pay heat directly; the card says how much of it did.
+  const fromEnergy = shown ? (heat?.direct ?? 0) : 0;
   return (
     <div
       class={`slot-heat${cold ? ' bad' : ''}`}
-      aria-label={`${SEASON_NAMES[sv.season]} ${slot} heat: ${needed > 0 ? `needed ${needed}, met ${met}` : 'none needed'}`}
-      title={`Heat met / needed, ${slot === 'day' ? 'by day' : 'by night'}`}
+      aria-label={`${SEASON_NAMES[sv.season]} ${slot} heat: ${needed > 0 ? `needed ${needed}, met ${met}${fromEnergy ? `, ${fromEnergy} of it with energy` : ''}` : 'none needed'}`}
+      title={`Heat met / needed, ${slot === 'day' ? 'by day' : 'by night'}${fromEnergy ? `; ${fromEnergy} of it paid with energy, 1 for 1` : ''}`}
     >
       {slot === 'day' ? <Sun size={12} /> : <Moon size={12} />}
       <span class="slot-value">{!shown ? '…' : needed > 0 ? `${met}/${needed}` : '—'}</span>
+      {fromEnergy > 0 && <span class="slot-kind from-energy">⚡{fromEnergy}</span>}
     </div>
   );
 }
@@ -250,19 +253,15 @@ function EnergyTip({
     amount: n,
   }));
   if (r.storageDischarged) supply.push({ label: 'From storage', amount: r.storageDischarged });
+  // Energy use, by what uses it; heat is apart below, except the energy turned into heat.
   const demand: Row[] = Object.entries(r.demandBy).map(([id, n]) => ({
     label: name(id),
     amount: -n,
   }));
-  if (r.heat.free)
-    demand.push({ label: 'Heat paid by solar thermal', amount: r.heat.free, tone: 'good' });
-  if (r.heat.pumped) {
-    demand.push({
-      label: 'Saved by heat pumps',
-      amount: r.heat.pumped - r.heat.pumpEnergy,
-      tone: 'good',
-    });
-  }
+  const intoHeat = r.heat.direct + (r.heat.gridLoss ?? 0);
+  if (intoHeat) demand.push({ label: 'Turned into heat, 1 for 1', amount: -intoHeat });
+  if (r.heat.pumpEnergy) demand.push({ label: 'Heat pumps', amount: -r.heat.pumpEnergy });
+  const heat = heatRows(r, name);
   const other: Row[] = [];
   if (r.reserved) other.push({ label: 'Set aside for the night', amount: -r.reserved });
   if (r.sponges) other.push({ label: 'Workshop and kiln runs', amount: -r.sponges });
@@ -279,6 +278,7 @@ function EnergyTip({
       />
       <TipTable rows={demand} total={{ label: 'Demand', amount: -r.demand }} />
       {other.length > 0 && <TipTable rows={other} />}
+      {heat && <TipTable title="Heat" rows={heat.rows} total={heat.total} />}
       {r.shortfall > 0 && (
         <div class="tip-row total bad">
           <span>
@@ -289,6 +289,33 @@ function EnergyTip({
       )}
     </div>
   );
+}
+
+/** Heat needed in a slot, by building type, and what paid it: kept apart from energy. */
+function heatRows(
+  r: SeasonReport['energy'][Slot],
+  name: (id: string) => string,
+): { rows: Row[]; total: Row } | null {
+  const h = r.heat;
+  if (h.demand === 0) return null;
+  const rows: Row[] = Object.entries(r.heatBy ?? {}).map(([id, n]) => ({
+    label: `${name(id)} needs`,
+    amount: n,
+  }));
+  const neighbor = h.neighbor ?? 0;
+  const cold = h.cold ?? 0;
+  const wells = Math.max(0, h.demand - h.free - neighbor - h.pumped - h.direct - cold);
+  const paid: [string, number][] = [
+    ['Solar thermal', h.free],
+    ['A warm neighbour', neighbor],
+    ['Heat wells', wells],
+    ['Heat pumps', h.pumped],
+    ['Energy, turned into heat', h.direct],
+  ];
+  for (const [label, n] of paid)
+    if (n > 0) rows.push({ label: `Paid by ${label.toLowerCase()}`, amount: -n, tone: 'good' });
+  if (cold > 0) rows.push({ label: 'Nothing paid it: cold', amount: -cold, tone: 'bad' });
+  return { rows, total: { label: 'Heat needed', amount: h.demand } };
 }
 
 function HarmonyStat({ store }: { store: GameStore }) {

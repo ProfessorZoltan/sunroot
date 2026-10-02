@@ -20,6 +20,7 @@ import { Reroll } from './icons';
 import { SEASON_NAMES } from './TopBar';
 import { signed } from './tips';
 import { useRemembered } from './LeftPanel';
+import { StorageGaugeView } from './Overlays';
 
 /** Stained-glass jewel colour for a card, by building kind. */
 const JEWEL: Record<BuildingDef['kind'], string> = {
@@ -471,6 +472,7 @@ export function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
   const water = waterAt(store.rules, state, store.waterForecast, b.at);
   const walks = commuteAt(store.rules, state, store.commuteForecast, b.at);
   const heat = heatAt(store.rules, state, store.heatForecast, b.at, store.coldForecast);
+  const gauge = store.storageOf(b.uid);
   const status: string[] = [];
   const repair = repairCost(store.rules, b);
   const materials = state.stores.materials;
@@ -529,6 +531,7 @@ export function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
       {heat.map((line) => (
         <div class="small heat-line">{line}</div>
       ))}
+      {gauge && <StorageGaugeView gauge={gauge} />}
       {store.waterForecast?.uses[b.uid] && (
         <div class="small quiet">
           Buildings the same distance down a channel share its water by priority (below).

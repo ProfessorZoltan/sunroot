@@ -191,12 +191,12 @@
         {
           "id": "sapling",
           "name": "Sapling",
-          "min": 240
+          "min": 215
         },
         {
           "id": "heartwood",
           "name": "Heartwood",
-          "min": 375
+          "min": 345
         }
       ]
     },
@@ -420,6 +420,11 @@
       "drawsFromRuin": true,
       "yields": {
         "salvage": [3, 3, 3, 3]
+      },
+      "demand": {
+        "energy": {
+          "day": [1, 1, 1, 1]
+        }
       }
     },
     {
@@ -435,6 +440,7 @@
       "recipes": {
         "maxRuns": 2,
         "energyPerRun": 2,
+        "runSlots": ["day"],
         "defaultRecipe": "auto",
         "options": [
           {
@@ -459,6 +465,11 @@
             }
           }
         ]
+      },
+      "demand": {
+        "energy": {
+          "day": [1, 1, 1, 1]
+        }
       }
     },
     {
@@ -475,6 +486,7 @@
       "recipes": {
         "maxRuns": 2,
         "energyPerRun": 2,
+        "runSlots": ["day"],
         "defaultRecipe": "fire",
         "options": [
           {
@@ -485,6 +497,11 @@
             "heatToNeighborStorage": 1
           }
         ]
+      },
+      "demand": {
+        "energy": {
+          "day": [1, 1, 1, 1]
+        }
       }
     },
     {
