@@ -13,6 +13,7 @@ import {
   type Command,
   type Content,
   type Hex,
+  type BuildingDef,
   type BuildingState,
   type RunState,
   type SeasonReport,
@@ -126,6 +127,14 @@ export class Turn {
     return contentFor(this.content, this.state);
   }
 
+  /** Whether commuting is on for this run (DECISIONS.md, Teaching by layers). */
+  get commuteOn(): boolean {
+    return this.rules.rules.commute.enabled;
+  }
+
+  /** Whether the bot minds walks to work when it places things (off for the gate's comparison). */
+  commuteAware = true;
+
   /** Whether the water system is on for this run (EXPANSION.md). */
   get waterOn(): boolean {
     return this.rules.rules.water.enabled;
@@ -183,6 +192,26 @@ function rank(preferences: readonly string[], id: string): number {
   return i < 0 ? preferences.length : i;
 }
 
+/** Walks: work near homes, and homes near work that is far from any home. */
+function commuteScore(turn: Turn, def: BuildingDef, tile: Hex): number {
+  const { content, state } = turn;
+  const free = turn.rules.rules.commute.freeDistance;
+  const buildings = Object.values(state.buildings);
+  const homes = buildings.filter((b) => content.byId[b.type]!.housing > 0);
+  const nearestHome = (h: Hex) => Math.min(...homes.map((x) => hexDistance(x.at, h)));
+  let score = 0;
+  if (def.workers > 0 && homes.length > 0)
+    score -= 1.5 * def.workers * Math.max(0, nearestHome(tile) - free);
+  if (def.housing > 0) {
+    for (const w of buildings) {
+      const workers = content.byId[w.type]!.workers;
+      if (workers > 0 && hexDistance(w.at, tile) <= free && nearestHome(w.at) > free)
+        score += 2 * workers * (nearestHome(w.at) - free);
+    }
+  }
+  return score;
+}
+
 /** How good a tile is for a building, by simple local rules a player would use. */
 export function siteScore(
   turn: Turn,
@@ -203,6 +232,8 @@ export function siteScore(
 
   // Keep the floodplain for things that survive the flood (and farm it).
   if (tile.type === 'floodplain') score += def.floodTolerant ? -1 : -100;
+  // With commuting on, work goes near homes and homes near work that is far from any.
+  if (turn.commuteOn && turn.commuteAware) score += commuteScore(turn, def, tile);
   // With the water system on, buildings that need water go where they can draw it.
   if (turn.waterOn && def.water?.needs.some((n) => n > 0) && turn.watered(tile, occ)) score += 4;
   if (tile.type === 'meadow' || tile.type === 'woodland') score -= 1;

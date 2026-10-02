@@ -174,6 +174,10 @@ function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): v
     if (!buildFirstThatHelps(turn, profile.food, foodGap)) break;
   }
 
+  // Long walks to work: a cottage near the far work, when the walks cost wellbeing.
+  if (turn.commuteOn && turn.commuteAware && (turn.peek()?.report.commute?.wellbeing ?? 0) < 0)
+    turn.build('cottage', profile.reserve);
+
   // House growth when people would otherwise stop arriving.
   const p = turn.peek();
   if (p && turn.state.citizens >= turn.housing() && turn.state.wellbeing >= 60) {
@@ -305,6 +309,18 @@ const profileBot = (name: keyof typeof profiles, description: string): Bot => ({
   description,
   playSeason: (turn) => survive(turn, profiles[name]),
 });
+
+/** A profile bot that ignores walks to work when it places things (for the C1 gate). */
+export function commuteBlindBot(name: 'greedyFood' | 'greedyEnergy' | 'balanced'): Bot {
+  return {
+    name: `${name}-blind`,
+    description: `${BOTS[name]!.description} Ignores walks to work.`,
+    playSeason: (turn) => {
+      turn.commuteAware = false;
+      survive(turn, profiles[name]);
+    },
+  };
+}
 
 /** A profile bot playing a given water policy (for the E1 decision gate). */
 export function waterBot(

@@ -82,6 +82,11 @@
       "campChannel": 3,
       "channelBuilding": "irrigationChannel"
     },
+    "commute": {
+      "enabled": false,
+      "freeDistance": 2,
+      "tilesPerWellbeing": 3
+    },
     "mixedGrid": {
       "minSourceTypes": 3,
       "minShare": 0.15,

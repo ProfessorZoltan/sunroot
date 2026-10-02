@@ -1,5 +1,18 @@
 # Changelog
 
+## Commuting, in the simulation (C1)
+
+Built in the simulation only, as water was: off in the game until it can be seen (C2), and not on
+the teaching ladder yet. Nothing changes in play.
+
+- Workers live near their work: each one takes a bed in the nearest home with room, and walks from
+  there. Walks of up to 2 tiles are free; every 3 tiles beyond, summed over everyone, cost 1
+  wellbeing that season ("long walks to work").
+- The season report records where everyone lives and who walks how far.
+- Bots mind walks (work near homes, cottages near far work); `scripts/commute.ts` compares them with
+  bots that don't, with and without water. The report is
+  [docs/balance/commute-c1.md](docs/balance/commute-c1.md).
+
 ## Water on screen (E2), from run 2
 
 - Water joins at run 2, with a guided first year: the expedition goes upriver, where fields need

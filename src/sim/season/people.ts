@@ -113,6 +113,14 @@ export function feedAndGrow(ctx: SeasonContext): void {
       amount: damagedHomes * wb.perUnpoweredHome,
     });
   }
+  const commute = report.commute;
+  if (commute && commute.wellbeing < 0) {
+    lines.push({
+      kind: 'commute',
+      reason: `long walks to work (${commute.excess} tiles beyond ${content.rules.commute.freeDistance})`,
+      amount: commute.wellbeing,
+    });
+  }
   const clutterSteps = Math.floor(state.stores.clutter / wb.clutterStep);
   if (clutterSteps > 0) {
     lines.push({

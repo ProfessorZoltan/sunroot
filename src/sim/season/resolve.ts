@@ -28,6 +28,7 @@ import { applyEvent, mixedGridBonus } from './events';
 import { feedAndGrow, scrapsAndHarmony } from './people';
 import { generate, produce, producePowered, staff } from './production';
 import { resolveWater } from './water';
+import { assignCommutes } from './commute';
 import { snapshot } from '../snapshot';
 import { applyLoopBonuses, checkCombos, findFormations, formationEffects } from '../combos';
 import { effectiveContent } from '../content/modifiers';
@@ -73,6 +74,7 @@ export function resolveSeason(
   ctx.formations = findFormations(content, state);
   ctx.effects = formationEffects(content, state, ctx.formations);
   staff(ctx);
+  assignCommutes(ctx);
   resolveWater(ctx);
   generate(ctx); // 4
   mixedGridBonus(ctx);

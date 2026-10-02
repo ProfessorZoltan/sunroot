@@ -8,6 +8,7 @@
  *
  * WATER=on plays with the water system (EXPANSION.md) as the data sets it; WATER=beside
  * also lets buildings beside the river draw straight from it (rules.water.drawBesideRiver).
+ * COMMUTE=on plays with commuting.
  */
 import willowReach from '../src/content/willow-reach.json';
 import { loadContent, scoreRun, type RunExpedition, type RunState } from '../src/sim';
@@ -17,6 +18,7 @@ import { playRun } from '../src/balance/runner';
 const raw = structuredClone(willowReach);
 if (process.env.WATER) raw.rules.water.enabled = true;
 if (process.env.WATER === 'beside') raw.rules.water.drawBesideRiver = true;
+if (process.env.COMMUTE) raw.rules.commute.enabled = true;
 const content = loadContent(raw);
 const N = Number(process.argv[2] ?? 30);
 const bot = BOTS[process.argv[3] ?? 'balanced']!;

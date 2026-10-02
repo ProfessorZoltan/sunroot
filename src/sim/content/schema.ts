@@ -381,6 +381,21 @@ const WaterRulesSchema = z
   .strict();
 export type WaterRules = z.infer<typeof WaterRulesSchema>;
 
+/**
+ * Commuting (asked for by the playtester; DECISIONS.md, Teaching by layers):
+ * workers walk from their home to their work, and long walks cost wellbeing.
+ */
+const CommuteRulesSchema = z
+  .object({
+    enabled: z.boolean().default(false),
+    /** Tiles a worker walks for nothing. */
+    freeDistance: nonNeg,
+    /** Every this many tiles walked beyond the free distance, summed over workers, cost 1 wellbeing. */
+    tilesPerWellbeing: int.min(1),
+  })
+  .strict();
+export type CommuteRules = z.infer<typeof CommuteRulesSchema>;
+
 export const RulesSchema = z
   .object({
     yearsPerRun: int.min(1),
@@ -504,6 +519,7 @@ export const RulesSchema = z
     visionChoices: int.min(1).default(2),
     /** The water system (EXPANSION.md, Water system). Off unless `enabled`. */
     water: WaterRulesSchema,
+    commute: CommuteRulesSchema.default({ enabled: false, freeDistance: 3, tilesPerWellbeing: 4 }),
     mixedGrid: z.object({
       minSourceTypes: int.min(1),
       minShare: z.number().min(0).max(1),
@@ -874,6 +890,8 @@ export const ProgressionSchema = z
         visions: int.min(1),
         /** The water system joins at this run, with a guided first year of its own. */
         water: int.min(1).default(2),
+        /** Commuting joins at this run (missing: not yet in the game). */
+        commute: int.min(1).optional(),
       })
       .strict(),
   })

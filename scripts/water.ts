@@ -9,7 +9,7 @@
  * Settings change the water rules for the v2 rows: summer=3 (summer river flow),
  * beside=on (buildings beside the river draw straight from it), capacity=5
  * (a channel's capacity), cistern=8 (a cistern's store), shortfall=0.25 (the yield a
- * building short of water keeps).
+ * building short of water keeps), commute=on (with commuting).
  *
  * Reads:
  * - Summers short: summers in years 1 to 3 in which at least one building got
@@ -37,6 +37,7 @@ function contentWith(on: boolean): Content {
   if (settings.beside) w.drawBesideRiver = settings.beside === 'on';
   if (settings.capacity) w.channelCapacity = Number(settings.capacity);
   if (settings.shortfall) w.shortfallFactor = Number(settings.shortfall);
+  if (settings.commute) raw.rules.commute.enabled = settings.commute === 'on';
   if (settings.cistern)
     raw.buildings.find((b) => b.id === 'cistern')!.water!.stores = Number(settings.cistern);
   return loadContent(raw);

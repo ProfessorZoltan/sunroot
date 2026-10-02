@@ -67,6 +67,8 @@ export interface RunOptions {
   expedition?: RunExpedition;
   /** The water system (EXPANSION.md): it joins at run 2 of the teaching ladder. */
   water?: boolean;
+  /** Commuting: workers walk from home to work; long walks cost wellbeing. */
+  commute?: boolean;
 }
 
 export interface RunCity {
@@ -276,6 +278,7 @@ export type WellbeingKind =
   | 'hunger'
   | 'unpowered'
   | 'damagedHomes'
+  | 'commute'
   | 'clutter'
   | 'greenery'
   | 'civic'
@@ -352,6 +355,25 @@ export interface WaterReport {
   out: Record<string, number>;
 }
 
+/** A worker's walk from home to work. */
+export interface Walk {
+  /** The home's uid (the Founders' Camp for anyone without a home). */
+  home: string;
+  distance: number;
+}
+
+/** The season's commutes, while commuting is on. */
+export interface CommuteReport {
+  /** Citizens living in each home, by home uid. */
+  residents: Record<string, number>;
+  /** Each staffed workplace's workers' walks, by workplace uid. */
+  walks: Record<string, Walk[]>;
+  /** Tiles walked beyond the free distance, summed over workers. */
+  excess: number;
+  /** Wellbeing the long walks cost (0 or less). */
+  wellbeing: number;
+}
+
 export interface SeasonReport {
   /**
    * Each resource made and used this season, by what: building, spending
@@ -370,6 +392,8 @@ export interface SeasonReport {
   dried: string[];
   /** The water system's season, while it is on. */
   water: WaterReport | null;
+  /** Who walked from where to work, while commuting is on. */
+  commute: CommuteReport | null;
   /** Buildings a storm could damage: on exposed land (hills), not next to woodland (unless the Mixed Grid holds). */
   exposed: string[];
   silted: string[];

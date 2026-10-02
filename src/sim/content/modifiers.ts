@@ -28,14 +28,17 @@ export interface RunModifierSources {
     expedition?: { twist: string | null; region?: string | null; tempest?: number };
     /** The water system is on for this run (it is off in the data). */
     water?: boolean;
+    /** Commuting is on for this run. */
+    commute?: boolean;
   };
 }
 
 const WATER_ON: Modifier = { target: 'rules', path: 'water.enabled', set: true };
+const COMMUTE_ON: Modifier = { target: 'rules', path: 'commute.enabled', set: true };
 
 /**
- * The modifiers a run plays under, in order: the water system (when the run
- * has it), the expedition's region, the
+ * The modifiers a run plays under, in order: the water system and commuting
+ * (when the run has them), the expedition's region, the
  * era's harsher seasons, Root City's district perks and landmarks, the
  * expedition's twist, its Tempest level (levels 1 to N), finished projects,
  * then the run's tunings and charters.
@@ -57,6 +60,7 @@ export function runModifiers(content: Content, state: RunModifierSources): Modif
     .flatMap((m) => m.modifiers);
   return [
     ...(state.options?.water ? [WATER_ON] : []),
+    ...(state.options?.commute ? [COMMUTE_ON] : []),
     ...(content.regions.find((r) => r.id === region)?.modifiers ?? []),
     ...harsher,
     ...perks,
