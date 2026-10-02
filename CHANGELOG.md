@@ -1,5 +1,20 @@
 # Changelog
 
+## Willow Reach v2: five new buildings (E3, part 1)
+
+They join the draft with water, from run 2.
+
+- **Reed Bed:** next to a channel or the river; cleans up to 3 grey water, 1 biomass, +1 Harmony.
+- **Bathhouse:** 1 clean water and 1 heat each night → +3 wellbeing; returns 1 grey water. A
+  staffed kiln next to it warms it for free, or a heat well next to it pays from its store.
+- **Rice-fish Paddy:** floodplain next to a channel; 2 water, food 2 / 4 / 4 / 0, and 1
+  nutrient-rich water back into the channel for the farms below.
+- **Mushroom Cellar:** 2 biomass → 2 food + 1 compost every season, no energy; +1 food next to
+  woodland or a kiln.
+- **Hedgerow:** on scrub or meadow; counts as meadow for Harmony and shelters the buildings next to
+  it from storms.
+- Building tooltips now explain water use, grey water and heat from neighbours.
+
 ## Long Winter keeps its heat close
 
 - In a Long Winter, heat is local: heat pumps, heat wells and solar thermal collectors warm only

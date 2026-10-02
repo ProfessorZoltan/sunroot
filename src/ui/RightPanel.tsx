@@ -123,13 +123,7 @@ function DraftPanel({ store, ui }: { store: GameStore; ui: Ui }) {
       <div class="cards">
         {offer.map((id, i) =>
           content.byId[id] ? (
-            <DraftCard
-              content={content}
-              def={store.rules.byId[id]!}
-              icon={ui.icons[id]}
-              index={i}
-              store={store}
-            />
+            <DraftCard def={store.rules.byId[id]!} icon={ui.icons[id]} index={i} store={store} />
           ) : (
             <TuningCard store={store} id={id} index={i} />
           ),
@@ -140,19 +134,17 @@ function DraftPanel({ store, ui }: { store: GameStore; ui: Ui }) {
 }
 
 function DraftCard({
-  content,
   def,
   icon,
   index,
   store,
 }: {
-  content: Content;
   def: BuildingDef;
   icon: string | undefined;
   index: number;
   store: GameStore;
 }) {
-  const lines = describeBuilding(content, def);
+  const lines = describeBuilding(store.rules, def);
   return (
     <button
       type="button"
@@ -226,7 +218,7 @@ function BuildPanel({ store, ui }: { store: GameStore; ui: Ui }) {
               aria-pressed={selected}
               aria-keyshortcuts={key?.toUpperCase()}
               disabled={!afford || ended}
-              title={describeBuilding(content, def).join('\n')}
+              title={describeBuilding(store.rules, def).join('\n')}
               onClick={() => store.selectBuilding(selected ? null : id)}
             >
               {ui.icons[id] && <img src={ui.icons[id]} alt="" width={28} height={28} />}

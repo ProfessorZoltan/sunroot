@@ -243,6 +243,8 @@ export interface HeatReport {
    * heat cost, in a Long Winter): heat left to pay directly × (cost − 1).
    */
   gridLoss: number;
+  /** Heat a neighbouring kiln or heat well gave a building that takes it (the Bathhouse). */
+  neighbor: number;
 }
 
 export interface SlotReport {
@@ -412,6 +414,8 @@ export interface SeasonReport {
   commute: CommuteReport | null;
   /** Which source heated which building, while local heat is on. */
   heat: HeatLink[] | null;
+  /** Heat a neighbouring kiln or heat well gave to a building that takes it (the Bathhouse). */
+  neighborHeat: HeatLink[];
   /** Buildings a storm could damage: on exposed land (hills), not next to woodland (unless the Mixed Grid holds). */
   exposed: string[];
   silted: string[];

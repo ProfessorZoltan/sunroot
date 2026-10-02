@@ -416,7 +416,21 @@ export function resolveWater(ctx: SeasonContext): void {
     ),
   ].sort((a, b) => a - b);
   let flow = report.riverFlow;
-  const arrive = (u: WaterUnits) => {
+  // Reed beds on no channel clean grey water where it joins the river beside them.
+  const riverReeds = order
+    .filter((b) => works(b) && (defOf(content, b).water?.cleans ?? 0) > 0 && !attachment(b))
+    .map((b) => ({ b, at: riverIndexesNear(state, b.at), left: defOf(content, b).water!.cleans }))
+    .filter((r) => r.at.length > 0);
+  const arrive = (u: WaterUnits, at?: number) => {
+    for (const r of riverReeds) {
+      if (at === undefined || !r.at.includes(at) || u.grey === 0) continue;
+      const t = Math.min(r.left, u.grey);
+      if (t <= 0) continue;
+      r.left -= t;
+      u.grey -= t;
+      u.clean += t;
+      explain(ctx, r.b, `water: cleaned ${t} grey water joining the river`);
+    }
     report.greyToRiver += u.grey;
     flow += total(u);
   };
@@ -424,7 +438,7 @@ export function resolveWater(ctx: SeasonContext): void {
   const season = SEASONS[si];
   for (const i of positions) {
     const back = pending.get(i);
-    if (back) arrive(back);
+    if (back) arrive(back, i);
     for (const w of weirs) {
       const hold = defOf(content, w).water!.holdsBack!;
       if (weirAt(w) !== i || hold.release !== season) continue;
@@ -449,7 +463,7 @@ export function resolveWater(ctx: SeasonContext): void {
     const giveBack = (q: WaterQuality, n: number) => {
       const u = units();
       u[q] = n;
-      arrive(u);
+      arrive(u, i);
     };
     const turns = [
       ...users
@@ -463,7 +477,7 @@ export function resolveWater(ctx: SeasonContext): void {
           run: () => {
             rejoiningHere = units();
             runChannel(c, take, i);
-            arrive(rejoiningHere);
+            arrive(rejoiningHere, i);
           },
         })),
     ].sort((a, b) => rank.get(a.uid)! - rank.get(b.uid)!);

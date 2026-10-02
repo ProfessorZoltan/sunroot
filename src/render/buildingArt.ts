@@ -260,6 +260,87 @@ export const BUILDING_ART: Record<string, Art> = {
       .lineTo(c.x + 11, c.y)
       .stroke({ width: 1, color: 0x7d7262 });
   },
+  /** Reeds in a shallow pool: grey water goes in, clean water comes out. */
+  reedBed(g, c) {
+    g.ellipse(c.x, c.y + 3, 14, 7)
+      .fill({ color: COLORS.water })
+      .stroke({ width: 1.2, color: 0x7fb3b8 });
+    for (const [dx, h] of [
+      [-9, 12],
+      [-5, 15],
+      [-1, 11],
+      [3, 16],
+      [7, 12],
+      [10, 9],
+    ] as const) {
+      g.moveTo(c.x + dx, c.y + 5)
+        .quadraticCurveTo(c.x + dx - 1, c.y + 5 - h / 2, c.x + dx + 1, c.y + 5 - h)
+        .stroke({ width: 1.3, color: 0x5f8a45, cap: 'round' });
+      g.ellipse(c.x + dx + 1, c.y + 5 - h, 1.2, 2.6).fill({ color: 0x8a5a2c });
+    }
+  },
+  /** A steaming pool under a roof. */
+  bathhouse(g, c) {
+    shadow(g, c, 15);
+    g.rect(c.x - 13, c.y - 2, 26, 10).fill({ color: WALL });
+    g.poly([c.x - 15, c.y - 1, c.x - 9, c.y - 10, c.x + 9, c.y - 10, c.x + 15, c.y - 1]).fill({
+      color: COLORS.solarTeal,
+    });
+    g.ellipse(c.x, c.y + 4, 8, 3).fill({ color: 0x6fb3cf });
+    for (const dx of [-4, 0, 4]) {
+      g.moveTo(c.x + dx, c.y - 12)
+        .quadraticCurveTo(c.x + dx - 3, c.y - 15, c.x + dx, c.y - 18)
+        .stroke({ width: 1.2, color: 0xfffdf6, alpha: 0.9, cap: 'round' });
+    }
+  },
+  /** Flooded terraces with rice and a fish. */
+  riceFishPaddy(g, c) {
+    g.poly(hexCorners(c, 22))
+      .fill({ color: 0xa7d3c4 })
+      .stroke({ width: 1.5, color: COLORS.leadingGold });
+    g.moveTo(c.x - 16, c.y - 3)
+      .lineTo(c.x + 16, c.y - 3)
+      .moveTo(c.x - 16, c.y + 5)
+      .lineTo(c.x + 16, c.y + 5)
+      .stroke({ width: 1.5, color: 0x8a7a52 });
+    for (let i = -3; i <= 3; i++) {
+      for (const y of [-9, 0]) {
+        g.moveTo(c.x + i * 4.5, c.y + y + 2)
+          .lineTo(c.x + i * 4.5 + 1, c.y + y - 2)
+          .stroke({ width: 1.2, color: 0x5f8a45 });
+      }
+    }
+    g.poly([c.x - 3, c.y + 10, c.x + 3, c.y + 8, c.x + 3, c.y + 12]).fill({ color: 0xe58f4a });
+  },
+  /** A mound with a door, mushrooms on top. */
+  mushroomCellar(g, c) {
+    shadow(g, c, 13, 4, 8);
+    g.moveTo(c.x - 13, c.y + 8)
+      .quadraticCurveTo(c.x, c.y - 12, c.x + 13, c.y + 8)
+      .fill({ color: 0x8aa66a });
+    g.roundRect(c.x - 3.5, c.y - 1, 7, 9, 3).fill({ color: DARK });
+    for (const [dx, dy, r] of [
+      [-7, -1, 3],
+      [6, -2, 2.5],
+      [1, -7, 2.2],
+    ] as const) {
+      g.rect(c.x + dx - 0.7, c.y + dy, 1.4, 3).fill({ color: 0xf3e8d2 });
+      g.ellipse(c.x + dx, c.y + dy, r, r * 0.6).fill({ color: 0xc8643c });
+    }
+  },
+  /** A low line of shrubs with a few flowers. */
+  hedgerow(g, c) {
+    shadow(g, c, 15, 3.5, 7);
+    for (const dx of [-11, -5, 1, 7, 12]) {
+      g.circle(c.x + dx, c.y + 1 - (dx % 2 === 0 ? 1 : 0), 4.6).fill({ color: COLORS.treeLight });
+    }
+    for (const [dx, dy] of [
+      [-8, -2],
+      [4, -3],
+      [10, 0],
+    ] as const)
+      g.circle(c.x + dx, c.y + dy, 1.2).fill({ color: 0xffffff });
+  },
   solarCanopy(g, c) {
     shadow(g, c, 13, 4, 11);
     panel(g, c, COLORS.solarTeal, 0x9fc6c8);

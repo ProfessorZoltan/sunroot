@@ -662,6 +662,133 @@
       }
     },
     {
+      "id": "reedBed",
+      "name": "Reed Bed",
+      "cost": 3,
+      "workers": 0,
+      "kind": "water",
+      "requiresWater": true,
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["floodplain", "barren", "scrub", "meadow", "woodland"],
+        "adjacentTo": ["river"],
+        "adjacentToBuildings": ["irrigationChannel"]
+      },
+      "yields": {
+        "biomass": [1, 1, 1, 0]
+      },
+      "harmony": 1,
+      "water": {
+        "cleans": 3
+      }
+    },
+    {
+      "id": "bathhouse",
+      "name": "Bathhouse",
+      "cost": 8,
+      "workers": 1,
+      "kind": "civic",
+      "requiresWater": true,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland"],
+        "adjacentTo": [],
+        "adjacentToBuildings": ["irrigationChannel"]
+      },
+      "heatFromNeighbors": ["kiln", "heatWell"],
+      "demand": {
+        "heat": {
+          "night": [1, 1, 1, 1]
+        }
+      },
+      "wellbeing": {
+        "whenPowered": 3
+      },
+      "water": {
+        "needs": [1, 1, 1, 1],
+        "accepts": ["clean"],
+        "returns": {
+          "quality": "grey",
+          "amount": 1
+        }
+      }
+    },
+    {
+      "id": "riceFishPaddy",
+      "name": "Rice-fish Paddy",
+      "cost": 5,
+      "workers": 1,
+      "kind": "food",
+      "requiresWater": true,
+      "floodTolerant": true,
+      "farmland": true,
+      "placement": {
+        "tiles": ["floodplain"],
+        "adjacentTo": [],
+        "adjacentToBuildings": ["irrigationChannel"]
+      },
+      "yields": {
+        "food": [2, 4, 4, 0]
+      },
+      "water": {
+        "needs": [2, 2, 2, 0],
+        "accepts": ["clean", "nutrient"],
+        "returns": {
+          "quality": "nutrient",
+          "amount": 1
+        }
+      }
+    },
+    {
+      "id": "mushroomCellar",
+      "name": "Mushroom Cellar",
+      "cost": 5,
+      "workers": 1,
+      "kind": "food",
+      "requiresWater": true,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland"]
+      },
+      "recipes": {
+        "maxRuns": 1,
+        "energyPerRun": 0,
+        "defaultRecipe": "grow",
+        "options": [
+          {
+            "id": "grow",
+            "inputs": {
+              "biomass": 2
+            },
+            "outputs": {
+              "food": 2,
+              "compost": 1
+            },
+            "bonusNextTo": {
+              "tiles": ["woodland"],
+              "tall": true,
+              "outputs": {
+                "food": 1
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "hedgerow",
+      "name": "Hedgerow",
+      "cost": 2,
+      "workers": 0,
+      "kind": "nature",
+      "requiresWater": true,
+      "floodTolerant": true,
+      "stormProof": true,
+      "placement": {
+        "tiles": ["scrub", "meadow"]
+      },
+      "harmonyAsTile": "meadow",
+      "sheltersNeighbors": true
+    },
+    {
       "id": "solarCanopy",
       "name": "Solar Canopy",
       "cost": 4,

@@ -10,6 +10,10 @@
  * grid reaches anywhere. With it off the range is unlimited, which is the
  * shared pool of before.
  *
+ * A building that takes heat from its neighbours (the Bathhouse) is warmed
+ * first by a staffed kiln next to it, for free, or by a neighbouring heat
+ * well's stored heat; only what they can't give goes to the sources above.
+ *
  * Storage first reserves the spare day energy (or free heat) it needs to cover
  * a night shortfall it can already see (covering demand is a need, not a
  * spare); flexible consumers then use what is spare; storage then charges from
@@ -19,7 +23,7 @@
 import type { Resource, Slot } from '../content/schema';
 import { AUTO_RECIPE, SLOTS } from '../content/schema';
 import { hexDistance } from '../hex';
-import { byPriority, defOf, neighborBuildings, occupancy } from '../queries';
+import { byPriority, defOf, neighborBuildings, neighborTiles, occupancy } from '../queries';
 import type { BuildingState, HeatLink } from '../types';
 import { addYield, explain, flow, type SeasonContext } from './context';
 
@@ -73,6 +77,43 @@ export function resolveEnergy(ctx: SeasonContext): void {
     (range === Infinity ? 0 : hexDistance(x.at, to.at) - hexDistance(y.at, to.at)) ||
     rank.get(x.uid)! - rank.get(y.uid)!;
   const collectors = active.filter((b) => defOf(content, b).heatGeneration);
+  const occ = occupancy(state);
+
+  // Heat from a neighbour (the Bathhouse): a staffed kiln next to it warms it for free; a heat
+  // well next to it pays from what it holds. Kilns first, then wells, each by priority.
+  const fromNeighbor: Record<Slot, Map<string, number>> = { day: new Map(), night: new Map() };
+  const neighborLinks: HeatLink[] = [];
+  for (const b of active) {
+    const from = defOf(content, b).heatFromNeighbors;
+    if (!from) continue;
+    const warm = (n: BuildingState) => (defOf(content, n).recipes ? 0 : 1);
+    const next = neighborBuildings(state, b, occ)
+      .filter((n) => from.includes(n.type) && ctx.active.has(n.uid))
+      .sort((x, y) => warm(x) - warm(y) || rank.get(x.uid)! - rank.get(y.uid)!);
+    for (const slot of SLOTS) {
+      let owed = heatOf(b, slot);
+      for (const n of next) {
+        if (owed <= 0) break;
+        const nd = defOf(content, n);
+        const t = nd.recipes
+          ? owed
+          : nd.storage?.holds === 'heat'
+            ? Math.min(owed, n.stored ?? 0)
+            : 0;
+        if (t <= 0) continue;
+        if (!nd.recipes) n.stored = (n.stored ?? 0) - t;
+        owed -= t;
+        fromNeighbor[slot].set(b.uid, (fromNeighbor[slot].get(b.uid) ?? 0) + t);
+        neighborLinks.push({ slot, from: n.uid, to: b.uid, amount: t });
+        report.energy[slot].heat.neighbor += t;
+        explain(ctx, b, `${slot}: ${t} heat from the ${nd.name} next to it`);
+      }
+    }
+  }
+  report.neighborHeat = neighborLinks;
+  /** Heat a building still needs once its neighbours have given what they can. */
+  const owedOf = (b: BuildingState, slot: Slot) =>
+    heatOf(b, slot) - (fromNeighbor[slot].get(b.uid) ?? 0);
   const freeOf = (b: BuildingState, slot: Slot) => report.generated[b.uid]?.heat[slot] ?? 0;
 
   /** What the buildings that are still on need in a slot. `links` records who heated whom. */
@@ -80,7 +121,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
     const on = active.filter((b) => !off.has(b.uid));
     const energy = on.reduce((sum, b) => sum + energyOf(b, slot), 0) + demolition[slot];
     const consumers = on.filter((b) => heatOf(b, slot) > 0);
-    const left = new Map(consumers.map((b) => [b.uid, heatOf(b, slot)]));
+    const left = new Map(consumers.map((b) => [b.uid, owedOf(b, slot)]));
     const heat = consumers.reduce((sum, b) => sum + heatOf(b, slot), 0);
     const pay = (from: BuildingState, to: BuildingState, amount: number) => {
       left.set(to.uid, left.get(to.uid)! - amount);
@@ -293,7 +334,6 @@ export function resolveEnergy(ctx: SeasonContext): void {
   }
 
   // Flexible consumers ("sponges") run only on spare energy.
-  const occ = occupancy(state);
   for (const b of active) {
     const def = defOf(content, b);
     if (!def.recipes) continue;
@@ -305,7 +345,8 @@ export function resolveEnergy(ctx: SeasonContext): void {
         : def.recipes.options.filter((o) => o.id === recipeId);
     const used = perSlot();
     // A Mill Race workshop runs on the river's power; Night Shift adds night-only runs.
-    const cost = ctx.effects.get(b.uid)?.freeRuns ? 0 : def.recipes.energyPerRun;
+    const millRace = ctx.effects.get(b.uid)?.freeRuns === true && def.recipes.energyPerRun > 0;
+    const cost = millRace ? 0 : def.recipes.energyPerRun;
     const made: Partial<Record<keyof typeof state.stores, number>> = {};
     const byRecipe: Record<string, number> = {};
     let runs = 0;
@@ -336,6 +377,20 @@ export function resolveEnergy(ctx: SeasonContext): void {
       ][]) {
         made[res] = (made[res] ?? 0) + n;
       }
+      // Shade or woodland next to it (the Mushroom Cellar).
+      const bonus = recipe.bonusNextTo;
+      if (
+        bonus &&
+        (neighborTiles(state, b.at).some((t) => bonus.tiles.includes(t.type)) ||
+          (bonus.tall && neighborBuildings(state, b, occ).some((n) => defOf(content, n).tall)))
+      ) {
+        for (const [res, n] of Object.entries(bonus.outputs) as [
+          keyof typeof state.stores,
+          number,
+        ][])
+          made[res] = (made[res] ?? 0) + n;
+        if (runs === 0) explain(ctx, b, 'shaded: more from each run');
+      }
       if (recipe.heatToNeighborStorage > 0) {
         const well = neighborBuildings(state, b, occ).find(
           (n) => defOf(content, n).storage?.holds === 'heat' && room(n) > 0,
@@ -351,7 +406,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
       addYield(ctx, b, res, Math.floor(n * factor));
     }
     if (factor !== 1 && runs > 0) explain(ctx, b, `outputs × ${factor}`);
-    if (cost === 0 && runs > 0) explain(ctx, b, 'runs need no energy (Mill Race)');
+    if (millRace && runs > 0) explain(ctx, b, 'runs need no energy (Mill Race)');
     report.runs[b.uid] = { recipe: recipeId, runs, energy: used, byRecipe };
     const which = Object.entries(byRecipe)
       .map(([id, n]) => `${n} ${id}`)
@@ -392,7 +447,8 @@ export function resolveEnergy(ctx: SeasonContext): void {
     let gap = settle(slot, off).demand - available;
     for (const b of [...active].reverse()) {
       if (gap <= 0) break;
-      if (off.has(b.uid) || energyOf(b, slot) + heatOf(b, slot) === 0) continue;
+      // Shutting off a building whose neighbours pay all its heat saves nothing.
+      if (off.has(b.uid) || energyOf(b, slot) + owedOf(b, slot) === 0) continue;
       off.add(b.uid);
       report.blackouts.push(b.uid);
       gap = settle(slot, off).demand - available;
@@ -415,6 +471,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
       }
       for (const [uid, n] of s.left)
         if (n > 0) links.push({ slot, from: 'grid', to: uid, amount: n });
+      links.push(...neighborLinks.filter((l) => l.slot === slot && !off.has(l.to)));
     }
     report.heat = links;
   }

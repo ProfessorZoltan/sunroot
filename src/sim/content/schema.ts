@@ -128,6 +128,18 @@ const RecipeSchema = z.object({
   heatToNeighborStorage: nonNeg.default(0),
   /** On Auto, this recipe runs only while these stores are at least this high. */
   autoAtLeast: z.partialRecord(ResourceSchema, nonNeg).default({}),
+  /**
+   * Extra outputs per run while the building touches one of these tiles or a
+   * tall building (the Mushroom Cellar, shaded by woodland or a kiln).
+   */
+  bonusNextTo: z
+    .object({
+      tiles: z.array(TileTypeSchema).default([]),
+      tall: z.boolean().default(false),
+      outputs: z.partialRecord(ResourceSchema, nonNeg),
+    })
+    .strict()
+    .optional(),
 });
 
 export const BuildingSchema = z
@@ -183,6 +195,12 @@ export const BuildingSchema = z
     heatGeneration: SlotSeason.optional(),
     /** Pays heat demand at `heatPerEnergy` heat per energy, up to `maxHeatPerSlot` in each slot. */
     heatPump: z.object({ heatPerEnergy: int.min(2), maxHeatPerSlot: int.min(1) }).optional(),
+    /**
+     * Takes its heat from a neighbouring building of these types before any other source
+     * (the Bathhouse): a staffed one that runs recipes (a kiln) warms it for free; a heat
+     * store pays from what it holds.
+     */
+    heatFromNeighbors: z.array(z.string()).optional(),
     demand: z
       .object({
         energy: SlotSeason.default({ day: zero4, night: zero4 }),
@@ -196,7 +214,8 @@ export const BuildingSchema = z
         nightOnlyRuns: nonNeg.default(0),
         /** Extra runs in the run's first year (the Foundry District's perk). */
         firstYearExtraRuns: nonNeg.default(0),
-        energyPerRun: int.min(1),
+        /** 0 for a recipe that needs no energy (the Mushroom Cellar). */
+        energyPerRun: nonNeg,
         defaultRecipe: z.string(),
         options: z.array(RecipeSchema).min(1),
       })
@@ -241,6 +260,10 @@ export const BuildingSchema = z
       })
       .optional(),
     harmony: int.default(0),
+    /** Its tile counts as this type for Harmony, though it isn't (the Hedgerow on scrub). */
+    harmonyAsTile: TileTypeSchema.optional(),
+    /** Storms can't damage the buildings next to it (the Hedgerow). */
+    sheltersNeighbors: z.boolean().default(false),
     /**
      * Turns spare food from neighbouring producing buildings into wellbeing
      * (the Cider Press): for each of up to `max` neighbours of these types that
@@ -281,7 +304,7 @@ export const BuildingSchema = z
         siltShare: z.number().min(0).max(1).default(0),
       })
       .optional(),
-    /** Exists only while the water system is on (Irrigation Channel, Cistern). */
+    /** Exists only while the water system is on: the water buildings, and Willow Reach v2 (E3). */
     requiresWater: z.boolean().default(false),
     water: BuildingWaterSchema.optional(),
     storage: z

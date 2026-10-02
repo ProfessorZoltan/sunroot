@@ -48,6 +48,7 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     b.harmonyPenalty?.cancelledByNeighbor.forEach((id) => known(id, `${b.id}.harmonyPenalty`));
     b.weir?.downstreamFoodPenalty.targets.forEach((id) => known(id, `${b.id}.weir`));
     b.placement.adjacentToBuildings?.forEach((id) => known(id, `${b.id}.placement`));
+    b.heatFromNeighbors?.forEach((id) => known(id, `${b.id}.heatFromNeighbors`));
     if (b.placement.adjacentToBuildings && !b.placement.adjacentTo) {
       problems.push(`${b.id}.placement.adjacentToBuildings needs adjacentTo`);
     }

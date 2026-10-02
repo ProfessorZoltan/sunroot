@@ -3,7 +3,8 @@
  * where every unit came from and went. Heat and energy count 1 for 1, as the
  * rules pay them. It balances exactly:
  *
- *   in:  generators (and the Mixed Grid), free heat, what heat pumps add
+ *   in:  generators (and the Mixed Grid), free heat, heat from a neighbouring
+ *        kiln or heat well (the Bathhouse), what heat pumps add
  *        beyond the energy they draw, storage released, and demand nobody
  *        supplied (the shortfall, met by blacking buildings out);
  *   out: each building's energy and heat demand (and demolition work),
@@ -38,6 +39,7 @@ export function energyLedger(content: Content, report: SeasonReport): EnergyLedg
     };
     for (const [id, n] of Object.entries(e.bySource)) add(made, name(id), n);
     for (const [id, n] of Object.entries(e.heat.bySource)) add(made, `${name(id)} (free heat)`, n);
+    add(made, 'Heat from a neighbouring kiln or heat well', e.heat.neighbor ?? 0);
     add(made, 'Heat pumps (heat gained)', e.heat.pumped - e.heat.pumpEnergy);
     add(made, 'From storage', e.storageDischarged);
     add(made, SHORT, e.shortfall);

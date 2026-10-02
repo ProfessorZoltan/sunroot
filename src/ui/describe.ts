@@ -35,9 +35,14 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
       const ins = Object.entries(o.inputs).map(([r, n]) => `${n} ${r}`);
       const outs = Object.entries(o.outputs).map(([r, n]) => `${n} ${r}`);
       lines.push(
-        `Run: ${[`${def.recipes.energyPerRun} spare energy`, ...ins].join(' + ')} → ${outs.join(' + ')}` +
+        `Run: ${[...(def.recipes.energyPerRun > 0 ? [`${def.recipes.energyPerRun} spare energy`] : []), ...ins].join(' + ')} → ${outs.join(' + ')}` +
           `${o.heatToNeighborStorage ? ` + ${o.heatToNeighborStorage} heat to a neighbouring heat well` : ''}.`,
       );
+      if (o.bonusNextTo) {
+        const extra = Object.entries(o.bonusNextTo.outputs).map(([r, n]) => `${n} ${r}`);
+        const by = [...o.bonusNextTo.tiles, ...(o.bonusNextTo.tall ? ['a tall building'] : [])];
+        lines.push(`+${extra.join(' + ')} a run next to ${by.join(' or ')}.`);
+      }
     }
     lines.push(`Up to ${def.recipes.maxRuns} runs a season.`);
     if (def.recipes.options.length > 1) lines.push(`${autoText(def.recipes.options)}.`);
@@ -58,6 +63,33 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
       : 'food buildings';
     lines.push(`+${def.neighborFoodBonus.amount} food to neighbouring ${who}.`);
   }
+  if (def.heatFromNeighbors) {
+    const night = def.demand?.heat.night ?? [];
+    const who = def.heatFromNeighbors.map((id) => content.byId[id]?.name ?? id).join(' or ');
+    lines.push(
+      `Needs ${Math.max(...night)} heat each night: a ${who} next to it gives it first (a staffed kiln for free); otherwise the grid.`,
+    );
+  }
+  // Water only matters while the run has it.
+  const w = content.rules.water.enabled ? def.water : undefined;
+  if (w && w.needs.some((n) => n > 0)) {
+    lines.push(`Water ${SEASON_LIST(w.needs)} (spring to winter): ${w.accepts.join(' or ')}.`);
+  }
+  if (w) {
+    for (const [res, n] of Object.entries(w.nutrientBonus))
+      lines.push(`+${n} ${res} with nutrient-rich water.`);
+  }
+  if (w?.returns) {
+    lines.push(`Returns ${w.returns.amount} ${w.returns.quality} water to its channel.`);
+    if (w.returns.quality === 'grey')
+      lines.push(
+        'Grey water costs Harmony if it reaches the river: a Reed Bed further down the channel, or beside the river where it rejoins, cleans it.',
+      );
+  }
+  if (w?.cleans)
+    lines.push(
+      `Cleans up to ${w.cleans} grey water in its channel, or where it joins the river beside it.`,
+    );
   if (def.storage) {
     lines.push(`Stores up to ${def.storage.capacity} ${def.storage.holds}.`);
   }
@@ -73,6 +105,8 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
     );
   }
   if (def.harmony) lines.push(`+${def.harmony} Harmony.`);
+  if (def.harmonyAsTile) lines.push(`Counts as ${def.harmonyAsTile} for Harmony.`);
+  if (def.sheltersNeighbors) lines.push("Storms can't damage the buildings next to it.");
   const civic = content.rules.expectations?.perBuilding[def.id];
   if (civic)
     lines.push(

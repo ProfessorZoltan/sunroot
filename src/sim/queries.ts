@@ -90,7 +90,9 @@ export function stormExposed(content: Content, state: RunState, b: BuildingState
   if (defOf(content, b).stormProof) return false;
   const type = tileAt(state, b.at)?.type;
   if (!type || !content.events.storm.exposedOn.includes(type)) return false;
-  return !neighborTiles(state, b.at).some((t) => t.type === 'woodland');
+  if (neighborTiles(state, b.at).some((t) => t.type === 'woodland')) return false;
+  // A hedgerow next to it breaks the wind.
+  return !neighborBuildings(state, b).some((n) => defOf(content, n).sheltersNeighbors);
 }
 
 /** Where a building stands, as a sentence says it: "on a hill", "on barren land". */
@@ -149,8 +151,15 @@ export function harmonyLines(content: Content, state: RunState): HarmonyLine[] {
   const { harmony } = content.rules;
   const lines: HarmonyLine[] = [];
   const tileCounts = new Map<string, number>();
+  // A building may make its tile count as another type (a Hedgerow on scrub counts as meadow).
+  const asTile = new Map<string, TileType>();
+  for (const b of Object.values(state.buildings)) {
+    const t = defOf(content, b).harmonyAsTile;
+    if (t) asTile.set(hexKey(b.at), t);
+  }
   for (const t of Object.values(state.map.tiles)) {
-    if (harmony.perTile[t.type]) tileCounts.set(t.type, (tileCounts.get(t.type) ?? 0) + 1);
+    const type = asTile.get(hexKey(t)) ?? t.type;
+    if (harmony.perTile[type]) tileCounts.set(type, (tileCounts.get(type) ?? 0) + 1);
   }
   for (const [type, n] of tileCounts) {
     const each = harmony.perTile[type as TileType]!;
