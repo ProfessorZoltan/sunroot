@@ -26,8 +26,9 @@ continues where you were. **New run** at the bottom abandons the run in progress
 
 URL options: `?city` shows Root City, `?new` starts the city's next run, `?seed=<text>` starts a run
 with that seed outside the city's teaching and expeditions (`?guided=0` then skips the guided first
-year and `?visions=0` the vision choice), and `?sandbox` unlocks every building with 999 materials
-(sandbox runs are never saved and never reach the city).
+year, `?visions=0` the vision choice and `?water=1` turns on water, which otherwise joins at run
+2), and `?sandbox` unlocks every building with 999 materials (sandbox runs are never saved and
+never reach the city).
 
 ## Playtesting
 

@@ -1,5 +1,6 @@
 /** Right column: the draft, the building palette, and the placement preview or building inspector. */
 import type { GameStore } from '../game/store';
+import { waterAt } from '../game/waterInfo';
 import {
   AUTO_RECIPE,
   demolishCheck,
@@ -394,6 +395,7 @@ function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
   if (!b) return null;
   const def = store.rules.byId[b.type]!;
   const now = store.insight.now;
+  const water = waterAt(store.rules, state, store.waterForecast, b.at);
   const status: string[] = [];
   const repair = repairCost(store.rules, b);
   const materials = state.stores.materials;
@@ -438,9 +440,19 @@ function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
         <div class="warning small">{s}</div>
       ))}
       <div class="quiet small">This season, if it ended now:</div>
-      {(now.math[b.uid] ?? ['Nothing to report.']).map((line) => (
-        <div class="small">{line}</div>
+      {(now.math[b.uid] ?? ['Nothing to report.'])
+        .filter((line) => water.length === 0 || !line.startsWith('water:'))
+        .map((line) => (
+          <div class="small">{line}</div>
+        ))}
+      {water.map((line) => (
+        <div class="small water-line">{line}</div>
       ))}
+      {store.waterForecast?.uses[b.uid] && (
+        <div class="small quiet">
+          Buildings the same distance down a channel share its water by priority (below).
+        </div>
+      )}
       {def.recipes && def.recipes.options.length > 1 && (
         <label class="small control">
           Recipe{' '}

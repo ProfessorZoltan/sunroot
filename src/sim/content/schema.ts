@@ -872,6 +872,8 @@ export const ProgressionSchema = z
         tunings: int.min(1),
         charters: int.min(1),
         visions: int.min(1),
+        /** The water system joins at this run, with a guided first year of its own. */
+        water: int.min(1).default(2),
       })
       .strict(),
   })

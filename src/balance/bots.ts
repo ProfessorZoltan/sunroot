@@ -114,7 +114,7 @@ function bestChannelSite(turn: Turn, policy: WaterPolicy): Tile | undefined {
   const orchard = turn.content.byId.orchard!.placement.tiles;
   let best: Tile | undefined;
   let bestScore = 2;
-  for (const t of turn.sites(turn.content.rules.water.channelBuilding)) {
+  for (const t of turn.sites(turn.rules.rules.water.channelBuilding)) {
     const extends_ = hexNeighbors(t).some((n) => channelAt.has(hexKey(n)));
     if (policy === 'short' && extends_) continue;
     if (policy === 'long' && !extends_ && channelAt.size > 0) continue;
@@ -137,7 +137,7 @@ function bestChannelSite(turn: Turn, policy: WaterPolicy): Tile | undefined {
 /** Water: channels towards dry farmland when watered sites run low, and storage. */
 function tendWater(turn: Turn, profile: Profile, policy: WaterPolicy): void {
   if (!turn.waterOn || policy === 'river') return;
-  const channel = turn.content.rules.water.channelBuilding;
+  const channel = turn.rules.rules.water.channelBuilding;
   for (let i = 0; i < 2 && wateredSites(turn) < 3; i++) {
     if (!turn.canBuild(channel, profile.reserve)) break;
     const site = bestChannelSite(turn, policy);

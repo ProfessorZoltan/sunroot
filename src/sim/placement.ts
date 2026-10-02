@@ -4,6 +4,7 @@ import { placementEvolution } from './combos';
 import { buildingsTouching, neighborTiles, occupancy, tileAt } from './queries';
 import type { RunState } from './types';
 import { available, channelSiteProblem, isChannel } from './water';
+import { contentFor } from './content/modifiers';
 
 export type PlacementCheck = { ok: true } | { ok: false; reason: string };
 
@@ -20,7 +21,8 @@ export function canPlace(
   const def = content.byId[buildingId];
   if (!def) return { ok: false, reason: `unknown building ${buildingId}` };
   if (!def.placeable) return { ok: false, reason: `${def.name} can't be built, only evolved` };
-  if (!available(content, def)) return { ok: false, reason: `${def.name} needs the water system` };
+  if (!available(contentFor(content, state), def))
+    return { ok: false, reason: `${def.name} needs the water system` };
   const tile = tileAt(state, at);
   if (!tile) return { ok: false, reason: 'outside the valley' };
   const occupant = occupancy(state).get(hexKey(at));

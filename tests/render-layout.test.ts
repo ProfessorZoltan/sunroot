@@ -34,9 +34,7 @@ describe('map layout', () => {
 
 describe('art', () => {
   it('has a drawing for every building and colours for every tile type', () => {
-    // Water buildings are drawn with the water system's screens (E2).
-    for (const b of content.buildings.filter((x) => !x.requiresWater))
-      expect(BUILDING_ART[b.id], b.id).toBeTypeOf('function');
+    for (const b of content.buildings) expect(BUILDING_ART[b.id], b.id).toBeTypeOf('function');
     for (const t of TILE_TYPES) expect(TILE_COLORS[t], t).toBeDefined();
   });
 });

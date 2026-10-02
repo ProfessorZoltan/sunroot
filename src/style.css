@@ -1266,6 +1266,16 @@ ul.projects {
 .map-tip .mark-line.coming {
   color: var(--gold-text);
 }
+/* Water: the first seasons' hint, and lines in the map tooltip and the inspector. */
+.water-hint {
+  margin: 4px 0 6px;
+  padding: 6px 8px;
+  border-left: 3px solid #58a7cf;
+  background: rgba(88, 167, 207, 0.08);
+}
+.water-line {
+  color: #2a6f93;
+}
 
 /* Tempest: the picker between runs, and the mark on districts. */
 .tempest {

@@ -34,7 +34,7 @@ export type MarkKind =
   | 'floodDamage'
   /** Coming: a levee keeps this tile dry. */
   | 'sheltered'
-  /** Coming: the low river will halve this farm's food. */
+  /** Coming: the low river will halve this farm's food, or it will be short of water. */
   | 'dry'
   /** Coming: a storm could damage this building. */
   | 'exposed'
@@ -86,6 +86,17 @@ export function mapMarks(content: Content, state: RunState, forecast: SeasonRepo
       add(atOf(uid), 'unstaffed', false, `${name(uid)}: no worker this season.`);
     for (const uid of Object.keys(forecast.shaded))
       add(atOf(uid), 'shade', false, `${name(uid)}: in shade, making less.`);
+    // With water, any season can leave a building thirsty.
+    for (const [uid, u] of Object.entries(forecast.water?.uses ?? {}))
+      if (u.short)
+        add(
+          atOf(uid),
+          'dry',
+          true,
+          u.from === null
+            ? `The ${name(uid)} has no channel beside it: no water, so it makes half.`
+            : `The ${name(uid)} will be short of water: it makes half.`,
+        );
   }
 
   // The coming event's reach, as the forecast resolves it.
@@ -141,7 +152,7 @@ export function reachSummary(marks: Mark[]): string {
   if (flood) parts.push(`${flood} tiles will flood`);
   if (count('floodDamage')) parts.push(`${count('floodDamage')} buildings damaged`);
   if (count('sheltered')) parts.push(`${count('sheltered')} kept dry by levees`);
-  if (count('dry')) parts.push(`${count('dry')} farms dry out`);
+  if (count('dry')) parts.push(`${count('dry')} short of water`);
   if (count('exposed')) parts.push(`${count('exposed')} buildings exposed`);
   if (count('calm')) parts.push('the Mixed Grid shelters all');
   if (count('cold')) parts.push(`${count('cold')} homes need heat`);

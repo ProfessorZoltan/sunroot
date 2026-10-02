@@ -4,8 +4,10 @@ import {
   applyCityCommand,
   applyCommand,
   bestTiers,
+  canPlace,
   createCity,
   createRun,
+  effectiveContent,
   expeditionOffer,
   graftOffer,
   hexDistance,
@@ -223,15 +225,22 @@ describe('teaching across runs', () => {
       tunings: false,
       charters: false,
       visions: false,
+      water: false,
       joining: [],
-      next: { system: 'tunings', run: 2 },
+      next: { system: 'water', run: 2 },
     });
+    // Water joins at run 2, with a guided first year of its own (DECISIONS.md, Teaching by layers).
     expect(teaching(content, 2)).toMatchObject({
-      guided: false,
+      guided: true,
       tunings: true,
-      joining: ['tunings'],
+      water: true,
+      joining: ['water', 'tunings'],
     });
-    expect(teaching(content, 3)).toMatchObject({ charters: true, joining: ['charters'] });
+    expect(teaching(content, 3)).toMatchObject({
+      guided: false,
+      charters: true,
+      joining: ['charters'],
+    });
     expect(teaching(content, 4)).toMatchObject({ visions: true, joining: ['visions'], next: null });
   });
 
@@ -241,14 +250,43 @@ describe('teaching across runs', () => {
     c = run(c, { type: 'chooseExpedition', index: 0 });
     expect(nextRunOptions(content, c)).toEqual({
       seed: a!.seed,
-      guided: false,
+      guided: true,
       visions: false,
       tunings: true,
       charters: false,
       city: { districts: { orchardWard: 'seedling' }, landmarks: [] },
       expedition: { twist: a!.twist, request: a!.request, region: a!.region },
+      water: true,
     });
     expect(run(c, { type: 'embark' }).expedition).toBeNull();
+  });
+});
+
+describe('the full valley', () => {
+  it('every layer from the next run when asked for, and always at a Tempest level', () => {
+    const first = createCity(content, 'layers');
+    expect(nextRunOptions(content, first).water).toBeUndefined();
+    const full = run(first, { type: 'setFullValley', on: true });
+    expect(full.fullValley).toBe(true);
+    expect(nextRunOptions(content, full).water).toBe(true);
+    expect(run(full, { type: 'setFullValley', on: false }).fullValley).toBeUndefined();
+    const stormy: CityState = { ...first, tempestUnlocked: 1, tempest: 1 };
+    expect(nextRunOptions(content, stormy).water).toBe(true);
+  });
+
+  it("a run with water plays the water system, though it's off in the data", () => {
+    expect(content.rules.water.enabled).toBe(false);
+    const s = createRun(content, { seed: 'wet', water: true });
+    expect(effectiveContent(content, s).rules.water.enabled).toBe(true);
+    expect(s.unlocked).toContain('irrigationChannel');
+    expect(Object.values(s.buildings).filter((b) => b.type === 'irrigationChannel')).toHaveLength(
+      3,
+    );
+    expect(canPlace(content, s, 'cistern', { q: -99, r: -99 }).ok ? '' : 'refused').toBe('refused');
+    const picked = applyCommand(content, s, { type: 'pickCard', card: s.draft.offer[0]! });
+    if (!picked.ok) throw new Error(picked.error);
+    const r = applyCommand(content, picked.state, { type: 'endSeason' });
+    expect(r.ok && r.state.lastReport!.water).toBeTruthy();
   });
 });
 
@@ -359,7 +397,8 @@ describe('5 runs in a row', () => {
     expect(city.districts.length).toBe(city.grafts.length);
     expect(city.districts.length).toBeGreaterThan(0);
     // Each run was taught what it should be, and later runs carried the city's gifts.
-    expect(seen.map((s) => s.options.guided)).toEqual([true, false, false, false, false]);
+    expect(seen.map((s) => s.options.guided)).toEqual([true, true, false, false, false]);
+    expect(seen.map((s) => s.options.water ?? false)).toEqual([false, true, true, true, true]);
     expect(seen.map((s) => s.options.tunings)).toEqual([false, true, true, true, true]);
     expect(seen.map((s) => s.options.charters)).toEqual([false, false, true, true, true]);
     expect(seen.map((s) => s.options.visions)).toEqual([false, false, false, true, true]);

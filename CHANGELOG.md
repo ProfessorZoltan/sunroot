@@ -1,5 +1,23 @@
 # Changelog
 
+## Water on screen (E2), from run 2
+
+- Water joins at run 2, with a guided first year: the expedition goes upriver, where fields need
+  irrigation. The start card explains it, and a hint under the new Water row guides the first two
+  seasons. Root City's "Full valley" box brings water to the next run whatever its number; Tempest
+  levels always have it.
+- Channels are dug into the map as ditches, joined to their neighbours and reaching into the river.
+  Water flows along them, drawn as wide as what it carries this season and thinning as buildings
+  drink; marks drift downstream. The river narrows as water is taken from it.
+- Choose Irrigation Channel (I) and click from a channel's end, or beside the river: the tool stays
+  in hand, tile after tile. The placement preview shows farms gaining food as water reaches them.
+- Hover any tile: a channel tile says what it takes from the river, what is taken there and what
+  flows on, by quality; a building what it needs and gets, and from where; the river what flows
+  past; a cistern what it holds. Buildings that will be short of water are marked on the map.
+- The season report has a Water section: a diagram of where every unit came from and went, each
+  channel's season, and who went short. Buildings at the same distance down a channel share water
+  by priority, set in the building panel as for blackouts.
+
 ## Water, in the simulation (E1)
 
 Water from [docs/EXPANSION.md](docs/EXPANSION.md), built in the simulation only: the game keeps it

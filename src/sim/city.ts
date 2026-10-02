@@ -91,6 +91,8 @@ export interface CityState {
   tempestUnlocked?: number;
   /** The Tempest level chosen for the next runs (missing: none). */
   tempest?: number;
+  /** Every layer of the teaching ladder from the next run on, for experienced players. */
+  fullValley?: boolean;
 }
 
 export type CityCommand =
@@ -101,6 +103,8 @@ export type CityCommand =
   | { type: 'chooseExpedition'; index: number }
   /** The Tempest level for the next runs, up to the highest unlocked. */
   | { type: 'setTempest'; level: number }
+  /** Every layer (water, and later commuting and local heat) from the next run on, or not. */
+  | { type: 'setFullValley'; on: boolean }
   | { type: 'embark' };
 
 /** Something a command brought about, for the interface to reveal. */
@@ -209,11 +213,14 @@ export interface Teaching {
   tunings: boolean;
   charters: boolean;
   visions: boolean;
+  water: boolean;
   /** Systems joining at this run, for a card at its start. */
-  joining: ('tunings' | 'charters' | 'visions')[];
+  joining: TaughtSystem[];
   /** The next system to join and the run it joins, if any ("the next unlock is always visible"). */
-  next: { system: 'tunings' | 'charters' | 'visions'; run: number } | null;
+  next: { system: TaughtSystem; run: number } | null;
 }
+
+export type TaughtSystem = 'tunings' | 'charters' | 'visions' | 'water';
 
 /** Teaching across runs: which systems a run (1 = the first) plays with. */
 export function teaching(content: Content, run: number): Teaching {
@@ -222,18 +229,21 @@ export function teaching(content: Content, run: number): Teaching {
     tunings: 1,
     charters: 1,
     visions: 1,
+    water: 1,
   };
-  const systems = (['tunings', 'charters', 'visions'] as const).map((system) => ({
+  const systems = (['water', 'tunings', 'charters', 'visions'] as const).map((system) => ({
     system,
     run: t[system],
   }));
   const later = systems.filter((s) => s.run > run).sort((a, b) => a.run - b.run);
   return {
     run,
-    guided: run < t.guidedUntil,
+    // The run water joins has a guided first year of its own (DECISIONS.md, Teaching by layers).
+    guided: run < t.guidedUntil || (run === t.water && run > 1),
     tunings: run >= t.tunings,
     charters: run >= t.charters,
     visions: run >= t.visions,
+    water: run >= t.water,
     joining: systems.filter((s) => s.run === run && run > 1).map((s) => s.system),
     next: later[0] ?? null,
   };
@@ -252,6 +262,8 @@ export function nextRunOptions(content: Content, city: CityState): RunOptions {
     : { twist: null, request: null };
   const tempest = Math.min(city.tempest ?? 0, city.tempestUnlocked ?? 0);
   if (tempest > 0) expedition.tempest = tempest;
+  // Every layer from the start, if the player asked; Tempest always plays the full valley.
+  const water = t.water || city.fullValley === true || tempest > 0;
   return {
     seed: city.expedition?.seed ?? `${city.seed}-${run}`,
     guided: t.guided,
@@ -260,6 +272,7 @@ export function nextRunOptions(content: Content, city: CityState): RunOptions {
     charters: t.charters,
     city: runCity(content, city),
     expedition,
+    ...(water ? { water } : {}),
   };
 }
 
@@ -388,6 +401,11 @@ export function applyCityCommand(
       if (level > (next.tempestUnlocked ?? 0)) return fail(`Tempest ${level} is not unlocked yet`);
       if (level === 0) delete next.tempest;
       else next.tempest = level;
+      break;
+    }
+    case 'setFullValley': {
+      if (command.on) next.fullValley = true;
+      else delete next.fullValley;
       break;
     }
     case 'chooseExpedition': {

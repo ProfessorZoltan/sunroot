@@ -65,6 +65,8 @@ export interface RunOptions {
   city?: RunCity;
   /** The expedition chosen for this run: its twist and its city request. */
   expedition?: RunExpedition;
+  /** The water system (EXPANSION.md): it joins at run 2 of the teaching ladder. */
+  water?: boolean;
 }
 
 export interface RunCity {
@@ -320,6 +322,12 @@ export interface ChannelReport {
   /** Water cisterns released into it, and took from it. */
   released: number;
   stored: number;
+  /** Water flowing on from each tile (in path order), after what was taken and put in there. */
+  carried: number[];
+  /** The same by quality: what flows on from each tile is clean, nutrient-rich or grey. */
+  carriedBy: WaterUnits[];
+  /** Water buildings took at each tile. */
+  usedAt: number[];
   /** Water left at its end: back into the river (at this position), or lost. */
   rejoined: WaterUnits;
   rejoinsAt: number | null;

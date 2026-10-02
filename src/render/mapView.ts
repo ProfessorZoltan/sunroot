@@ -10,7 +10,8 @@ import type { PhaseName, Timeline } from '../game/timeline';
 import type { Content } from '../sim/content/load';
 import { hexKey, type Hex } from '../sim/hex';
 import type { PlacementPreview, PreviewKey } from '../sim/preview';
-import type { RunState } from '../sim/types';
+import type { RunState, WaterReport } from '../sim/types';
+import { drawDitches, drawWater, waterView, type WaterView } from './waterArt';
 import { BUILDING_ART, drawCondition } from './buildingArt';
 import {
   HEX_RADIUS,
@@ -79,6 +80,11 @@ export class MapView {
   private readonly terrain = new Graphics();
   private readonly seasonLayer = new Graphics();
   private readonly flow = new Graphics();
+  /** Channel ditches: earthworks, drawn with the ground. */
+  private readonly ditches = new Graphics();
+  /** Water in the ditches and the river's strength, drawn each frame. */
+  private readonly water = new Graphics();
+  private waterView: WaterView | null = null;
   private readonly marksUnder = new Graphics();
   private readonly marksOver = new Graphics();
   private marks: Mark[] = [];
@@ -119,10 +125,11 @@ export class MapView {
     this.shaker.addChild(this.world);
     // The ground and the buildings change only with the run, so each is drawn once into
     // a texture (at the current zoom) instead of re-rasterizing every shape each frame.
-    this.ground.addChild(this.terrain, this.tileLayer, this.seasonLayer, this.flow);
+    this.ground.addChild(this.terrain, this.tileLayer, this.ditches, this.seasonLayer, this.flow);
     this.built.addChild(this.buildingLayer, this.buildings);
     this.world.addChild(
       this.ground,
+      this.water,
       this.marksUnder,
       this.underFx,
       this.built,
@@ -150,7 +157,10 @@ export class MapView {
     if (!this.reducedMotion)
       for (const [rotor, speed] of this.spinning) rotor.rotation += (dt / 1000) * speed;
     // Clouds, smoke and the rest are always about: the wildlife layer redraws each frame.
-    if (!this.reducedMotion) this.drawWildlife();
+    if (!this.reducedMotion) {
+      this.drawWildlife();
+      this.drawWaterNow();
+    }
   };
 
   /**
@@ -211,10 +221,15 @@ export class MapView {
     const signature = Object.values(state.map.tiles)
       .map((t) => t.type[0])
       .join('');
-    // Art changes with winter, and buildings drawn with their own tile take a tile's place.
+    // Art changes with winter, buildings drawn with their own tile take a tile's place, and
+    // channels are dug into the ground.
     const terrainSignature = [
       signature,
       state.season === 'winter',
+      ...Object.values(state.buildings)
+        .filter((b) => this.content.byId[b.type]?.water?.channel)
+        .map((b) => `~${hexKey(b.at)}`)
+        .sort(),
       ...Object.values(state.buildings)
         .filter((b) => hasGround(b.type))
         .map((b) => `${b.type}@${hexKey(b.at)}`)
@@ -264,6 +279,27 @@ export class MapView {
     if (this.player) return;
     drawMarkTiles(under, this.marks);
     drawMarkBadges(over, this.marks);
+  }
+
+  /**
+   * The water to show: this season's forecast while planning, or the season
+   * just resolved while it plays out. Null when the run has no water.
+   */
+  setWater(report: WaterReport | null): void {
+    const view = this.state ? waterView(this.state, report) : null;
+    this.waterView = view;
+    this.drawWaterNow();
+  }
+
+  private drawWaterNow(): void {
+    const g = this.water.clear();
+    if (this.waterView) drawWater(g, this.waterView, this.clock, this.reducedMotion);
+  }
+
+  /** What the water layer shows (for tests): units carried along each channel. */
+  get waterShown(): { channels: number[][]; river: number[] } | null {
+    const v = this.waterView;
+    return v ? { channels: v.channels.map((c) => c.units), river: v.river?.units ?? [] } : null;
   }
 
   /** The season the map is painted for, and which animals have returned (for tests). */
@@ -484,6 +520,7 @@ export class MapView {
       if (!procedural) this.tileLayer.addChild((procedural = new Graphics()));
       drawTile(procedural, tile, c, key);
     }
+    drawDitches(this.ditches.clear(), this.content, state);
 
     // The river's flow line runs through tile centres and on into the fog.
     const f = this.flow.clear();
@@ -545,6 +582,11 @@ export class MapView {
     let procedural: Graphics | null = null;
     for (const b of sorted) {
       const c = hexToPixel(b.at);
+      // Channels are ditches in the ground (drawn with the terrain).
+      if (this.content.byId[b.type]?.water?.channel) {
+        if (b.damage) drawCondition(g, c, 'damaged');
+        continue;
+      }
       const texture = buildingTexture(b.type, state.season);
       // Buildings drawn with their own tile are part of the terrain.
       if (texture && !hasGround(b.type)) {

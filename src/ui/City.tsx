@@ -469,6 +469,19 @@ export function CityScreen({
                 ? `From run ${teach.next.run}: ${describeSystem(teach.next.system)}.`
                 : 'Every system is in play.'}
             </p>
+            {!readOnly && (
+              <label class="small full-valley">
+                <input
+                  type="checkbox"
+                  checked={city.fullValley === true}
+                  onChange={(e) =>
+                    apply({ type: 'setFullValley', on: (e.target as HTMLInputElement).checked })
+                  }
+                />{' '}
+                Full valley: water from the next run, whatever its number (Tempest levels always
+                have it)
+              </label>
+            )}
           </section>
           <LandmarkPanel content={content} city={city} />
           <DistrictGuide content={content} />
@@ -502,6 +515,7 @@ function describeSystem(system: string): string {
   if (system === 'tunings') return 'tunings join the draft';
   if (system === 'charters') return 'charters at each new era';
   if (system === 'visions') return 'a vision to choose at the start';
+  if (system === 'water') return 'water: fields drink from channels dug from the river';
   return system;
 }
 

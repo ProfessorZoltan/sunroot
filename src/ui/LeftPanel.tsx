@@ -28,6 +28,7 @@ export function LeftPanel({ store }: { store: GameStore }) {
         ))}
         <div class="divider" />
         <WorkersRow store={store} />
+        <WaterRow store={store} />
         <div class="quiet small">Numbers on the right: the change by the end of this season.</div>
       </section>
       <VisionStatus store={store} />
@@ -110,6 +111,48 @@ function WorkersRow({ store }: { store: GameStore }) {
       </span>
       <span class="delta-num" />
     </div>
+  );
+}
+
+/** Water this season, as it stands: what the river brings and who would go short. */
+function WaterRow({ store }: { store: GameStore }) {
+  const w = store.waterForecast;
+  if (!w) return null;
+  const uses = Object.values(w.uses);
+  const short = uses.filter((u) => u.short).length;
+  // The first seasons of a guided year with water: how water works, in a line or two.
+  const teach = store.state.options.guided && store.state.turn < 2;
+  return (
+    <>
+      <div
+        class="store-row water-row"
+        title="Water this season, if it ended now. Hover a channel or a building for its water."
+      >
+        <Drop />
+        <span class="grow">
+          Water <span class="quiet small">· river {w.riverFlow}</span>
+        </span>
+        <span class={`strong ${short > 0 ? 'bad' : ''}`}>
+          {short > 0 ? `${short} short` : uses.length > 0 ? 'all watered' : '—'}
+        </span>
+        <span class="delta-num" />
+      </div>
+      {teach && (
+        <div class="small water-hint">
+          Farms, orchards and greenhouses drink from channels: build them beside the camp&rsquo;s
+          channel. To dig more, choose Irrigation Channel and click from a channel&rsquo;s end, or
+          beside the river. Hover a channel to see its water.
+        </div>
+      )}
+    </>
+  );
+}
+
+function Drop() {
+  return (
+    <svg class="icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+      <path d="M8 1.5 C8 1.5 3 7 3 10 a5 5 0 0 0 10 0 C13 7 8 1.5 8 1.5 Z" fill="#58a7cf" />
+    </svg>
   );
 }
 

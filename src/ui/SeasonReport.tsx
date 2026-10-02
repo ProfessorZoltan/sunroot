@@ -6,6 +6,7 @@
  * wellbeing and population.
  */
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { waterLedger, waterNotes } from '../game/waterInfo';
 import type { GameStore } from '../game/store';
 import {
   energyLedger,
@@ -15,6 +16,7 @@ import {
   type Resource,
   type Season,
   type SeasonReport,
+  type WaterReport,
   type Slot,
 } from '../sim';
 import { LAYER_NAMES } from '../game/almanac';
@@ -291,6 +293,26 @@ function Bonuses({ store, report }: { store: GameStore; report: SeasonReport }) 
   );
 }
 
+/** Where every unit of water came from and went this season (EXPANSION.md, E2). */
+function Water({ store, report }: { store: GameStore; report: WaterReport }) {
+  const ledger = waterLedger(store.rules, store.state, report);
+  return (
+    <>
+      <h3>Water</h3>
+      <SankeyDiagram
+        groups={[{ key: 'water', label: 'Water', color: '#2f7fa8', ...ledger }]}
+        label="Where the season's water came from and went. The list below has every value."
+        unit="in and out"
+      />
+      <ul class="plain small water-notes">
+        {waterNotes(store.rules, store.state, report).map((l) => (
+          <li>{l}</li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
 export function SeasonReportDialog({
   store,
   season,
@@ -371,6 +393,7 @@ export function SeasonReportDialog({
                   unit="supplied and used"
                 />
                 <Energy content={content} report={report} />
+                {report.water && <Water store={store} report={report.water} />}
                 <Bonuses store={store} report={report} />
               </div>
             )}

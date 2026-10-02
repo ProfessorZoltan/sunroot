@@ -244,6 +244,22 @@ export const BUILDING_ART: Record<string, Art> = {
       .quadraticCurveTo(c.x, c.y - 11, c.x + 13, c.y + 4)
       .stroke({ width: 2, color: COLORS.treeLight, cap: 'round' });
   },
+  /** A basin of ditch; on the map, arms join it to its neighbours (waterArt.ts). */
+  irrigationChannel(g, c) {
+    g.circle(c.x, c.y, 7.5).fill({ color: 0x6b5232, alpha: 0.75 });
+    g.circle(c.x, c.y, 5).fill({ color: 0x9a9a78 });
+    g.circle(c.x, c.y, 3).fill({ color: 0x58a7cf });
+  },
+  cistern(g, c) {
+    shadow(g, c, 12, 4, 8);
+    g.ellipse(c.x, c.y + 4, 11, 5).fill({ color: COLORS.stone });
+    g.rect(c.x - 11, c.y - 4, 22, 8).fill({ color: COLORS.stone });
+    g.ellipse(c.x, c.y - 4, 11, 5).fill({ color: 0xb8ad98 });
+    g.ellipse(c.x, c.y - 4, 8.5, 3.5).fill({ color: 0x6fb3cf });
+    g.moveTo(c.x - 11, c.y)
+      .lineTo(c.x + 11, c.y)
+      .stroke({ width: 1, color: 0x7d7262 });
+  },
   solarCanopy(g, c) {
     shadow(g, c, 13, 4, 11);
     panel(g, c, COLORS.solarTeal, 0x9fc6c8);

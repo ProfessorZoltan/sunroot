@@ -136,6 +136,26 @@ describe('channels', () => {
     expect(food(s, 5, 1)).toBe(0);
   });
 
+  it('report the water carried on from each tile, ending with what is left', () => {
+    let s = channel(start(), 5);
+    s = build(s, 'fishPond', [[1, 1]]);
+    s = build(s, 'floodplainFarm', [
+      [2, 1],
+      [3, 1],
+      [5, 1],
+    ]);
+    s = endSeason(s, W);
+    const ch = water(s).channels[0]!;
+    // The pond feeds 1 at tile 0 and the intake draws 2: the farms at tiles 1, 2 and 4 take 1 each
+    // (the first drinks the pond's nutrient-rich water), and nothing is left at the end.
+    expect(ch).toMatchObject({ drawn: 2, fed: 1 });
+    expect(ch.usedAt).toEqual([0, 1, 1, 0, 1]);
+    expect(ch.carried).toEqual([3, 2, 1, 1, 0]);
+    // By quality: the pond's nutrient-rich unit is drunk at tile 1; the rest is clean.
+    expect(ch.carriedBy[0]).toEqual({ clean: 2, nutrient: 1, grey: 0 });
+    expect(ch.carriedBy[1]).toEqual({ clean: 2, nutrient: 0, grey: 0 });
+  });
+
   it('break ties at the same distance by priority', () => {
     const narrow = withWater({
       campChannel: 0,

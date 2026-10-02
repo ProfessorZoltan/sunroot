@@ -242,8 +242,16 @@ export function resolveWater(ctx: SeasonContext): void {
       rejoined: units(),
       rejoinsAt: ch.rejoinsAt,
       lost: units(),
+      carried: [],
+      carriedBy: [],
+      usedAt: ch.keys.map(() => 0),
     };
     report.channels[c] = r;
+    // What enters and leaves the channel at each tile: fresh water enters at the intake.
+    const inAt = ch.keys.map(() => 0);
+    const outAt = ch.keys.map(() => 0);
+    // Nutrient-rich and grey water only come from buildings: what is in the pool past each tile.
+    const coloured = ch.keys.map(() => ({ nutrient: 0, grey: 0 }));
     const evaporation = evaporating
       ? Math.floor(ch.keys.length / rules.evaporation.tilesPerUnit)
       : 0;
@@ -254,11 +262,14 @@ export function resolveWater(ctx: SeasonContext): void {
         r.evaporated += e;
         r.drawn += e;
         room -= e;
+        inAt[0]! += e;
+        outAt[0]! += e;
         if (r.evaporated < evaporation) return 0;
       }
       const got = take(Math.min(n, room));
       r.drawn += got;
       room -= got;
+      inAt[0]! += got;
       return got;
     };
     const pool = units();
@@ -286,6 +297,7 @@ export function resolveWater(ctx: SeasonContext): void {
         const feeds = defOf(content, f.b).water!.feeds!;
         pool[feeds.quality] += feeds.amount;
         r.fed += feeds.amount;
+        inAt[p]! += feeds.amount;
         add(report.in, 'fed by ponds', feeds.amount);
         explain(ctx, f.b, `water: feeds ${feeds.amount} ${feeds.quality} into its channel`);
       }
@@ -307,11 +319,15 @@ export function resolveWater(ctx: SeasonContext): void {
             cis.b.stored = (cis.b.stored ?? 0) - t;
             u.got.clean += t;
             r.released += t;
+            inAt[cis.p]! += t;
           }
         }
+        outAt[p]! += total(u.got);
+        r.usedAt[p]! += total(u.got);
         if (w.returns && left() <= 0) {
           pool[w.returns.quality] += w.returns.amount;
           r.fed += w.returns.amount;
+          inAt[p]! += w.returns.amount;
           add(report.in, 'returned', w.returns.amount);
         }
         finish(u, x.b);
@@ -322,15 +338,24 @@ export function resolveWater(ctx: SeasonContext): void {
         pool.clean += t;
         if (t > 0) explain(ctx, x.b, `water: cleaned ${t} grey water`);
       }
+      coloured[p] = { nutrient: pool.nutrient, grey: pool.grey };
     }
     // Cisterns refill, upstream first: from clean water left in the channel, then fresh.
     for (const cis of myCisterns) {
-      r.stored += refill(cis.b, (n) => {
+      const gain = refill(cis.b, (n) => {
         const spare = Math.min(n, pool.clean);
         pool.clean -= spare;
         return spare + fresh(n - spare);
       });
+      r.stored += gain;
+      outAt[cis.p]! += gain;
     }
+    let running = 0;
+    r.carried = ch.keys.map((_, p) => (running += inAt[p]! - outAt[p]!));
+    r.carriedBy = r.carried.map((n, p) => ({
+      clean: n - coloured[p]!.nutrient - coloured[p]!.grey,
+      ...coloured[p]!,
+    }));
     add(report.out, 'evaporated', r.evaporated);
     for (const q of WATER_QUALITIES) {
       if (ch.rejoinsAt !== null) {

@@ -27,6 +27,7 @@ import {
   type PlacementPreview,
   type RunState,
   type SeasonReport,
+  type WaterReport,
 } from '../sim';
 import { EMPTY_ALMANAC, entryView, recordRun, type Almanac } from './almanac';
 import type { Graft, RunResult } from '../sim';
@@ -156,6 +157,11 @@ export class GameStore {
   /** The content as this run plays it (Root City's perks, the twist, tunings, charters). */
   get rules(): Content {
     return effectiveContent(this.content, this.state);
+  }
+
+  /** This season's water as it stands (a forecast), or null when the run has no water. */
+  get waterForecast(): WaterReport | null {
+    return this.asIs().lastReport?.water ?? null;
   }
 
   /** Everything the panels show, for the current state. */

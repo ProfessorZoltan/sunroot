@@ -1,5 +1,6 @@
 /** The footer, the map's forecast pill and building tooltip, keyboard help and the end-of-run screen. */
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { waterAt } from '../game/waterInfo';
 import type { AudioEngine } from '../audio/engine';
 import { reachSummary } from '../game/marks';
 import { logToCsv, type PlayLog } from '../game/playlog';
@@ -220,7 +221,11 @@ export function MapTip({ store, view }: { store: GameStore; view: MapView | null
   const tile = state.map.tiles[hexKey(store.hover)];
   if (!tile) return null;
   const at = view.screenOf(store.hover);
-  const math = b ? (store.insight.now.math[b.uid] ?? []) : [];
+  // Water as this season stands (when the run has water); its lines replace the math's.
+  const water = waterAt(store.rules, state, store.waterForecast, store.hover);
+  const math = (b ? (store.insight.now.math[b.uid] ?? []) : []).filter(
+    (l) => water.length === 0 || !l.startsWith('water:'),
+  );
   const marks = store.marks.filter((m) => hexKey(m.at) === hexKey(store.hover!));
   const title = b
     ? content.byId[b.type]!.name
@@ -236,6 +241,9 @@ export function MapTip({ store, view }: { store: GameStore; view: MapView | null
       {tile.salvage !== undefined && <div class="small">{tile.salvage} salvage left</div>}
       {marks.map((m) => (
         <div class={`small mark-line${m.coming ? ' coming' : ''}`}>{m.text}</div>
+      ))}
+      {water.map((l) => (
+        <div class="small water-line">{l}</div>
       ))}
       {math.slice(0, 6).map((l) => (
         <div class="small">{l}</div>

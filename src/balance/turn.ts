@@ -19,6 +19,7 @@ import {
   type Tile,
 } from '../sim';
 import { nextFloat, type RngState } from '../sim/rng';
+import { contentFor } from '../sim/content/modifiers';
 
 export type Sight = 'forecast' | 'outcome';
 export const SIGHTS: readonly Sight[] = ['forecast', 'outcome'];
@@ -120,9 +121,14 @@ export class Turn {
     );
   }
 
-  /** Whether the water system is on (EXPANSION.md). */
+  /** The run's own rules: the water system, its twist, Root City's perks and its cards. */
+  get rules(): Content {
+    return contentFor(this.content, this.state);
+  }
+
+  /** Whether the water system is on for this run (EXPANSION.md). */
   get waterOn(): boolean {
-    return this.content.rules.water.enabled;
+    return this.rules.rules.water.enabled;
   }
 
   /** Whether a building here could draw water: beside the river, a lake or a channel. */
@@ -131,7 +137,7 @@ export class Turn {
       const key = hexKey(n);
       const tile = this.state.map.tiles[key];
       if (tile && (tile.type === 'river' || tile.type === 'reservoir'))
-        return this.content.rules.water.drawBesideRiver;
+        return this.rules.rules.water.drawBesideRiver;
       const b = occ.get(key);
       return b !== undefined && (this.content.byId[b.type]!.water?.channel ?? false);
     });
