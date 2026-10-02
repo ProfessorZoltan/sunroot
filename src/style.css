@@ -15,8 +15,9 @@
   --glass-text: #f6eedb;
   --glass-quiet: #d9e6e1;
   --glass-gold: #f2d48a;
-  --display: 'Fraunces', Georgia, serif;
-  --ui: 'Nunito', system-ui, sans-serif;
+  /* Numbers in Atkinson Hyperlegible Next (digits only, see src/fonts.ts), text in the pair. */
+  --display: 'Sunroot Numbers', 'Fraunces Variable', Georgia, serif;
+  --ui: 'Sunroot Numbers', 'Nunito Variable', system-ui, sans-serif;
 }
 
 * {
@@ -31,6 +32,7 @@ body,
   background: var(--paper);
   color: var(--ink);
   font-family: var(--ui);
+  font-variant-numeric: tabular-nums;
 }
 
 .screen {

@@ -560,7 +560,7 @@ function popLabel(pop: Pop): Container {
   const text = new Text({
     text: pop.text,
     style: {
-      fontFamily: 'Nunito, system-ui, sans-serif',
+      fontFamily: '"Sunroot Numbers", "Nunito Variable", system-ui, sans-serif',
       fontSize: 12,
       fontWeight: '800',
       fill: color,

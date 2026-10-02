@@ -1,5 +1,11 @@
 # Changelog
 
+## Type
+
+- Numbers are set in Atkinson Hyperlegible Next, easier to read at a glance; titles stay in
+  Fraunces and text in Nunito. All three fonts now come with the game, so nothing changes font
+  after the page loads.
+
 ## More room for the map
 
 - The footer is gone. **End season**, **Undo** and **Fast-forward** sit at the foot of the map;

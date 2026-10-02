@@ -18,6 +18,7 @@
  */
 import { Application } from 'pixi.js';
 import { render } from 'preact';
+import { fontsReady } from './fonts';
 import willowReach from './content/willow-reach.json';
 import { connectAudio } from './audio/director';
 import { AudioEngine } from './audio/engine';
@@ -52,6 +53,8 @@ import { CityScreen } from './ui/City';
 const randomSeed = (prefix: string) => `${prefix}-${Math.floor(Math.random() * 1e9).toString(36)}`;
 
 async function start() {
+  // The type is served with the app; wait for it so nothing changes font after the first paint.
+  await fontsReady();
   const params = new URLSearchParams(location.search);
   const content = loadContent(willowReach);
   let storage: Storage | null = null;

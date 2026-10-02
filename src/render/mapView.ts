@@ -840,7 +840,7 @@ export class MapView {
       const text = new Text({
         text: `${amount > 0 ? '+' : '−'}${Math.abs(amount)} ${label}`,
         style: {
-          fontFamily: 'Nunito, system-ui, sans-serif',
+          fontFamily: '"Sunroot Numbers", "Nunito Variable", system-ui, sans-serif',
           fontSize: 12,
           fontWeight: '700',
           fill: amount > 0 ? COLORS.good : COLORS.bad,
