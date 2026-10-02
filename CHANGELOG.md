@@ -1,5 +1,13 @@
 # Changelog
 
+## Hedgerows on edges, on screen
+
+- The Hedgerow is back in the draft. Pick its card and point at the side of a tile: the side lights
+  up gold where a hedge can go, red where it can't. Click to plant (2 materials), click again to
+  clear. `[` and `]` turn the side from the keyboard.
+- Hedges have hand-made art along every side, summer and winter, and the tooltip says how many
+  sides of a tile are hedged.
+
 ## Hedgerows on edges, in the simulation
 
 Built in the simulation only: the map can't show them yet, so the Hedgerow is out of the draft

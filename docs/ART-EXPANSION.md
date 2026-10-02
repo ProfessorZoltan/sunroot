@@ -33,11 +33,14 @@ The wildlife, festival and wonder art waits in its own folders for E4 and E5.
 | Top-face corners, clockwise from the top | (256, 168), (456, 283.47), (456, 463.47), (256, 579), (56, 463.47), (56, 283.47) | `art/incoming/README.md` |
 | Paper side band                          | 32 px, lowest point y 611                                                        | `art/incoming/README.md` |
 
-## Hedgerows on edges (new request)
+## Hedgerows on edges (delivered)
 
 Hedgerows now run along the **edges between tiles**, not across a tile (DECISIONS.md, Hedgerows on
 edges), so the hub-and-arms hedgerow pieces below no longer fit. Each tile draws the hedges on
-three of its sides; the tile next door draws the other three. Please draw:
+three of its sides; the tile next door draws the other three. Delivered in
+`art/incoming/hedgerows_modified/`, drawn on their own with guides marking each side;
+`scripts/fit-hedges.ts` fits them onto the frame below (the hub-and-arms pieces are retired). The
+spec:
 
 | Piece                      | Files                                                 | Notes                                                                                                                                                             | Source       |
 | -------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |

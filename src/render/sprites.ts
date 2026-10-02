@@ -93,6 +93,15 @@ export function armTexture(id: string, arm: number, season: Season): Texture | n
     : pick(`buildings/${id}.${name}.png`);
 }
 
+/** A hedge along one of the three sides a tile draws (0 east, 1 north-east, 2 north-west). */
+export function edgeTexture(id: string, side: number, season: Season): Texture | null {
+  const name = ARMS[side];
+  if (side > 2 || !name) return null;
+  return season === 'winter'
+    ? pick(`buildings/${id}.edge.${name}.winter.png`, `buildings/${id}.edge.${name}.png`)
+    : pick(`buildings/${id}.edge.${name}.png`);
+}
+
 /** Whether a building is drawn as a hub with arms to its neighbours. */
 export function hasArms(id: string): boolean {
   return textures.has(`buildings/${id}.e.png`);

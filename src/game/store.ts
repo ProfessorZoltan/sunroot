@@ -15,6 +15,7 @@ import {
   scoreRun,
   seedsForRun,
   hexKey,
+  hexNeighbors,
   offsetToAxial,
   parseHexKey,
   previewPlacement,
@@ -36,12 +37,18 @@ import { heatLines, type HeatLine } from './heatInfo';
 import { EMPTY_ALMANAC, entryView, recordRun, type Almanac } from './almanac';
 import type { Graft, RunResult } from '../sim';
 import { coppiceCombo, coppiceProblem } from '../sim/combos';
+import { edgeKey, hedgeProblem } from '../sim/edges';
 import { computeInsight, type Insight } from './insight';
 import { mapMarks, type Mark } from './marks';
 import type { PhaseName } from './timeline';
 
 /** A building to place, spreading compost on a tile, or coppicing woodland (Coppice Wood). */
-export type Tool = { kind: 'build'; building: string } | { kind: 'compost' } | { kind: 'coppice' };
+export type Tool =
+  | { kind: 'build'; building: string }
+  | { kind: 'compost' }
+  | { kind: 'coppice' }
+  /** Planting hedges along tile edges (the Hedgerow): the side of the tile in hand is `hedgeSide`. */
+  | { kind: 'hedge' };
 
 export interface Placement {
   building: string;
@@ -457,7 +464,40 @@ export class GameStore {
   }
 
   selectBuilding(building: string | null): void {
+    // A hedgerow is planted along edges, with its own tool.
+    if (building && this.rules.byId[building]?.edge) return this.setTool({ kind: 'hedge' });
     this.setTool(building ? { kind: 'build', building } : null);
+  }
+
+  /** Which side of the tile under the cursor the hedge tool aims at (HEX_DIRECTIONS order). */
+  hedgeSide = 0;
+
+  /** The edge the hedge tool aims at: the cursor's tile and its neighbour on `hedgeSide`. */
+  get hoverEdge(): {
+    a: Hex;
+    b: Hex;
+    key: string;
+    planted: boolean;
+    problem: string | null;
+  } | null {
+    if (this.tool?.kind !== 'hedge' || !this.hover) return null;
+    const a = this.hover;
+    const b = hexNeighbors(a)[this.hedgeSide]!;
+    const key = edgeKey(a, b);
+    const planted = this.state.hedges.includes(key);
+    return {
+      a,
+      b,
+      key,
+      planted,
+      problem: planted ? null : hedgeProblem(this.rules, this.state, a, b),
+    };
+  }
+
+  /** `[` and `]`: turn the hedge tool to the tile's next side. */
+  turnHedge(step: 1 | -1): void {
+    this.hedgeSide = (this.hedgeSide + step + 6) % 6;
+    this.emit();
   }
 
   setTool(tool: Tool | null): void {
@@ -473,7 +513,12 @@ export class GameStore {
     return this.tool?.kind === 'build' ? this.tool.building : null;
   }
 
-  hoverAt(hex: Hex | null): void {
+  /** The pointer is over this tile; `side`, if given, is the side it is nearest (for hedges). */
+  hoverAt(hex: Hex | null, side?: number): void {
+    if (side !== undefined && this.tool?.kind === 'hedge' && side !== this.hedgeSide) {
+      this.hedgeSide = side;
+      if (hex && this.hover && hexKey(hex) === hexKey(this.hover)) return this.emit();
+    }
     if (hex === this.hover || (hex && this.hover && hexKey(hex) === hexKey(this.hover))) return;
     this.hover = hex;
     this.refreshPlacement();
@@ -487,6 +532,12 @@ export class GameStore {
       this.dispatch({ type: 'place', building: this.tool.building, at: hex });
     } else if (this.tool?.kind === 'compost') {
       this.dispatch({ type: 'spreadCompost', at: hex });
+    } else if (this.tool?.kind === 'hedge') {
+      // A click plants a hedge on the edge in aim, or clears the one there.
+      const e = this.hover && hexKey(hex) === hexKey(this.hover) ? this.hoverEdge : null;
+      const b = e?.b ?? hexNeighbors(hex)[this.hedgeSide]!;
+      const planted = this.state.hedges.includes(edgeKey(hex, b));
+      this.dispatch({ type: planted ? 'removeHedge' : 'plantHedge', a: hex, b });
     } else if (this.tool?.kind === 'coppice') {
       this.dispatch({ type: 'coppice', at: hex });
     } else {
@@ -521,6 +572,15 @@ export class GameStore {
     const next =
       at < 0 ? (step === 1 ? 0 : sites.length - 1) : (at + step + sites.length) % sites.length;
     this.hoverAt(sites[next]!);
+    // The hedge tool turns to the first side of that tile it can plant on.
+    if (this.tool?.kind === 'hedge') {
+      const h = sites[next]!;
+      const side = hexNeighbors(h).findIndex(
+        (n) => hedgeProblem(this.rules, this.state, h, n) === null,
+      );
+      if (side >= 0) this.hedgeSide = side;
+      this.emit();
+    }
   }
 
   private marksCache: { state: RunState; marks: Mark[] } | null = null;
@@ -568,9 +628,11 @@ export class GameStore {
     const legal = Object.values(this.state.map.tiles).filter((t) =>
       tool.kind === 'build'
         ? canPlace(this.content, this.state, tool.building, t).ok
-        : tool.kind === 'coppice'
-          ? coppiceProblem(this.rules, this.state, t) === null
-          : ladder.indexOf(t.type) >= 0 && ladder.indexOf(t.type) < ladder.length - 1,
+        : tool.kind === 'hedge'
+          ? hexNeighbors(t).some((n) => hedgeProblem(this.rules, this.state, t, n) === null)
+          : tool.kind === 'coppice'
+            ? coppiceProblem(this.rules, this.state, t) === null
+            : ladder.indexOf(t.type) >= 0 && ladder.indexOf(t.type) < ladder.length - 1,
     );
     const risky = (t: { type: string }) =>
       def !== undefined && !def.floodTolerant && t.type === 'floodplain';

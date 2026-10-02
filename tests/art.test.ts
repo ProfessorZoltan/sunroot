@@ -61,12 +61,19 @@ describe('hand-made art', () => {
     }
   });
 
-  it('draws channels and hedgerows as a hub with an arm to each neighbour, and a sluice gate', () => {
-    for (const id of ['irrigationChannel', 'hedgerow'])
-      for (const arm of ['e', 'ne', 'nw', 'w', 'sw', 'se'])
-        for (const season of ['', '.winter'])
-          expect(art(`buildings/${id}.${arm}${season}.png`), `${id}.${arm}${season}`).toBe(true);
+  it('draws channels as a hub with an arm to each neighbour, with a sluice gate', () => {
+    for (const arm of ['e', 'ne', 'nw', 'w', 'sw', 'se'])
+      for (const season of ['', '.winter'])
+        expect(art(`buildings/irrigationChannel.${arm}${season}.png`), `${arm}${season}`).toBe(
+          true,
+        );
     expect(art('buildings/sluiceGate.png')).toBe(true);
+  });
+
+  it('draws hedges along the three sides a tile owns (DECISIONS.md, Hedgerows on edges)', () => {
+    for (const side of ['e', 'ne', 'nw'])
+      for (const season of ['', '.winter'])
+        expect(art(`buildings/hedgerow.edge.${side}${season}.png`), `${side}${season}`).toBe(true);
   });
 
   it('marks only buildings that stand on one kind of tile as carrying their own', () => {

@@ -170,6 +170,9 @@ export function App({
         }
         return;
       }
+      // The hedge tool turns between a tile's sides.
+      if ((key === '[' || key === ']') && store.tool?.kind === 'hedge')
+        return (handled(), store.turnHedge(key === ']' ? 1 : -1));
       if (key === '+' || key === '=') return map?.zoomBy(1.2);
       if (key === '-') return map?.zoomBy(1 / 1.2);
       if (key === '0') return map?.fit();

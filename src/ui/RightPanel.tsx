@@ -211,7 +211,9 @@ function BuildPanel({ store, ui }: { store: GameStore; ui: Ui }) {
           // Numbers as this run plays them (Root City perks, tunings, charters).
           const def = store.rules.byId[id]!;
           const afford = state.stores.materials >= def.cost;
-          const selected = store.selectedBuilding === id;
+          const selected =
+            store.selectedBuilding === id ||
+            (store.tool?.kind === 'hedge' && def.edge !== undefined);
           const key = ui.hotkeys[id];
           return (
             <button
@@ -296,6 +298,24 @@ export function paletteOrder(content: Content, unlocked: string[]): string[] {
 function PlacementPanel({ store }: { store: GameStore }) {
   const { content } = store;
   const p = store.placement;
+  if (store.tool?.kind === 'hedge') {
+    const e = store.hoverEdge;
+    const def = Object.values(store.rules.byId).find((d) => d.edge)!;
+    return (
+      <section class={`panel${e?.problem ? ' invalid' : ''}`} role="status">
+        <h3>{def.name}</h3>
+        <div class="small">
+          {e?.planted
+            ? 'A hedge stands here: click to clear it (nothing back).'
+            : (e?.problem ??
+              `Planted along the edge between two tiles, ${def.cost} materials a segment. It shelters the buildings on both sides from storms; every ${def.edge!.harmonyPer} segments give 1 Harmony; 4 joined end to end make a windbreak.`)}
+        </div>
+        <div class="quiet small">
+          Point at a side of a tile, or press [ and ] to turn to the next side.
+        </div>
+      </section>
+    );
+  }
   if (store.tool?.kind === 'coppice') {
     const problem = store.hover ? store.coppiceProblem(store.hover) : null;
     return (

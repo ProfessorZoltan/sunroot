@@ -271,7 +271,7 @@ async function start() {
   await loadArt();
   host.appendChild(app.canvas);
   view = new MapView(app, content, {
-    onHover: (hex) => store.hoverAt(hex),
+    onHover: (hex, side) => store.hoverAt(hex, side),
     onClick: (hex) => store.clickAt(hex),
     onCancel: () => store.setTool(null),
   });
@@ -302,6 +302,7 @@ async function start() {
     view!.setWater(r ? r.report.water : store.waterForecast);
     view!.setWalks(store.walkLines, store.heatLines);
     view!.setMarks(store.marks);
+    view!.setEdgeCursor(store.hoverEdge);
     view!.setOverlay(
       store.hover,
       store.placement,

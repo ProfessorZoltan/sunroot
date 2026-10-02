@@ -788,8 +788,7 @@
       },
       "edge": {
         "harmonyPer": 2
-      },
-      "draftable": false
+      }
     },
     {
       "id": "solarCanopy",

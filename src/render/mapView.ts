@@ -8,7 +8,8 @@ import type { Application } from 'pixi.js';
 import { Container, Graphics, Text, type Sprite } from 'pixi.js';
 import type { PhaseName, Timeline } from '../game/timeline';
 import type { Content } from '../sim/content/load';
-import { hexKey, hexNeighbors, type Hex } from '../sim/hex';
+import { hexKey, hexNeighbors, parseHexKey, type Hex } from '../sim/hex';
+import { edgeEnds, edgeTiles } from '../sim/edges';
 import type { PlacementPreview, PreviewKey } from '../sim/preview';
 import type { RunState, WaterReport } from '../sim/types';
 import { channels } from '../sim/water';
@@ -37,6 +38,7 @@ import {
   artSprite,
   armTexture,
   buildingTexture,
+  edgeTexture,
   hasArms,
   hasGround,
   rotorSprite,
@@ -45,7 +47,8 @@ import {
 } from './sprites';
 
 export interface MapViewEvents {
-  onHover(hex: Hex | null): void;
+  /** The tile under the pointer, and which of its sides the pointer is nearest (for hedges). */
+  onHover(hex: Hex | null, side?: number): void;
   onClick(hex: Hex): void;
   onCancel(): void;
 }
@@ -109,6 +112,8 @@ export class MapView {
   private readonly wildlife = new Graphics();
   private readonly overFx = new Container();
   private readonly overlay = new Graphics();
+  /** The edge the hedge tool aims at. */
+  private readonly edgeCursor = new Graphics();
   private readonly labels = new Container();
   private readonly screenFx = new Container();
   private bounds: Bounds | null = null;
@@ -147,6 +152,7 @@ export class MapView {
       this.wildlife,
       this.overFx,
       this.overlay,
+      this.edgeCursor,
       this.labels,
     );
     this.listen(app.canvas);
@@ -356,6 +362,24 @@ export class MapView {
       g.circle(b.x, b.y, 3).fill({ color: 0xfffbf0 }).stroke({ width: 1.5, color });
     }
   }
+
+  /**
+   * The hedge tool's aim: the edge, gold where a hedge can go, red where it can't, and pale
+   * where one stands (a click clears it).
+   */
+  setEdgeCursor(edge: { key: string; planted: boolean; problem: string | null } | null): void {
+    const g = this.edgeCursor.clear();
+    if (!edge) return;
+    const [a, b] = edgeLine(edge.key);
+    const color = edge.planted ? 0xfffbf0 : edge.problem ? 0xc0392b : COLORS.leadingGold;
+    g.moveTo(a.x, a.y)
+      .lineTo(b.x, b.y)
+      .stroke({ width: 7, color: 0x3a2a1a, alpha: 0.35, cap: 'round' });
+    g.moveTo(a.x, a.y).lineTo(b.x, b.y).stroke({ width: 4, color, alpha: 0.95, cap: 'round' });
+  }
+
+  /** How many hedges the map draws (for tests). */
+  hedgesShown = 0;
 
   /** How many walks the map shows (for tests). */
   walksShown = 0;
@@ -687,8 +711,40 @@ export class MapView {
       (a, b) => a.at.r - b.at.r || a.at.q - b.at.q,
     );
     const occupant = new Map(sorted.map((b) => [hexKey(b.at), b.uid]));
+    // Hedges along tile edges: each drawn by the tile that owns its side (its east, north-east or
+    // north-west), just before that tile's building, so it stands behind it.
+    const hedgeDef = Object.values(this.content.byId).find((d) => d.edge);
+    const hedges = state.hedges
+      .map((key) => {
+        const [a, b] = edgeTiles(key);
+        const i = hexNeighbors(a).findIndex((n) => hexKey(n) === hexKey(b));
+        return i < 3 ? { key, owner: a, side: i } : { key, owner: b, side: i - 3 };
+      })
+      .sort((x, y) => x.owner.r - y.owner.r || x.owner.q - y.owner.q);
+    this.hedgesShown = hedges.length;
+    let nextHedge = 0;
+    const drawHedgesUpTo = (at: Hex | null) => {
+      while (nextHedge < hedges.length) {
+        const h = hedges[nextHedge]!;
+        if (at && (h.owner.r > at.r || (h.owner.r === at.r && h.owner.q > at.q))) return;
+        nextHedge++;
+        const texture = hedgeDef ? edgeTexture(hedgeDef.id, h.side, state.season) : null;
+        if (texture) {
+          this.buildingLayer.addChild(artSprite(texture, hexToPixel(h.owner)));
+          procedural = null;
+        } else {
+          if (!procedural) this.buildingLayer.addChild((procedural = new Graphics()));
+          const [p, q] = edgeLine(h.key);
+          procedural
+            .moveTo(p.x, p.y)
+            .lineTo(q.x, q.y)
+            .stroke({ width: 6, color: COLORS.treeLight, cap: 'round' });
+        }
+      }
+    };
     let procedural: Graphics | null = null;
     for (const b of sorted) {
+      drawHedgesUpTo(b.at);
       const c = hexToPixel(b.at);
       // Channels are ditches in the ground (drawn with the terrain); a canal-top solar's
       // panels stand over its ditch.
@@ -727,6 +783,7 @@ export class MapView {
       // While the season resolves, blackouts show when night falls.
       else if (report?.blackouts.includes(b.uid) && !this.player) drawCondition(g, c, 'dark');
     }
+    drawHedgesUpTo(null);
     this.built.updateCacheTexture();
   }
 
@@ -797,7 +854,8 @@ export class MapView {
           return;
         }
       }
-      this.events.onHover(this.hexAt(p));
+      const h = this.hexAt(p);
+      this.events.onHover(h, h ? nearestSide(h, this.toWorld(p)) : undefined);
     });
     canvas.addEventListener('pointerup', (e) => {
       const pointer = this.pointer;
@@ -850,4 +908,35 @@ function missingArt(g: Graphics, c: Point): void {
 
 function clamp(x: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, x));
+}
+
+/** A corner of the map: the middle of the three tiles that meet there. */
+function cornerPoint(corner: string): Point {
+  const pts = corner.split('/').map((k) => hexToPixel(parseHexKey(k)));
+  return {
+    x: pts.reduce((a, p) => a + p.x, 0) / pts.length,
+    y: pts.reduce((a, p) => a + p.y, 0) / pts.length,
+  };
+}
+
+/** An edge between two tiles, as its two corners. */
+function edgeLine(key: string): [Point, Point] {
+  const [a, b] = edgeEnds(key);
+  return [cornerPoint(a), cornerPoint(b)];
+}
+
+/** Which side of a tile (HEX_DIRECTIONS order) a point is nearest. */
+function nearestSide(h: Hex, p: Point): number {
+  const c = hexToPixel(h);
+  let best = 0;
+  let bestD = Infinity;
+  hexNeighbors(h).forEach((n, i) => {
+    const m = hexToPixel(n);
+    const d = Math.hypot((c.x + m.x) / 2 - p.x, (c.y + m.y) / 2 - p.y);
+    if (d < bestD) {
+      best = i;
+      bestD = d;
+    }
+  });
+  return best;
 }

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { waterAt } from '../game/waterInfo';
 import { commuteAt } from '../game/commuteInfo';
 import { heatAt } from '../game/heatInfo';
+import { edgesAround } from '../sim/edges';
 import type { AudioEngine } from '../audio/engine';
 import { reachSummary } from '../game/marks';
 import { logToCsv, type PlayLog } from '../game/playlog';
@@ -231,6 +232,7 @@ export function MapTip({ store, view }: { store: GameStore; view: MapView | null
   const at = view.screenOf(store.hover);
   // Water as this season stands (when the run has water); its lines replace the math's.
   const water = waterAt(store.rules, state, store.waterForecast, store.hover);
+  const hedgeSides = edgesAround(store.hover).filter((e) => state.hedges.includes(e)).length;
   const walks = commuteAt(store.rules, state, store.commuteForecast, store.hover);
   const heat = heatAt(store.rules, state, store.heatForecast, store.hover, store.coldForecast);
   const math = (b ? (store.insight.now.math[b.uid] ?? []) : []).filter(
@@ -252,6 +254,12 @@ export function MapTip({ store, view }: { store: GameStore; view: MapView | null
       {marks.map((m) => (
         <div class={`small mark-line${m.coming ? ' coming' : ''}`}>{m.text}</div>
       ))}
+      {hedgeSides > 0 && (
+        <div class="small">
+          A hedge along {hedgeSides === 1 ? '1 side' : `${hedgeSides} sides`}: storms can’t damage
+          what stands here.
+        </div>
+      )}
       {water.map((l) => (
         <div class="small water-line">{l}</div>
       ))}
