@@ -180,6 +180,27 @@ export const BuildingSchema = z
     }),
     housing: nonNeg.default(0),
     foodStorage: nonNeg.default(0),
+    /**
+     * A biome wonder (EXPANSION.md, E5): built over a flower of 7 tiles (its own
+     * and the 6 around it), once a run, from its `minEra`. It is started once the
+     * run has the loops and buildings it needs, takes `seasons` to build, and
+     * once finished adds to the score and raises the Graft.
+     */
+    wonder: z
+      .object({
+        seasons: int.min(1),
+        /** What it costs beyond its materials. */
+        alsoCosts: z.partialRecord(ResourceSchema, int.min(1)).default({}),
+        /** Loops (combo ids) closed and standing, and buildings standing, to start it. */
+        needsLoops: z.array(z.string()).default([]),
+        needsBuildings: z.record(z.string(), int.min(1)).default({}),
+        /** One of its tiles must touch the river, a reservoir or a channel. */
+        nearWater: z.boolean().default(true),
+        score: nonNeg,
+        graftTiers: nonNeg.default(0),
+      })
+      .strict()
+      .optional(),
     /** Flat materials per season (the Founders' Camp forages). */
     forage: nonNeg.default(0),
     yields: z.partialRecord(ResourceSchema, PerSeason).default({}),
@@ -867,6 +888,8 @@ export const GoalSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('loops'), count: int.min(1) }),
   /** Harmony at least this high. */
   z.object({ kind: z.literal('harmony'), harmony: int.min(1) }),
+  /** This wonder finished (E5). */
+  z.object({ kind: z.literal('wonder'), building: z.string() }),
 ]);
 export type Goal = z.infer<typeof GoalSchema>;
 
@@ -883,6 +906,8 @@ export const EraGoalSchema = z
     era: int.min(1),
     text: z.string(),
     goal: GoalSchema,
+    /** Another way to meet it, when this content has it (the Bloom era: the Great Water Garden). */
+    or: z.object({ text: z.string(), goal: GoalSchema }).strict().optional(),
     reward: z.object({ knowledge: nonNeg.default(0) }),
   })
   .strict();

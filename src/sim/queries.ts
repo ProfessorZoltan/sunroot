@@ -33,13 +33,20 @@ export function occupancy(state: RunState): Map<string, BuildingState> {
   const cached = occupancyCache.get(state.buildings);
   if (cached && cached.size === size) return cached.map;
   const map = new Map<string, BuildingState>();
-  for (const b of Object.values(state.buildings)) map.set(hexKey(b.at), b);
+  for (const b of Object.values(state.buildings)) {
+    map.set(hexKey(b.at), b);
+    // A wonder covers the tiles around it as well.
+    if (b.footprint) for (const n of hexNeighbors(b.at)) map.set(hexKey(n), b);
+  }
   occupancyCache.set(state.buildings, { size, map });
   return map;
 }
 
 export function buildingAt(state: RunState, h: Hex): BuildingState | undefined {
-  return Object.values(state.buildings).find((b) => b.at.q === h.q && b.at.r === h.r);
+  return Object.values(state.buildings).find(
+    (b) =>
+      (b.at.q === h.q && b.at.r === h.r) || (b.footprint && hexDistance(b.at, h) <= b.footprint),
+  );
 }
 
 /** Buildings in priority order, highest first. */
@@ -52,7 +59,16 @@ export function neighborBuildings(
   b: BuildingState,
   occ = occupancy(state),
 ): BuildingState[] {
-  return buildingsTouching(state, b.at, occ);
+  // A wonder's own tiles are not its neighbours.
+  if (b.footprint)
+    return [
+      ...new Set(
+        hexNeighbors(b.at)
+          .flatMap((n) => buildingsTouching(state, n, occ))
+          .filter((x) => x !== b),
+      ),
+    ];
+  return buildingsTouching(state, b.at, occ).filter((x) => x !== b);
 }
 
 /** Buildings on the tiles next to a hex. */
@@ -61,9 +77,14 @@ export function buildingsTouching(
   h: Hex,
   occ = occupancy(state),
 ): BuildingState[] {
-  return hexNeighbors(h)
-    .map((n) => occ.get(hexKey(n)))
-    .filter((x): x is BuildingState => x !== undefined);
+  // A wonder touching a tile on two sides is still one neighbour.
+  return [
+    ...new Set(
+      hexNeighbors(h)
+        .map((n) => occ.get(hexKey(n)))
+        .filter((x): x is BuildingState => x !== undefined),
+    ),
+  ];
 }
 
 export function neighborTiles(state: RunState, h: Hex): Tile[] {

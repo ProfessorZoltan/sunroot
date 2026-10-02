@@ -47,7 +47,10 @@ import {
   propTexture,
   tileTexture,
   wildlifeTexture,
+  wonderSprite,
+  wonderTexture,
 } from './sprites';
+import { wonderStage } from '../sim/wonder';
 import { festivalProps, poseAt, wildlifeActors, type Actor, type Prop } from './wildlifeArt';
 import { animals as wildlifeOf } from '../sim/wildlife';
 import { effectiveContent } from '../sim/content/modifiers';
@@ -119,6 +122,8 @@ export class MapView {
   /** The valley's animals (E4) and a festival's props, as sprites. */
   private readonly animalLayer = new Container();
   private actors: { actor: Actor; sprite: Sprite }[] = [];
+  /** Wonders drawn with their art over their 7 tiles (for tests). */
+  private wondersDrawn = 0;
   private props: Prop[] = [];
   private readonly overFx = new Container();
   private readonly overlay = new Graphics();
@@ -259,6 +264,11 @@ export class MapView {
       ...Object.values(state.buildings)
         .filter((b) => hasGround(b.type))
         .map((b) => `${b.type}@${hexKey(b.at)}`)
+        .sort(),
+      // A wonder carries its own ground over its 7 tiles, a stage at a time.
+      ...Object.values(state.buildings)
+        .filter((b) => b.footprint)
+        .map((b) => `${b.type}:${wonderStage(this.content, state, b)}@${hexKey(b.at)}`)
         .sort(),
     ].join('|');
     if (terrainSignature !== this.mapSignature) {
@@ -416,6 +426,7 @@ export class MapView {
     /** The valley's own animals on screen (E4), by kind, and a festival's props. */
     animals: Record<string, number>;
     props: Record<string, number>;
+    wonders: number;
     butterflies: number;
     bees: number;
     smoke: number;
@@ -431,6 +442,7 @@ export class MapView {
       otters: this.animals.otters.length,
       animals: count(this.actors.map((a) => a.actor.kind)),
       props: count(this.props.map((p) => p.kind)),
+      wonders: this.wondersDrawn,
       butterflies: a?.butterflies.length ?? 0,
       bees: a?.bees.length ?? 0,
       smoke: a?.smoke.length ?? 0,
@@ -564,18 +576,23 @@ export class MapView {
             });
           }
         }
-        g.poly(hexCorners(c, HEX_RADIUS - 1)).fill({ color: 0xfff3cf, alpha: 0.55 });
-        const outline = hexCorners(c, HEX_RADIUS - 1.5);
-        const pts: Point[] = [];
-        for (let i = 0; i <= 6; i++)
-          pts.push({ x: outline[(i % 6) * 2]!, y: outline[(i % 6) * 2 + 1]! });
-        dashedLine(g, pts, 5, 4, { width: 2.5, color: COLORS.leadingGold });
+        // A wonder takes the 6 tiles around as well.
+        for (const t of this.footprintOf(building, placement.at)) {
+          const tc = hexToPixel(t);
+          g.poly(hexCorners(tc, HEX_RADIUS - 1)).fill({ color: 0xfff3cf, alpha: 0.55 });
+          const outline = hexCorners(tc, HEX_RADIUS - 1.5);
+          const pts: Point[] = [];
+          for (let i = 0; i <= 6; i++)
+            pts.push({ x: outline[(i % 6) * 2]!, y: outline[(i % 6) * 2 + 1]! });
+          dashedLine(g, pts, 5, 4, { width: 2.5, color: COLORS.leadingGold });
+        }
         this.ghost(building, c);
         for (const entry of affected.values()) this.numbers(hexToPixel(entry.at), entry.lines);
       } else {
-        g.poly(hexCorners(c, HEX_RADIUS - 1.5))
-          .fill({ color: COLORS.bad, alpha: 0.18 })
-          .stroke({ width: 2.5, color: COLORS.bad });
+        for (const t of this.footprintOf(building, placement.at))
+          g.poly(hexCorners(hexToPixel(t), HEX_RADIUS - 1.5))
+            .fill({ color: COLORS.bad, alpha: 0.18 })
+            .stroke({ width: 2.5, color: COLORS.bad });
         this.ghost(building, c, 0.35);
       }
       return;
@@ -694,6 +711,21 @@ export class MapView {
     );
     // Row by row, so each row covers the side band of the row behind it.
     const tiles = Object.entries(state.map.tiles).sort(([, a], [, b]) => a.r - b.r || a.q - b.q);
+    // A wonder with its art takes its 7 tiles' place: drawn as the last of them comes up.
+    const wonderAt = new Map<string, Sprite | null>();
+    for (const b of Object.values(state.buildings)) {
+      if (!b.footprint) continue;
+      const texture = wonderTexture(b.type, wonderStage(this.content, state, b), state.season);
+      if (!texture) continue;
+      const covered = [b.at, ...hexNeighbors(b.at)].map(hexKey);
+      const last = tiles
+        .map(([k]) => k)
+        .filter((k) => covered.includes(k))
+        .at(-1);
+      for (const k of covered) wonderAt.set(k, null);
+      if (last) wonderAt.set(last, wonderSprite(texture, hexToPixel(b.at)));
+    }
+    this.wondersDrawn = [...wonderAt.values()].filter((x) => x !== null).length;
     // Channels drawn by hand: a hub on each channel tile, an arm towards each tile of channel next
     // to it, and at an end an arm into the water beside it (its intake, or where it rejoins).
     const ditch = this.content.rules.water.channelBuilding;
@@ -706,6 +738,12 @@ export class MapView {
     let procedural: Graphics | null = null;
     for (const [key, tile] of tiles) {
       const c = hexToPixel(tile);
+      if (wonderAt.has(key)) {
+        const sprite = wonderAt.get(key);
+        if (sprite) this.tileLayer.addChild(sprite);
+        procedural = null;
+        continue;
+      }
       const own = grounded.get(key);
       const texture = own
         ? buildingTexture(own, state.season)
@@ -860,6 +898,8 @@ export class MapView {
         });
         procedural = null;
       }
+      // A wonder with its art is part of the terrain.
+      if (b.footprint && wonderTexture(b.type, null, state.season)) continue;
       const texture = buildingTexture(b.type, state.season);
       // Buildings drawn with their own tile are part of the terrain.
       if (texture && !hasGround(b.type)) {
@@ -886,7 +926,21 @@ export class MapView {
     this.built.updateCacheTexture();
   }
 
+  /** The tiles a building would take at `at`: its own, and a wonder's 6 around it. */
+  private footprintOf(building: string, at: Hex): Hex[] {
+    return this.content.byId[building]?.wonder ? [at, ...hexNeighbors(at)] : [at];
+  }
+
   private ghost(building: string, c: Point, alpha = 0.75): void {
+    const finished = this.content.byId[building]?.wonder
+      ? wonderTexture(building, null, this.state?.season ?? 'spring')
+      : null;
+    if (finished) {
+      const sprite = wonderSprite(finished, c);
+      sprite.alpha = alpha;
+      this.labels.addChild(sprite);
+      return;
+    }
     const texture = buildingTexture(building, this.state?.season ?? 'spring');
     if (texture) {
       const sprite = artSprite(texture, c);

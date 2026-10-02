@@ -41,7 +41,7 @@ test('the map renders, previews, places, undoes and ends a season', async ({ pag
   // summer and winter, buildings too, lit windows, rotors, channel and hedgerow arms) is loaded.
   // Festival cards are WebP, for the interface only.
   await page.waitForFunction(() => 'sunroot' in window);
-  const imported = ['tiles', 'buildings', 'wildlife', 'festivals']
+  const imported = ['tiles', 'buildings', 'wildlife', 'festivals', 'wonders']
     .map(
       (dir) =>
         readdirSync(new URL(`../src/art/${dir}`, import.meta.url)).filter((f) => f.endsWith('.png'))

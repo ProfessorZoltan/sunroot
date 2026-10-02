@@ -164,3 +164,24 @@ export function wildlifeTexture(frame: string, season: Season): Texture | null {
 export function propTexture(name: string): Texture | null {
   return pick(`festivals/${name}.png`);
 }
+
+/** A wonder's art: a construction stage (1 to 3) while it is built, else finished, in winter dress. */
+export function wonderTexture(id: string, stage: number | null, season: Season): Texture | null {
+  if (stage !== null) return pick(`wonders/${id}.stage${stage}.png`);
+  return season === 'winter'
+    ? pick(`wonders/${id}.winter.png`, `wonders/${id}.png`)
+    : pick(`wonders/${id}.png`);
+}
+
+/**
+ * A wonder's sprite over its 7 tiles, its centre tile on the tile centred at
+ * `c`. Its frame is three standard frames wide and two tall (1536 × 1280 as
+ * made), the centre tile's centre at (768, 669) (ART-EXPANSION.md).
+ */
+export function wonderSprite(texture: Texture, c: Point): Sprite {
+  const s = new Sprite(texture);
+  s.anchor.set(768 / 1536, 669 / 1280);
+  s.scale.set(artScale());
+  s.position.set(c.x, c.y);
+  return s;
+}

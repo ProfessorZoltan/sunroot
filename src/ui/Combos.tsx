@@ -247,6 +247,26 @@ export function RevealCard({ store }: { store: GameStore }) {
         <p>{project.text}</p>
       </>
     );
+  } else if (reveal.kind === 'wonder') {
+    const def = store.rules.byId[reveal.id]!;
+    const w = def.wonder!;
+    label = `Wonder finished: ${def.name}`;
+    body = (
+      <>
+        <span class="combo-jewel" style={{ background: '#3A6EA5' }} aria-hidden="true">
+          ✿
+        </span>
+        <span class="card-kind">Wonder finished</span>
+        <h2 class="glass-title">{def.name}</h2>
+        <p>
+          +{w.score} to the score
+          {w.graftTiers > 0
+            ? `, and the Graft ${w.graftTiers > 1 ? `${w.graftTiers} tiers` : 'a tier'} higher than the score alone would make it`
+            : ''}
+          .
+        </p>
+      </>
+    );
   } else if (reveal.kind === 'start') {
     const start = runStart(store, reveal.joining);
     label = start.title;

@@ -124,6 +124,7 @@ export function emptyReport(state: RunState): SeasonReport {
     visionAchieved: false,
     requestMet: false,
     projectsDone: [],
+    wondersDone: [],
     eraGoalMet: null,
   };
 }

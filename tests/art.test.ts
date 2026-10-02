@@ -55,11 +55,20 @@ describe('hand-made art', () => {
       expect(art(`festivals/${f}.png`), f).toBe(true);
   });
 
+  it('has each wonder finished, in winter and at its 3 stages, with an icon (E5)', () => {
+    for (const b of content.buildings.filter((d) => d.wonder)) {
+      for (const f of ['', '.winter', '.stage1', '.stage2', '.stage3'])
+        expect(art(`wonders/${b.id}${f}.png`), `${b.id}${f}`).toBe(true);
+      expect(art(`icons/${b.id}.png`), b.id).toBe(true);
+    }
+  });
+
   it('covers every building in summer and winter, with an icon', () => {
     // Asked for in ART-EXPANSION.md; drawn procedurally until it comes.
     const awaiting = ['well'];
     for (const b of content.buildings) {
-      if (awaiting.includes(b.id)) continue;
+      // Wonders have their own frame (below).
+      if (awaiting.includes(b.id) || b.wonder) continue;
       for (const f of [
         `buildings/${b.id}.png`,
         `buildings/${b.id}.winter.png`,

@@ -14,6 +14,9 @@ import {
   hexDistance,
   hexKey,
   hexNeighbors,
+  flower,
+  wonderOf,
+  wonders,
   type Hex,
   type Tile,
 } from '../sim';
@@ -21,6 +24,8 @@ import { pick, nextFloat, nextInt } from '../sim/rng';
 import { siteScore, type Turn } from './turn';
 import { edgeBuilding } from '../sim/edges';
 import { stormExposed } from '../sim/queries';
+import { wonderSiteProblem } from '../sim/wonder';
+import type { BuildingDef } from '../sim/content/schema';
 
 /**
  * How a bot handles water (EXPANSION.md), when the water system is on. The
@@ -54,6 +59,8 @@ interface Profile {
   /** Materials kept back for emergencies before spending on extras. */
   reserve: number;
   extras(turn: Turn, profile: Profile): void;
+  /** Goes for the biome's wonder once its era comes (E5). */
+  wonder?: boolean;
 }
 
 /** Builds the first candidate that makes `measure` smaller when the season is peeked. */
@@ -245,6 +252,12 @@ function plantHedges(turn: Turn, profile: Profile, max: number): void {
 
 /** The shared needs-first play of the non-random bots. */
 function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): void {
+  // A wonder's tiles are kept free from the start of the run.
+  if (profile.wonder && turn.waterOn)
+    for (const def of wonders(turn.rules)) {
+      const at = wonderOf(turn.state, def.id) ? undefined : keptFlower(turn, def);
+      if (at) for (const h of flower(at)) turn.reserved.add(hexKey(h));
+    }
   turn.pick(
     turn.waterOn && water === 'storage' ? ['cistern', 'weir', ...profile.cards] : profile.cards,
   );
@@ -310,6 +323,8 @@ function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): v
       break;
   }
 
+  // The wonder before the extras: while saving for it, nothing else is bought.
+  if (profile.wonder && turn.waterOn && pursueWonder(turn, profile)) return;
   profile.extras(turn, profile);
 
   // Projects: start the first one the stores can pay for, keeping the materials reserve.
@@ -349,6 +364,116 @@ function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): v
     }
   }
 }
+
+/**
+ * The biome's wonder (E5), from its era: close the loops it needs, build the
+ * buildings it needs, then start it once its costs can be paid on top of the
+ * reserve. Nothing else is held back for it.
+ */
+function pursueWonder(turn: Turn, profile: Profile): boolean {
+  const state = turn.state;
+  for (const def of wonders(turn.rules)) {
+    if (wonderOf(state, def.id)) continue;
+    // Its loops and buildings come the era before.
+    if (state.era < def.minEra - 1) continue;
+    const flowerAt = keptFlower(turn, def);
+    const w = def.wonder!;
+    for (const loop of w.needsLoops) {
+      if (state.loops.some((l) => l.combo === loop)) continue;
+      if (loop === 'bathLoop') closeBathLoop(turn, profile);
+      return false;
+    }
+    for (const [id, n] of Object.entries(w.needsBuildings) as [string, number][]) {
+      while (turn.count(id) < n) if (!turn.build(id, profile.reserve)) return false;
+    }
+    if (state.era < def.minEra || !flowerAt) return false;
+    const extra = Object.entries(w.alsoCosts) as [keyof typeof state.stores, number][];
+    const paid =
+      state.stores.materials >= def.cost + profile.reserve &&
+      extra.every(([res, n]) => state.stores[res] >= n);
+    if (paid && turn.apply({ type: 'place', building: def.id, at: flowerAt })) return false;
+    // Saving up for it: nothing else is bought this season.
+    return true;
+  }
+  return false;
+}
+
+/**
+ * The flower kept free for a wonder: of the sites it could take now (its
+ * loops and era aside), the one with the least floodplain (kept for farms),
+ * then the first by position, so the choice holds from season to season.
+ */
+function keptFlower(turn: Turn, def: BuildingDef): Hex | undefined {
+  let best: { at: Hex; cost: number; key: string } | undefined;
+  for (const t of Object.values(turn.state.map.tiles)) {
+    if (wonderSiteProblem(turn.rules, turn.state, def, t)) continue;
+    const cost = flower(t).filter(
+      (h) => turn.state.map.tiles[hexKey(h)]?.type === 'floodplain',
+    ).length;
+    const key = hexKey(t);
+    if (!best || cost < best.cost || (cost === best.cost && key < best.key))
+      best = { at: { q: t.q, r: t.r }, cost, key };
+  }
+  return best?.at;
+}
+
+/**
+ * A Bath Loop: a bathhouse with a kiln and a reed bed beside it. Tries an
+ * existing bathhouse first, then new ones, keeping the first that the season
+ * ahead shows closing the loop (a free undo otherwise).
+ */
+function closeBathLoop(turn: Turn, profile: Profile): void {
+  const closes = () =>
+    peekOr(turn, (p) => p.report.combos.some((h) => h.combo === 'bathLoop'), false);
+  const occupied = () => new Set(Object.keys(turn.state.map.tiles).filter((k) => isTaken(turn, k)));
+  const beside = (id: string, at: Hex) => {
+    const taken = occupied();
+    return turn
+      .sites(id)
+      .filter((t) => hexDistance(t, at) === 1 && !taken.has(hexKey(t)))
+      .sort((a, b) => siteScore(turn, id, b) - siteScore(turn, id, a));
+  };
+  const nextTo = (ids: readonly string[], bath: Hex) =>
+    Object.values(turn.state.buildings).some(
+      (b) => ids.includes(b.type) && hexDistance(b.at, bath) === 1,
+    );
+  /** Puts the first of `ids` it can afford on its best free site beside the bath. */
+  const add = (ids: readonly string[], bath: Hex): boolean => {
+    if (nextTo(ids, bath)) return true;
+    for (const id of ids) {
+      const site = turn.canBuild(id, profile.reserve) ? beside(id, bath)[0] : undefined;
+      if (site && turn.apply({ type: 'place', building: id, at: { q: site.q, r: site.r } }))
+        return true;
+    }
+    return false;
+  };
+  const tryAt = (bath: Hex): boolean => {
+    // Warmed by a kiln or a heat well, cleaned by a reed bed.
+    for (const heat of [['kiln'], ['heatWell']] as const) {
+      const saved = turn.save();
+      if (add(heat, bath) && add(['reedBed'], bath) && closes()) return true;
+      turn.restore(saved);
+    }
+    return false;
+  };
+  for (const b of Object.values(turn.state.buildings).filter((x) => x.type === 'bathhouse'))
+    if (tryAt(b.at)) return;
+  if (!turn.canBuild('bathhouse', profile.reserve)) return;
+  const sites = turn
+    .sites('bathhouse')
+    .sort((a, b) => siteScore(turn, 'bathhouse', b) - siteScore(turn, 'bathhouse', a))
+    .slice(0, 4);
+  for (const site of sites) {
+    const saved = turn.save();
+    if (!turn.apply({ type: 'place', building: 'bathhouse', at: { q: site.q, r: site.r } }))
+      continue;
+    if (tryAt(site)) return;
+    turn.restore(saved);
+  }
+}
+
+const isTaken = (turn: Turn, key: string) =>
+  Object.values(turn.state.buildings).some((b) => hexKey(b.at) === key);
 
 function spend(turn: Turn, profile: Profile, options: readonly string[], limit = 3): void {
   for (let i = 0; i < limit; i++) {
@@ -457,6 +582,7 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
     dayPower: DAY,
     food: ['floodplainFarm', 'fishPond', 'orchard', 'greenhouse'],
     reserve: 5,
+    wonder: true,
     extras(turn, profile) {
       const options = ['pollinatorMeadow', 'treeNursery'];
       if (growHousing(turn)) options.unshift('cottage');

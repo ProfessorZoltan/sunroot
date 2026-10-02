@@ -391,6 +391,19 @@ export const BUILDING_ART: Record<string, Art> = {
         .stroke({ width: 2, color: COLORS.wood, cap: 'round' });
     }
   },
+  /** Drawn when its art is missing: pools on the 6 tiles around a pavilion at the centre. */
+  greatWaterGarden(g, c) {
+    for (let i = 0; i < 6; i++) {
+      const a = (Math.PI / 3) * i;
+      const x = c.x + Math.cos(a) * 52;
+      const y = c.y + Math.sin(a) * 45;
+      g.ellipse(x, y, 17, 10).fill({ color: COLORS.water }).stroke({ width: 2, color: 0x3f7d8c });
+      g.circle(x - 6, y - 2, 2.2).fill({ color: COLORS.flowerPink });
+    }
+    g.ellipse(c.x, c.y + 4, 16, 8).fill({ color: COLORS.water });
+    g.poly([c.x - 11, c.y - 2, c.x, c.y - 16, c.x + 11, c.y - 2]).fill({ color: COLORS.wood });
+    g.rect(c.x - 8, c.y - 2, 16, 6).fill({ color: 0xf3e3c3 });
+  },
   singingSpire(g, c) {
     BUILDING_ART.windSpire!(g, c);
     for (const [dx, dy] of [

@@ -12,6 +12,10 @@ import {
   type BuildingDef,
   type Content,
   repairCost,
+  wonderNeeds,
+  wonderOf,
+  wonderProgress,
+  type Resource,
 } from '../sim';
 import { CharterPanel, EvolutionPanel } from './Combos';
 import { FestivalPanel } from './Festivals';
@@ -237,7 +241,14 @@ function BuildPanel({ store, ui }: { store: GameStore; ui: Ui }) {
         {paletteOrder(content, state.unlocked).map((id) => {
           // Numbers as this run plays them (Root City perks, tunings, charters).
           const def = store.rules.byId[id]!;
-          const afford = state.stores.materials >= def.cost;
+          // A wonder, once started, is followed in its details, not the palette.
+          if (def.wonder && wonderOf(state, id)) return null;
+          const extra = Object.entries(def.wonder?.alsoCosts ?? {}) as [Resource, number][];
+          const needs = def.wonder ? wonderNeeds(store.rules, state, def) : null;
+          const afford =
+            state.stores.materials >= def.cost &&
+            extra.every(([res, n]) => state.stores[res] >= n) &&
+            needs === null;
           const selected =
             store.selectedBuilding === id ||
             (store.tool?.kind === 'hedge' && def.edge !== undefined);
@@ -249,14 +260,20 @@ function BuildPanel({ store, ui }: { store: GameStore; ui: Ui }) {
               aria-pressed={selected}
               aria-keyshortcuts={key?.toUpperCase()}
               disabled={!afford || ended}
-              title={describeBuilding(store.rules, def).join('\n')}
+              title={[
+                ...(needs ? [`${cap(needs)}.`] : []),
+                ...describeBuilding(store.rules, def),
+              ].join('\n')}
               onClick={() => store.selectBuilding(selected ? null : id)}
             >
               {ui.icons[id] && <img src={ui.icons[id]} alt="" width={28} height={28} />}
               <span class="tool-text">
                 <span class="tool-name">{def.name}</span>
                 <span class="tool-meta">
-                  <span class="cost">{def.cost} materials</span>
+                  <span class="cost">
+                    {def.cost} materials
+                    {extra.map(([res, n]) => `, ${n} ${res}`).join('')}
+                  </span>
                   {key && (
                     <span class="keycap" aria-hidden="true">
                       {key.toUpperCase()}
@@ -313,6 +330,43 @@ function BuildPanel({ store, ui }: { store: GameStore; ui: Ui }) {
         </div>
       )}
     </section>
+  );
+}
+
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/** A wonder's building: how far along it is, and what it gives once finished. */
+function WonderProgress({ store, uid }: { store: GameStore; uid: string }) {
+  const { state } = store;
+  const b = state.buildings[uid]!;
+  const def = store.rules.byId[b.type]!;
+  const w = def.wonder!;
+  const p = wonderProgress(def, b, state);
+  const lift =
+    w.graftTiers > 0
+      ? `, and the Graft ${w.graftTiers > 1 ? `${w.graftTiers} tiers` : 'a tier'} higher`
+      : '';
+  return (
+    <div class="wonder-progress small" role="status">
+      <div
+        class="bar vision-bar"
+        role="progressbar"
+        aria-label="Seasons built"
+        aria-valuenow={p.done ? p.seasons : p.built}
+        aria-valuemin={0}
+        aria-valuemax={p.seasons}
+      >
+        <div
+          class="bar-fill"
+          style={{ width: `${((p.done ? p.seasons : p.built) / p.seasons) * 100}%` }}
+        />
+      </div>
+      <div>
+        {p.done
+          ? `Finished: +${w.score} to the score${lift}.`
+          : `${p.built} of ${p.seasons} seasons built; finished ${p.seasons - p.built === 1 ? 'as this season ends' : `when ${p.seasons - p.built} more seasons end, this one included`}. Then +${w.score} to the score${lift}.`}
+      </div>
+    </div>
   );
 }
 
@@ -519,6 +573,7 @@ export function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
       {status.map((s) => (
         <div class="warning small">{s}</div>
       ))}
+      {def.wonder && <WonderProgress store={store} uid={b.uid} />}
       <div class="quiet small">This season, if it ended now:</div>
       {(now.math[b.uid] ?? ['Nothing to report.'])
         .filter((line) => water.length === 0 || !line.startsWith('water:'))
@@ -581,8 +636,9 @@ export function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
           slot
         </label>
       )}
-      <Repairs store={store} uid={b.uid} cost={repair} />
-      <Demolish store={store} uid={b.uid} />
+      {/* A wonder needs no repairs or staff, and stays. */}
+      {!def.wonder && <Repairs store={store} uid={b.uid} cost={repair} />}
+      {!def.wonder && <Demolish store={store} uid={b.uid} />}
       {store.isCoppice(b.uid) && (
         <div class="small control">
           <button
@@ -595,7 +651,7 @@ export function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
           <span class="quiet">It grows back into woodland in 2 seasons.</span>
         </div>
       )}
-      {b.uid !== 'b0' && (
+      {b.uid !== 'b0' && !def.wonder && (
         <div class="small control">
           Priority {rank + 1} of {state.priority.length}: staffed in order, shut off last-first in a
           blackout.

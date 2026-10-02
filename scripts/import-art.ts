@@ -17,8 +17,10 @@
  *   frame, at half size like the rest (a 128 px frame becomes 64);
  * - festival cards (`id.card.png`) as WebP at full size, for the interface only.
  *
- * It reads `tiles/`, `buildings/`, `wildlife/` and `festivals/`; the wonders
- * wait for the milestone that uses them (E5).
+ * - wonders (`wonders/`, E5) at half size on their own larger frame (three
+ *   standard frames wide, two tall), with an icon like a building's.
+ *
+ * It reads `tiles/`, `buildings/`, `wildlife/`, `festivals/` and `wonders/`.
  *
  *   npx tsx scripts/import-art.ts
  */
@@ -74,7 +76,7 @@ try {
     `data:image/png;base64,${readFileSync(join(IN, f)).toString('base64')}`;
 
   rmSync(OUT, { recursive: true, force: true });
-  for (const dir of ['tiles', 'buildings', 'icons', 'wildlife', 'festivals'])
+  for (const dir of ['tiles', 'buildings', 'icons', 'wildlife', 'festivals', 'wonders'])
     mkdirSync(join(OUT, dir), { recursive: true });
   const write = (path: string, dataUrl: string) =>
     writeFileSync(join(OUT, path), Buffer.from(dataUrl.split(',')[1]!, 'base64'));
@@ -239,6 +241,71 @@ try {
       write(join(dir, card ? file.replace(/\.png$/, '.webp') : file), out);
       extras++;
     }
+  }
+
+  // Wonders: half size on their own frame, and an icon from the finished one.
+  for (const file of readdirSync(join(IN, 'wonders')).filter((f) => f.endsWith('.png'))) {
+    const id = idOf(file);
+    if (!content.byId[id]?.wonder) throw new Error(`not a wonder id: wonders/${file}`);
+    const out = await page.evaluate(
+      async ({ src, scale, icon, wantIcon }) => {
+        const img = new Image();
+        img.src = src;
+        await img.decode();
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * scale);
+        c.height = Math.round(img.height * scale);
+        const g = c.getContext('2d')!;
+        g.imageSmoothingQuality = 'high';
+        g.drawImage(img, 0, 0, c.width, c.height);
+        let iconUrl: string | null = null;
+        if (wantIcon) {
+          const f = document.createElement('canvas');
+          f.width = img.width;
+          f.height = img.height;
+          const fg = f.getContext('2d')!;
+          fg.drawImage(img, 0, 0);
+          const data = fg.getImageData(0, 0, img.width, img.height).data;
+          let [x0, y0, x1, y1] = [img.width, img.height, 0, 0];
+          for (let y = 0; y < img.height; y++)
+            for (let x = 0; x < img.width; x++)
+              if (data[(y * img.width + x) * 4 + 3]! > 16) {
+                x0 = Math.min(x0, x);
+                x1 = Math.max(x1, x);
+                y0 = Math.min(y0, y);
+                y1 = Math.max(y1, y);
+              }
+          const size = Math.max(x1 - x0, y1 - y0) * 1.04;
+          const ic = document.createElement('canvas');
+          ic.width = icon;
+          ic.height = icon;
+          const ig = ic.getContext('2d')!;
+          ig.imageSmoothingQuality = 'high';
+          ig.drawImage(
+            f,
+            (x0 + x1) / 2 - size / 2,
+            (y0 + y1) / 2 - size / 2,
+            size,
+            size,
+            0,
+            0,
+            icon,
+            icon,
+          );
+          iconUrl = ic.toDataURL('image/png');
+        }
+        return { png: c.toDataURL('image/png'), icon: iconUrl };
+      },
+      {
+        src: read(join('wonders', file)),
+        scale: SCALE,
+        icon: ICON,
+        wantIcon: file === `${id}.png`,
+      },
+    );
+    write(join('wonders', file), out.png);
+    if (out.icon) write(join('icons', `${id}.png`), out.icon);
+    extras++;
   }
 
   const given = Object.fromEntries(

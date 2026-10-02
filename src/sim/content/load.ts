@@ -168,6 +168,24 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
         );
     }
   }
+  for (const b of data.buildings) {
+    const w = b.wonder;
+    if (!w) continue;
+    w.needsLoops.forEach((id) => {
+      if (!data.combos.some((c) => c.id === id && c.layer === 'chain'))
+        problems.push(`${b.id}.wonder needs ${id}, which is not a loop`);
+    });
+    Object.keys(w.needsBuildings).forEach((id) => known(id, `${b.id}.wonder`));
+    if (b.draftable) problems.push(`${b.id} is a wonder: it joins at its era, not in the draft`);
+  }
+  const wonderGoals = [
+    ...data.visions.map((v) => v.goal),
+    ...data.eraGoals.flatMap((g) => [g.goal, ...(g.or ? [g.or.goal] : [])]),
+  ];
+  for (const goal of wonderGoals) {
+    if (goal.kind === 'wonder' && !byId[goal.building]?.wonder)
+      problems.push(`a goal names ${goal.building}, which is not a wonder`);
+  }
   const { harmony } = data.rules;
   if (!harmony.tiers.every((t, i, a) => i === 0 || t.min > a[i - 1]!.min)) {
     problems.push('rules.harmony.tiers must be sorted by min');

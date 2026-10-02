@@ -8,6 +8,7 @@ import type { Content } from './content/load';
 import { contentFor } from './content/modifiers';
 import type { CityRequest, District, EraGoal, Goal, Vision } from './content/schema';
 import { finishedProjects } from './projects';
+import { finishedWonders, wonderOf, wonderProgress, wonders } from './wonder';
 import type { RunState } from './types';
 
 export interface ScoreLine {
@@ -61,6 +62,8 @@ export function scoreRun(content: Content, state: RunState): RunScore {
   }
   for (const p of finishedProjects(content, state))
     if (p.effect.score !== 0) lines.push({ reason: p.name, points: p.effect.score });
+  for (const def of finishedWonders(content, state))
+    lines.push({ reason: def.name, points: def.wonder!.score });
   if (state.status === 'complete') lines.push({ reason: 'run completed', points: w.completeBonus });
   // More to manage, so the same play scores the same (DECISIONS.md, Teaching by layers).
   const rules = contentFor(content, state).rules;
@@ -78,11 +81,16 @@ export function scoreRun(content: Content, state: RunState): RunScore {
   const total = lines.reduce((sum, l) => sum + l.points, 0);
   const tiers = w.tiers;
   const scored = Math.max(0, tiers.filter((t) => total >= t.min).length - 1);
-  // A hard region (High Banks) or twist (a Drought Year) raises the Graft a tier or more.
+  // A hard region (High Banks) or twist (a Drought Year) raises the Graft a tier or more, and so
+  // does a finished wonder (the Great Water Garden).
   const expedition = state.options.expedition;
   const lifters = [
     content.regions.find((r) => r.id === expedition?.region),
     content.twists.find((t) => t.id === expedition?.twist),
+    ...finishedWonders(content, state).map((d) => ({
+      name: `the ${d.name}`,
+      graftTierBonus: d.wonder!.graftTiers,
+    })),
   ].filter((x) => x !== undefined && x.graftTierBonus > 0);
   const bonus = lifters.reduce((n, x) => n + x!.graftTierBonus, 0);
   const at = Math.min(tiers.length - 1, scored + bonus);
@@ -194,7 +202,37 @@ export function goalProgress(content: Content, state: RunState, goal: Goal): Vis
         share: Math.min(1, state.harmony / goal.harmony),
         text: `Harmony ${state.harmony} of ${goal.harmony}`,
       };
+    case 'wonder': {
+      const def = content.byId[goal.building];
+      const b = def && wonderOf(state, def.id);
+      if (!def || !b) return { share: 0, text: `the ${def?.name ?? goal.building} not started` };
+      const p = wonderProgress(def, b, state);
+      return {
+        share: p.built / p.seasons,
+        text: p.done
+          ? `the ${def.name} finished`
+          : `the ${def.name}: ${p.built} of ${p.seasons} seasons built`,
+      };
+    }
   }
+}
+
+/** Whether an era's goal is met: its own, or the other way it offers (when the content has it). */
+export function eraGoalMet(content: Content, state: RunState, goal: EraGoal): boolean {
+  if (goalMet(content, state, goal.goal)) return true;
+  const or = eraGoalOr(content, goal);
+  return or !== null && goalMet(content, state, or.goal);
+}
+
+/** The other way to meet an era's goal, if this content has it (a wonder needs water). */
+export function eraGoalOr(content: Content, goal: EraGoal): NonNullable<EraGoal['or']> | null {
+  const or = goal.or;
+  if (!or) return null;
+  if (or.goal.kind === 'wonder') {
+    const id = or.goal.building;
+    if (!wonders(content).some((d) => d.id === id)) return null;
+  }
+  return or;
 }
 
 /** Whether a goal is met at the end of the season just resolved. */

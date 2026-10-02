@@ -50,6 +50,10 @@ export interface BuildingState {
   stored?: number;
   /** How many buildings it has brought (a Beaver Dam's reed beds). */
   spawned?: number;
+  /** It covers the tiles within this distance of `at` too (a wonder's flower of 7 tiles). */
+  footprint?: number;
+  /** A wonder: the turn whose season finished building it. */
+  finished?: number;
 }
 
 export interface RunOptions {
@@ -531,6 +535,8 @@ export interface SeasonReport {
   requestMet: boolean;
   /** Projects finished this season. */
   projectsDone: string[];
+  /** Wonders finished this season, by building type. */
+  wondersDone: string[];
   /** The era whose goal was met this season, if any. */
   eraGoalMet: number | null;
 }

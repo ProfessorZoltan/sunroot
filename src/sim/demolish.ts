@@ -48,6 +48,7 @@ export function demolishCheck(content: Content, state: RunState, uid: string): D
   if (b.type === content.campBuilding)
     return { ...none, ok: false, reason: "the Founders' Camp can't be demolished" };
   const def = defOf(content, b);
+  if (def.wonder) return { ...none, ok: false, reason: `the ${def.name} can't be demolished` };
   if (coppiced(content, b.type))
     return { ...none, ok: false, reason: 'stop coppicing instead: the wood grows back' };
   const rubble = Math.max(1, Math.floor(def.cost * rules.rubbleShare));

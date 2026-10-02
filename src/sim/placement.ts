@@ -5,6 +5,7 @@ import { buildingsTouching, neighborTiles, occupancy, tileAt } from './queries';
 import type { RunState } from './types';
 import { available, channelSiteProblem, isChannel } from './water';
 import { contentFor } from './content/modifiers';
+import { wonderNeeds, wonderSiteProblem } from './wonder';
 
 export type PlacementCheck = { ok: true } | { ok: false; reason: string };
 
@@ -32,6 +33,10 @@ export function canPlace(
     };
   if (def.edge)
     return { ok: false, reason: `${def.name} is planted along the edge between two tiles` };
+  if (def.wonder) {
+    const problem = wonderNeeds(content, state, def) ?? wonderSiteProblem(content, state, def, at);
+    return problem ? { ok: false, reason: problem } : { ok: true };
+  }
   const tile = tileAt(state, at);
   if (!tile) return { ok: false, reason: 'outside the valley' };
   const occupant = occupancy(state).get(hexKey(at));

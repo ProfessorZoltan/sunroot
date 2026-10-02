@@ -1,5 +1,14 @@
 # Changelog
 
+## The Great Water Garden
+
+- From era 3 of a run with water, the valley's wonder can be built: the **Great Water Garden**, a
+  flower of 7 tiles of pools, reeds and stepping stones around a pavilion. It needs a closed Bath
+  Loop and 3 reed beds, costs 60 materials and 30 biomass, and takes 4 seasons to build, a stage
+  at a time on the map.
+- Finished, it adds **60 to the score** and raises the **Graft a tier**, and it meets the Bloom
+  era's goal.
+
 ## Wildlife and festivals
 
 - From run 2 (with water), **animals come to the valley** as Harmony rises, if their habitat is

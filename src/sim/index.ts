@@ -42,6 +42,8 @@ export { blueprintPool, cardAllowed, refinementPool, timesTaken, tuningsFull } f
 export {
   cityRequest,
   eraGoal,
+  eraGoalMet,
+  eraGoalOr,
   goalMet,
   goalProgress,
   graftOffer,
@@ -112,6 +114,17 @@ export {
 export { demolishCheck, type DemolishCheck } from './demolish';
 export { energyLedger, SHORT, type EnergyLedger } from './energyLedger';
 export { finishedProjects, projectBlocked } from './projects';
+export { buildingAt } from './queries';
+export {
+  finishedWonders,
+  flower,
+  wonderBrief,
+  wonderNeeds,
+  wonderOf,
+  wonderProgress,
+  wonders,
+  wonderStage,
+} from './wonder';
 export {
   animals,
   festivalProblem,

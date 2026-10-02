@@ -1308,6 +1308,12 @@ ul.wildlife-list {
   border-left-color: var(--gold);
 }
 
+.wonder-progress {
+  display: grid;
+  gap: 4px;
+  margin: 4px 0 6px;
+}
+
 /* ---------------------------------------------------------------- projects */
 
 ul.projects {

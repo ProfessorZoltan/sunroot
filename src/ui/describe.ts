@@ -1,5 +1,5 @@
 /** Short, plain descriptions of buildings, built from their data (so they never drift from the rules). */
-import type { BuildingDef, Content } from '../sim';
+import { wonderBrief, type BuildingDef, type Content } from '../sim';
 import { available } from '../sim/water';
 
 const SEASON_LIST = (values: readonly number[]) => values.join(' / ');
@@ -12,6 +12,14 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
       `Planted along the edge between two tiles (not water), ${def.cost} materials a segment.`,
       'Storms can’t damage the buildings on either side of it.',
       `1 Harmony for every ${def.edge.harmonyPer} segments.`,
+    ];
+  }
+  // A wonder (E5) takes a flower of 7 tiles.
+  if (def.wonder) {
+    return [
+      `Built over 7 tiles (one and the 6 around it) of ${def.placement.tiles.join(', ')}${def.wonder.nearWater ? ', one of them touching the river, a reservoir or a channel' : ''}.`,
+      wonderBrief(content, def.id),
+      'Once a run, and it can’t be demolished.',
     ];
   }
   const where = def.placement.tiles.length >= 6 ? 'any land' : def.placement.tiles.join(' or ');

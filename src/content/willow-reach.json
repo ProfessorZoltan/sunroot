@@ -1232,6 +1232,34 @@
       "requiresWater": true
     },
     {
+      "id": "greatWaterGarden",
+      "name": "Great Water Garden",
+      "cost": 60,
+      "workers": 0,
+      "kind": "nature",
+      "draftable": false,
+      "minEra": 3,
+      "requiresWater": true,
+      "floodTolerant": true,
+      "stormProof": true,
+      "placement": {
+        "tiles": ["floodplain", "barren", "scrub", "meadow", "woodland"]
+      },
+      "wonder": {
+        "seasons": 4,
+        "alsoCosts": {
+          "biomass": 30
+        },
+        "needsLoops": ["bathLoop"],
+        "needsBuildings": {
+          "reedBed": 3
+        },
+        "nearWater": true,
+        "score": 60,
+        "graftTiers": 1
+      }
+    },
+    {
       "id": "singingSpire",
       "name": "Singing Spire",
       "cost": 8,
@@ -3242,6 +3270,13 @@
       },
       "reward": {
         "knowledge": 3
+      },
+      "or": {
+        "text": "Or finish the Great Water Garden.",
+        "goal": {
+          "kind": "wonder",
+          "building": "greatWaterGarden"
+        }
       }
     }
   ],

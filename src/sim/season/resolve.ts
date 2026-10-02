@@ -41,7 +41,8 @@ import {
 } from '../combos';
 import { effectiveContent } from '../content/modifiers';
 import { dealCharters } from '../draft';
-import { cityRequest, eraGoal, goalMet, visionMet } from '../score';
+import { cityRequest, eraGoal, eraGoalMet, goalMet, visionMet } from '../score';
+import { unlockWonders, wonderBrief } from '../wonder';
 import { finishProjects } from '../projects';
 import { festivalThisSeason, updateWildlife, wildlifeYields } from '../wildlife';
 
@@ -165,6 +166,14 @@ function advance(content: Content, ctx: SeasonContext): RunState {
   }
   // Projects whose last season this was are finished; their effect holds from next season.
   report.projectsDone = finishProjects(content, state);
+  // Wonders whose last season of building this was are finished.
+  for (const b of Object.values(state.buildings)) {
+    const w = content.byId[b.type]?.wonder;
+    if (w && b.finished === undefined && state.turn + 1 - b.builtTurn >= w.seasons) {
+      b.finished = state.turn;
+      report.wondersDone.push(b.type);
+    }
+  }
   // The expedition's city request, once met, stays met.
   const request = cityRequest(content, state);
   if (request && state.requestMet === null && goalMet(content, state, request.goal)) {
@@ -173,7 +182,7 @@ function advance(content: Content, ctx: SeasonContext): RunState {
   }
   // The era's goal, met by the end of any season in the era.
   const goal = eraGoal(content, state.era);
-  if (goal && !state.eraGoalsMet.includes(state.era) && goalMet(content, state, goal.goal)) {
+  if (goal && !state.eraGoalsMet.includes(state.era) && eraGoalMet(content, state, goal)) {
     state.eraGoalsMet = [...state.eraGoalsMet, state.era];
     state.stores.knowledge += goal.reward.knowledge;
     flow(report.flows, 'knowledge', 'made', 'Era goal met', goal.reward.knowledge);
@@ -196,6 +205,13 @@ function advance(content: Content, ctx: SeasonContext): RunState {
 
   state.turn += 1;
   state.notices = [];
+  for (const id of report.wondersDone) {
+    const def = content.byId[id]!;
+    const lift = def.wonder!.graftTiers;
+    state.notices.push(
+      `The ${def.name} is finished: +${def.wonder!.score} to the score${lift > 0 ? `, and the Graft ${lift > 1 ? `${lift} tiers` : 'a tier'} higher` : ''}`,
+    );
+  }
   const festival = report.festival && content.festivals.find((f) => f.id === report.festival!.id);
   if (festival && !report.festival!.lit)
     state.notices.push(
@@ -279,6 +295,11 @@ function startSeason(content: Content, state: RunState): void {
   const startsEra = state.turn % (content.rules.yearsPerEra * SEASONS.length) === 0;
   if (startsEra && content.rules.charterEras.includes(state.era)) {
     state.charterOffer = dealCharters(content, state);
+  }
+  // A wonder comes into reach at the start of its era.
+  for (const id of unlockWonders(content, state)) {
+    const def = content.byId[id]!;
+    state.notices.push(`The ${def.name} can be built from now: ${wonderBrief(content, id)}`);
   }
 }
 

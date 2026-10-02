@@ -8,6 +8,7 @@ import type { GameStore } from '../game/store';
 import {
   cityRequest,
   eraGoal,
+  eraGoalOr,
   goalProgress,
   graftOffer,
   scoreRun,
@@ -64,11 +65,15 @@ export function EraGoalStatus({ store }: { store: GameStore }) {
   if (!goal || state.status !== 'active') return null;
   const done = state.eraGoalsMet.includes(state.era);
   const progress = goalProgress(content, state, goal.goal);
+  // Another way to meet it (the Bloom era: the Great Water Garden), with the run's rules.
+  const or = eraGoalOr(store.rules, goal);
+  const orProgress = or ? goalProgress(store.rules, state, or.goal) : null;
   return (
     <section aria-label="Era goal">
       <h2>Era goal</h2>
       <div class="small">
         <strong>{content.rules.eras[state.era - 1]}:</strong> {goal.text}
+        {or ? ` ${or.text}` : ''}
         {done ? ' Met.' : ''}
       </div>
       {!done && (
@@ -87,6 +92,7 @@ export function EraGoalStatus({ store }: { store: GameStore }) {
             {progress.text}
             {goal.reward.knowledge > 0 ? ` · +${goal.reward.knowledge} knowledge` : ''}
           </div>
+          {orProgress && <div class="quiet small">Or: {orProgress.text}</div>}
         </>
       )}
     </section>

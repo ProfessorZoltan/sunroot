@@ -23,6 +23,7 @@ import {
 } from './queries';
 import { flow } from './season/context';
 import { festivalProblem, festivalThisSeason } from './wildlife';
+import { wonderExtraCost } from './wonder';
 import { resolveSeason } from './season/resolve';
 import { cloneState, snapshot } from './snapshot';
 import type { Command, CommandResult, RunState } from './types';
@@ -173,8 +174,14 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       const site = canPlace(content, s, def.id, command.at);
       if (!site.ok) return site.reason;
       if (s.stores.materials < def.cost) return `${def.name} costs ${def.cost} materials`;
+      for (const [res, n] of wonderExtraCost(def))
+        if (s.stores[res] < n) return `${def.name} costs ${n} ${res} as well`;
       s.stores.materials -= def.cost;
       flow(s.spent, 'materials', 'used', `Building: ${def.name}`, def.cost);
+      for (const [res, n] of wonderExtraCost(def)) {
+        s.stores[res] -= n;
+        flow(s.spent, res, 'used', `Building: ${def.name}`, n);
+      }
       // A canopy built over a farm becomes part of it (an evolution).
       const target = buildingAt(s, command.at);
       const evolution = placementEvolution(content, def.id, target);
@@ -190,6 +197,8 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
         builtTurn: s.turn,
       };
       const b = s.buildings[uid]!;
+      // A wonder covers the 6 tiles around its own.
+      if (def.wonder) b.footprint = 1;
       if (def.recipes) b.recipe = def.recipes.defaultRecipe;
       if (def.digester) b.slot = def.digester.defaultSlot;
       if (def.storage) b.stored = 0;

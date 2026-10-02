@@ -23,6 +23,7 @@ import { nextFloat, type RngState } from '../sim/rng';
 import { contentFor } from '../sim/content/modifiers';
 import { drinkingSources } from '../sim/season/commute';
 import { walksToWater } from '../sim/water';
+import { occupancy } from '../sim/queries';
 
 export type Sight = 'forecast' | 'outcome';
 export const SIGHTS: readonly Sight[] = ['forecast', 'outcome'];
@@ -30,6 +31,8 @@ export const SIGHTS: readonly Sight[] = ['forecast', 'outcome'];
 export class Turn {
   /** Build-phase actions taken this season (not counting the draft pick). */
   actions = 0;
+  /** Tiles kept free for something to come (the wonder's flower), by key. */
+  reserved = new Set<string>();
   private peeked: { state: RunState; report: SeasonReport } | null = null;
 
   constructor(
@@ -119,8 +122,13 @@ export class Turn {
   /** Empty legal sites (bots don't build canopies over farms). */
   sites(id: string): Tile[] {
     const taken = occupancyOf(this.state);
+    // Only the wonder itself goes on its kept tiles.
+    const kept = this.content.byId[id]?.wonder ? new Set<string>() : this.reserved;
     return Object.values(this.state.map.tiles).filter(
-      (t) => !taken.has(hexKey(t)) && canPlace(this.content, this.state, id, t).ok,
+      (t) =>
+        !taken.has(hexKey(t)) &&
+        !kept.has(hexKey(t)) &&
+        canPlace(this.content, this.state, id, t).ok,
     );
   }
 
@@ -194,7 +202,8 @@ export class Turn {
 }
 
 function occupancyOf(state: RunState): Map<string, BuildingState> {
-  return new Map(Object.values(state.buildings).map((b) => [hexKey(b.at), b]));
+  // A copy: the sim's own (a wonder covers 7 tiles) is cached and shared.
+  return new Map(occupancy(state));
 }
 
 function rank(preferences: readonly string[], id: string): number {
