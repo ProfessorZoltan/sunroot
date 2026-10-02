@@ -316,9 +316,15 @@ export function convert(ctx: SeasonContext): void {
     if (def.composter) {
       const c = def.composter;
       const taken = takeInputs(ctx, b, c.inputs, c.maxInput);
-      const out = Math.floor((taken * c.outputPerFullRun) / c.maxInput);
+      // The Keyhole Garden doubles it.
+      const times = ctx.effects.get(b.uid)?.outputMultiplier ?? 1;
+      const out = Math.floor((taken * c.outputPerFullRun) / c.maxInput) * times;
       addYield(ctx, b, c.output, out);
-      explain(ctx, b, `composted ${taken} scraps and biomass into ${out} ${c.output}`);
+      explain(
+        ctx,
+        b,
+        `composted ${taken} scraps and biomass into ${out} ${c.output}${times > 1 ? ` (× ${times})` : ''}`,
+      );
     }
   }
 }

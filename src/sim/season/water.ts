@@ -56,6 +56,7 @@ export function resolveWater(ctx: SeasonContext): void {
     flowAt: [],
     channels: [],
     uses: {},
+    cleaned: {},
     greyToRiver: 0,
     in: {},
     out: {},
@@ -366,6 +367,7 @@ export function resolveWater(ctx: SeasonContext): void {
         const t = Math.min(defOf(content, x.b).water!.cleans, pool.grey);
         pool.grey -= t;
         pool.clean += t;
+        if (t > 0) report.cleaned[x.b.uid] = (report.cleaned[x.b.uid] ?? 0) + t;
         if (t > 0) explain(ctx, x.b, `water: cleaned ${t} grey water`);
       }
       coloured[p] = { nutrient: pool.nutrient, grey: pool.grey };
@@ -457,6 +459,7 @@ export function resolveWater(ctx: SeasonContext): void {
       const t = Math.min(r.left, u.grey);
       if (t <= 0) continue;
       r.left -= t;
+      report.cleaned[r.b.uid] = (report.cleaned[r.b.uid] ?? 0) + t;
       u.grey -= t;
       u.clean += t;
       explain(ctx, r.b, `water: cleaned ${t} grey water joining the river`);

@@ -16,16 +16,27 @@
  */
 import type { Content } from './content/load';
 import type { Combo } from './content/schema';
-import { HEX_DIRECTIONS, axialToOffset, hexAdd, hexKey, hexNeighbors, type Hex } from './hex';
+import {
+  HEX_DIRECTIONS,
+  axialToOffset,
+  hexAdd,
+  hexDistance,
+  hexKey,
+  hexNeighbors,
+  type Hex,
+} from './hex';
 import { defOf, neighborBuildings, neighborTiles, occupancy, tileAt } from './queries';
 import { addYield, explain, type FormationEffect, type SeasonContext } from './season/context';
 import type { BuildingState, ComboHit, RunState } from './types';
-import { available } from './water';
+import { available, waterOn } from './water';
 
 type ComboOf<L extends Combo['layer']> = Extract<Combo, { layer: L }>;
 
+/** The combos of a layer in play this run (Willow Reach v2's need water). */
 const combosOf = <L extends Combo['layer']>(content: Content, layer: L): ComboOf<L>[] =>
-  content.combos.filter((c): c is ComboOf<L> => c.layer === layer);
+  content.combos.filter(
+    (c): c is ComboOf<L> => c.layer === layer && (!c.requiresWater || waterOn(content)),
+  );
 
 /** Does `b` touch enough of the given buildings or tiles? */
 function touches(
@@ -61,7 +72,8 @@ export function findFormations(
         if (b.type !== shape.center || b.damage) continue;
         const ring = hexNeighbors(b.at)
           .map((h) => occ.get(hexKey(h)))
-          .filter((x): x is BuildingState => x !== undefined);
+          .filter((x): x is BuildingState => x !== undefined)
+          .filter((x) => !shape.of || shape.of.includes(x.type));
         if (ring.length >= shape.size && new Set(ring.map((x) => x.type)).size >= shape.minTypes) {
           hits.push({ combo: combo.id, members: [b.uid, ...ring.map((x) => x.uid)] });
         }
@@ -89,6 +101,36 @@ export function findFormations(
           seen.add(key);
           hits.push({ combo: combo.id, members: members.map((m) => m.uid) });
         }
+      }
+    } else if (shape.kind === 'cluster') {
+      // One of each type, every one touching every other, found from each of the first type.
+      const seen = new Set<string>();
+      for (const b of Object.values(state.buildings)) {
+        if (b.type !== shape.buildings[0]) continue;
+        const pick = (chosen: BuildingState[]): BuildingState[] | null => {
+          if (chosen.length === shape.buildings.length) return chosen;
+          const type = shape.buildings[chosen.length]!;
+          const options = neighborBuildings(state, chosen[0]!, occ).filter(
+            (x) =>
+              x.type === type &&
+              !chosen.includes(x) &&
+              chosen.every((c) => hexNeighbors(c.at).some((h) => hexKey(h) === hexKey(x.at))),
+          );
+          for (const x of options) {
+            const found = pick([...chosen, x]);
+            if (found) return found;
+          }
+          return null;
+        };
+        const members = pick([b]);
+        if (!members) continue;
+        const key = members
+          .map((m) => m.uid)
+          .sort()
+          .join(',');
+        if (seen.has(key)) continue;
+        seen.add(key);
+        hits.push({ combo: combo.id, members: members.map((m) => m.uid) });
       }
     } else {
       const strip = findStrip(state, shape.tiles, shape.gaps);
@@ -168,15 +210,21 @@ export function formationEffects(
   for (const hit of hits) {
     const combo = content.comboById[hit.combo] as ComboOf<'formation'>;
     const e = combo.effect;
-    if (!e.generation && !e.ignoresShade && !e.freeRuns) continue;
+    if (!e.generation && !e.ignoresShade && !e.freeRuns && e.outputMultiplier === 1) continue;
     for (const uid of hit.members) {
       if (e.appliesTo && state.buildings[uid]?.type !== e.appliesTo) continue;
-      const cur = effects.get(uid) ?? { generation: 0, ignoresShade: false, freeRuns: false };
+      const cur = effects.get(uid) ?? {
+        generation: 0,
+        ignoresShade: false,
+        freeRuns: false,
+        outputMultiplier: 1,
+      };
       effects.set(uid, {
         // A building in two terraces still gets the bonus once.
         generation: Math.max(cur.generation, e.generation),
         ignoresShade: cur.ignoresShade || e.ignoresShade,
         freeRuns: cur.freeRuns || e.freeRuns,
+        outputMultiplier: Math.max(cur.outputMultiplier, e.outputMultiplier),
       });
     }
   }
@@ -200,8 +248,40 @@ export function formationHarmony(
 export function formationWellbeing(ctx: SeasonContext): { reason: string; amount: number }[] {
   return ctx.formations
     .map((h) => ctx.content.comboById[h.combo] as ComboOf<'formation'>)
-    .filter((c) => c.effect.wellbeing !== 0)
+    .filter((c) => c.effect.wellbeing !== 0 && c.effect.seasons[ctx.si])
     .map((c) => ({ reason: c.name, amount: c.effect.wellbeing }));
+}
+
+/** Flat extra yields from standing formations (the Water Ladder's food), once per member. */
+export function applyFormationYields(ctx: SeasonContext): void {
+  const given = new Set<string>();
+  for (const hit of ctx.formations) {
+    const combo = ctx.content.comboById[hit.combo] as ComboOf<'formation'>;
+    const e = combo.effect;
+    for (const uid of hit.members) {
+      const b = ctx.state.buildings[uid];
+      if (!b || (e.appliesTo && b.type !== e.appliesTo)) continue;
+      for (const [res, n] of Object.entries(e.yields) as [keyof typeof e.yields, number][]) {
+        const key = `${uid}:${combo.id}:${res}`;
+        if (given.has(key) || (ctx.report.yields[uid]?.[res] ?? 0) <= 0) continue;
+        given.add(key);
+        addYield(ctx, b, res, n, combo.name);
+        explain(ctx, b, `+${n} ${res} from the ${combo.name}`);
+      }
+    }
+  }
+}
+
+/** Is the building within a sheltering formation's reach (the Windbreak)? */
+export function shelteredByFormation(content: Content, state: RunState, b: BuildingState): boolean {
+  const shelters = combosOf(content, 'formation').filter((c) => c.effect.shelterRadius > 0);
+  if (shelters.length === 0) return false;
+  for (const hit of findFormations(content, state, shelters)) {
+    const radius = (content.comboById[hit.combo] as ComboOf<'formation'>).effect.shelterRadius;
+    if (hit.members.some((uid) => hexDistance(state.buildings[uid]!.at, b.at) <= radius))
+      return true;
+  }
+  return false;
 }
 
 // ---------------------------------------------------------------------- chains
@@ -213,7 +293,9 @@ function worked(ctx: SeasonContext, b: BuildingState): boolean {
   if (y && Object.values(y).some((n) => (n ?? 0) > 0)) return true;
   if ((ctx.report.runs[b.uid]?.runs ?? 0) > 0) return true;
   const g = ctx.report.generated[b.uid];
-  return g !== undefined && g.energy.day + g.energy.night > 0;
+  if (g !== undefined && g.energy.day + g.energy.night > 0) return true;
+  // A kiln or heat well that warmed a neighbour (the Bath Loop) did its work too.
+  return ctx.report.neighborHeat.some((l) => l.from === b.uid);
 }
 
 /** Loops that ran this season: every complete path through the chain's links. */
@@ -222,12 +304,21 @@ function runningLoops(ctx: SeasonContext): ComboHit[] {
   const occ = occupancy(state);
   const hits: ComboHit[] = [];
   for (const combo of combosOf(ctx.content, 'chain')) {
-    const fits = (b: BuildingState, i: number) => {
+    const fits = (b: BuildingState, i: number, prev?: BuildingState) => {
       const link = combo.links[i]!;
       if (!link.buildings.includes(b.type)) return false;
       if (link.slot && (b.slot ?? defOf(ctx.content, b).digester?.defaultSlot) !== link.slot)
         return false;
-      return worked(ctx, b);
+      if (
+        link.heatFrom &&
+        !ctx.report.neighborHeat.some((l) => l.to === b.uid && l.from === prev?.uid)
+      )
+        return false;
+      if (link.cleaned && (ctx.report.water?.cleaned[b.uid] ?? 0) <= 0) return false;
+      if (link.gotWater && (ctx.report.water?.uses[b.uid]?.got[link.gotWater] ?? 0) <= 0)
+        return false;
+      // A bathhouse or reed bed makes nothing a chain counts; its condition is its work.
+      return worked(ctx, b) || link.heatFrom || link.cleaned;
     };
     for (const anchor of Object.values(state.buildings)) {
       if (!fits(anchor, 0)) continue;
@@ -238,7 +329,7 @@ function runningLoops(ctx: SeasonContext): ComboHit[] {
           return;
         }
         for (const n of neighborBuildings(state, b, occ)) {
-          if (!path.includes(n.uid) && fits(n, i + 1)) walk(n, i + 1, [...path, n.uid]);
+          if (!path.includes(n.uid) && fits(n, i + 1, b)) walk(n, i + 1, [...path, n.uid]);
         }
       };
       walk(anchor, 0, [anchor.uid]);

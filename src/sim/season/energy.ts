@@ -80,33 +80,50 @@ export function resolveEnergy(ctx: SeasonContext): void {
   const occ = occupancy(state);
 
   // Heat from a neighbour (the Bathhouse): a staffed kiln next to it warms it for free; a heat
-  // well next to it pays from what it holds. Kilns first, then wells, each by priority.
+  // well next to it pays from what it holds. Kilns first, then wells, each by priority. Then the
+  // heat cascade: a building warmed that way passes on up to 1 heat a slot, losing the rest, to
+  // a neighbour that takes heat from it (a bathhouse to a greenhouse).
   const fromNeighbor: Record<Slot, Map<string, number>> = { day: new Map(), night: new Map() };
   const neighborLinks: HeatLink[] = [];
-  for (const b of active) {
-    const from = defOf(content, b).heatFromNeighbors;
-    if (!from) continue;
-    const warm = (n: BuildingState) => (defOf(content, n).recipes ? 0 : 1);
-    const next = neighborBuildings(state, b, occ)
-      .filter((n) => from.includes(n.type) && ctx.active.has(n.uid))
-      .sort((x, y) => warm(x) - warm(y) || rank.get(x.uid)! - rank.get(y.uid)!);
-    for (const slot of SLOTS) {
-      let owed = heatOf(b, slot);
-      for (const n of next) {
-        if (owed <= 0) break;
+  const warmed = new Set<string>();
+  /** Heat each relay has passed on, by slot and uid (at most 1). */
+  const relayed: Record<Slot, Map<string, number>> = { day: new Map(), night: new Map() };
+  const give = (slot: Slot, n: BuildingState, b: BuildingState, t: number) => {
+    fromNeighbor[slot].set(b.uid, (fromNeighbor[slot].get(b.uid) ?? 0) + t);
+    neighborLinks.push({ slot, from: n.uid, to: b.uid, amount: t });
+    report.energy[slot].heat.neighbor += t;
+    explain(ctx, b, `${slot}: ${t} heat from the ${defOf(content, n).name} next to it`);
+  };
+  for (const pass of ['sources', 'relays'] as const) {
+    for (const b of active) {
+      const from = defOf(content, b).heatFromNeighbors;
+      if (!from) continue;
+      const kind = (n: BuildingState) => {
         const nd = defOf(content, n);
-        const t = nd.recipes
-          ? owed
-          : nd.storage?.holds === 'heat'
-            ? Math.min(owed, n.stored ?? 0)
-            : 0;
-        if (t <= 0) continue;
-        if (!nd.recipes) n.stored = (n.stored ?? 0) - t;
-        owed -= t;
-        fromNeighbor[slot].set(b.uid, (fromNeighbor[slot].get(b.uid) ?? 0) + t);
-        neighborLinks.push({ slot, from: n.uid, to: b.uid, amount: t });
-        report.energy[slot].heat.neighbor += t;
-        explain(ctx, b, `${slot}: ${t} heat from the ${nd.name} next to it`);
+        return nd.recipes ? 0 : nd.storage?.holds === 'heat' ? 1 : nd.heatFromNeighbors ? 2 : 3;
+      };
+      const next = neighborBuildings(state, b, occ)
+        .filter((n) => from.includes(n.type) && ctx.active.has(n.uid))
+        .filter((n) => (pass === 'sources' ? kind(n) < 2 : kind(n) === 2 && warmed.has(n.uid)))
+        .sort((x, y) => kind(x) - kind(y) || rank.get(x.uid)! - rank.get(y.uid)!);
+      for (const slot of SLOTS) {
+        let owed = heatOf(b, slot) - (fromNeighbor[slot].get(b.uid) ?? 0);
+        for (const n of next) {
+          if (owed <= 0) break;
+          const k = kind(n);
+          const t =
+            k === 0
+              ? owed
+              : k === 1
+                ? Math.min(owed, n.stored ?? 0)
+                : Math.min(owed, 1 - (relayed[slot].get(n.uid) ?? 0));
+          if (t <= 0) continue;
+          if (k === 1) n.stored = (n.stored ?? 0) - t;
+          if (k === 2) relayed[slot].set(n.uid, (relayed[slot].get(n.uid) ?? 0) + t);
+          owed -= t;
+          give(slot, n, b, t);
+          warmed.add(b.uid);
+        }
       }
     }
   }

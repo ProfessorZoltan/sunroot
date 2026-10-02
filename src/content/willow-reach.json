@@ -373,7 +373,8 @@
       },
       "water": {
         "needs": [1, 1, 1, 1]
-      }
+      },
+      "heatFromNeighbors": ["bathhouse"]
     },
     {
       "id": "composter",
@@ -1110,7 +1111,8 @@
         "needs": [1, 1, 1, 1],
         "accepts": ["nutrient"],
         "fromPond": true
-      }
+      },
+      "heatFromNeighbors": ["bathhouse"]
     },
     {
       "draftable": false,
@@ -1350,6 +1352,92 @@
       "hint": "Pond water feeds a greenhouse; its waste feeds a digester."
     },
     {
+      "id": "bathLoop",
+      "layer": "chain",
+      "name": "Bath Loop",
+      "requiresWater": true,
+      "links": [
+        {
+          "buildings": ["kiln", "heatWell"]
+        },
+        {
+          "buildings": ["bathhouse"],
+          "heatFrom": true
+        },
+        {
+          "buildings": ["reedBed"],
+          "cleaned": true
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["materials", "biomass"],
+      "text": "Kiln or heat well → heat → bathhouse → grey water → reed bed, in a chain of neighbours. It closes when the bathhouse takes its heat from the kiln or well next to it and the reed bed next to it cleans grey water. Once it runs, the kiln makes +1 materials and the reed bed +1 biomass for as long as it stands.",
+      "hint": "Warm the bath with a neighbour's spare heat; let reeds clean what it lets out."
+    },
+    {
+      "id": "riceFishLoop",
+      "layer": "chain",
+      "name": "Rice-Fish Loop",
+      "requiresWater": true,
+      "links": [
+        {
+          "buildings": ["riceFishPaddy"]
+        },
+        {
+          "buildings": ["composter"]
+        },
+        {
+          "buildings": ["floodplainFarm", "agrivoltaicField"],
+          "gotWater": "nutrient"
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "compost"],
+      "text": "Paddy → nutrient-rich water → farm → biomass → composter → compost → paddy. It closes when a composter stands between a paddy and a farm that got nutrient-rich water. Once it runs, each makes +1 (food, or the composter's compost) for as long as it stands.",
+      "hint": "The paddy's water feeds a farm; the farm's waste feeds the paddy."
+    },
+    {
+      "id": "mushroomLoop",
+      "layer": "chain",
+      "name": "Mushroom Loop",
+      "requiresWater": true,
+      "links": [
+        {
+          "buildings": ["floodplainFarm", "agrivoltaicField"]
+        },
+        {
+          "buildings": ["mushroomCellar"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "compost"],
+      "text": "Farm → biomass → mushroom cellar → spent substrate (compost) → farm. It closes when a working cellar stands next to a working farm. Once it runs, both make +1 food for as long as it stands.",
+      "hint": "What a farm leaves, mushrooms eat; what mushrooms leave, a farm eats."
+    },
+    {
+      "id": "heatCascade",
+      "layer": "chain",
+      "name": "Heat Cascade",
+      "requiresWater": true,
+      "links": [
+        {
+          "buildings": ["kiln", "heatWell"]
+        },
+        {
+          "buildings": ["bathhouse"],
+          "heatFrom": true
+        },
+        {
+          "buildings": ["greenhouse", "aquaponicsHall"],
+          "heatFrom": true
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "materials"],
+      "text": "Heat runs from hot to warm, losing some at each step: a kiln or heat well warms the bathhouse next to it, and the bathhouse's warm water heats the greenhouse next to it (up to 1 heat a slot). It closes the first winter the greenhouse is warmed that way. Once it runs, the kiln makes +1 materials and the greenhouse +1 food for as long as it stands.",
+      "hint": "Spare heat from a hot neighbour can warm two buildings, not one."
+    },
+    {
       "id": "villageGreen",
       "layer": "formation",
       "name": "Village Green",
@@ -1409,6 +1497,74 @@
       },
       "text": "An unbroken strip of meadow and woodland from the river to the valley's edge: +10 Harmony, and animals return.",
       "hint": "A green corridor from the water to the hills."
+    },
+    {
+      "id": "keyholeGarden",
+      "layer": "formation",
+      "name": "Keyhole Garden",
+      "requiresWater": true,
+      "shape": {
+        "kind": "ring",
+        "center": "composter",
+        "size": 3,
+        "minTypes": 1,
+        "of": ["floodplainFarm", "agrivoltaicField"]
+      },
+      "effect": {
+        "outputMultiplier": 2,
+        "appliesTo": "composter"
+      },
+      "text": "A composter with 3 farms next to it: its compost doubles.",
+      "hint": "A heap at the heart of the beds."
+    },
+    {
+      "id": "waterLadder",
+      "layer": "formation",
+      "name": "Water Ladder",
+      "requiresWater": true,
+      "shape": {
+        "kind": "line",
+        "sequence": ["riceFishPaddy", "riceFishPaddy", "riceFishPaddy"]
+      },
+      "effect": {
+        "yields": {
+          "food": 1
+        },
+        "appliesTo": "riceFishPaddy"
+      },
+      "text": "3 rice-fish paddies in a row: each makes +1 food in a season it makes any.",
+      "hint": "Terraces stepping down, one feeding the next."
+    },
+    {
+      "id": "windbreak",
+      "layer": "formation",
+      "name": "Windbreak",
+      "requiresWater": true,
+      "shape": {
+        "kind": "line",
+        "sequence": ["hedgerow", "hedgerow", "hedgerow", "hedgerow"]
+      },
+      "effect": {
+        "shelterRadius": 2
+      },
+      "text": "4 hedgerows in an unbroken line: storms can't damage any building within 2 tiles of them, on any side.",
+      "hint": "A long hedge stops more wind than a short one."
+    },
+    {
+      "id": "hearthSquare",
+      "layer": "formation",
+      "name": "Hearth Square",
+      "requiresWater": true,
+      "shape": {
+        "kind": "cluster",
+        "buildings": ["bathhouse", "commonsPlaza", "cottage"]
+      },
+      "effect": {
+        "wellbeing": 5,
+        "seasons": [false, false, false, true]
+      },
+      "text": "A bathhouse, a Commons Plaza and a cottage, each touching the other two: +5 wellbeing in winter.",
+      "hint": "Somewhere warm to gather when it's cold."
     },
     {
       "id": "winterGarden",
@@ -1483,7 +1639,8 @@
         }
       },
       "text": "An orchard next to an apiary and 2 meadow tiles becomes a Food Forest: food 1 / 2 / 4 / 1, winter included, no worker, +2 Harmony. It still drinks 1 water in summer.",
-      "hint": "Trees, bees and flowers, all looking after each other."
+      "hint": "Trees, bees and flowers, all looking after each other.",
+      "requiresWater": true
     },
     {
       "id": "aquaponicsHall",
@@ -1498,7 +1655,8 @@
         }
       },
       "text": "A greenhouse next to a fish pond becomes an Aquaponics Hall: 4 food every season, watered by the pond's nutrient-rich water instead of a channel. It still needs 2 day energy. Next to a heat well too, choose it or the Winter Garden.",
-      "hint": "Fish feed the plants; the plants clean the fishes' water."
+      "hint": "Fish feed the plants; the plants clean the fishes' water.",
+      "requiresWater": true
     },
     {
       "id": "canalTopSolar",
@@ -1511,7 +1669,8 @@
         "building": "solarCanopy"
       },
       "text": "A solar canopy built over a channel becomes Canal-top Solar: water still flows beneath, the whole channel loses nothing to summer evaporation, and the panels make 1 more energy by day in summer, kept cool by the water.",
-      "hint": "Shade the water, cool the panels."
+      "hint": "Shade the water, cool the panels.",
+      "requiresWater": true
     },
     {
       "id": "beaverDam",
@@ -1527,7 +1686,8 @@
         "minHarmony": 50
       },
       "text": "A weir next to woodland, once Harmony reaches 50, becomes a Beaver Dam: +2 Harmony, and each spring a reed bed grows on a free tile beside the reservoir, up to 3. It still holds back water and halves the flood.",
-      "hint": "When the valley is wild enough, someone moves in."
+      "hint": "When the valley is wild enough, someone moves in.",
+      "requiresWater": true
     },
     {
       "id": "singingSpire",
@@ -1543,7 +1703,8 @@
         }
       },
       "text": "A wind spire with pollinator meadows on 2 sides becomes a Singing Spire: no Harmony penalty, and +1 wellbeing each season.",
-      "hint": "Wind through flowers makes music."
+      "hint": "Wind through flowers makes music.",
+      "requiresWater": true
     },
     {
       "id": "oldWorldArchive",
@@ -1558,7 +1719,8 @@
         }
       },
       "text": "A salvage yard whose ruin is empty, next to a Seedbank Library, may become an Old World Archive instead of a Rewilded Ruin: +2 knowledge each season, with 1 worker. You choose.",
-      "hint": "Not everything worth keeping in a ruin is metal."
+      "hint": "Not everything worth keeping in a ruin is metal.",
+      "requiresWater": true
     },
     {
       "id": "coppiceWood",
@@ -1574,7 +1736,8 @@
         "regrowth": "coppiceRegrowth"
       },
       "text": "Coppice a woodland tile next to a workshop and it becomes a Coppice Wood: 2 materials each season with 1 worker, but it counts as meadow for Harmony (1 instead of 2). Stop coppicing and it is woodland again after 2 seasons.",
-      "hint": "Cut a tree low and it grows back many."
+      "hint": "Cut a tree low and it grows back many.",
+      "requiresWater": true
     }
   ],
   "tunings": [

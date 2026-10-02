@@ -43,6 +43,8 @@ export interface FormationEffect {
   generation: number;
   ignoresShade: boolean;
   freeRuns: boolean;
+  /** Multiplies a composter's output (the Keyhole Garden). */
+  outputMultiplier: number;
 }
 
 function emptySlot(): SlotReport {

@@ -1,5 +1,6 @@
 /** Short, plain descriptions of buildings, built from their data (so they never drift from the rules). */
 import type { BuildingDef, Content } from '../sim';
+import { available } from '../sim/water';
 
 const SEASON_LIST = (values: readonly number[]) => values.join(' / ');
 
@@ -63,11 +64,20 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
       : 'food buildings';
     lines.push(`+${def.neighborFoodBonus.amount} food to neighbouring ${who}.`);
   }
-  if (def.heatFromNeighbors) {
-    const night = def.demand?.heat.night ?? [];
-    const who = def.heatFromNeighbors.map((id) => content.byId[id]?.name ?? id).join(' or ');
+  // Heat from neighbours (a bathhouse from a kiln; a greenhouse from a warmed bathhouse).
+  const givers = (def.heatFromNeighbors ?? []).filter(
+    (id) => content.byId[id] && available(content, content.byId[id]!),
+  );
+  if (givers.length > 0) {
+    const heat = def.demand?.heat;
+    const slot = heat && Math.max(...heat.night) > 0 ? 'night' : 'day';
+    const most = heat ? Math.max(...heat[slot]) : 0;
+    const who = givers.map((id) => content.byId[id]!.name).join(' or ');
+    const how = givers.every((id) => content.byId[id]!.heatFromNeighbors)
+      ? ' (one warmed by its own neighbour passes on up to 1)'
+      : ' (a staffed kiln for free)';
     lines.push(
-      `Needs ${Math.max(...night)} heat each night: a ${who} next to it gives it first (a staffed kiln for free); otherwise the grid.`,
+      `Needs ${most} heat by ${slot}${slot === 'day' ? ' in winter' : ''}: a ${who} next to it gives it first${how}; otherwise the grid.`,
     );
   }
   // Water only matters while the run has it.

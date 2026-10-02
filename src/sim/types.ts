@@ -372,6 +372,8 @@ export interface WaterReport {
   /** Water users by building uid. */
   uses: Record<string, WaterUse>;
   /** Grey water that reached the river: costs Harmony until next season. */
+  /** Grey water each reed bed cleaned this season, by uid (the Bath Loop). */
+  cleaned: Record<string, number>;
   greyToRiver: number;
   in: Record<string, number>;
   out: Record<string, number>;

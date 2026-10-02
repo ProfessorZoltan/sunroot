@@ -1,5 +1,5 @@
 /** Read-only helpers over run state shared by commands and season resolution. */
-import { formationHarmony } from './combos';
+import { formationHarmony, shelteredByFormation } from './combos';
 import { finishedProjects } from './projects';
 import type { Content } from './content/load';
 import type { BuildingDef, Season, TileType } from './content/schema';
@@ -91,8 +91,9 @@ export function stormExposed(content: Content, state: RunState, b: BuildingState
   const type = tileAt(state, b.at)?.type;
   if (!type || !content.events.storm.exposedOn.includes(type)) return false;
   if (neighborTiles(state, b.at).some((t) => t.type === 'woodland')) return false;
-  // A hedgerow next to it breaks the wind.
-  return !neighborBuildings(state, b).some((n) => defOf(content, n).sheltersNeighbors);
+  // A hedgerow next to it breaks the wind, and a Windbreak further.
+  if (neighborBuildings(state, b).some((n) => defOf(content, n).sheltersNeighbors)) return false;
+  return !shelteredByFormation(content, state, b);
 }
 
 /** Where a building stands, as a sentence says it: "on a hill", "on barren land". */

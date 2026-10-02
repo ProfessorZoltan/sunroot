@@ -198,7 +198,11 @@ function checkCombo(c: Combo, known: (id: string, where: string) => void): void 
       c.links.forEach((l) => all(l.buildings));
       break;
     case 'formation':
-      if (c.shape.kind === 'ring') known(c.shape.center, where);
+      if (c.shape.kind === 'ring') {
+        known(c.shape.center, where);
+        all(c.shape.of);
+      }
+      if (c.shape.kind === 'cluster') all(c.shape.buildings);
       if (c.shape.kind === 'line') all(c.shape.sequence);
       if (c.effect.appliesTo) known(c.effect.appliesTo, where);
       break;

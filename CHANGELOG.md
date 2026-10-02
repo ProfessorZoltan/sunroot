@@ -1,5 +1,17 @@
 # Changelog
 
+## Willow Reach v2: loops and formations (E3, part 3)
+
+With water:
+
+- **Bath Loop** (kiln or heat well → bathhouse → reed bed), **Rice-Fish Loop** (paddy → composter →
+  farm), **Mushroom Loop** (farm → mushroom cellar).
+- **Heat Cascade:** a bathhouse warmed by a kiln or heat well passes 1 heat on to a greenhouse next
+  to it, so the greenhouse needs no grid heat in winter; kiln → bathhouse → greenhouse is a loop.
+- **Keyhole Garden** (a composter among 3 farms: double compost), **Water Ladder** (3 paddies in a
+  row: +1 food each), **Windbreak** (4 hedgerows in a line shelter everything within 2 tiles from
+  storms), **Hearth Square** (bathhouse, plaza and cottage together: +5 wellbeing in winter).
+
 ## Willow Reach v2: seven evolutions (E3, part 2)
 
 With water, from run 2:

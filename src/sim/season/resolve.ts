@@ -32,7 +32,13 @@ import { generate, produce, producePowered, staff } from './production';
 import { resolveWater } from './water';
 import { assignCommutes } from './commute';
 import { snapshot } from '../snapshot';
-import { applyLoopBonuses, checkCombos, findFormations, formationEffects } from '../combos';
+import {
+  applyFormationYields,
+  applyLoopBonuses,
+  checkCombos,
+  findFormations,
+  formationEffects,
+} from '../combos';
 import { effectiveContent } from '../content/modifiers';
 import { dealCharters } from '../draft';
 import { cityRequest, eraGoal, goalMet, visionMet } from '../score';
@@ -84,6 +90,7 @@ export function resolveSeason(
   resolveEnergy(ctx); // 5, 6, 7
   producePowered(ctx);
   applyLoopBonuses(ctx);
+  applyFormationYields(ctx);
   feedAndGrow(ctx); // 8
   scrapsAndHarmony(ctx); // 9
   checkCombos(ctx); // 10

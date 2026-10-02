@@ -667,6 +667,8 @@ const ComboBase = {
   text: z.string(),
   /** A nudge towards it, shown on the silhouette (free for adjacency and chains). */
   hint: z.string(),
+  /** Willow Reach v2 (E3): in play only while the run has water. */
+  requiresWater: z.boolean().default(false),
 };
 
 export const ComboSchema = z.discriminatedUnion('layer', [
@@ -691,7 +693,20 @@ export const ComboSchema = z.discriminatedUnion('layer', [
       ...ComboBase,
       layer: z.literal('chain'),
       links: z
-        .array(z.object({ buildings: z.array(z.string()).min(1), slot: z.enum(SLOTS).optional() }))
+        .array(
+          z
+            .object({
+              buildings: z.array(z.string()).min(1),
+              slot: z.enum(SLOTS).optional(),
+              /** It took heat from the previous link's building (a bathhouse from a kiln). */
+              heatFrom: z.boolean().default(false),
+              /** It cleaned grey water this season (a reed bed). */
+              cleaned: z.boolean().default(false),
+              /** It got water of this quality this season (a farm below a paddy). */
+              gotWater: WaterQualitySchema.optional(),
+            })
+            .strict(),
+        )
         .min(2),
       bonus: int.min(1),
       bonusOrder: z.array(ResourceSchema).min(1),
@@ -709,7 +724,11 @@ export const ComboSchema = z.discriminatedUnion('layer', [
           center: z.string(),
           size: int.min(1).max(6),
           minTypes: int.min(1),
+          /** Only neighbours of these types count (the Keyhole Garden's farms). */
+          of: z.array(z.string()).optional(),
         }),
+        /** One building of each of these types, every one touching every other. */
+        z.object({ kind: z.literal('cluster'), buildings: z.array(z.string()).min(2).max(3) }),
         /** Buildings in a straight line, in this order (either direction), on these tiles. */
         z.object({
           kind: z.literal('line'),
@@ -733,6 +752,14 @@ export const ComboSchema = z.discriminatedUnion('layer', [
           ignoresShade: z.boolean().default(false),
           /** Members of `appliesTo` run without energy. */
           freeRuns: z.boolean().default(false),
+          /** Multiplies what members of `appliesTo` convert (a composter's compost). */
+          outputMultiplier: int.min(1).default(1),
+          /** Flat extra yield for each member of `appliesTo` that made some this season. */
+          yields: z.partialRecord(ResourceSchema, int.min(1)).default({}),
+          /** Storms can't damage buildings within this many tiles of a member (the Windbreak). */
+          shelterRadius: nonNeg.default(0),
+          /** Seasons the wellbeing applies in (the Hearth Square: winter). */
+          seasons: PerSeasonFlags.default([true, true, true, true]),
           appliesTo: z.string().optional(),
         })
         .strict(),

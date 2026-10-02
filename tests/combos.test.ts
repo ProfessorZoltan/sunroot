@@ -43,8 +43,26 @@ describe('combo data', () => {
       'Kiln Warmth',
       'Green Doorstep',
     ]);
-    expect(byLayer('chain')).toEqual(['Kitchen Loop', 'Gas Loop', 'River Loop']);
-    expect(byLayer('formation')).toEqual(['Village Green', 'Sun Terrace', 'Mill Race', 'Wildway']);
+    expect(byLayer('chain')).toEqual([
+      'Kitchen Loop',
+      'Gas Loop',
+      'River Loop',
+      // Willow Reach v2 (EXPANSION.md, E3), with water; the Heat Cascade is DECISIONS.md Q18 (b).
+      'Bath Loop',
+      'Rice-Fish Loop',
+      'Mushroom Loop',
+      'Heat Cascade',
+    ]);
+    expect(byLayer('formation')).toEqual([
+      'Village Green',
+      'Sun Terrace',
+      'Mill Race',
+      'Wildway',
+      'Keyhole Garden',
+      'Water Ladder',
+      'Windbreak',
+      'Hearth Square',
+    ]);
     expect(byLayer('evolution')).toEqual([
       'Winter Garden',
       'Agrivoltaic Field',
