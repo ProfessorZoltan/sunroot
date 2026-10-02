@@ -1266,6 +1266,11 @@ ul.projects {
 .map-tip .mark-line.coming {
   color: var(--gold-text);
 }
+/* Local heat (a Long Winter): lines in the map tooltip and the inspector. */
+.heat-line {
+  color: #a5532a;
+}
+
 /* Walks to work: the left panel's row, and lines in the map tooltip and the inspector. */
 .walks-row .strong,
 .water-row .strong {

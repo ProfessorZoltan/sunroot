@@ -13,6 +13,7 @@ import type { PlacementPreview, PreviewKey } from '../sim/preview';
 import type { RunState, WaterReport } from '../sim/types';
 import { drawDitches, drawWater, waterView, type WaterView } from './waterArt';
 import type { WalkLine } from '../game/commuteInfo';
+import type { HeatLine } from '../game/heatInfo';
 import { BUILDING_ART, drawCondition } from './buildingArt';
 import {
   HEX_RADIUS,
@@ -304,14 +305,33 @@ export class MapView {
   /**
    * Walks to work for the building in focus: a dotted path from each home to
    * the work, green within the free distance and brown beyond it, thicker for
-   * more workers.
+   * more workers. In a Long Winter, also the heat to and from it: a solid
+   * orange arc from each heat source to what it warms.
    */
-  setWalks(lines: WalkLine[]): void {
-    const signature = lines.map((l) => `${hexKey(l.from)}>${hexKey(l.to)}x${l.count}`).join('|');
+  setWalks(lines: WalkLine[], heat: HeatLine[] = []): void {
+    const signature =
+      lines.map((l) => `${hexKey(l.from)}>${hexKey(l.to)}x${l.count}`).join('|') +
+      '/' +
+      heat.map((l) => `${hexKey(l.from)}>${hexKey(l.to)}x${l.amount}`).join('|');
     if (signature === this.walkSignature) return;
     this.walkSignature = signature;
     this.walksShown = lines.length;
+    this.heatShown = heat.length;
     const g = this.walks.clear();
+    for (const l of heat) {
+      const a = hexToPixel(l.from);
+      const b = hexToPixel(l.to);
+      // Bowed the other way from the walks, so the two never sit on one another.
+      const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 + 10 };
+      const w = Math.min(l.amount, 4);
+      g.moveTo(a.x, a.y)
+        .quadraticCurveTo(mid.x, mid.y, b.x, b.y)
+        .stroke({ width: 5 + w, color: 0xfffbf0, alpha: 0.85 });
+      g.moveTo(a.x, a.y)
+        .quadraticCurveTo(mid.x, mid.y, b.x, b.y)
+        .stroke({ width: 2 + w, color: 0xd9733b, alpha: 1 });
+      g.circle(b.x, b.y, 3.5).fill({ color: 0xd9733b }).stroke({ width: 1.5, color: 0xfffbf0 });
+    }
     for (const l of lines) {
       const a = hexToPixel(l.from);
       const b = hexToPixel(l.to);
@@ -336,6 +356,8 @@ export class MapView {
 
   /** How many walks the map shows (for tests). */
   walksShown = 0;
+  /** How many heat arcs the map shows (for tests). */
+  heatShown = 0;
 
   /** What the water layer shows (for tests): units carried along each channel. */
   get waterShown(): { channels: number[][]; river: number[] } | null {

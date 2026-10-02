@@ -2011,7 +2011,7 @@
     {
       "id": "longWinter",
       "name": "Long Winter",
-      "text": "Homes need 4 more heat on winter nights, 3 more in autumn and 2 more in spring, and solar canopies make 1 less by day in autumn and winter. The Graft is one tier higher.",
+      "text": "Homes need 4 more heat on winter nights, 3 more in autumn and 2 more in spring, and solar canopies make 1 less by day in autumn and winter. Heat is local: heat pumps, heat wells and solar thermal collectors warm only buildings within 2 tiles, and heat bought from the grid costs 2 energy each. The Graft is one tier higher.",
       "modifiers": [
         {
           "target": "building",
@@ -2078,6 +2078,16 @@
           "id": "solarCanopy",
           "path": "generation.day.3",
           "add": -1
+        },
+        {
+          "target": "rules",
+          "path": "localHeat.enabled",
+          "set": true
+        },
+        {
+          "target": "rules",
+          "path": "localHeat.gridHeatCost",
+          "set": 2
         }
       ],
       "graftTierBonus": 1

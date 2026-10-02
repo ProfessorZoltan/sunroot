@@ -162,6 +162,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
       pumped: s.pumped,
       pumpEnergy: s.pumpEnergy,
       direct: s.direct,
+      gridLoss: s.direct * (gridCost - 1),
     });
     for (const [uid, paid] of Object.entries(s.byPump)) {
       explain(

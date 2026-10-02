@@ -7,8 +7,9 @@
  *        beyond the energy they draw, storage released, and demand nobody
  *        supplied (the shortfall, met by blacking buildings out);
  *   out: each building's energy and heat demand (and demolition work),
- *        workshop and kiln runs, energy and free heat put into storage, and
- *        what was left unused.
+ *        workshop and kiln runs, energy and free heat put into storage, what
+ *        was left unused, and what heat bought from the grid loses when it
+ *        costs more than 1 energy each (local heat, in a Long Winter).
  */
 import type { Content } from './content/load';
 import { SLOTS, type Slot } from './content/schema';
@@ -45,6 +46,7 @@ export function energyLedger(content: Content, report: SeasonReport): EnergyLedg
     add(used, 'Into storage', e.storageCharged + e.heat.stored);
     add(used, 'Unused', e.unused);
     add(used, 'Free heat unused', e.heat.unused);
+    add(used, 'Heat bought from the grid: losses', e.heat.gridLoss ?? 0);
     out[slot] = { made, used };
   }
   return out;

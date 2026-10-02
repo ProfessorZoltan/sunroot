@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest';
 import {
   canPlace,
   createCity,
+  energyLedger,
   hexDistance,
   nextRunOptions,
   teaching,
@@ -161,5 +162,29 @@ describe('with local heat off', () => {
 
   it('records no heat links', () => {
     expect(endSeason(winter(false)).lastReport!.heat).toBeNull();
+  });
+});
+
+describe('in a Long Winter (local heat, the grid heat at 2 energy)', () => {
+  it("plays with local heat, and the season report's energy ledger still balances", () => {
+    const losses: number[] = [];
+    playRun(content, BOTS.balanced!, 'long-winter-ledger', {
+      run: { expedition: { twist: 'longWinter', request: null } },
+      onSeason: (s) => {
+        const r = s.lastReport!;
+        expect(r.heat).not.toBeNull();
+        const ledger = energyLedger(content, r);
+        for (const slot of ['day', 'night'] as const) {
+          const sum = (lines: Record<string, { amount: number }>) =>
+            Object.values(lines).reduce((a, l) => a + l.amount, 0);
+          expect(sum(ledger[slot].made), `${r.season} ${r.year} ${slot}`).toBe(
+            sum(ledger[slot].used),
+          );
+          losses.push(r.energy[slot].heat.gridLoss);
+        }
+      },
+    });
+    // Heat bought from the grid lost energy at some point.
+    expect(losses.some((n) => n > 0)).toBe(true);
   });
 });

@@ -90,3 +90,20 @@ Bot: balanced, 30 runs each, forecast sight, layers' score lines at 0. Heat reac
 
 If local heat is adopted with the grid's heat at 2, the season report's energy ledger needs a line
 for the heating losses before it goes on screen (it balances only at 1 energy per heat today).
+
+## What was done (Q18: (a) and (b))
+
+- **Long Winter** switches local heat on, with the grid's heat at 2 energy, through its modifiers.
+  The balanced bot, 40 runs, `scripts/expeditions.ts`:
+
+| Long Winter                                | Median score | Heartwood | Collapsed | Source                   |
+| ------------------------------------------ | ------------ | --------- | --------- | ------------------------ |
+| Heat shared (before)                       | 351          | 100%      | 0%        | `scripts/expeditions.ts` |
+| Local heat, grid heat at 2                 | 325          | 100%      | 0%        | `scripts/expeditions.ts` |
+| With water and walks, heat shared (before) | 354          | 95%       | 5%        | `scripts/expeditions.ts` |
+| With water and walks, local heat           | 324          | 98%       | 3%        | `scripts/expeditions.ts` |
+
+The energy ledger gained the line "Heat bought from the grid: losses", and the game shows heat
+arcs, tooltip and panel lines and a season report section while it is on.
+
+- **E3's heat cascade** (kiln to bathhouse to greenhouse) takes up the idea as combos.

@@ -1,5 +1,16 @@
 # Changelog
 
+## Long Winter keeps its heat close
+
+- In a Long Winter, heat is local: heat pumps, heat wells and solar thermal collectors warm only
+  buildings within 2 tiles, and heat bought from the grid costs 2 energy each. The twist's card says
+  so. It costs about 26 more points than before; the Graft is still lifted a tier.
+- Select or hover a building to see orange arcs from each heat source to what it warms. Tooltips
+  and the building panel say where a building's heat comes from, and what a source warms; the season
+  report has a "Heat kept close" section, and its energy ledger counts the energy lost buying heat
+  from the grid.
+- `?heat=1` turns local heat on for a seeded run.
+
 ## Local heat, in the simulation (H1)
 
 Built in the simulation only, and off in the game: it failed its gate as run 4's layer, so it is on

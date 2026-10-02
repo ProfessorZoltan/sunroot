@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { waterLedger, waterNotes } from '../game/waterInfo';
 import { commuteNotes } from '../game/commuteInfo';
+import { heatNotes } from '../game/heatInfo';
 import type { GameStore } from '../game/store';
 import {
   energyLedger,
@@ -395,6 +396,16 @@ export function SeasonReportDialog({
                 />
                 <Energy content={content} report={report} />
                 {report.water && <Water store={store} report={report.water} />}
+                {report.heat && (
+                  <>
+                    <h3>Heat kept close</h3>
+                    <ul class="plain small heat-notes">
+                      {heatNotes(store.rules, store.state, report.heat).map((l) => (
+                        <li>{l}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
                 {report.commute && (
                   <>
                     <h3>Walks to work</h3>

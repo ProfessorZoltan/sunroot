@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { waterAt } from '../game/waterInfo';
 import { commuteAt } from '../game/commuteInfo';
+import { heatAt } from '../game/heatInfo';
 import type { AudioEngine } from '../audio/engine';
 import { reachSummary } from '../game/marks';
 import { logToCsv, type PlayLog } from '../game/playlog';
@@ -225,6 +226,7 @@ export function MapTip({ store, view }: { store: GameStore; view: MapView | null
   // Water as this season stands (when the run has water); its lines replace the math's.
   const water = waterAt(store.rules, state, store.waterForecast, store.hover);
   const walks = commuteAt(store.rules, state, store.commuteForecast, store.hover);
+  const heat = heatAt(store.rules, state, store.heatForecast, store.hover);
   const math = (b ? (store.insight.now.math[b.uid] ?? []) : []).filter(
     (l) => water.length === 0 || !l.startsWith('water:'),
   );
@@ -249,6 +251,9 @@ export function MapTip({ store, view }: { store: GameStore; view: MapView | null
       ))}
       {walks.map((l) => (
         <div class="small walk-line">{l}</div>
+      ))}
+      {heat.map((l) => (
+        <div class="small heat-line">{l}</div>
       ))}
       {math.slice(0, 6).map((l) => (
         <div class="small">{l}</div>

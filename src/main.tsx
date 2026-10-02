@@ -12,7 +12,8 @@
  * the city's teaching and expeditions), ?guided=0 (with ?seed: skip the
  * guided first year), ?visions=0 (with ?seed: no vision choice), ?water=1 (with
  * ?seed or ?sandbox: the water system, which otherwise joins at run 2), ?commute=1
- * (likewise: walks to work, from run 3), ?sandbox
+ * (likewise: walks to work, from run 3), ?heat=1 (likewise: local heat, as in
+ * a Long Winter), ?sandbox
  * (everything unlocked, 999 materials; never saved).
  */
 import { Application } from 'pixi.js';
@@ -152,6 +153,7 @@ async function start() {
       visions: params.get('visions') !== '0',
       water: params.get('water') === '1',
       commute: params.get('commute') === '1',
+      localHeat: params.get('heat') === '1',
       city: sandbox ? undefined : runCity(content, city),
     });
   } else if (!state) {
@@ -297,7 +299,7 @@ async function start() {
     view!.setResolutionPaused(r?.paused ?? false);
     // Water as this season stands, or as the season being played out went.
     view!.setWater(r ? r.report.water : store.waterForecast);
-    view!.setWalks(store.walkLines);
+    view!.setWalks(store.walkLines, store.heatLines);
     view!.setMarks(store.marks);
     view!.setOverlay(
       store.hover,

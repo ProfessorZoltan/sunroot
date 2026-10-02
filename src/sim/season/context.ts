@@ -60,6 +60,7 @@ function emptySlot(): SlotReport {
       direct: 0,
       stored: 0,
       unused: 0,
+      gridLoss: 0,
     },
     reserved: 0,
     sponges: 0,

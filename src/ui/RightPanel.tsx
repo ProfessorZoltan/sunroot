@@ -2,6 +2,7 @@
 import type { GameStore } from '../game/store';
 import { waterAt } from '../game/waterInfo';
 import { commuteAt } from '../game/commuteInfo';
+import { heatAt } from '../game/heatInfo';
 import {
   AUTO_RECIPE,
   demolishCheck,
@@ -398,6 +399,7 @@ function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
   const now = store.insight.now;
   const water = waterAt(store.rules, state, store.waterForecast, b.at);
   const walks = commuteAt(store.rules, state, store.commuteForecast, b.at);
+  const heat = heatAt(store.rules, state, store.heatForecast, b.at);
   const status: string[] = [];
   const repair = repairCost(store.rules, b);
   const materials = state.stores.materials;
@@ -452,6 +454,9 @@ function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
       ))}
       {walks.map((line) => (
         <div class="small walk-line">{line}</div>
+      ))}
+      {heat.map((line) => (
+        <div class="small heat-line">{line}</div>
       ))}
       {store.waterForecast?.uses[b.uid] && (
         <div class="small quiet">

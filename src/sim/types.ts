@@ -238,6 +238,11 @@ export interface HeatReport {
   stored: number;
   /** Free heat nothing could use or store. */
   unused: number;
+  /**
+   * Energy lost to heat bought from the grid beyond 1 for 1 (local heat's grid
+   * heat cost, in a Long Winter): heat left to pay directly × (cost − 1).
+   */
+  gridLoss: number;
 }
 
 export interface SlotReport {

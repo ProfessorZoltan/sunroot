@@ -29,8 +29,10 @@ import {
   type SeasonReport,
   type WaterReport,
   type CommuteReport,
+  type HeatLink,
 } from '../sim';
 import { walkLines, type WalkLine } from './commuteInfo';
+import { heatLines, type HeatLine } from './heatInfo';
 import { EMPTY_ALMANAC, entryView, recordRun, type Almanac } from './almanac';
 import type { Graft, RunResult } from '../sim';
 import { computeInsight, type Insight } from './insight';
@@ -166,20 +168,31 @@ export class GameStore {
     return this.asIs().lastReport?.commute ?? null;
   }
 
-  /**
-   * The walks to draw: those of the building being inspected, or else of the
-   * building under the cursor when no tool is in hand.
-   */
-  get walkLines(): WalkLine[] {
-    const report = this.resolution ? null : this.commuteForecast;
-    if (!report) return [];
-    const focus =
+  /** The building the map shows links for: the one inspected, or under the cursor with no tool. */
+  private get focus(): string | null {
+    return (
       this.inspected ??
       (this.tool || !this.hover
         ? null
         : (Object.values(this.state.buildings).find((b) => hexKey(b.at) === hexKey(this.hover!))
-            ?.uid ?? null));
-    return walkLines(this.rules, this.state, report, focus);
+            ?.uid ?? null))
+    );
+  }
+
+  /** The walks to draw, for the building in focus. */
+  get walkLines(): WalkLine[] {
+    const report = this.resolution ? null : this.commuteForecast;
+    return report ? walkLines(this.rules, this.state, report, this.focus) : [];
+  }
+
+  /** This season's heat as it stands (who warms whom), or null unless heat is local. */
+  get heatForecast(): HeatLink[] | null {
+    return this.asIs().lastReport?.heat ?? null;
+  }
+
+  /** The heat to draw, for the building in focus. */
+  get heatLines(): HeatLine[] {
+    return this.resolution ? [] : heatLines(this.state, this.heatForecast, this.focus);
   }
 
   /** This season's water as it stands (a forecast), or null when the run has no water. */
