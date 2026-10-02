@@ -277,7 +277,40 @@ export function siteScore(
       break;
     case 'composter':
       score += 3 * touching('floodplainFarm', 'orchard', 'fishPond', 'greenhouse');
+      score += 3 * touching('riceFishPaddy', 'mushroomCellar');
       break;
+    // Willow Reach v2 (E3): next to what feeds them or what they feed.
+    case 'greenhouse':
+      score += 2 * touching('bathhouse');
+      break;
+    case 'bathhouse':
+      score += 4 * Math.min(1, touching('kiln', 'heatWell'));
+      score += 2 * touching('greenhouse', 'reedBed', 'commonsPlaza', 'cottage');
+      break;
+    case 'reedBed':
+      score += 3 * touching('bathhouse');
+      break;
+    case 'riceFishPaddy':
+      score += 2 * touching('composter', 'riceFishPaddy');
+      break;
+    case 'mushroomCellar': {
+      score += 3 * touching('floodplainFarm', 'agrivoltaicField');
+      const shaded =
+        neighbors.some((b) => content.byId[b.type]!.tall) ||
+        neighborTiles.some((t) => t.type === 'woodland');
+      if (shaded) score += 2;
+      break;
+    }
+    case 'hedgerow': {
+      // Shelter for buildings storms can reach; nothing to shelter, no hedge.
+      const exposed = neighbors.filter(
+        (b) =>
+          !content.byId[b.type]!.stormProof &&
+          content.events.storm.exposedOn.includes(state.map.tiles[hexKey(b.at)]!.type),
+      ).length;
+      score += exposed > 0 ? 3 * exposed : -100;
+      break;
+    }
     case 'apiary':
       score += 3 * touching('floodplainFarm', 'orchard');
       if (touching('windSpire') > 0) score -= 100;

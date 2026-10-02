@@ -496,6 +496,14 @@ composter among three farms, play as before.
 | Windbreak      | 4 hedgerows in a straight line: storms can't damage buildings within 2 tiles of any of them (Windbreak (E3), above).                                                                                                                                                                                                                                                                | `shelterRadius`       |
 | Hearth Square  | A new shape, a cluster: a bathhouse, a Commons Plaza and a cottage each touching the other two. +5 wellbeing in winter.                                                                                                                                                                                                                                                             | `shape.cluster`       |
 
+### Willow Reach v2: bots and the gate (E3)
+
+| Topic       | Decision                                                                                                                                                                                                                                                                                                                                    | Source                                       |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| Bots        | Each profile bot drafts and builds the new cards that fit it: greedyFood paddies (one per two farms) and mushroom cellars; greedyEnergy hedgerows by its hill generators; balanced a bathhouse at 12 citizens, a reed bed for it, and hedgerows. Site rules put each next to what feeds it or what it feeds. Without water nothing changes. | `src/balance/bots.ts`, `src/balance/turn.ts` |
+| The gate    | Fails as written for the Bathhouse and Reed Bed (built in 75% of winning runs), because nearly every winning run is the balanced bot's and it always builds them. Leaving any one new card out of the draft never lowers the bots' Heartwood share, so none is one they need to win. Q19 asks.                                              | [balance/e3-gate.md](balance/e3-gate.md)     |
+| The Almanac | Willow Reach v2's combos appear once the run has water, or once found in an earlier run.                                                                                                                                                                                                                                                    | `src/ui/Combos.tsx`                          |
+
 ### The E1 decision gate
 
 EXPANSION.md: "the report must show summer water is a real choice. If summer has no shortfall in
@@ -597,3 +605,11 @@ building more farms. Q17 asks what to do about that before E2.
   for cold expeditions (Long Winter) and the Highland biome, where heat is the point; (b) fold the
   idea into E3's heat cascade (kiln to bathhouse to greenhouse) as combos to find; (c) leave run 4
   for visions alone. I'd do (a) and (b).
+- **Q19. The E3 gate: pass it on the ablation?** As written ("no single new card appears in more
+  than 40% of winning bot runs"), it fails for the Bathhouse and Reed Bed, built in 75% of winning
+  runs, but that is the balanced bot's habit: it builds them at 12 citizens, and nearly every
+  winning run is its. Leaving any one new card out of the draft never lowers the bots' Heartwood
+  share (13% with all; 14 to 20% with one left out), so no card is one they need to win; if
+  anything the new cards are slightly weak in the bots' hands, the Mushroom Cellar aside
+  ([balance/e3-gate.md](balance/e3-gate.md)). I'd restate the gate as the ablation and call it
+  passed, then playtest the new cards before tuning them.

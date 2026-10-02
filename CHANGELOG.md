@@ -1,5 +1,15 @@
 # Changelog
 
+## Willow Reach v2: bots, the gate and the Almanac (E3, part 4)
+
+- The bots draft and build the new cards (paddies, mushroom cellars, hedgerows, a bathhouse with
+  its reed bed) when the run has water.
+- `scripts/e3-gate.ts` checks EXPANSION.md's gate; the report is
+  [docs/balance/e3-gate.md](docs/balance/e3-gate.md). As written it fails for the Bathhouse and
+  Reed Bed because of one bot's habit; leaving any card out never lowers the bots' wins
+  (DECISIONS.md Q19).
+- The Almanac shows Willow Reach v2's combos once the run has water, or once found before.
+
 ## Willow Reach v2: loops and formations (E3, part 3)
 
 With water:

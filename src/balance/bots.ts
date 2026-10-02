@@ -237,13 +237,29 @@ const NIGHT = ['riverWheel', 'windSpire', 'heatPump', 'heatWell', 'cellBank', 'b
 
 const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
   greedyFood: {
-    cards: ['orchard', 'fishPond', 'greenhouse', 'apiary', 'riverWheel', 'heatWell', 'cellBank'],
+    cards: [
+      'orchard',
+      'fishPond',
+      'riceFishPaddy',
+      'greenhouse',
+      'mushroomCellar',
+      'apiary',
+      'riverWheel',
+      'heatWell',
+      'cellBank',
+    ],
     nightPower: NIGHT,
     dayPower: ['solarCanopy'],
-    food: ['floodplainFarm', 'fishPond', 'orchard', 'greenhouse'],
+    food: ['floodplainFarm', 'riceFishPaddy', 'fishPond', 'orchard', 'greenhouse'],
     reserve: 4,
     extras(turn, profile) {
       const options = ['floodplainFarm', 'fishPond', 'orchard', 'apiary', 'greenhouse'];
+      // A paddy for every two farms, where the floodplain meets a channel.
+      if (turn.count('riceFishPaddy') * 2 < turn.count('floodplainFarm'))
+        options.unshift('riceFishPaddy');
+      // A mushroom cellar once there is biomass to spare.
+      if (turn.state.stores.biomass >= 2 && turn.count('mushroomCellar') < 2)
+        options.unshift('mushroomCellar');
       if (growHousing(turn)) options.unshift('cottage');
       spend(turn, profile, options);
     },
@@ -258,6 +274,7 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'solarThermalCollector',
       'heatWell',
       'kiln',
+      'hedgerow',
       'weir',
       'pumpedReservoir',
     ],
@@ -270,6 +287,8 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       const options =
         spare >= 2 ? ['workshop', 'kiln'] : ['riverWheel', 'windSpire', 'solarCanopy'];
       if (growHousing(turn)) options.unshift('cottage');
+      // Hedgerows by the hill generators storms can reach.
+      if (turn.count('hedgerow') < 4) options.push('hedgerow');
       spend(turn, profile, options, 2);
     },
   },
@@ -284,7 +303,10 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'commonsPlaza',
       'apiary',
       'seedbankLibrary',
+      'bathhouse',
+      'reedBed',
       'solarThermalCollector',
+      'hedgerow',
     ],
     nightPower: NIGHT,
     dayPower: ['solarCanopy'],
@@ -294,6 +316,10 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       const options = ['pollinatorMeadow', 'treeNursery'];
       if (growHousing(turn)) options.unshift('cottage');
       if (turn.state.citizens >= 10 && !turn.has('commonsPlaza')) options.push('commonsPlaza');
+      // A bathhouse for wellbeing, and a reed bed to clean what it lets out.
+      if (turn.state.citizens >= 12 && turn.count('bathhouse') < 1) options.unshift('bathhouse');
+      if (turn.count('reedBed') < turn.count('bathhouse')) options.unshift('reedBed');
+      if (turn.count('hedgerow') < 2) options.push('hedgerow');
       spend(turn, profile, options, 2);
       // Spread spare compost on the poorest land.
       while (turn.state.stores.compost >= turn.content.rules.compostPerTileStep) {

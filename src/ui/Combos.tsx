@@ -42,7 +42,14 @@ export function AlmanacModal({ store, onClose }: { store: GameStore; onClose: ()
   const close = useRef<HTMLButtonElement>(null);
   useEffect(() => close.current?.focus(), []);
   const cost = content.rules.knowledge.hint;
-  const known = content.combos.filter((c) => entryView(almanac, state, c) === 'known').length;
+  // Willow Reach v2's combos appear once the city has water, or once found in an earlier run.
+  const combos = content.combos.filter(
+    (c) =>
+      !c.requiresWater ||
+      store.rules.rules.water.enabled ||
+      entryView(almanac, state, c) === 'known',
+  );
+  const known = combos.filter((c) => entryView(almanac, state, c) === 'known').length;
   const canBuy = state.status === 'active' && state.stores.knowledge >= cost;
   return (
     <div class="modal-backdrop" onClick={onClose}>
@@ -57,7 +64,7 @@ export function AlmanacModal({ store, onClose }: { store: GameStore; onClose: ()
           <div>
             <h2 class="glass-title">The Almanac · {content.name}</h2>
             <div class="small">
-              {known} of {content.combos.length} discovered. Discoveries are kept across runs.
+              {known} of {combos.length} discovered. Discoveries are kept across runs.
             </div>
           </div>
           <button type="button" class="button small-button" ref={close} onClick={onClose}>
@@ -70,7 +77,7 @@ export function AlmanacModal({ store, onClose }: { store: GameStore; onClose: ()
               {LAYER_NAMES[layer]} <span class="small">{LAYER_TEXT[layer]}</span>
             </h3>
             <div class="almanac-grid">
-              {content.combos
+              {combos
                 .filter((c) => c.layer === layer)
                 .map((c) => (
                   <AlmanacEntry store={store} combo={c} canBuy={canBuy} cost={cost} />
