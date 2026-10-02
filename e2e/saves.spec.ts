@@ -3,6 +3,7 @@
  * coming back continues it, and a new run can be started on purpose.
  */
 import { expect, test, type Page } from '@playwright/test';
+import { fromMenu } from './menu';
 
 /** The run's essentials, or null while the page is between loads. */
 const run = (page: Page) =>
@@ -63,7 +64,7 @@ test('a run is saved as you play and resumed when you come back', async ({ page 
   await expect(page.getByRole('status').filter({ hasText: 'Welcome back' })).toBeVisible();
 
   // A new run, on purpose.
-  await page.getByRole('button', { name: 'New run' }).click();
+  await fromMenu(page, 'New run');
   const dialog = page.getByRole('dialog', { name: 'Start a new run?' });
   await expect(dialog.getByRole('button', { name: 'Keep playing' })).toBeFocused();
   await dialog.getByRole('button', { name: 'Start a new run' }).click();

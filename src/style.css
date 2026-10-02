@@ -37,7 +37,11 @@ body,
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-width: 1100px;
+  min-width: 760px;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 .quiet {
@@ -97,20 +101,21 @@ select:focus-visible {
 .top {
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 10px 24px;
+  gap: 14px;
+  padding: 8px 16px;
   background: var(--panel);
   border-bottom: 1.5px solid var(--line);
 }
 
 .brand {
-  width: 190px;
+  width: clamp(120px, 14vw, 190px);
   flex-shrink: 0;
+  min-width: 0;
 }
 
 .title {
   font-family: var(--display);
-  font-size: 30px;
+  font-size: clamp(22px, 2.2vw, 30px);
   font-weight: 600;
   color: #2f5e3e;
   line-height: 1;
@@ -124,10 +129,12 @@ select:focus-visible {
 }
 
 .season {
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 8px 12px;
+  gap: 5px;
+  padding: 6px 8px;
   border-radius: 12px;
   border: 1.5px solid var(--line);
 }
@@ -141,36 +148,55 @@ select:focus-visible {
 
 .season-head {
   display: flex;
-  justify-content: space-between;
-  gap: 8px;
+  align-items: baseline;
+  gap: 6px;
   font-size: 13px;
+  min-width: 0;
 }
 .season-name {
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .season-state {
   font-size: 11px;
 }
 
-.slots {
-  display: flex;
-  gap: 10px;
+.slot-grid {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2px 6px;
+  align-items: center;
 }
 
 .slot {
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  width: 62px;
+  gap: 3px;
   border-radius: 6px;
   cursor: help;
 }
 
-.slot-numbers {
+.slot-numbers,
+.slot-heat {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
+  gap: 3px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.slot-kind {
+  color: var(--quiet);
+  font-size: 10px;
+}
+.slot-value {
+  font-weight: 700;
+}
+.slot-heat.bad .slot-kind {
+  color: var(--bad);
 }
 .slot.short .slot-numbers {
   color: var(--bad);
@@ -208,8 +234,9 @@ select:focus-visible {
 
 .stats {
   display: flex;
-  gap: 18px;
+  gap: 12px;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .stat {
@@ -222,7 +249,7 @@ select:focus-visible {
 
 .stat-value {
   font-family: var(--display);
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 600;
   line-height: 1.1;
 }
@@ -245,14 +272,16 @@ select:focus-visible {
   gap: 18px;
 }
 .left {
-  width: 248px;
+  width: clamp(180px, 17vw, 236px);
   flex-shrink: 0;
   border-right: 1.5px solid var(--line);
+  padding: 14px;
 }
 .side {
-  width: 352px;
+  width: clamp(260px, 26vw, 352px);
   flex-shrink: 0;
   border-left: 1.5px solid var(--line);
+  padding: 14px;
 }
 
 .left section,
@@ -262,6 +291,9 @@ select:focus-visible {
   gap: 8px;
 }
 
+.store-row .strong {
+  white-space: nowrap;
+}
 .store-row {
   display: flex;
   align-items: center;
@@ -493,6 +525,7 @@ select:focus-visible {
 }
 .tool-name {
   line-height: 1.15;
+  overflow-wrap: anywhere;
 }
 .tool-meta {
   display: flex;
@@ -747,6 +780,8 @@ select:focus-visible {
 
 .modal {
   width: min(480px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1324,4 +1359,257 @@ ul.projects {
     system-ui,
     sans-serif;
   fill: #3e4c6d;
+}
+
+/* ---------------------------------------------------------------- the map's HUD (playtest rework) */
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.overview-button {
+  width: 100%;
+  justify-content: center;
+}
+
+.forecast-banner {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100% - 24px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 251, 240, 0.94);
+  border: 1.5px solid var(--line-strong);
+  font-size: 13px;
+  z-index: 4;
+}
+.forecast-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.dock {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  max-width: calc(100% - 24px);
+  z-index: 5;
+}
+.dock-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.dock-buttons .button {
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(47, 59, 46, 0.18);
+}
+.dock-message {
+  max-width: 420px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--card);
+  border: 1.5px solid var(--line-strong);
+  color: var(--bad);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.menu-root {
+  position: relative;
+}
+.menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  min-width: 250px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--card);
+  border: 2px solid var(--gold);
+  box-shadow: 0 6px 18px rgba(47, 59, 46, 0.22);
+  z-index: 20;
+}
+.menu-item {
+  text-align: left;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font: 600 14px var(--ui);
+  cursor: pointer;
+}
+.menu-item:hover,
+.menu-item:focus-visible {
+  background: var(--gold-soft);
+  outline: none;
+}
+.menu-item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.map-control {
+  position: absolute;
+  left: 12px;
+  top: 54px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 10px;
+  background: var(--card);
+  border: 1.5px solid var(--line-strong);
+  z-index: 4;
+}
+.map-control select {
+  font: 600 13px var(--ui);
+}
+
+.inspector-overlay {
+  position: absolute;
+  top: 54px;
+  right: 12px;
+  width: min(340px, calc(100% - 24px));
+  max-height: calc(100% - 150px);
+  overflow-y: auto;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(47, 59, 46, 0.22);
+  z-index: 6;
+}
+.inspector-overlay .panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modal.overview {
+  width: min(920px, calc(100% - 32px));
+}
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+.overview-grid section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* The run-start card and other reveals: the button stays reachable however long the text. */
+.modal.glass.discovery {
+  width: min(600px, calc(100% - 32px));
+  padding-top: 28px;
+}
+.modal.glass.discovery > .button.primary {
+  position: sticky;
+  bottom: 0;
+  flex-shrink: 0;
+  box-shadow: 0 -14px 18px 4px var(--glass);
+}
+
+.side.priorities {
+  gap: 10px;
+}
+.priority-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.priority-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+}
+.priority-row[draggable='true'] {
+  cursor: grab;
+}
+.priority-row.selected {
+  border-color: var(--gold);
+  background: var(--gold-soft);
+}
+.priority-row.dragging {
+  opacity: 0.45;
+}
+.priority-row.drop-here {
+  box-shadow: inset 0 3px 0 var(--gold);
+}
+.priority-rank {
+  width: 22px;
+  text-align: right;
+  color: var(--quiet);
+  font-size: 12px;
+}
+.priority-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: 700 13px var(--ui);
+  text-align: left;
+  cursor: pointer;
+}
+.priority-name > span:first-of-type {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.priority-moves {
+  display: flex;
+  gap: 2px;
+}
+.icon-button {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid var(--line-strong);
+  background: var(--panel);
+  color: var(--quiet);
+  font-size: 10px;
+  cursor: pointer;
+}
+.icon-button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1100px) {
+  .stats .quiet.small {
+    display: none;
+  }
+  .brand .small {
+    display: none;
+  }
 }

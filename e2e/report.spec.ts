@@ -3,6 +3,7 @@
  * by, for the last of each season) and demolishing a building.
  */
 import { expect, test, type Page } from '@playwright/test';
+import { fromMenu, openMenu } from './menu';
 
 const SHOTS = process.env.SUNROOT_SHOTS;
 type Win = {
@@ -42,8 +43,12 @@ test('the season report shows what made and used each resource', async ({ page }
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/?seed=willow-reach-golden&visions=0');
   await expect(page.locator('#map-host canvas')).toBeVisible();
-  const button = page.getByRole('button', { name: 'Season report' });
-  await expect(button).toBeDisabled();
+  await expect(
+    (await openMenu(page)).getByRole('menuitem', { name: 'Season report' }),
+  ).toBeDisabled();
+  await page.keyboard.press('Escape');
+  // Escape gives focus back to the Menu button; off it, keys reach the map again.
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
   // Spring: a farm, then end the season.
   await page.keyboard.press('f');
   await page.keyboard.press('Enter');
@@ -51,7 +56,7 @@ test('the season report shows what made and used each resource', async ({ page }
   await endSeason(page, 1);
   await endSeason(page, 2);
 
-  await button.click();
+  await fromMenu(page, 'Season report');
   const dialog = page.getByRole('dialog', { name: 'Season report' });
   await expect(dialog.getByRole('tab')).toHaveCount(2);
   await expect(dialog.getByRole('tab', { name: 'Summer, year 1' })).toHaveAttribute(

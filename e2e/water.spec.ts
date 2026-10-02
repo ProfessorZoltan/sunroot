@@ -4,6 +4,7 @@
  * tooltip, and where every unit went in the season report.
  */
 import { expect, test, type Page } from '@playwright/test';
+import { fromMenu } from './menu';
 
 const SHOTS = process.env.SUNROOT_SHOTS;
 type Hex = { q: number; r: number };
@@ -130,7 +131,7 @@ test('water: the camp channel, laying more, tooltips and the season report', asy
 
   // The season report: where the water came from and went.
   await endSeason(page, 1);
-  await page.getByRole('button', { name: 'Season report' }).click();
+  await fromMenu(page, 'Season report');
   const dialog = page.getByRole('dialog', { name: 'Season report' });
   await expect(dialog.getByRole('heading', { name: 'Water' })).toBeVisible();
   await expect(dialog).toContainText('The river brought 12.');

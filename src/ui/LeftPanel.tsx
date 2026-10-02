@@ -2,14 +2,13 @@
 import type { GameStore } from '../game/store';
 import { POPULATION_REASONS } from '../game/insight';
 import type { Resource } from '../sim';
-import { LoopsPanel } from './Combos';
-import { EraGoalStatus, ExpeditionStatus, VisionStatus } from './RunUi';
+import { useState } from 'preact/hooks';
 import { Person, ResourceIcon } from './icons';
 import { TipTable, signed, useTip } from './tips';
 
-const STORES: { res: Resource; label: string }[] = [
-  { res: 'materials', label: 'Materials' },
-  { res: 'food', label: 'Food' },
+const STORES: { res: Resource; label: string; always?: boolean }[] = [
+  { res: 'materials', label: 'Materials', always: true },
+  { res: 'food', label: 'Food', always: true },
   { res: 'salvage', label: 'Salvage' },
   { res: 'biomass', label: 'Biomass' },
   { res: 'compost', label: 'Compost' },
@@ -18,26 +17,61 @@ const STORES: { res: Resource; label: string }[] = [
   { res: 'clutter', label: 'Clutter' },
 ];
 
-export function LeftPanel({ store }: { store: GameStore }) {
+const OPEN_KEY = 'sunroot:ui:stores';
+
+function remembered(key: string, fallback: boolean): boolean {
+  try {
+    const v = localStorage.getItem(key);
+    return v === null ? fallback : v === '1';
+  } catch {
+    return fallback;
+  }
+}
+
+/** A section's open state, remembered in the browser between visits. */
+export function useRemembered(key: string, fallback = true): [boolean, (open: boolean) => void] {
+  const [open, setOpenState] = useState(() => remembered(key, fallback));
+  const setOpen = (v: boolean) => {
+    setOpenState(v);
+    try {
+      localStorage.setItem(key, v ? '1' : '0');
+    } catch {
+      // Blocked storage: the choice lasts for this visit only.
+    }
+  };
+  return [open, setOpen];
+}
+
+export function LeftPanel({ store, onOverview }: { store: GameStore; onOverview: () => void }) {
+  const [open, setOpen] = useRemembered(OPEN_KEY);
   return (
     <aside class="left" aria-label="Stores">
       <section>
-        <h2>Stores</h2>
-        {STORES.map(({ res, label }) => (
+        <div class="section-head">
+          <h2>Stores</h2>
+          <button
+            type="button"
+            class="link small"
+            aria-expanded={open}
+            onClick={() => setOpen(!open)}
+          >
+            {open ? 'Fewer' : 'All'}
+          </button>
+        </div>
+        {STORES.filter((s) => open || s.always).map(({ res, label }) => (
           <StoreRow store={store} res={res} label={label} />
         ))}
         <div class="divider" />
         <WorkersRow store={store} />
         <WaterRow store={store} />
         <WalksRow store={store} />
-        <div class="quiet small">Numbers on the right: the change by the end of this season.</div>
+        {open && (
+          <div class="quiet small">Numbers on the right: the change by the end of this season.</div>
+        )}
       </section>
-      <VisionStatus store={store} />
-      <EraGoalStatus store={store} />
-      <ExpeditionStatus store={store} />
-      <CivicStatus store={store} />
-      <LastSeason store={store} />
-      <LoopsPanel store={store} />
+      <button type="button" class="button overview-button" onClick={onOverview}>
+        Run overview
+      </button>
     </aside>
   );
 }
@@ -154,15 +188,17 @@ function WalksRow({ store }: { store: GameStore }) {
   const c = store.commuteForecast;
   if (!c) return null;
   const free = store.rules.rules.commute.freeDistance;
+  const water = c.toWater;
+  const cost = c.wellbeing + (water?.wellbeing ?? 0);
   return (
     <div
       class="store-row walks-row"
-      title={`Walks to work this season, if it ended now: ${c.excess} tiles walked beyond the free ${free}. Select a building to see where its workers come from.`}
+      title={`Walks this season, if it ended now: ${c.excess} tiles walked to work beyond the free ${free}${water ? `, and ${water.excess} to water beyond the free ${store.rules.rules.commute.toWater!.freeDistance}` : ''}. Select a building to see its walks.`}
     >
       <Feet />
       <span class="grow">Walks</span>
-      <span class={`strong ${c.wellbeing < 0 ? 'bad' : ''}`}>
-        {c.wellbeing < 0 ? `−${-c.wellbeing} wellbeing` : 'short'}
+      <span class={`strong ${cost < 0 ? 'bad' : ''}`}>
+        {cost < 0 ? `−${-cost} wellbeing` : 'short'}
       </span>
       <span class="delta-num" />
     </div>
@@ -186,7 +222,7 @@ function Drop() {
   );
 }
 
-function LastSeason({ store }: { store: GameStore }) {
+export function LastSeason({ store }: { store: GameStore }) {
   const { content, state } = store;
   const r = state.lastReport;
   if (!r) return null;
@@ -231,7 +267,7 @@ function LastSeason({ store }: { store: GameStore }) {
 }
 
 /** From era 3: how many citizens the settlement's civic life serves (rising expectations). */
-function CivicStatus({ store }: { store: GameStore }) {
+export function CivicStatus({ store }: { store: GameStore }) {
   const { state } = store;
   const ex = store.rules.rules.expectations;
   if (!ex || state.era < ex.fromEra || state.status !== 'active') return null;

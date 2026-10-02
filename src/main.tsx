@@ -319,6 +319,8 @@ async function start() {
       store.tool && store.tool.kind !== 'build' ? 'compost' : 'hover',
       store.vines,
       store.legalSites,
+      store.terrainTiles,
+      store.inspected ? (store.state.buildings[store.inspected]?.at ?? null) : null,
     );
   };
   store.subscribe(drawMap);

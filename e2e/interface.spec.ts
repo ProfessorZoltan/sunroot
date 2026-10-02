@@ -107,7 +107,7 @@ test('tooltips show the math on hover and on keyboard focus', async ({ page }) =
     .getByRole('button', { name: /Floodplain Farm/ })
     .first()
     .waitFor();
-  await page.locator('[aria-label^="Winter night"]').hover();
+  await page.locator('[aria-label^="Winter night energy"]').hover();
   await expect(page.getByRole('tooltip')).toContainText('Winter night');
   await expect(page.getByRole('tooltip')).toContainText("Founders' Camp");
 

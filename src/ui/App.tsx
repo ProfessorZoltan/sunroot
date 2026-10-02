@@ -1,8 +1,10 @@
 /**
- * The interface (Milestone 4), laid out like the Willow Reach mockup: the year
- * strip and stats on top, stores on the left, the map in the middle, the draft
- * and palette on the right, the forecast, undo and End season at the bottom.
- * Everything works with the keyboard as well as the mouse.
+ * The interface (Milestone 4, reworked after playtesting for more map and
+ * less at once): the year strip and stats on top, stores on the left, the map
+ * in the middle with the forecast along its top and the season controls at its
+ * foot, the draft and palette on the right. Building details, the run overview
+ * and the priority list open over the map. Everything works with the keyboard
+ * as well as the mouse.
  */
 import { useEffect, useReducer, useRef, useState } from 'preact/hooks';
 import type { GameStore } from '../game/store';
@@ -10,11 +12,14 @@ import type { MapView } from '../render/mapView';
 import { paletteHotkeys, GLOBAL_KEYS } from './hotkeys';
 import { AlmanacModal, RevealCard } from './Combos';
 import { LeftPanel } from './LeftPanel';
-import { Footer, ForecastPill, Help, MapTip, ResolutionBanner } from './Overlays';
+import { Help, MapTip, ResolutionBanner } from './Overlays';
+import { ActionDock, ForecastBanner, RunOverview } from './Hud';
+import { TerrainPicker } from './MapControls';
+import { PrioritiesPanel } from './Priorities';
 import { EndScreen, NewRunDialog, NoteDialog } from './RunUi';
 import type { PlayLog } from '../game/playlog';
 import type { AudioEngine } from '../audio/engine';
-import { RightPanel, paletteOrder, type Ui } from './RightPanel';
+import { Inspector, RightPanel, paletteOrder, type Ui } from './RightPanel';
 import { SeasonReportDialog } from './SeasonReport';
 import type { Season } from '../sim';
 import { TipProvider } from './tips';
@@ -64,6 +69,18 @@ export function App({
     setReportState(open);
   };
   const [askNewRun, setAskNewRun] = useState(false);
+  const [overview, setOverviewState] = useState(false);
+  const overviewOpen = useRef(false);
+  const setOverview = (open: boolean) => {
+    overviewOpen.current = open;
+    setOverviewState(open);
+  };
+  const [priorities, setPrioritiesState] = useState(false);
+  const prioritiesOpen = useRef(false);
+  const setPriorities = (open: boolean) => {
+    prioritiesOpen.current = open;
+    setPrioritiesState(open);
+  };
   const [noting, setNotingState] = useState(false);
   const notingOpen = useRef(false);
   const setNoting = (open: boolean) => {
@@ -95,6 +112,10 @@ export function App({
         if (key === 'Escape') return (handled(), setReport(null));
         return;
       }
+      if (overviewOpen.current) {
+        if (key === 'Escape') return (handled(), setOverview(false));
+        return;
+      }
       const help = helpOpen.current;
       if (key === '?') return (handled(), setHelp(!help));
       if (store.resolution && !help) {
@@ -124,7 +145,9 @@ export function App({
       if (key === 'Escape') {
         if (help) return setHelp(false);
         if (store.tool) return store.setTool(null);
-        return store.inspect(null);
+        if (store.inspected) return store.inspect(null);
+        if (prioritiesOpen.current) return setPriorities(false);
+        return;
       }
       if (help) return;
       if (lower === GLOBAL_KEYS.almanac) return (handled(), setAlmanac(true));
@@ -217,30 +240,52 @@ export function App({
   });
 
   const ended = state.status !== 'active';
+  const menu = {
+    onReport: () => setReport('latest'),
+    onOverview: () => setOverview(true),
+    onPriorities: () => setPriorities(true),
+    onAlmanac: () => setAlmanac(true),
+    onHelp: () => setHelp(true),
+    onNewRun: () => (store.state.status === 'active' ? setAskNewRun(true) : newRun()),
+    onNote: log ? () => setNoting(true) : undefined,
+    onCity: viewCity,
+    audio,
+  };
   return (
     <TipProvider>
       <div class="screen">
         <TopBar store={store} onReport={(season) => setReport(season)} />
         <div class="middle">
-          <LeftPanel store={store} />
+          <LeftPanel store={store} onOverview={() => setOverview(true)} />
           <main class="map-wrap" aria-label="Map of the valley">
             <div id="map-host" class="map" />
-            {store.resolution ? <ResolutionBanner store={store} /> : <ForecastPill store={store} />}
+            {store.resolution ? (
+              <ResolutionBanner store={store} />
+            ) : (
+              <ForecastBanner store={store} />
+            )}
             <MapTip store={store} view={view()} />
+            <TerrainPicker store={store} />
+            {store.inspected && !priorities && !store.tool && (
+              <div class="inspector-overlay">
+                <Inspector store={store} ui={ui} />
+              </div>
+            )}
+            <ActionDock store={store} menu={menu} />
           </main>
-          <RightPanel store={store} ui={ui} />
+          {priorities ? (
+            <PrioritiesPanel
+              store={store}
+              ui={ui}
+              view={view}
+              onClose={() => setPriorities(false)}
+            />
+          ) : (
+            <RightPanel store={store} ui={ui} />
+          )}
         </div>
-        <Footer
-          store={store}
-          onHelp={() => setHelp(true)}
-          onAlmanac={() => setAlmanac(true)}
-          onNote={log ? () => setNoting(true) : undefined}
-          onNewRun={() => (store.state.status === 'active' ? setAskNewRun(true) : newRun())}
-          onCity={viewCity}
-          onReport={() => setReport('latest')}
-          audio={audio}
-        />
         {help && <Help onClose={() => setHelp(false)} log={log} audio={audio} />}
+        {overview && <RunOverview store={store} onClose={() => setOverview(false)} />}
         {noting && log && (
           <NoteDialog
             season={`${store.state.season}, year ${store.state.year}`}

@@ -3,6 +3,7 @@
  * the Almanac, which keeps it across runs.
  */
 import { expect, test } from '@playwright/test';
+import { fromMenu } from './menu';
 
 test('a discovery unfolds as a card, and the Almanac keeps it', async ({ page }) => {
   const errors: string[] = [];
@@ -60,7 +61,7 @@ test('a discovery unfolds as a card, and the Almanac keeps it', async ({ page })
   // A new run: the Almanac still knows it.
   await page.goto('/?seed=another-run');
   await expect(page.locator('#map-host canvas')).toBeVisible();
-  await page.getByRole('button', { name: 'Almanac' }).click();
+  await fromMenu(page, 'Almanac');
   await expect(
     page.getByRole('dialog', { name: 'Almanac' }).getByRole('article', { name: 'Green Doorstep' }),
   ).toBeVisible();

@@ -1,4 +1,4 @@
-/** Right column: the draft, the building palette, and the placement preview or building inspector. */
+/** Right column: the draft, projects, the building palette and the placement preview. */
 import type { GameStore } from '../game/store';
 import { waterAt } from '../game/waterInfo';
 import { commuteAt } from '../game/commuteInfo';
@@ -19,6 +19,7 @@ import { autoText, describeBuilding } from './describe';
 import { Reroll } from './icons';
 import { SEASON_NAMES } from './TopBar';
 import { signed } from './tips';
+import { useRemembered } from './LeftPanel';
 
 /** Stained-glass jewel colour for a card, by building kind. */
 const JEWEL: Record<BuildingDef['kind'], string> = {
@@ -51,7 +52,7 @@ export function RightPanel({ store, ui }: { store: GameStore; ui: Ui }) {
       )}
       <ProjectsPanel store={store} />
       <BuildPanel store={store} ui={ui} />
-      {store.inspected ? <Inspector store={store} ui={ui} /> : <PlacementPanel store={store} />}
+      <PlacementPanel store={store} />
     </aside>
   );
 }
@@ -208,10 +209,27 @@ function BuildPanel({ store, ui }: { store: GameStore; ui: Ui }) {
   const { content, state } = store;
   const ended = state.status !== 'active';
   const compostCost = content.rules.compostPerTileStep;
+  const [open, setOpen] = useRemembered('sunroot:ui:build');
   return (
     <section>
-      <h2>Build</h2>
-      <div class="palette" role="group" aria-label="Buildings">
+      <div class="section-head">
+        <h2>Build</h2>
+        <button
+          type="button"
+          class="link small"
+          aria-expanded={open}
+          aria-controls="palette"
+          onClick={() => setOpen(!open)}
+        >
+          {open ? 'Hide' : 'Show'}
+        </button>
+      </div>
+      {!open && store.selectedBuilding && (
+        <div class="small">
+          Placing: <strong>{store.rules.byId[store.selectedBuilding]!.name}</strong>
+        </div>
+      )}
+      <div class="palette" id="palette" role="group" aria-label="Buildings" hidden={!open}>
         {paletteOrder(content, state.unlocked).map((id) => {
           // Numbers as this run plays them (Root City perks, tunings, charters).
           const def = store.rules.byId[id]!;
@@ -284,10 +302,12 @@ function BuildPanel({ store, ui }: { store: GameStore; ui: Ui }) {
           </button>
         )}
       </div>
-      <div class="quiet small">
-        Hover or use the arrow keys to aim, N for the next legal site, Enter or click to place. Esc
-        stops.
-      </div>
+      {open && (
+        <div class="quiet small">
+          Hover or use the arrow keys to aim, N for the next legal site, Enter or click to place.
+          Esc stops.
+        </div>
+      )}
     </section>
   );
 }
@@ -441,7 +461,8 @@ function Repairs({ store, uid, cost }: { store: GameStore; uid: string; cost: nu
   );
 }
 
-function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
+/** A building's details, over the map (Esc or Close puts it away). */
+export function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
   const { state } = store;
   const b = state.buildings[store.inspected!];
   if (!b) return null;
@@ -480,7 +501,7 @@ function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
     store.dispatch({ type: 'setPriority', order });
   };
   return (
-    <section class="panel" aria-label={`${def.name} details`}>
+    <section class="panel inspector" aria-label={`${def.name} details`}>
       <div class="panel-head">
         <span class="inspect-title">
           {ui.icons[b.type] && <img src={ui.icons[b.type]} alt="" width={28} height={28} />}

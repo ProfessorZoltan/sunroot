@@ -3,6 +3,7 @@
  * shows what it warms on the map, in the panels and in the season report.
  */
 import { expect, test, type Page } from '@playwright/test';
+import { fromMenu } from './menu';
 
 const SHOTS = process.env.SUNROOT_SHOTS;
 type Hex = { q: number; r: number };
@@ -87,7 +88,7 @@ test('local heat: an air-source heat pump beside the camp and what it warms', as
 
   // The season report says where the heat came from.
   await endSeason(page, 4);
-  await page.getByRole('button', { name: 'Season report' }).click();
+  await fromMenu(page, 'Season report');
   const dialog = page.getByRole('dialog', { name: 'Season report' });
   await expect(dialog.getByRole('heading', { name: 'Heat kept close' })).toBeVisible();
   await expect(dialog.locator('.heat-notes')).toContainText(

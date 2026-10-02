@@ -1,5 +1,29 @@
 # Changelog
 
+## More room for the map
+
+- The footer is gone. **End season**, **Undo** and **Fast-forward** sit at the foot of the map;
+  everything else is in the **Menu**, now with **Fullscreen** and **Prioritize buildings**.
+- The forecast is a banner along the top of the map.
+- Season cards name what their numbers are: energy made / used and heat met / needed, by day and
+  by night.
+- **Stores** fold to Materials, Food, Jobs, Water and Walks; **Build** folds away. Vision, era
+  goal, expedition, last season, loops and tunings are in the **Run overview**.
+- Building details open over the map.
+- **Prioritize buildings**: drag buildings into the order they are staffed, shut off in a blackout
+  and watered; a building clicked on the map or in the list is highlighted in both.
+- **Highlight** a terrain on the map: the other tiles dim.
+- The window can be much narrower; long names wrap, and dialogs keep their buttons in view.
+- Fixed: water in channels drifted towards the river instead of away from it.
+- The Harmony 40 bell melody is softer and lower.
+
+## Walks to water
+
+- From run 3 (with walks to work and water), each home walks to its nearest drinking water: the
+  river, a lake, a channel, a cistern or the new **Well** (3 materials). More than 2 tiles costs
+  wellbeing, like long walks to work.
+- Home tooltips, map marks, the placement preview, the Walks row and the season report show it.
+
 ## Playtesting the new cards
 
 - The playtest log records the layers each run plays with, the combos discovered each season and

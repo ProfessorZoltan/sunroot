@@ -35,7 +35,7 @@ import {
 import { walkLines, type WalkLine } from './commuteInfo';
 import { heatLines, type HeatLine } from './heatInfo';
 import { EMPTY_ALMANAC, entryView, recordRun, type Almanac } from './almanac';
-import type { Graft, RunResult } from '../sim';
+import type { Graft, RunResult, TileType } from '../sim';
 import { coppiceCombo, coppiceProblem } from '../sim/combos';
 import { edgeKey, hedgeProblem } from '../sim/edges';
 import { computeInsight, type Insight } from './insight';
@@ -668,6 +668,23 @@ export class GameStore {
   inspect(uid: string | null): void {
     this.inspected = uid;
     this.emit();
+  }
+
+  /** A terrain the map highlights (the others dimmed), so tile types stay easy to read. */
+  terrainFocus: TileType | null = null;
+
+  focusTerrain(type: TileType | null): void {
+    this.terrainFocus = type;
+    this.emit();
+  }
+
+  /** The tiles of the highlighted terrain. */
+  get terrainTiles(): Hex[] {
+    const type = this.terrainFocus;
+    if (!type) return [];
+    return Object.values(this.state.map.tiles)
+      .filter((t) => t.type === type)
+      .map((t) => ({ q: t.q, r: t.r }));
   }
 
   get canUndo(): boolean {

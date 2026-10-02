@@ -5,6 +5,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
+import { inOverview } from './menu';
 import {
   applyCityCommand,
   createCity,
@@ -162,7 +163,9 @@ test('Root City: place the Graft, find a landmark, raise a district, choose an e
     expedition: { twist: chosen.twist, request: chosen.request, region: chosen.region },
   });
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('region', { name: 'Expedition' })).toBeVisible();
+  await inOverview(page, (d) =>
+    expect(d.getByRole('region', { name: 'Expedition' })).toBeVisible(),
+  );
   expect(errors).toEqual([]);
 });
 
@@ -276,8 +279,10 @@ test('Tempest: chosen in Root City, played in the run, its mark on the district'
   const start = page.getByRole('dialog', { name: /Expedition: / });
   await expect(start).toContainText('Tempest 2: Bitter Nights');
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('region', { name: 'Expedition' })).toContainText(
-    'Tempest 2: Bitter Nights, Thin Drafts.',
+  await inOverview(page, (d) =>
+    expect(d.getByRole('region', { name: 'Expedition' })).toContainText(
+      'Tempest 2: Bitter Nights, Thin Drafts.',
+    ),
   );
   expect(errors).toEqual([]);
 });

@@ -445,9 +445,25 @@ export class MapView {
     cursor: 'hover' | 'compost' = 'hover',
     vines: Hex[][] = [],
     sites: { at: Hex; risky: boolean }[] = [],
+    terrain: Hex[] = [],
+    selected: Hex | null = null,
   ): void {
     const g = this.overlay.clear();
     for (const child of this.labels.removeChildren()) child.destroy();
+    // A highlighted terrain: every other tile dimmed, its own tiles outlined.
+    if (terrain.length > 0 && this.state) {
+      const lit = new Set(terrain.map(hexKey));
+      for (const t of Object.values(this.state.map.tiles)) {
+        if (lit.has(hexKey(t))) continue;
+        g.poly(hexCorners(hexToPixel(t), HEX_RADIUS)).fill({ color: 0x1e2a22, alpha: 0.45 });
+      }
+      for (const h of terrain)
+        g.poly(hexCorners(hexToPixel(h), HEX_RADIUS - 2.5)).stroke({
+          width: 2.5,
+          color: 0xfff3cf,
+          alpha: 0.95,
+        });
+    }
     // Every tile the building (or compost) could go on, while placing.
     for (const s of sites) {
       const c = hexToPixel(s.at);
@@ -491,6 +507,17 @@ export class MapView {
         this.ghost(building, c, 0.35);
       }
       return;
+    }
+    // The building selected (in its details or the priority list): a bold gold ring.
+    if (selected) {
+      g.poly(hexCorners(hexToPixel(selected), HEX_RADIUS - 1)).stroke({
+        width: 4,
+        color: COLORS.leadingGold,
+      });
+      g.poly(hexCorners(hexToPixel(selected), HEX_RADIUS - 4.5)).stroke({
+        width: 1.5,
+        color: 0xfff3cf,
+      });
     }
     if (hover) {
       g.poly(hexCorners(hexToPixel(hover), HEX_RADIUS - 1.5)).stroke({

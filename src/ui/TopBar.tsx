@@ -95,7 +95,7 @@ function SeasonBox({
         ? `${short} short`
         : sv.status === 'now'
           ? 'now'
-          : 'forecast';
+          : '';
   return (
     <div
       class={`season ${sv.status}`}
@@ -114,13 +114,17 @@ function SeasonBox({
             title={`Report for the last ${SEASON_NAMES[sv.season].toLowerCase()}`}
             onClick={onReport}
           >
-            report
+            ▤
           </button>
         )}
       </div>
-      <div class="slots">
+      <div class="slot-grid">
+        <span class="slot-kind">energy</span>
         <SlotMeter content={content} sv={sv} slot="day" view={sv.day} filling={filling} />
         <SlotMeter content={content} sv={sv} slot="night" view={sv.night} filling={filling} />
+        <span class="slot-kind">heat</span>
+        <HeatCell sv={sv} slot="day" view={sv.day} filling={filling} />
+        <HeatCell sv={sv} slot="night" view={sv.night} filling={filling} />
       </div>
     </div>
   );
@@ -153,16 +157,16 @@ function SlotMeter({
     <div
       class={`slot ${short ? 'short' : ''}`}
       tabIndex={0}
-      aria-label={`${name}: supply ${view.supply}, demand ${view.demand}${short ? `, short by ${view.shortfall}` : ''}`}
+      aria-label={`${name} energy: made ${view.supply}, used ${view.demand}${short ? `, short by ${view.shortfall}` : ''}`}
       {...tip}
     >
       <div class="slot-numbers">
         {slot === 'day' ? (
-          <Sun size={14} color={short ? '#A3401F' : undefined} />
+          <Sun size={12} color={short ? '#A3401F' : undefined} />
         ) : (
-          <Moon size={14} color={short ? '#A3401F' : undefined} />
+          <Moon size={12} color={short ? '#A3401F' : undefined} />
         )}
-        <span>{shown ? `${view.supply} / ${view.demand}` : '…'}</span>
+        <span class="slot-value">{shown ? `${view.supply}/${view.demand}` : '…'}</span>
       </div>
       <div class={`bar ${slot}`}>
         {short ? (
@@ -181,6 +185,35 @@ function SlotMeter({
   );
 }
 
+/** Heat needed in a slot, and how much of it a source paid (the rest goes cold). */
+function HeatCell({
+  sv,
+  slot,
+  view,
+  filling,
+}: {
+  sv: SeasonView;
+  slot: Slot;
+  view: SlotView;
+  filling: PhaseName | null;
+}) {
+  const heat = view.report?.energy[slot].heat;
+  const needed = heat?.demand ?? 0;
+  const met = heat ? heat.demand - (heat.cold ?? 0) : 0;
+  const shown = filling === null || REVEALED[slot].includes(filling);
+  const cold = shown && met < needed;
+  return (
+    <div
+      class={`slot-heat${cold ? ' bad' : ''}`}
+      aria-label={`${SEASON_NAMES[sv.season]} ${slot} heat: ${needed > 0 ? `needed ${needed}, met ${met}` : 'none needed'}`}
+      title={`Heat met / needed, ${slot === 'day' ? 'by day' : 'by night'}`}
+    >
+      {slot === 'day' ? <Sun size={12} /> : <Moon size={12} />}
+      <span class="slot-value">{!shown ? '…' : needed > 0 ? `${met}/${needed}` : '—'}</span>
+    </div>
+  );
+}
+
 function EnergyTip({
   content,
   sv,
@@ -192,7 +225,7 @@ function EnergyTip({
   slot: Slot;
   view: SlotView;
 }) {
-  const title = `${SEASON_NAMES[sv.season]} ${slot}${sv.status === 'forecast' ? ' (forecast with what you have now)' : sv.status === 'now' ? ' (if the season ended now)' : ''}`;
+  const title = `${SEASON_NAMES[sv.season]} ${slot}: energy made / used, heat met / needed${sv.status === 'forecast' ? ' (forecast with what you have now)' : sv.status === 'now' ? ' (if the season ended now)' : ''}`;
   const r = view.report?.energy[slot];
   if (!r) {
     return (

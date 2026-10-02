@@ -3,6 +3,7 @@
  * on the map, in the panels and in the season report, and costs wellbeing.
  */
 import { expect, test, type Page } from '@playwright/test';
+import { fromMenu } from './menu';
 
 const SHOTS = process.env.SUNROOT_SHOTS;
 type Hex = { q: number; r: number };
@@ -79,7 +80,7 @@ test('walks to work: a far workshop, its walk and what it costs', async ({ page 
 
   // The season report says what the walks cost.
   await endSeason(page, 1);
-  await page.getByRole('button', { name: 'Season report' }).click();
+  await fromMenu(page, 'Season report');
   const dialog = page.getByRole('dialog', { name: 'Season report' });
   await expect(dialog.getByRole('heading', { name: 'Walks to work' })).toBeVisible();
   await expect(dialog).toContainText('walked further than the free 2 tiles');

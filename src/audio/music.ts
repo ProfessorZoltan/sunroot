@@ -126,7 +126,7 @@ export const MAX_LAYERS = 4;
 
 /**
  * The soundtrack's notes for one bar, by layer: 0 a soft pad (always),
- * 1 a plucked arpeggio, 2 a bell melody, 3 a high flute with birdlike trills.
+ * 1 a plucked arpeggio, 2 a soft, low bell melody, 3 a high flute with birdlike trills.
  * The melody is seeded by the bar, so the music varies but replays the same.
  */
 export function barNotes(bar: number, layer: number, seed = 'sunroot'): NoteEvent[] {
@@ -157,7 +157,8 @@ export function barNotes(bar: number, layer: number, seed = 'sunroot'): NoteEven
       for (let beat = 0; beat < BEATS_PER_BAR; beat += 2) {
         if (beat > 0 && nextFloat(rng) < 0.3) continue;
         const step = PENTATONIC[nextInt(rng, PENTATONIC.length)]!;
-        notes.push({ at: beat, midi: D4 + 12 + step, voice: 'bell', length: 2, gain: 0.12 });
+        // Softened after playtesting: 60% quieter and an octave lower than at first.
+        notes.push({ at: beat, midi: D4 + step, voice: 'bell', length: 2, gain: 0.048 });
       }
       return notes;
     }

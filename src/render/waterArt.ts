@@ -125,6 +125,14 @@ export function waterView(state: RunState, report: WaterReport | null): WaterVie
   return { channels, river, riverFlow: report.riverFlow };
 }
 
+/**
+ * Where the first drifting mark sits along a segment starting `along` from the
+ * stream's head, once the marks have drifted `drift` downstream (marks every 9).
+ */
+export function markOffset(drift: number, along: number): number {
+  return (((drift - along) % 9) + 9) % 9;
+}
+
 /** Width of flowing water carrying `units` (0 is a dry ditch: nothing drawn). */
 export function streamWidth(units: number): number {
   return units <= 0 ? 0 : 1.6 + Math.min(units, 6) * 0.75;
@@ -158,14 +166,15 @@ export function drawWater(g: Graphics, view: WaterView, clock: number, still: bo
         .lineTo(b.x, b.y)
         .stroke({ width: w, color: WATER, alpha: 0.95, cap: 'round' });
     }
-    // Marks drifting downstream, where water flows.
-    let along = still ? 0 : (clock / 1000) * 14;
+    // Marks drifting downstream, where water flows: from the intake towards the channel's end.
+    const drift = still ? 0 : (clock / 1000) * 14;
+    let along = 0;
     for (let i = 0; i < s.units.length; i++) {
       const a = s.points[i]!;
       const b = s.points[i + 1]!;
       const length = Math.hypot(b.x - a.x, b.y - a.y);
       if (s.units[i]! > 0) {
-        for (let d = ((-along % 9) + 9) % 9; d < length; d += 9) {
+        for (let d = markOffset(drift, along); d < length; d += 9) {
           const t = d / length;
           g.circle(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, 0.9).fill({
             color: SHINE,
