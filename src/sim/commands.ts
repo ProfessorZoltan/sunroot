@@ -9,7 +9,7 @@ import { projectBlocked } from './projects';
 import { drawCards, isTuning } from './draft';
 import { hexKey } from './hex';
 import { canPlace } from './placement';
-import { evolve, hintable, placementEvolution } from './combos';
+import { coppiceCombo, coppiceProblem, evolve, hintable, placementEvolution } from './combos';
 import { effectiveContent } from './content/modifiers';
 import {
   buildingAt,
@@ -36,6 +36,11 @@ export function applyCommand(base: Content, state: RunState, command: Command): 
     }
     if (state.charterOffer.length > 0) return fail('choose a charter before ending the season');
     if (state.visionOffer.length > 0) return fail('choose a vision before ending the season');
+    const branch = state.evolutionOffer[0];
+    if (branch) {
+      const def = effectiveContent(base, state).byId[state.buildings[branch.uid]?.type ?? ''];
+      return fail(`choose what the ${def?.name ?? 'building'} becomes before ending the season`);
+    }
     return { ok: true, state: resolveSeason(base, state) };
   }
   const content = effectiveContent(base, state);
@@ -69,6 +74,43 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       if (!s.visionOffer.includes(command.vision)) return `${command.vision} is not on offer`;
       s.vision = command.vision;
       s.visionOffer = [];
+      return null;
+    }
+    case 'chooseEvolution': {
+      const offer = s.evolutionOffer.find((o) => o.uid === command.uid);
+      if (!offer) return 'that building has no evolution to choose';
+      if (!offer.options.includes(command.combo))
+        return `${command.combo} is not one of its evolutions`;
+      s.evolutionOffer = s.evolutionOffer.filter((o) => o !== offer);
+      const combo = content.comboById[command.combo]!;
+      const b = s.buildings[command.uid];
+      if (b && combo.layer === 'evolution' && b.type === combo.from) evolve(s, b, combo.into);
+      return null;
+    }
+    case 'coppice': {
+      const problem = coppiceProblem(content, s, command.at);
+      if (problem) return problem;
+      const combo = coppiceCombo(content)!;
+      const uid = `b${s.nextUid++}`;
+      s.buildings[uid] = {
+        uid,
+        type: combo.into,
+        at: { q: command.at.q, r: command.at.r },
+        builtTurn: s.turn,
+        evolvedFrom: combo.from,
+        evolvedTurn: s.turn,
+      };
+      s.priority.push(uid);
+      return null;
+    }
+    case 'stopCoppice': {
+      const b = s.buildings[command.uid];
+      const combo = coppiceCombo(content);
+      if (!b || !combo || combo.when.kind !== 'coppiced' || b.type !== combo.into)
+        return 'only a coppice can stop being coppiced';
+      // It grows back: woodland again after the regrowth's seasons.
+      b.type = combo.when.regrowth;
+      b.builtTurn = s.turn;
       return null;
     }
     case 'buyHint': {
@@ -170,6 +212,7 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       const check = demolishCheck(content, s, command.uid);
       const err = demolish(content, s, command.uid);
       if (err) return err;
+      s.evolutionOffer = s.evolutionOffer.filter((o) => o.uid !== command.uid);
       flow(s.spent, check.into, 'made', 'Demolition rubble', check.rubble);
       return null;
     }

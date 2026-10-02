@@ -8,6 +8,16 @@
 import type { Content } from './content/load';
 import type { TileType } from './content/schema';
 import { defOf, tileAt } from './queries';
+
+/** A coppice, or a coppice growing back: woodland the player is working, not a building. */
+function coppiced(content: Content, type: string): boolean {
+  return content.combos.some(
+    (c) =>
+      c.layer === 'evolution' &&
+      c.when.kind === 'coppiced' &&
+      (c.into === type || c.when.regrowth === type),
+  );
+}
 import type { RunState } from './types';
 
 export interface DemolishCheck {
@@ -38,6 +48,8 @@ export function demolishCheck(content: Content, state: RunState, uid: string): D
   if (b.type === content.campBuilding)
     return { ...none, ok: false, reason: "the Founders' Camp can't be demolished" };
   const def = defOf(content, b);
+  if (coppiced(content, b.type))
+    return { ...none, ok: false, reason: 'stop coppicing instead: the wood grows back' };
   const rubble = Math.max(1, Math.floor(def.cost * rules.rubbleShare));
   const salvaged = Object.values(state.buildings).some(
     (o) => o.uid !== uid && rules.salvagedBy.includes(o.type) && !o.damage,

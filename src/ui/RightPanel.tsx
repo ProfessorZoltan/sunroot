@@ -12,7 +12,7 @@ import {
   type Content,
   repairCost,
 } from '../sim';
-import { CharterPanel } from './Combos';
+import { CharterPanel, EvolutionPanel } from './Combos';
 import { VisionPanel } from './RunUi';
 import { autoText, describeBuilding } from './describe';
 import { Reroll } from './icons';
@@ -41,6 +41,8 @@ export function RightPanel({ store, ui }: { store: GameStore; ui: Ui }) {
     <aside class="side" aria-label="Draft and building">
       {store.state.visionOffer.length > 0 ? (
         <VisionPanel store={store} />
+      ) : store.state.evolutionOffer.length > 0 ? (
+        <EvolutionPanel store={store} />
       ) : store.state.charterOffer.length > 0 ? (
         <CharterPanel store={store} />
       ) : (
@@ -255,6 +257,25 @@ function BuildPanel({ store, ui }: { store: GameStore; ui: Ui }) {
             </span>
           </span>
         </button>
+        {store.canCoppice && (
+          <button
+            type="button"
+            class={`tool${store.tool?.kind === 'coppice' ? ' selected' : ''}`}
+            aria-pressed={store.tool?.kind === 'coppice'}
+            disabled={ended}
+            title="Coppice a woodland tile next to a workshop: 2 materials a season with 1 worker; it counts as meadow for Harmony until it grows back."
+            onClick={() =>
+              store.setTool(store.tool?.kind === 'coppice' ? null : { kind: 'coppice' })
+            }
+          >
+            <span class="tool-text">
+              <span class="tool-name">Coppice</span>
+              <span class="tool-meta">
+                <span class="cost">free</span>
+              </span>
+            </span>
+          </button>
+        )}
       </div>
       <div class="quiet small">
         Hover or use the arrow keys to aim, N for the next legal site, Enter or click to place. Esc
@@ -275,6 +296,18 @@ export function paletteOrder(content: Content, unlocked: string[]): string[] {
 function PlacementPanel({ store }: { store: GameStore }) {
   const { content } = store;
   const p = store.placement;
+  if (store.tool?.kind === 'coppice') {
+    const problem = store.hover ? store.coppiceProblem(store.hover) : null;
+    return (
+      <section class={`panel${problem ? ' invalid' : ''}`} role="status">
+        <h3>Coppice</h3>
+        <div class="small">
+          {problem ??
+            'A woodland tile next to a workshop becomes a Coppice Wood: 2 materials a season with 1 worker, and it counts as meadow for Harmony (1 instead of 2). Stop coppicing and it is woodland again after 2 seasons.'}
+        </div>
+      </section>
+    );
+  }
   if (store.tool?.kind === 'compost') {
     return (
       <section class="panel">
@@ -498,6 +531,18 @@ function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
       )}
       <Repairs store={store} uid={b.uid} cost={repair} />
       <Demolish store={store} uid={b.uid} />
+      {store.isCoppice(b.uid) && (
+        <div class="small control">
+          <button
+            type="button"
+            class="button small-button"
+            onClick={() => store.dispatch({ type: 'stopCoppice', uid: b.uid })}
+          >
+            Stop coppicing
+          </button>{' '}
+          <span class="quiet">It grows back into woodland in 2 seasons.</span>
+        </div>
+      )}
       {b.uid !== 'b0' && (
         <div class="small control">
           Priority {rank + 1} of {state.priority.length}: staffed in order, shut off last-first in a

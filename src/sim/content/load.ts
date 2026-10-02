@@ -49,6 +49,7 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     b.weir?.downstreamFoodPenalty.targets.forEach((id) => known(id, `${b.id}.weir`));
     b.placement.adjacentToBuildings?.forEach((id) => known(id, `${b.id}.placement`));
     b.heatFromNeighbors?.forEach((id) => known(id, `${b.id}.heatFromNeighbors`));
+    if (b.spawns) known(b.spawns.building, `${b.id}.spawns`);
     if (b.placement.adjacentToBuildings && !b.placement.adjacentTo) {
       problems.push(`${b.id}.placement.adjacentToBuildings needs adjacentTo`);
     }
@@ -202,10 +203,19 @@ function checkCombo(c: Combo, known: (id: string, where: string) => void): void 
       if (c.effect.appliesTo) known(c.effect.appliesTo, where);
       break;
     case 'evolution':
-      known(c.from, where);
+      // A coppice starts from a tile, not a building.
+      if (c.when.kind !== 'coppiced') known(c.from, where);
       known(c.into, where);
-      if (c.when.kind === 'nextTo') all(c.when.nextTo.buildings);
+      if (c.when.kind === 'nextTo') {
+        all(c.when.nextTo.buildings);
+        all(c.when.also?.buildings);
+      }
+      if (c.when.kind === 'ruinExhausted') all(c.when.nextTo?.buildings);
       if (c.when.kind === 'placed') known(c.when.building, where);
+      if (c.when.kind === 'coppiced') {
+        all(c.when.nextTo.buildings);
+        known(c.when.regrowth, where);
+      }
       break;
   }
 }

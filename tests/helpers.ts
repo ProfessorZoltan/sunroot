@@ -183,6 +183,9 @@ export function endSeason(state: RunState, c: Content = content): RunState {
     else s = { ...s, draft: { ...s.draft, offer: [] } };
   }
   if (s.charterOffer.length > 0) s = { ...s, charterOffer: [] };
+  // A branching evolution takes its first choice; tests of branching choose for themselves.
+  for (const o of s.evolutionOffer)
+    s = act(s, { type: 'chooseEvolution', uid: o.uid, combo: o.options[0]! }, c);
   return act(s, { type: 'endSeason' }, c);
 }
 

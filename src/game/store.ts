@@ -35,12 +35,13 @@ import { walkLines, type WalkLine } from './commuteInfo';
 import { heatLines, type HeatLine } from './heatInfo';
 import { EMPTY_ALMANAC, entryView, recordRun, type Almanac } from './almanac';
 import type { Graft, RunResult } from '../sim';
+import { coppiceCombo, coppiceProblem } from '../sim/combos';
 import { computeInsight, type Insight } from './insight';
 import { mapMarks, type Mark } from './marks';
 import type { PhaseName } from './timeline';
 
-/** A building to place, or spreading compost on a tile. */
-export type Tool = { kind: 'build'; building: string } | { kind: 'compost' };
+/** A building to place, spreading compost on a tile, or coppicing woodland (Coppice Wood). */
+export type Tool = { kind: 'build'; building: string } | { kind: 'compost' } | { kind: 'coppice' };
 
 export interface Placement {
   building: string;
@@ -185,6 +186,21 @@ export class GameStore {
     return report ? walkLines(this.rules, this.state, report, this.focus) : [];
   }
 
+  /** Whether this run can coppice woodland (Willow Reach v2, with water). */
+  get canCoppice(): boolean {
+    return coppiceCombo(this.rules) !== undefined;
+  }
+
+  /** Why the tile can't be coppiced, or null. */
+  coppiceProblem(at: Hex): string | null {
+    return coppiceProblem(this.rules, this.state, at);
+  }
+
+  /** Is this building a coppice the player can stop? */
+  isCoppice(uid: string): boolean {
+    return coppiceCombo(this.rules)?.into === this.state.buildings[uid]?.type;
+  }
+
   /** This season's heat as it stands (who warms whom), or null unless heat is local. */
   get heatForecast(): HeatLink[] | null {
     return this.asIs().lastReport?.heat ?? null;
@@ -313,6 +329,7 @@ export class GameStore {
     const s = this.state;
     if (s.visionOffer.length > 0) return 'Choose a vision to carry on.';
     if (s.charterOffer.length > 0) return 'Choose a charter to carry on.';
+    if (s.evolutionOffer.length > 0) return 'Choose what the building becomes to carry on.';
     if (s.draft.offer.length > 0 && !s.draft.picked) return 'Pick a card to carry on.';
     return null;
   }
@@ -465,6 +482,8 @@ export class GameStore {
       this.dispatch({ type: 'place', building: this.tool.building, at: hex });
     } else if (this.tool?.kind === 'compost') {
       this.dispatch({ type: 'spreadCompost', at: hex });
+    } else if (this.tool?.kind === 'coppice') {
+      this.dispatch({ type: 'coppice', at: hex });
     } else {
       const b = Object.values(this.state.buildings).find((x) => hexKey(x.at) === hexKey(hex));
       this.inspected = b ? b.uid : null;
@@ -544,7 +563,9 @@ export class GameStore {
     const legal = Object.values(this.state.map.tiles).filter((t) =>
       tool.kind === 'build'
         ? canPlace(this.content, this.state, tool.building, t).ok
-        : ladder.indexOf(t.type) >= 0 && ladder.indexOf(t.type) < ladder.length - 1,
+        : tool.kind === 'coppice'
+          ? coppiceProblem(this.rules, this.state, t) === null
+          : ladder.indexOf(t.type) >= 0 && ladder.indexOf(t.type) < ladder.length - 1,
     );
     const risky = (t: { type: string }) =>
       def !== undefined && !def.floodTolerant && t.type === 'floodplain';

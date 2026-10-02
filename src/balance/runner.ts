@@ -152,6 +152,11 @@ export function playRun(
       const charter = state.charterOffer[0]!;
       state = ok(applyCommand(content, state, { type: 'pickCharter', charter }));
     }
+    // A branching evolution: the first of its choices.
+    for (const offer of state.evolutionOffer) {
+      const combo = offer.options[0]!;
+      state = ok(applyCommand(content, state, { type: 'chooseEvolution', uid: offer.uid, combo }));
+    }
     if (state.draft.picked) {
       record.picks.push(state.draft.picked);
       record.pickTurns[state.draft.picked] = state.turn;

@@ -50,6 +50,14 @@ describe('combo data', () => {
       'Agrivoltaic Field',
       'Rewilded Ruin',
       'Treehouse Commons',
+      // Willow Reach v2 (EXPANSION.md, E3), with water.
+      'Food Forest',
+      'Aquaponics Hall',
+      'Canal-top Solar',
+      'Beaver Dam',
+      'Singing Spire',
+      'Old World Archive',
+      'Coppice Wood',
     ]);
     expect(content.tunings.filter((t) => !t.refinement).map((t) => t.name)).toEqual([
       'Deep Roots',

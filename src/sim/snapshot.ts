@@ -40,6 +40,7 @@ export function snapshot(state: SeasonSnapshot): SeasonSnapshot {
     tunings: [...state.tunings],
     charters: [...state.charters],
     charterOffer: [...state.charterOffer],
+    evolutionOffer: state.evolutionOffer.map((o) => ({ ...o, options: [...o.options] })),
     hints: [...state.hints],
     visionOffer: [...state.visionOffer],
     vision: state.vision,

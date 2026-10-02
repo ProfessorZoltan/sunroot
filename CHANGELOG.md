@@ -1,5 +1,18 @@
 # Changelog
 
+## Willow Reach v2: seven evolutions (E3, part 2)
+
+With water, from run 2:
+
+- **Food Forest** (orchard + apiary + 2 meadows), **Aquaponics Hall** (greenhouse + fish pond),
+  **Canal-top Solar** (a solar canopy built on a channel), **Beaver Dam** (weir + woodland at
+  Harmony 50), **Singing Spire** (wind spire + 2 pollinator meadows), **Old World Archive** (an empty
+  salvage yard + a library).
+- **Branching:** a building that meets two evolutions at once asks what it becomes (Winter Garden or
+  Aquaponics Hall; Rewilded Ruin or Old World Archive), and the season waits for the answer.
+- **Coppicing:** a new tool turns woodland next to a workshop into a Coppice Wood (2 materials a
+  season); stop coppicing and it grows back in 2 seasons.
+
 ## Willow Reach v2: five new buildings (E3, part 1)
 
 They join the draft with water, from run 2.

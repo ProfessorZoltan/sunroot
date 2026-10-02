@@ -61,11 +61,13 @@ export function Footer({
               ? `Fast-forwarding to spring, year ${store.fastForwardTo / 4 + 1}. ${store.fastForwardWaiting ?? ''}`
               : state.visionOffer.length > 0
                 ? 'Choose a vision to end the season.'
-                : state.charterOffer.length > 0
-                  ? 'Choose a charter to end the season.'
-                  : needsPick
-                    ? 'Choose a draft card to end the season.'
-                    : '')}
+                : state.evolutionOffer.length > 0
+                  ? 'Choose what the building becomes to end the season.'
+                  : state.charterOffer.length > 0
+                    ? 'Choose a charter to end the season.'
+                    : needsPick
+                      ? 'Choose a draft card to end the season.'
+                      : '')}
       </div>
       <div class="actions">
         {onReport && (
@@ -149,7 +151,11 @@ export function Footer({
             type="button"
             class="button primary"
             disabled={
-              ended || needsPick || state.charterOffer.length > 0 || state.visionOffer.length > 0
+              ended ||
+              needsPick ||
+              state.charterOffer.length > 0 ||
+              state.visionOffer.length > 0 ||
+              state.evolutionOffer.length > 0
             }
             onClick={() => store.dispatch({ type: 'endSeason' })}
             aria-keyshortcuts="E"

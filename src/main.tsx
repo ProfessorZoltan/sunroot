@@ -304,7 +304,7 @@ async function start() {
     view!.setOverlay(
       store.hover,
       store.placement,
-      store.tool?.kind === 'compost' ? 'compost' : 'hover',
+      store.tool && store.tool.kind !== 'build' ? 'compost' : 'hover',
       store.vines,
       store.legalSites,
     );

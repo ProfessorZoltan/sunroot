@@ -139,6 +139,8 @@ export function feedAndGrow(ctx: SeasonContext): void {
         amount: near.amount,
       });
     }
+    const always = def.wellbeing?.always ?? 0;
+    if (always !== 0 && !b.damage) lines.push({ kind: 'civic', reason: def.name, amount: always });
     let whenPowered = def.wellbeing?.whenPowered ?? 0;
     // Short of water (a Bathhouse with none), it does what it can.
     const dry = ctx.report.water?.uses[b.uid]?.short === true;

@@ -20,6 +20,7 @@ import { HEX_DIRECTIONS, axialToOffset, hexAdd, hexKey, hexNeighbors, type Hex }
 import { defOf, neighborBuildings, neighborTiles, occupancy, tileAt } from './queries';
 import { addYield, explain, type FormationEffect, type SeasonContext } from './season/context';
 import type { BuildingState, ComboHit, RunState } from './types';
+import { available } from './water';
 
 type ComboOf<L extends Combo['layer']> = Extract<Combo, { layer: L }>;
 
@@ -274,6 +275,10 @@ export function applyLoopBonuses(ctx: SeasonContext): void {
 
 // ------------------------------------------------------------------ evolutions
 
+/** Is the building an evolution leads to in this run (Willow Reach v2's forms need water)? */
+const reachable = (content: Content, combo: ComboOf<'evolution'>) =>
+  available(content, content.byId[combo.into]!);
+
 /** The evolution a building would undergo if `building` were placed on it (a canopy over a farm). */
 export function placementEvolution(
   content: Content,
@@ -282,8 +287,62 @@ export function placementEvolution(
 ): ComboOf<'evolution'> | undefined {
   if (!target) return undefined;
   return combosOf(content, 'evolution').find(
-    (c) => c.when.kind === 'placed' && c.when.building === building && c.from === target.type,
+    (c) =>
+      c.when.kind === 'placed' &&
+      c.when.building === building &&
+      c.from === target.type &&
+      reachable(content, c),
   );
+}
+
+/** The evolutions a building meets at the end of this season; two or more make a choice. */
+export function evolutionsReady(
+  content: Content,
+  state: RunState,
+  b: BuildingState,
+  occ = occupancy(state),
+): ComboOf<'evolution'>[] {
+  return combosOf(content, 'evolution').filter((combo) => {
+    const when = combo.when;
+    if (combo.from !== b.type || !reachable(content, combo)) return false;
+    if (when.kind === 'nextTo') {
+      return (
+        touches(state, b, when.nextTo, occ) &&
+        (!when.also || touches(state, b, when.also, occ)) &&
+        (when.minHarmony === undefined || state.harmony >= when.minHarmony)
+      );
+    }
+    if (when.kind === 'ruinExhausted') {
+      return (
+        (tileAt(state, b.at)?.salvage ?? 1) <= 0 &&
+        (!when.nextTo || touches(state, b, when.nextTo, occ))
+      );
+    }
+    return false;
+  });
+}
+
+/** The coppice action (Coppice Wood), if this run has it. */
+export function coppiceCombo(content: Content): ComboOf<'evolution'> | undefined {
+  return combosOf(content, 'evolution').find(
+    (c) => c.when.kind === 'coppiced' && reachable(content, c),
+  );
+}
+
+/** Why this tile can't be coppiced, or null if it can. */
+export function coppiceProblem(content: Content, state: RunState, at: Hex): string | null {
+  const combo = coppiceCombo(content);
+  if (!combo || combo.when.kind !== 'coppiced') return 'coppicing needs the water system';
+  const tile = tileAt(state, at);
+  if (!tile) return 'outside the valley';
+  if (tile.type !== combo.from) return `only ${combo.from} can be coppiced`;
+  if (occupancy(state).has(hexKey(at))) return 'tile already has a building';
+  const nextTo = combo.when.nextTo;
+  if (!touches(state, { uid: '', type: '', at, builtTurn: 0 }, nextTo)) {
+    const names = (nextTo.buildings ?? []).map((id) => content.byId[id]?.name ?? id);
+    return `coppicing needs a ${names.join(' or ')} next to it`;
+  }
+  return null;
 }
 
 /** Turns a building into its evolved form, keeping its place in every list. */
@@ -295,21 +354,25 @@ export function evolve(state: RunState, b: BuildingState, into: string): void {
   delete b.slot;
 }
 
+/**
+ * Each building that meets one evolution takes it. One that meets two (a branch) waits on
+ * the evolution offer until the player picks; there is no declining (DECISIONS.md).
+ */
 function evolveAtSeasonEnd(ctx: SeasonContext): void {
   const { content, state, report } = ctx;
   const occ = occupancy(state);
-  for (const combo of combosOf(content, 'evolution')) {
-    const when = combo.when;
-    if (when.kind === 'placed') continue;
-    for (const b of Object.values(state.buildings)) {
-      if (b.type !== combo.from) continue;
-      const ready =
-        when.kind === 'nextTo'
-          ? touches(state, b, when.nextTo, occ)
-          : (tileAt(state, b.at)?.salvage ?? 1) <= 0;
-      if (!ready) continue;
+  for (const b of Object.values(state.buildings)) {
+    if (state.evolutionOffer.some((o) => o.uid === b.uid)) continue;
+    const ready = evolutionsReady(content, state, b, occ);
+    if (ready.length === 1) {
+      const combo = ready[0]!;
       evolve(state, b, combo.into);
       report.evolved.push({ uid: b.uid, from: combo.from, into: combo.into });
+    } else if (ready.length > 1) {
+      state.evolutionOffer = [
+        ...state.evolutionOffer,
+        { uid: b.uid, options: ready.map((c) => c.id) },
+      ];
     }
   }
 }

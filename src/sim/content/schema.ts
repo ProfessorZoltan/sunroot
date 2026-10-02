@@ -95,6 +95,13 @@ const BuildingWaterSchema = z
       .object({ amount: int.min(1), fill: z.enum(SEASONS), release: z.enum(SEASONS) })
       .strict()
       .optional(),
+    /** A channel with a tile of this loses no water to summer evaporation (Canal-top Solar). */
+    noEvaporation: z.boolean().default(false),
+    /**
+     * Takes a neighbouring fish pond's water instead of a channel's (the Aquaponics Hall):
+     * the pond feeds it instead of its channel.
+     */
+    fromPond: z.boolean().default(false),
     /** Turned by the river: energy per slot follows the flow at its tile (the River Wheel). */
     wheel: z.boolean().default(false),
   })
@@ -256,6 +263,8 @@ export const BuildingSchema = z
     wellbeing: z
       .object({
         whenPowered: int.default(0),
+        /** Wellbeing each season it stands undamaged (the Singing Spire). */
+        always: int.default(0),
         nextToTiles: z.object({ tiles: z.array(TileTypeSchema), amount: int }).optional(),
       })
       .optional(),
@@ -264,6 +273,16 @@ export const BuildingSchema = z
     harmonyAsTile: TileTypeSchema.optional(),
     /** Storms can't damage the buildings next to it (the Hedgerow). */
     sheltersNeighbors: z.boolean().default(false),
+    /** Gone after this many seasons, leaving its tile as it was (a coppice regrowing). */
+    revertsAfterSeasons: int.min(1).optional(),
+    /**
+     * Each spring, this building appears on a free tile next to the reservoir, up to `max`
+     * in all (the Beaver Dam's reed beds).
+     */
+    spawns: z
+      .object({ building: z.string(), max: int.min(1) })
+      .strict()
+      .optional(),
     /**
      * Turns spare food from neighbouring producing buildings into wellbeing
      * (the Cider Press): for each of up to `max` neighbours of these types that
@@ -727,11 +746,28 @@ export const ComboSchema = z.discriminatedUnion('layer', [
       from: z.string(),
       into: z.string(),
       when: z.discriminatedUnion('kind', [
-        z.object({ kind: z.literal('nextTo'), nextTo: NextTo }),
-        /** Its ruin has no salvage left. */
-        z.object({ kind: z.literal('ruinExhausted') }),
-        /** Placing this building on it (a solar canopy on a farm). */
+        z.object({
+          kind: z.literal('nextTo'),
+          nextTo: NextTo,
+          /** A second neighbour it needs as well (the Food Forest: an apiary and 2 meadows). */
+          also: NextTo.optional(),
+          /** Only while Harmony is at least this (the Beaver Dam). */
+          minHarmony: int.min(1).optional(),
+        }),
+        /** Its ruin has no salvage left (and, optionally, it has these neighbours). */
+        z.object({ kind: z.literal('ruinExhausted'), nextTo: NextTo.optional() }),
+        /** Placing this building on it (a solar canopy on a farm, or on a channel). */
         z.object({ kind: z.literal('placed'), building: z.string() }),
+        /**
+         * A player action, not an evolution of a building: the player coppices a tile of
+         * `from` (a tile type) with these neighbours, and it becomes `into` (Coppice Wood).
+         */
+        z.object({
+          kind: z.literal('coppiced'),
+          nextTo: NextTo,
+          /** What a stopped coppice becomes until it is woodland again. */
+          regrowth: z.string(),
+        }),
       ]),
     })
     .strict(),

@@ -86,6 +86,8 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
         'Grey water costs Harmony if it reaches the river: a Reed Bed further down the channel, or beside the river where it rejoins, cleans it.',
       );
   }
+  if (w?.fromPond) lines.push('Watered by a fish pond next to it, not a channel.');
+  if (w?.noEvaporation) lines.push('Its channel loses no water to summer evaporation.');
   if (w?.cleans)
     lines.push(
       `Cleans up to ${w.cleans} grey water in its channel, or where it joins the river beside it.`,
@@ -93,6 +95,7 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
   if (def.storage) {
     lines.push(`Stores up to ${def.storage.capacity} ${def.storage.holds}.`);
   }
+  if (def.wellbeing?.always) lines.push(`+${def.wellbeing.always} wellbeing each season.`);
   if (def.wellbeing?.whenPowered)
     lines.push(`+${def.wellbeing.whenPowered} wellbeing when powered.`);
   if (def.cider) {
@@ -106,6 +109,12 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
   }
   if (def.harmony) lines.push(`+${def.harmony} Harmony.`);
   if (def.harmonyAsTile) lines.push(`Counts as ${def.harmonyAsTile} for Harmony.`);
+  if (def.spawns) {
+    const what = content.byId[def.spawns.building]?.name ?? def.spawns.building;
+    lines.push(`Each spring a ${what} grows beside the reservoir, up to ${def.spawns.max}.`);
+  }
+  if (def.revertsAfterSeasons)
+    lines.push(`Woodland again ${def.revertsAfterSeasons} seasons after it was stopped.`);
   if (def.sheltersNeighbors) lines.push("Storms can't damage the buildings next to it.");
   const civic = content.rules.expectations?.perBuilding[def.id];
   if (civic)

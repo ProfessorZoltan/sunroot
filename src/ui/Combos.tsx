@@ -384,6 +384,55 @@ export function CharterPanel({ store }: { store: GameStore }) {
   );
 }
 
+/**
+ * A building met two evolutions at once (EXPANSION.md, branching): choose what it becomes
+ * (keys 1 and 2). There is no declining.
+ */
+export function EvolutionPanel({ store }: { store: GameStore }) {
+  const { state } = store;
+  const branch = state.evolutionOffer[0]!;
+  const b = state.buildings[branch.uid];
+  const from = b ? store.rules.byId[b.type]?.name : undefined;
+  return (
+    <section aria-label="Evolution">
+      <h2>What does the {from ?? 'building'} become?</h2>
+      <div class="quiet small">
+        It meets two evolutions at once: choose one. Press 1 to {branch.options.length}.
+      </div>
+      <div class="cards">
+        {branch.options.map((id, i) => {
+          const combo = store.rules.comboById[id]!;
+          return (
+            <button
+              type="button"
+              class="card evolution"
+              aria-keyshortcuts={String(i + 1)}
+              onClick={() => {
+                store.inspect(branch.uid);
+                store.dispatch({ type: 'chooseEvolution', uid: branch.uid, combo: id });
+              }}
+            >
+              <span class="jewel" style={{ background: '#2E8B6A' }}>
+                <span class="charter-glyph" aria-hidden="true">
+                  ❦
+                </span>
+              </span>
+              <span class="card-body">
+                <span class="card-kind">Evolution</span>
+                <span class="card-name">{combo.name}</span>
+                <span class="card-text">{combo.text}</span>
+              </span>
+              <span class="keycap" aria-hidden="true">
+                {i + 1}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 /** Left column: closed loops, the run's charters and tunings. */
 export function LoopsPanel({ store }: { store: GameStore }) {
   const { content, state } = store;

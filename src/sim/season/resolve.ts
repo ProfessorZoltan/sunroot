@@ -19,9 +19,11 @@ import {
   seasonIndex,
   tileAt,
   byPriority,
+  occupancy,
   repairCost,
 } from '../queries';
-import type { RunState, SeasonSummary } from '../types';
+import { hexDistance, hexKey, hexNeighbors } from '../hex';
+import type { BuildingState, RunState, SeasonSummary } from '../types';
 import { emptyReport, flow, type SeasonContext } from './context';
 import { resolveEnergy } from './energy';
 import { applyEvent, mixedGridBonus } from './events';
@@ -198,10 +200,22 @@ function advance(content: Content, ctx: SeasonContext): RunState {
   return state;
 }
 
-/** Start-of-season upkeep: orchards mature, flood (and storm) damage is repaired, the draft is dealt. */
+/**
+ * Start-of-season upkeep: orchards mature, flood (and storm) damage is repaired, coppices
+ * grow back, a beaver dam's reed beds spread, the draft is dealt.
+ */
 function startSeason(content: Content, state: RunState): void {
   for (const b of byPriority(state)) {
     const def = defOf(content, b);
+    if (def.revertsAfterSeasons && state.turn - b.builtTurn >= def.revertsAfterSeasons) {
+      delete state.buildings[b.uid];
+      state.priority = state.priority.filter((id) => id !== b.uid);
+      state.notices.push(
+        `The ${def.name.toLowerCase()} has grown back into ${tileAt(state, b.at)!.type}`,
+      );
+      continue;
+    }
+    if (def.spawns && state.season === 'spring') spawn(content, state, b, def.spawns);
     if (def.matureTileBecomes && state.turn - b.builtTurn === def.maturesAfterSeasons) {
       if (
         improveTile(
@@ -245,4 +259,33 @@ function startSeason(content: Content, state: RunState): void {
   if (startsEra && content.rules.charterEras.includes(state.era)) {
     state.charterOffer = dealCharters(content, state);
   }
+}
+
+/**
+ * A building appears on a free tile next to the reservoir, nearest the one that brings it
+ * first (the Beaver Dam's reed beds), up to its maximum.
+ */
+function spawn(
+  content: Content,
+  state: RunState,
+  from: BuildingState,
+  spawns: { building: string; max: number },
+): void {
+  if ((from.spawned ?? 0) >= spawns.max) return;
+  const def = content.byId[spawns.building]!;
+  const occ = occupancy(state);
+  const site = Object.values(state.map.tiles)
+    .filter(
+      (t) =>
+        def.placement.tiles.includes(t.type) &&
+        !occ.has(hexKey(t)) &&
+        hexNeighbors(t).some((n) => tileAt(state, n)?.type === 'reservoir'),
+    )
+    .sort((a, b) => hexDistance(a, from.at) - hexDistance(b, from.at) || a.r - b.r || a.q - b.q)[0];
+  if (!site) return;
+  const uid = `b${state.nextUid++}`;
+  state.buildings[uid] = { uid, type: def.id, at: { q: site.q, r: site.r }, builtTurn: state.turn };
+  state.priority.push(uid);
+  from.spawned = (from.spawned ?? 0) + 1;
+  state.notices.push(`A ${def.name.toLowerCase()} grew by the ${defOf(content, from).name}`);
 }

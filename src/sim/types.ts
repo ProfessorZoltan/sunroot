@@ -48,6 +48,8 @@ export interface BuildingState {
   slot?: Slot;
   /** Stored energy or heat (or water: a cistern's store, a weir's held-back water). */
   stored?: number;
+  /** How many buildings it has brought (a Beaver Dam's reed beds). */
+  spawned?: number;
 }
 
 export interface RunOptions {
@@ -145,6 +147,11 @@ export interface RunState {
   charters: string[];
   /** Charters on offer at the start of an era; one must be chosen before the season ends. */
   charterOffer: string[];
+  /**
+   * Buildings that met two evolutions at once (EXPANSION.md, branching): for each, the
+   * evolutions it can take. The player picks one before the season ends.
+   */
+  evolutionOffer: { uid: string; options: string[] }[];
   /** Almanac hints bought with knowledge this run. */
   hints: string[];
   /** Visions on offer at the start (one must be chosen), the chosen one, and when it was achieved. */
@@ -201,6 +208,11 @@ export type Command =
   | { type: 'pickCard'; card: string }
   | { type: 'pickCharter'; charter: string }
   | { type: 'pickVision'; vision: string }
+  /** Picks which evolution a building on the evolution offer takes. */
+  | { type: 'chooseEvolution'; uid: string; combo: string }
+  /** Coppices a woodland tile (Coppice Wood); `stopCoppice` lets it grow back. */
+  | { type: 'coppice'; at: Hex }
+  | { type: 'stopCoppice'; uid: string }
   | { type: 'buyHint'; combo: string }
   | { type: 'rerollDraft' }
   | { type: 'buyExtraCard' }
@@ -311,7 +323,8 @@ export type Flows = Partial<Record<Resource, { made: FlowLines; used: FlowLines 
 export type WaterUnits = Record<WaterQuality, number>;
 
 /** Where a building's water came from. */
-export type WaterSource = 'river' | 'lake' | 'channel';
+/** Where a building drew its water; 'pond' is a neighbouring fish pond (the Aquaponics Hall). */
+export type WaterSource = 'river' | 'lake' | 'channel' | 'pond';
 
 export interface WaterUse {
   need: number;

@@ -25,7 +25,7 @@
 import type { BuildingDef, WaterQuality } from '../content/schema';
 import { SEASONS, WATER_QUALITIES } from '../content/schema';
 import { hexKey, hexNeighbors } from '../hex';
-import { byPriority, defOf, tileAt } from '../queries';
+import { byPriority, defOf, neighborBuildings, tileAt } from '../queries';
 import type { BuildingState, ChannelReport, WaterReport, WaterUnits, WaterUse } from '../types';
 import {
   channels as findChannels,
@@ -160,6 +160,11 @@ export function resolveWater(ctx: SeasonContext): void {
     const river = besideWater ? riverIndexesNear(state, b.at) : [];
     const lake = besideWater ? lakeNear(state, b.at, ofLake) : null;
     let source: Source | null = null;
+    // A building fed by its pond (the Aquaponics Hall) draws on nothing else.
+    if (w.fromPond) {
+      users.push({ b, def, need, source: null });
+      continue;
+    }
     const channelFirst = w.returns !== undefined || w.cleans > 0 || !w.accepts.includes('clean');
     if (channelFirst && onChannel) source = { kind: 'channel', at: onChannel };
     else if (river.length > 0) source = { kind: 'river', at: Math.min(...river) };
@@ -185,7 +190,27 @@ export function resolveWater(ctx: SeasonContext): void {
         (u.short ? `: short, × ${rules.shortfallFactor}` : ''),
     );
   };
-  for (const { b, need, source } of users) if (!source) finish(use(b, need, null), b);
+  // Buildings fed by a neighbouring fish pond: the pond's water goes to them, not its channel.
+  const pondFed = new Set<string>();
+  for (const { b, def, need } of users.filter((x) => x.def.water!.fromPond)) {
+    const u = use(b, need, 'pond');
+    for (const p of neighborBuildings(state, b)) {
+      const feeds = defOf(content, p).water?.feeds;
+      if (!feeds || !works(p) || pondFed.has(p.uid) || total(u.got) >= need) continue;
+      if (!def.water!.accepts.includes(feeds.quality)) continue;
+      u.got[feeds.quality] += feeds.amount;
+      pondFed.add(p.uid);
+      add(report.in, 'fed by ponds', feeds.amount);
+      explain(
+        ctx,
+        p,
+        `water: feeds ${feeds.amount} ${feeds.quality} to the ${def.name} next to it`,
+      );
+    }
+    finish(u, b);
+  }
+  for (const { b, def, need, source } of users)
+    if (!source && !def.water!.fromPond) finish(use(b, need, null), b);
 
   // Cisterns on no channel stand by the river (at their most upstream position) or a lake.
   const working = cisterns.filter(works);
@@ -252,9 +277,12 @@ export function resolveWater(ctx: SeasonContext): void {
     const outAt = ch.keys.map(() => 0);
     // Nutrient-rich and grey water only come from buildings: what is in the pool past each tile.
     const coloured = ch.keys.map(() => ({ nutrient: 0, grey: 0 }));
-    const evaporation = evaporating
-      ? Math.floor(ch.keys.length / rules.evaporation.tilesPerUnit)
-      : 0;
+    // Panels over a channel (Canal-top Solar) shade the whole of it from evaporation.
+    const covered = ch.uids.some(
+      (uid) => defOf(content, state.buildings[uid]!).water?.noEvaporation,
+    );
+    const evaporation =
+      evaporating && !covered ? Math.floor(ch.keys.length / rules.evaporation.tilesPerUnit) : 0;
     let room = rules.channelCapacity;
     const fresh = (n: number): number => {
       if (r.evaporated < evaporation) {
@@ -283,7 +311,9 @@ export function resolveWater(ctx: SeasonContext): void {
         .filter((x) => x.p >= 0)
         .sort((x, y) => x.p - y.p || rank.get(x.b.uid)! - rank.get(y.b.uid)!);
     const myCisterns = along(cisterns.filter(works));
-    const feeders = along(order.filter((b) => works(b) && defOf(content, b).water?.feeds));
+    const feeders = along(
+      order.filter((b) => works(b) && defOf(content, b).water?.feeds && !pondFed.has(b.uid)),
+    );
     const cleaners = along(
       order.filter((b) => works(b) && (defOf(content, b).water?.cleans ?? 0) > 0),
     );

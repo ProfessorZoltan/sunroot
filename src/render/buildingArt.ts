@@ -341,6 +341,87 @@ export const BUILDING_ART: Record<string, Art> = {
     ] as const)
       g.circle(c.x + dx, c.y + dy, 1.2).fill({ color: 0xffffff });
   },
+  // Willow Reach v2's evolved forms (E3), built on the drawings they grow from.
+  foodForest(g, c) {
+    BUILDING_ART.orchard!(g, c);
+    for (const [dx, dy, color] of [
+      [-12, 8, COLORS.flowerPink],
+      [11, 7, COLORS.sunGold],
+      [-1, -10, 0xffffff],
+    ] as const)
+      g.circle(c.x + dx, c.y + dy, 2).fill({ color });
+    g.circle(c.x + 12, c.y - 8, 1.6).fill({ color: COLORS.sunGold });
+  },
+  aquaponicsHall(g, c) {
+    BUILDING_ART.greenhouse!(g, c);
+    g.rect(c.x - 10, c.y + 4, 20, 3).fill({ color: COLORS.water });
+    g.poly([c.x - 2, c.y + 5.5, c.x + 2, c.y + 4, c.x + 2, c.y + 7]).fill({ color: 0xe58f4a });
+  },
+  canalTopSolar(g, c) {
+    BUILDING_ART.irrigationChannel!(g, c);
+    panel(g, { x: c.x, y: c.y - 5 }, COLORS.solarTeal, 0x9fc6c8);
+  },
+  beaverDam(g, c) {
+    BUILDING_ART.weir!(g, c);
+    for (const [dx, a] of [
+      [-12, -0.4],
+      [-4, 0.3],
+      [5, -0.2],
+      [12, 0.4],
+    ] as const) {
+      g.moveTo(c.x + dx - Math.cos(a) * 5, c.y - 6 - Math.sin(a) * 5)
+        .lineTo(c.x + dx + Math.cos(a) * 5, c.y - 6 + Math.sin(a) * 5)
+        .stroke({ width: 2, color: COLORS.wood, cap: 'round' });
+    }
+  },
+  singingSpire(g, c) {
+    BUILDING_ART.windSpire!(g, c);
+    for (const [dx, dy] of [
+      [-12, 9],
+      [12, 8],
+    ] as const)
+      g.circle(c.x + dx, c.y + dy, 2.2).fill({ color: COLORS.flowerPink });
+    g.moveTo(c.x + 8, c.y - 16)
+      .quadraticCurveTo(c.x + 12, c.y - 19, c.x + 15, c.y - 16)
+      .stroke({ width: 1.2, color: COLORS.sunGold, cap: 'round' });
+  },
+  oldWorldArchive(g, c) {
+    shadow(g, c, 14);
+    g.rect(c.x - 12, c.y - 4, 24, 12).fill({ color: COLORS.stone });
+    g.poly([c.x - 14, c.y - 4, c.x, c.y - 13, c.x + 14, c.y - 4]).fill({ color: 0x8a8070 });
+    for (const dx of [-8, -3, 2, 7]) g.rect(c.x + dx, c.y - 2, 3, 8).fill({ color: 0xfffbf0 });
+    for (const [dx, color] of [
+      [-8, ROOF],
+      [2, COLORS.solarTeal],
+    ] as const)
+      g.rect(c.x + dx, c.y - 2, 3, 8).fill({ color });
+  },
+  coppiceWood(g, c) {
+    shadow(g, c, 13, 4, 8);
+    for (const [dx, dy] of [
+      [-8, 2],
+      [0, -4],
+      [8, 3],
+    ] as const) {
+      g.ellipse(c.x + dx, c.y + dy + 4, 3.5, 2).fill({ color: COLORS.wood });
+      for (const lean of [-3, 0, 3]) {
+        g.moveTo(c.x + dx, c.y + dy + 3)
+          .lineTo(c.x + dx + lean, c.y + dy - 7)
+          .stroke({ width: 1.2, color: 0x5f8a45, cap: 'round' });
+      }
+    }
+    g.rect(c.x - 13, c.y + 7, 10, 2.5).fill({ color: COLORS.wood });
+  },
+  coppiceRegrowth(g, c) {
+    for (const [dx, dy] of [
+      [-8, 2],
+      [0, -4],
+      [8, 3],
+    ] as const) {
+      g.ellipse(c.x + dx, c.y + dy + 4, 3.5, 2).fill({ color: COLORS.wood });
+      g.circle(c.x + dx, c.y + dy - 1, 3.5).fill({ color: COLORS.treeLight });
+    }
+  },
   solarCanopy(g, c) {
     shadow(g, c, 13, 4, 11);
     panel(g, c, COLORS.solarTeal, 0x9fc6c8);

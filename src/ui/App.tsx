@@ -129,7 +129,13 @@ export function App({
       if (help) return;
       if (lower === GLOBAL_KEYS.almanac) return (handled(), setAlmanac(true));
       if (/^[1-4]$/.test(key)) {
-        const { draft, charterOffer, visionOffer } = store.state;
+        const { draft, charterOffer, visionOffer, evolutionOffer } = store.state;
+        const branch = evolutionOffer[0];
+        if (branch) {
+          const combo = branch.options[Number(key) - 1];
+          if (combo) store.dispatch({ type: 'chooseEvolution', uid: branch.uid, combo });
+          return handled();
+        }
         const vision = visionOffer[Number(key) - 1];
         if (visionOffer.length > 0) {
           if (vision) store.dispatch({ type: 'pickVision', vision });
