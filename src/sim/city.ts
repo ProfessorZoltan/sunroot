@@ -215,13 +215,14 @@ export interface Teaching {
   visions: boolean;
   water: boolean;
   commute: boolean;
+  localHeat: boolean;
   /** Systems joining at this run, for a card at its start. */
   joining: TaughtSystem[];
   /** The next system to join and the run it joins, if any ("the next unlock is always visible"). */
   next: { system: TaughtSystem; run: number } | null;
 }
 
-export type TaughtSystem = 'tunings' | 'charters' | 'visions' | 'water' | 'commute';
+export type TaughtSystem = 'tunings' | 'charters' | 'visions' | 'water' | 'commute' | 'localHeat';
 
 /** Teaching across runs: which systems a run (1 = the first) plays with. */
 export function teaching(content: Content, run: number): Teaching {
@@ -233,7 +234,7 @@ export function teaching(content: Content, run: number): Teaching {
     water: 1,
   };
   // Commuting joins the ladder once it can be seen (C2); until then it has no run.
-  const systems = (['water', 'tunings', 'charters', 'visions', 'commute'] as const)
+  const systems = (['water', 'tunings', 'charters', 'visions', 'commute', 'localHeat'] as const)
     .map((system) => ({ system, run: t[system] ?? Infinity }))
     .filter((s) => s.run !== Infinity);
   const later = systems.filter((s) => s.run > run).sort((a, b) => a.run - b.run);
@@ -246,6 +247,7 @@ export function teaching(content: Content, run: number): Teaching {
     visions: run >= t.visions,
     water: run >= t.water,
     commute: t.commute !== undefined && run >= t.commute,
+    localHeat: t.localHeat !== undefined && run >= t.localHeat,
     joining: systems.filter((s) => s.run === run && run > 1).map((s) => s.system),
     next: later[0] ?? null,
   };
@@ -267,9 +269,10 @@ export function nextRunOptions(content: Content, city: CityState): RunOptions {
   // Every layer from the start, if the player asked; Tempest always plays the full valley.
   const full = city.fullValley === true || tempest > 0;
   const water = t.water || full;
-  // Commuting only once it is on the ladder (it has no screen yet).
-  const released = (content.progression?.teaching.commute ?? undefined) !== undefined;
-  const commute = t.commute || (full && released);
+  // A layer only once it is on the ladder (before that it has no screen).
+  const ladder = content.progression?.teaching;
+  const commute = t.commute || (full && ladder?.commute !== undefined);
+  const localHeat = t.localHeat || (full && ladder?.localHeat !== undefined);
   return {
     seed: city.expedition?.seed ?? `${city.seed}-${run}`,
     guided: t.guided,
@@ -280,6 +283,7 @@ export function nextRunOptions(content: Content, city: CityState): RunOptions {
     expedition,
     ...(water ? { water } : {}),
     ...(commute ? { commute } : {}),
+    ...(localHeat ? { localHeat } : {}),
   };
 }
 

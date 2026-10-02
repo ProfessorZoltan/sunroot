@@ -33,6 +33,7 @@ export function createRun(
     expedition: options.expedition ?? { twist: null, request: null },
     water: options.water ?? false,
     commute: options.commute ?? false,
+    localHeat: options.localHeat ?? false,
   };
   // Root City's perks and landmarks and the expedition's twist hold from the start.
   const content = effectiveContent(base, { tunings: [], charters: [], options: opts });

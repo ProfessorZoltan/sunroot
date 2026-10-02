@@ -310,6 +310,18 @@ const profileBot = (name: keyof typeof profiles, description: string): Bot => ({
   playSeason: (turn) => survive(turn, profiles[name]),
 });
 
+/** A profile bot that places heat sources without minding where the heat is needed (H1 gate). */
+export function heatBlindBot(name: 'greedyFood' | 'greedyEnergy' | 'balanced'): Bot {
+  return {
+    name: `${name}-heatBlind`,
+    description: `${BOTS[name]!.description} Ignores where heat is needed.`,
+    playSeason: (turn) => {
+      turn.heatAware = false;
+      survive(turn, profiles[name]);
+    },
+  };
+}
+
 /** A profile bot that ignores walks to work when it places things (for the C1 gate). */
 export function commuteBlindBot(name: 'greedyFood' | 'greedyEnergy' | 'balanced'): Bot {
   return {

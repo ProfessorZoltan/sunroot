@@ -87,6 +87,10 @@
       "freeDistance": 2,
       "tilesPerWellbeing": 3
     },
+    "localHeat": {
+      "enabled": false,
+      "range": 2
+    },
     "mixedGrid": {
       "minSourceTypes": 3,
       "minShare": 0.15,

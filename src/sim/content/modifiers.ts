@@ -30,15 +30,18 @@ export interface RunModifierSources {
     water?: boolean;
     /** Commuting is on for this run. */
     commute?: boolean;
+    /** Local heat is on for this run. */
+    localHeat?: boolean;
   };
 }
 
 const WATER_ON: Modifier = { target: 'rules', path: 'water.enabled', set: true };
 const COMMUTE_ON: Modifier = { target: 'rules', path: 'commute.enabled', set: true };
+const LOCAL_HEAT_ON: Modifier = { target: 'rules', path: 'localHeat.enabled', set: true };
 
 /**
- * The modifiers a run plays under, in order: the water system and commuting
- * (when the run has them), the expedition's region, the
+ * The modifiers a run plays under, in order: the water system, commuting
+ * and local heat (when the run has them), the expedition's region, the
  * era's harsher seasons, Root City's district perks and landmarks, the
  * expedition's twist, its Tempest level (levels 1 to N), finished projects,
  * then the run's tunings and charters.
@@ -61,6 +64,7 @@ export function runModifiers(content: Content, state: RunModifierSources): Modif
   return [
     ...(state.options?.water ? [WATER_ON] : []),
     ...(state.options?.commute ? [COMMUTE_ON] : []),
+    ...(state.options?.localHeat ? [LOCAL_HEAT_ON] : []),
     ...(content.regions.find((r) => r.id === region)?.modifiers ?? []),
     ...harsher,
     ...perks,

@@ -69,6 +69,8 @@ export interface RunOptions {
   water?: boolean;
   /** Commuting: workers walk from home to work; long walks cost wellbeing. */
   commute?: boolean;
+  /** Local heat: heat sources reach only buildings near them. */
+  localHeat?: boolean;
 }
 
 export interface RunCity {
@@ -374,6 +376,15 @@ export interface CommuteReport {
   wellbeing: number;
 }
 
+/** Heat a source paid for a building this season, while local heat is on. */
+export interface HeatLink {
+  slot: Slot;
+  /** The source's uid (a collector, a heat pump or a heat well), or `grid` for energy paid 1:1. */
+  from: string;
+  to: string;
+  amount: number;
+}
+
 export interface SeasonReport {
   /**
    * Each resource made and used this season, by what: building, spending
@@ -394,6 +405,8 @@ export interface SeasonReport {
   water: WaterReport | null;
   /** Who walked from where to work, while commuting is on. */
   commute: CommuteReport | null;
+  /** Which source heated which building, while local heat is on. */
+  heat: HeatLink[] | null;
   /** Buildings a storm could damage: on exposed land (hills), not next to woodland (unless the Mixed Grid holds). */
   exposed: string[];
   silted: string[];

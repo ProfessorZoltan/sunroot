@@ -84,6 +84,7 @@ export function emptyReport(state: RunState): SeasonReport {
     dried: [],
     water: null,
     commute: null,
+    heat: null,
     exposed: [],
     silted: [],
     damaged: [],

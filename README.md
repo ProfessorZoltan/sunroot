@@ -136,4 +136,6 @@ depend only on the seeds, not on the number of threads. The last full report is 
 `npx tsx scripts/water.ts [runs] [bot] [setting=value ...]` plays the valley with and without the
 water system (off in the game until it can be seen) and reports the E1 decision gate; see
 [docs/balance/water-e1.md](docs/balance/water-e1.md). `npx tsx scripts/commute.ts [runs] [bot]` does the same for
-commuting ([docs/balance/commute-c1.md](docs/balance/commute-c1.md)).
+commuting ([docs/balance/commute-c1.md](docs/balance/commute-c1.md)). `npx tsx scripts/heat.ts` does the same for
+local heat ([docs/balance/heat-h1.md](docs/balance/heat-h1.md)), and `scripts/calibrate-layers.ts`
+sizes the layers' score lines.

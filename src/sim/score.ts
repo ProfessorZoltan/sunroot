@@ -68,6 +68,8 @@ export function scoreRun(content: Content, state: RunState): RunScore {
     lines.push({ reason: 'water to manage', points: w.layers.water });
   if (rules.commute.enabled && w.layers.commute > 0)
     lines.push({ reason: 'walks to work', points: w.layers.commute });
+  if (rules.localHeat.enabled && w.layers.localHeat > 0)
+    lines.push({ reason: 'heat kept close', points: w.layers.localHeat });
   const total = lines.reduce((sum, l) => sum + l.points, 0);
   const tiers = w.tiers;
   const scored = Math.max(0, tiers.filter((t) => total >= t.min).length - 1);

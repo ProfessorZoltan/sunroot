@@ -396,6 +396,20 @@ const CommuteRulesSchema = z
   .strict();
 export type CommuteRules = z.infer<typeof CommuteRulesSchema>;
 
+/**
+ * Local heat (DECISIONS.md, Teaching by layers): heat sources (free heat,
+ * heat pumps, heat wells) reach only buildings within `range` tiles; heat
+ * paid with energy from the grid still reaches anywhere.
+ */
+const LocalHeatRulesSchema = z
+  .object({
+    enabled: z.boolean().default(false),
+    range: int.min(1),
+    /** Energy each heat costs when paid from the grid (resistive heating), while it is on. */
+    gridHeatCost: int.min(1).default(1),
+  })
+  .strict();
+
 export const RulesSchema = z
   .object({
     yearsPerRun: int.min(1),
@@ -470,9 +484,13 @@ export const RulesSchema = z
        * Teaching by layers), so a run with more to manage scores as well as one without.
        */
       layers: z
-        .object({ water: nonNeg.default(0), commute: nonNeg.default(0) })
+        .object({
+          water: nonNeg.default(0),
+          commute: nonNeg.default(0),
+          localHeat: nonNeg.default(0),
+        })
         .strict()
-        .default({ water: 0, commute: 0 }),
+        .default({ water: 0, commute: 0, localHeat: 0 }),
       /** Graft tiers from lowest; a run reaches the highest tier whose `min` its score meets. */
       tiers: z.array(z.object({ id: z.string(), name: z.string(), min: int.min(0) })).min(1),
     }),
@@ -528,6 +546,7 @@ export const RulesSchema = z
     /** The water system (EXPANSION.md, Water system). Off unless `enabled`. */
     water: WaterRulesSchema,
     commute: CommuteRulesSchema.default({ enabled: false, freeDistance: 3, tilesPerWellbeing: 4 }),
+    localHeat: LocalHeatRulesSchema.default({ enabled: false, range: 2, gridHeatCost: 1 }),
     mixedGrid: z.object({
       minSourceTypes: int.min(1),
       minShare: z.number().min(0).max(1),
@@ -900,6 +919,8 @@ export const ProgressionSchema = z
         water: int.min(1).default(2),
         /** Commuting joins at this run (missing: not yet in the game). */
         commute: int.min(1).optional(),
+        /** Local heat joins at this run (missing: not yet in the game). */
+        localHeat: int.min(1).optional(),
       })
       .strict(),
   })

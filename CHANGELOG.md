@@ -1,5 +1,17 @@
 # Changelog
 
+## Local heat, in the simulation (H1)
+
+Built in the simulation only, and off in the game: it failed its gate as run 4's layer, so it is on
+no rung of the ladder. Nothing changes in play.
+
+- With local heat on, solar thermal collectors, heat pumps and heat wells heat only buildings within
+  2 tiles; heat bought from the grid reaches anywhere (optionally at 2 energy per heat). Off, heat is
+  shared exactly as before.
+- The season report records which source heated which building.
+- `scripts/heat.ts` compares it with shared heat; the report is
+  [docs/balance/heat-h1.md](docs/balance/heat-h1.md). DECISIONS.md Q18 asks where it should go.
+
 ## Walks to work on screen (C2), from run 3; score lines for the layers
 
 - Walks to work join at run 3: workers live in the nearest home with a free bed and walk to work;

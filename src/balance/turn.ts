@@ -135,6 +135,14 @@ export class Turn {
   /** Whether the bot minds walks to work when it places things (off for the gate's comparison). */
   commuteAware = true;
 
+  /** Whether local heat is on for this run (DECISIONS.md, Teaching by layers). */
+  get localHeatOn(): boolean {
+    return this.rules.rules.localHeat.enabled;
+  }
+
+  /** Whether the bot keeps heat sources near what they heat (off for the gate's comparison). */
+  heatAware = true;
+
   /** Whether the water system is on for this run (EXPANSION.md). */
   get waterOn(): boolean {
     return this.rules.rules.water.enabled;
@@ -212,6 +220,25 @@ function commuteScore(turn: Turn, def: BuildingDef, tile: Hex): number {
   return score;
 }
 
+/** Local heat: heat sources near buildings that need heat, and those near a source. */
+function heatScore(turn: Turn, def: BuildingDef, tile: Hex): number {
+  const { content, state } = turn;
+  const range = turn.rules.rules.localHeat.range;
+  const isSource = (d: BuildingDef) =>
+    d.heatPump !== undefined || d.heatGeneration !== undefined || d.storage?.holds === 'heat';
+  const needsHeat = (d: BuildingDef) =>
+    (d.demand?.heat.day.some((n) => n > 0) ?? false) ||
+    (d.demand?.heat.night.some((n) => n > 0) ?? false);
+  const within = (pick: (d: BuildingDef) => boolean) =>
+    Object.values(state.buildings).filter(
+      (b) => pick(content.byId[b.type]!) && hexDistance(b.at, tile) <= range,
+    ).length;
+  let score = 0;
+  if (isSource(def)) score += 3 * within(needsHeat);
+  if (needsHeat(def)) score += 2 * Math.min(1, within(isSource));
+  return score;
+}
+
 /** How good a tile is for a building, by simple local rules a player would use. */
 export function siteScore(
   turn: Turn,
@@ -234,6 +261,8 @@ export function siteScore(
   if (tile.type === 'floodplain') score += def.floodTolerant ? -1 : -100;
   // With commuting on, work goes near homes and homes near work that is far from any.
   if (turn.commuteOn && turn.commuteAware) score += commuteScore(turn, def, tile);
+  // With local heat on, heat sources go near what needs heat, and the reverse.
+  if (turn.localHeatOn && turn.heatAware) score += heatScore(turn, def, tile);
   // With the water system on, buildings that need water go where they can draw it.
   if (turn.waterOn && def.water?.needs.some((n) => n > 0) && turn.watered(tile, occ)) score += 4;
   if (tile.type === 'meadow' || tile.type === 'woodland') score -= 1;

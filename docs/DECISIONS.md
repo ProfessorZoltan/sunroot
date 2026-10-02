@@ -346,12 +346,12 @@ accepted these resolutions (each was raised in review first).
 Asked for by the playtester: each run adds one system, so the game teaches by layering complexity,
 interleaved with the systems that already join over the first runs.
 
-| Run | Joins today                      | Source                             | Joins with the layers                                                                                           | Source                       |
-| --- | -------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------- |
-| 1   | The core game, guided first year | `progression.teaching.guidedUntil` | —                                                                                                               |                              |
-| 2   | Tunings in the draft             | `progression.teaching.tunings`     | Water, with a guided first year again (the proposed walkthrough with water)                                     | `progression.teaching.water` |
-| 3   | Charters at new eras             | `progression.teaching.charters`    | Commuting: workers walk from their home to their work; long walks cost wellbeing (proposed, after E2)           | Playtester                   |
-| 4   | Visions                          | `progression.teaching.visions`     | Local heat: heat reaches only buildings near its source; electricity stays one shared grid (proposed, after E2) | Playtester                   |
+| Run | Joins today                      | Source                             | Joins with the layers                                                                                                                                 | Source                       |
+| --- | -------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| 1   | The core game, guided first year | `progression.teaching.guidedUntil` | —                                                                                                                                                     |                              |
+| 2   | Tunings in the draft             | `progression.teaching.tunings`     | Water, with a guided first year again (the proposed walkthrough with water)                                                                           | `progression.teaching.water` |
+| 3   | Charters at new eras             | `progression.teaching.charters`    | Commuting: workers walk from their home to their work; long walks cost wellbeing (proposed, after E2)                                                 | Playtester                   |
+| 4   | Visions                          | `progression.teaching.visions`     | Local heat: heat reaches only buildings near its source; electricity stays one shared grid. Failed its gate (Local heat (H1), Q18): not on the ladder | Playtester                   |
 
 - **Framing:** each layer is something the settlement gains, never a rule taken back. Run 1's valley
   is rain-fed; the second expedition goes where fields need irrigation.
@@ -423,6 +423,22 @@ and 63%; matching its Heartwood share needs 12 and 3. The food and energy bots, 
 players who don't plan for water and walks, still score a little less: those are decisions.
 Tempest levels play with every layer, so their scores rise by 15 against the Tempest table above,
 which was measured without them.
+
+### Local heat (H1)
+
+Built in the simulation first, as water and walks to work were (`RunOptions.localHeat`,
+`rules.localHeat`), and off in the game: it is on no rung of the ladder. With it on, free heat,
+heat pumps and heat wells reach only buildings within `range` tiles (in priority order, nearest
+source first), and wells charge only from nearby collectors; heat paid from the grid reaches
+anywhere, at `gridHeatCost` energy each. With it off the range is unlimited and the grid's heat
+costs 1, which is exactly the shared heat of before (a whole bot run plays identically; see
+`tests/local-heat.test.ts`).
+
+| Topic         | Decision                                                                                                                                                                                                                                                                                                                                                                                            | Source                                   |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| The gate      | Fails as run 4's layer. At 2 tiles (or 1) it costs the bots almost nothing: they buy about two thirds of their heat from the grid and build about one source a run. With the grid's heat at 2 energy, ignoring it costs 6 to 8 points in ordinary winters and 22 in a Long Winter, but keeping heat close pulls homes away from work and water, so with the other layers on minding it doesn't pay. | [balance/heat-h1.md](balance/heat-h1.md) |
+| Run 4         | Gets no new layer for now (visions still join there). Q18 asks what to do with local heat.                                                                                                                                                                                                                                                                                                          | [balance/heat-h1.md](balance/heat-h1.md) |
+| Energy ledger | If local heat is adopted with the grid's heat above 1 energy, the season report's energy ledger needs a line for heating losses first: it balances only at 1 for 1.                                                                                                                                                                                                                                 | `src/sim/energyLedger.ts`                |
 
 ### The E1 decision gate
 
@@ -517,3 +533,9 @@ building more farms. Q17 asks what to do about that before E2.
   first? (A dry building keeping a quarter instead of half costs the bots more and collapses some
   runs, but still doesn't separate the plans; tying channels to scarce land might.) Commuting (C1) didn't separate the plans either: with it on, they still score within 9 points of each other. The proposed Year 1 walkthrough with water
   needs a review too (Water expansion, Year 1 walkthrough).
+- **Q18. Local heat failed its gate: where should it go?** As run 4's layer it hardly matters
+  (the bots heat mostly from the grid), and making the grid's heat cost 2 energy only bites in a
+  Long Winter. Options: (a) drop it from the ladder and switch it on, with the grid's heat at 2,
+  for cold expeditions (Long Winter) and the Highland biome, where heat is the point; (b) fold the
+  idea into E3's heat cascade (kiln to bathhouse to greenhouse) as combos to find; (c) leave run 4
+  for visions alone. I'd do (a) and (b).
