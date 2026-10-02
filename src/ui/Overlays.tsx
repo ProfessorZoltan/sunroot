@@ -232,7 +232,7 @@ export function MapTip({ store, view }: { store: GameStore; view: MapView | null
   // Water as this season stands (when the run has water); its lines replace the math's.
   const water = waterAt(store.rules, state, store.waterForecast, store.hover);
   const walks = commuteAt(store.rules, state, store.commuteForecast, store.hover);
-  const heat = heatAt(store.rules, state, store.heatForecast, store.hover);
+  const heat = heatAt(store.rules, state, store.heatForecast, store.hover, store.coldForecast);
   const math = (b ? (store.insight.now.math[b.uid] ?? []) : []).filter(
     (l) => water.length === 0 || !l.startsWith('water:'),
   );

@@ -424,7 +424,7 @@ function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
   const now = store.insight.now;
   const water = waterAt(store.rules, state, store.waterForecast, b.at);
   const walks = commuteAt(store.rules, state, store.commuteForecast, b.at);
-  const heat = heatAt(store.rules, state, store.heatForecast, b.at);
+  const heat = heatAt(store.rules, state, store.heatForecast, b.at, store.coldForecast);
   const status: string[] = [];
   const repair = repairCost(store.rules, b);
   const materials = state.stores.materials;

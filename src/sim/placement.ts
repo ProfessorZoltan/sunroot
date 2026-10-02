@@ -22,7 +22,12 @@ export function canPlace(
   if (!def) return { ok: false, reason: `unknown building ${buildingId}` };
   if (!def.placeable) return { ok: false, reason: `${def.name} can't be built, only evolved` };
   if (!available(contentFor(content, state), def))
-    return { ok: false, reason: `${def.name} needs the water system` };
+    return {
+      ok: false,
+      reason: def.requiresHeatLayer
+        ? `${def.name} joins when energy can no longer heat buildings directly`
+        : `${def.name} needs the water system`,
+    };
   const tile = tileAt(state, at);
   if (!tile) return { ok: false, reason: 'outside the valley' };
   const occupant = occupancy(state).get(hexKey(at));

@@ -43,6 +43,7 @@ export function energyLedger(content: Content, report: SeasonReport): EnergyLedg
     add(made, 'Heat pumps (heat gained)', e.heat.pumped - e.heat.pumpEnergy);
     add(made, 'From storage', e.storageDischarged);
     add(made, SHORT, e.shortfall);
+    add(made, 'Cold: heat no source paid', e.heat.cold ?? 0);
     for (const [id, n] of Object.entries(e.demandBy)) add(used, name(id), n);
     add(used, 'Workshop and kiln runs', e.sponges);
     add(used, 'Into storage', e.storageCharged + e.heat.stored);

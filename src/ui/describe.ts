@@ -77,8 +77,17 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
       ? ' (one warmed by its own neighbour passes on up to 1)'
       : ' (a staffed kiln for free)';
     lines.push(
-      `Needs ${most} heat by ${slot}${slot === 'day' ? ' in winter' : ''}: a ${who} next to it gives it first${how}; otherwise the grid.`,
+      `Needs ${most} heat by ${slot}${slot === 'day' ? ' in winter' : ''}: a ${who} next to it gives it first${how}; otherwise ${content.rules.localHeat.gridHeat ? 'the grid' : `a heat source within ${content.rules.localHeat.range} tiles, or it goes cold`}.`,
     );
+  } else if (!content.rules.localHeat.gridHeat && def.demand) {
+    // The heat layer: say what heat it needs and that only a building can give it.
+    for (const slot of ['day', 'night'] as const) {
+      const heat = def.demand.heat[slot];
+      if (!heat.some((n) => n > 0)) continue;
+      lines.push(
+        `Heat by ${slot} ${SEASON_LIST(heat)} (spring to winter), from a heat source within ${content.rules.localHeat.range} tiles; without one it goes cold.`,
+      );
+    }
   }
   // Water only matters while the run has it.
   const w = content.rules.water.enabled ? def.water : undefined;

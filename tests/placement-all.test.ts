@@ -10,7 +10,9 @@ import { content } from './helpers';
 // Evolved buildings (Milestone 6) are never placed; they come from evolutions.
 // Water buildings exist only while the water system is on (tests/water.test.ts places them).
 const ORDER = content.buildings
-  .filter((b) => b.placeable && b.id !== content.campBuilding && !b.requiresWater)
+  .filter(
+    (b) => b.placeable && b.id !== content.campBuilding && !b.requiresWater && !b.requiresHeatLayer,
+  )
   .map((b) => b.id);
 
 /** Places a weir where its reservoir touches a hill, then the Pumped Reservoir, as a player would. */
@@ -53,7 +55,8 @@ describe('every building can be placed', () => {
   it('sandbox runs unlock everything and start with 999 materials', () => {
     const s = createRun(content, { seed: 'sandbox', sandbox: true });
     expect(s.unlocked).toHaveLength(
-      content.buildings.filter((b) => b.placeable && !b.requiresWater).length,
+      content.buildings.filter((b) => b.placeable && !b.requiresWater && !b.requiresHeatLayer)
+        .length,
     );
     expect(s.stores.materials).toBe(999);
   });

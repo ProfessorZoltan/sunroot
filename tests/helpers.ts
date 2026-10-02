@@ -29,6 +29,8 @@ import {
   type TileType,
 } from '../src/sim';
 import willowReach from '../src/content/willow-reach.json';
+import { available } from '../src/sim/water';
+import { contentFor } from '../src/sim/content/modifiers';
 
 export const content: Content = loadContent(willowReach);
 
@@ -136,7 +138,7 @@ export function scenario(rows: string[], options: ScenarioOptions = {}): RunStat
   state.forecast = { event: c.calendar[si]!, next: c.calendar[(si + 1) % 4]! };
   if (options.unlockAll ?? true)
     state.unlocked = c.buildings
-      .filter((b) => b.placeable && (!b.requiresWater || c.rules.water.enabled))
+      .filter((b) => b.placeable && available(contentFor(c, state), b))
       .map((b) => b.id);
   state.draft = { offer: [], picked: null, extraBought: false };
   Object.assign(state.stores, { materials: 200 }, options.stores);

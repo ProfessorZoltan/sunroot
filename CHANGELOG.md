@@ -1,5 +1,20 @@
 # Changelog
 
+## Heat needs a building (run 4)
+
+- From run 4, and in a Long Winter, energy can no longer heat anything directly. Homes,
+  greenhouses and bathhouses need a heat source within 2 tiles: an **Air-source Heat Pump**
+  (new: anywhere, 2 heat for 1 energy, unlocked from the start with the layer), a
+  **Water-source Heat Pump** (the old Heat Pump, now 3 heat for 1 energy, by the water), solar
+  thermal collectors by day, heat wells, or a warm neighbour.
+- A building no source heats goes cold and is shut off for the season; a cold home costs
+  wellbeing for each bed in it. Tooltips, the building panel, the season report and the placement
+  preview say so.
+- Heat wells fill only from collectors or a nearby pump's spare capacity, never straight from
+  energy.
+- Runs 1 to 3 are unchanged, except that the Water-source Heat Pump pays 3 heat per energy.
+- Root City's "Full valley" brings the heat layer too. `?heat=1` turns it on for a seeded run.
+
 ## Willow Reach v2: bots, the gate and the Almanac (E3, part 4)
 
 - The bots draft and build the new cards (paddies, mushroom cellars, hedgerows, a bathhouse with

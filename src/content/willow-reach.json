@@ -89,7 +89,8 @@
     },
     "localHeat": {
       "enabled": false,
-      "range": 2
+      "range": 2,
+      "coldPerBed": 1
     },
     "mixedGrid": {
       "minSourceTypes": 3,
@@ -173,7 +174,8 @@
       "visionBonus": 40,
       "layers": {
         "water": 12,
-        "commute": 3
+        "commute": 3,
+        "localHeat": 18
       },
       "tiers": [
         {
@@ -871,7 +873,7 @@
     },
     {
       "id": "heatPump",
-      "name": "Heat Pump",
+      "name": "Water-source Heat Pump",
       "cost": 7,
       "workers": 0,
       "kind": "energy",
@@ -881,9 +883,25 @@
         "adjacentToBuildings": ["fishPond"]
       },
       "heatPump": {
+        "heatPerEnergy": 3,
+        "maxHeatPerSlot": 6
+      }
+    },
+    {
+      "id": "airSourceHeatPump",
+      "name": "Air-source Heat Pump",
+      "cost": 5,
+      "workers": 0,
+      "kind": "energy",
+      "requiresHeatLayer": true,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland"]
+      },
+      "heatPump": {
         "heatPerEnergy": 2,
         "maxHeatPerSlot": 4
-      }
+      },
+      "starter": true
     },
     {
       "id": "solarThermalCollector",
@@ -2596,7 +2614,7 @@
     {
       "id": "longWinter",
       "name": "Long Winter",
-      "text": "Homes need 4 more heat on winter nights, 3 more in autumn and 2 more in spring, and solar canopies make 1 less by day in autumn and winter. Heat is local: heat pumps, heat wells and solar thermal collectors warm only buildings within 2 tiles, and heat bought from the grid costs 2 energy each. The Graft is one tier higher.",
+      "text": "Homes need 4 more heat on winter nights, 3 more in autumn and 2 more in spring, and solar canopies make 1 less by day in autumn and winter. Heat is local: heat pumps, heat wells and solar thermal collectors warm only buildings within 2 tiles, and energy can't heat anything directly: homes left without a heat source go cold. The Graft is one tier higher.",
       "modifiers": [
         {
           "target": "building",
@@ -2671,8 +2689,8 @@
         },
         {
           "target": "rules",
-          "path": "localHeat.gridHeatCost",
-          "set": 2
+          "path": "localHeat.gridHeat",
+          "set": false
         }
       ],
       "graftTierBonus": 1
@@ -3107,7 +3125,8 @@
       "charters": 3,
       "visions": 4,
       "water": 2,
-      "commute": 3
+      "commute": 3,
+      "localHeat": 4
     }
   },
   "guidedYear": [

@@ -257,6 +257,8 @@ export interface HeatReport {
   gridLoss: number;
   /** Heat a neighbouring kiln or heat well gave a building that takes it (the Bathhouse). */
   neighbor: number;
+  /** Heat no source could pay, without grid heat: its buildings were shut off, cold. */
+  cold: number;
 }
 
 export interface SlotReport {
@@ -431,6 +433,8 @@ export interface SeasonReport {
   heat: HeatLink[] | null;
   /** Heat a neighbouring kiln or heat well gave to a building that takes it (the Bathhouse). */
   neighborHeat: HeatLink[];
+  /** Buildings shut off cold this season (no grid heat, and no source reached them). */
+  cold: string[];
   /** Buildings a storm could damage: on exposed land (hills), not next to woodland (unless the Mixed Grid holds). */
   exposed: string[];
   silted: string[];

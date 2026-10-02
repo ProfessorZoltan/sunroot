@@ -501,6 +501,25 @@ export const BUILDING_ART: Record<string, Art> = {
     g.stroke({ width: 1, color: 0x5e6b58 });
     g.rect(c.x + 5, c.y - 5, 3, 4).fill({ color: 0xe0703a });
     g.rect(c.x + 5, c.y + 1, 3, 4).fill({ color: 0x5b7fa8 });
+    // It draws its heat from the water beside it.
+    g.moveTo(c.x - 12, c.y + 11)
+      .quadraticCurveTo(c.x - 6, c.y + 8, c.x, c.y + 11)
+      .quadraticCurveTo(c.x + 6, c.y + 14, c.x + 12, c.y + 11)
+      .stroke({ width: 1.5, color: 0x58a7cf });
+  },
+  /** An outdoor unit with a big fan: heat from the air. */
+  airSourceHeatPump(g, c) {
+    shadow(g, c, 11);
+    g.roundRect(c.x - 10, c.y - 9, 20, 18, 3)
+      .fill({ color: 0xf2ece0 })
+      .stroke({ width: 1.3, color: 0x8c7b5e });
+    g.circle(c.x, c.y, 7).fill({ color: 0xdcd3c0 }).stroke({ width: 1.3, color: 0x5e6b58 });
+    for (let i = 0; i < 3; i++) {
+      const a = (i * 2 * Math.PI) / 3;
+      g.moveTo(c.x, c.y).lineTo(c.x + Math.cos(a) * 6, c.y + Math.sin(a) * 6);
+    }
+    g.stroke({ width: 1.6, color: 0x5e6b58 });
+    g.rect(c.x + 6, c.y - 8, 3, 3).fill({ color: 0xe0703a });
   },
   solarThermalCollector(g, c) {
     shadow(g, c, 13, 4, 11);

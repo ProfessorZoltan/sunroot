@@ -18,12 +18,18 @@ export function heatAt(
   state: RunState,
   links: HeatLink[] | null,
   at: Hex,
+  /** Buildings going cold this season (the heat layer). */
+  cold?: string[],
 ): string[] {
   if (!links) return [];
   const b = Object.values(state.buildings).find((x) => hexKey(x.at) === hexKey(at));
   if (!b) return [];
   const rules = content.rules.localHeat;
   const lines: string[] = [];
+  if (cold?.includes(b.uid))
+    lines.push(
+      `Cold: no heat source within ${rules.range} tiles paid its heat, so it is shut off.`,
+    );
   const got = links.filter((l) => l.to === b.uid);
   if (got.length > 0) {
     const parts = got.map((l) =>
@@ -80,7 +86,12 @@ export function heatLines(
 }
 
 /** The season report's lines on local heat. */
-export function heatNotes(content: Content, state: RunState, links: HeatLink[]): string[] {
+export function heatNotes(
+  content: Content,
+  state: RunState,
+  links: HeatLink[],
+  cold: string[] = [],
+): string[] {
   const cost = content.rules.localHeat.gridHeatCost;
   const fromGrid = links.filter((l) => l.from === GRID).reduce((s, l) => s + l.amount, 0);
   const bySource = new Map<string, number>();
@@ -89,6 +100,15 @@ export function heatNotes(content: Content, state: RunState, links: HeatLink[]):
   const lines = [...bySource].map(
     ([uid, n]) => `The ${nameOf(content, state, uid)} warmed buildings near it with ${n} heat.`,
   );
+  if (!content.rules.localHeat.gridHeat) {
+    const names = cold.map((uid) => nameOf(content, state, uid));
+    lines.push(
+      names.length > 0
+        ? `Cold, shut off: ${names.join(', ')}. Energy can't heat directly: build a heat source within ${content.rules.localHeat.range} tiles.`
+        : 'Every building that needed heat got it.',
+    );
+    return lines;
+  }
   lines.push(
     fromGrid > 0
       ? `${fromGrid} heat bought from the grid, at ${cost} energy each (${fromGrid * (cost - 1)} energy more than heat from a source).`

@@ -12,7 +12,7 @@
  * the city's teaching and expeditions), ?guided=0 (with ?seed: skip the
  * guided first year), ?visions=0 (with ?seed: no vision choice), ?water=1 (with
  * ?seed or ?sandbox: the water system, which otherwise joins at run 2), ?commute=1
- * (likewise: walks to work, from run 3), ?heat=1 (likewise: local heat, as in
+ * (likewise: walks to work, from run 3), ?heat=1 (likewise: the heat layer, as in
  * a Long Winter), ?sandbox
  * (everything unlocked, 999 materials; never saved).
  */

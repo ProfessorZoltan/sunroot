@@ -14,6 +14,13 @@
  * first by a staffed kiln next to it, for free, or by a neighbouring heat
  * well's stored heat; only what they can't give goes to the sources above.
  *
+ * Without grid heat (rules.localHeat.gridHeat off: the heat layer from run 4,
+ * and a Long Winter) energy can't pay heat directly. Heat comes only from
+ * collectors, pumps (in whole energy's worth, rounded up), neighbours and heat
+ * wells; wells charge from spare free heat or a nearby pump's spare capacity,
+ * never 1:1 from energy, and pay only a building's whole heat. A building
+ * whose heat no source can pay is cold: shut off, like a blackout.
+ *
  * Storage first reserves the spare day energy (or free heat) it needs to cover
  * a night shortfall it can already see (covering demand is a need, not a
  * spare); flexible consumers then use what is spare; storage then charges from
@@ -69,6 +76,8 @@ export function resolveEnergy(ctx: SeasonContext): void {
   const range = local.enabled ? local.range : Infinity;
   /** Energy per heat paid from the grid: 1, unless local heat makes the grid's heat dear. */
   const gridCost = local.enabled ? local.gridHeatCost : 1;
+  /** Whether energy can pay heat directly at all (off from the heat layer, run 4). */
+  const gridHeat = local.gridHeat;
   const near = (a: BuildingState, b: BuildingState) =>
     range === Infinity || hexDistance(a.at, b.at) <= range;
   const rank = new Map(active.map((b, i) => [b.uid, i]));
@@ -156,7 +165,8 @@ export function resolveEnergy(ctx: SeasonContext): void {
         pay(c, b, t);
       }
     }
-    // Heat pumps: each pays for the buildings within reach, in whole energy's worth.
+    // Heat pumps: each pays for the buildings within reach, in whole energy's worth (rounded
+    // down while the grid can pay the rest, up when nothing else can).
     let pumped = 0;
     let pumpEnergy = 0;
     const byPump: Settlement['byPump'] = {};
@@ -165,14 +175,15 @@ export function resolveEnergy(ctx: SeasonContext): void {
       const reach = consumers.filter((b) => near(p, b)).sort(nearestTo(p));
       const owed = reach.reduce((sum, b) => sum + left.get(b.uid)!, 0);
       const units = Math.min(
-        Math.floor(owed / hp.heatPerEnergy),
+        (gridHeat ? Math.floor : Math.ceil)(owed / hp.heatPerEnergy),
         Math.floor(hp.maxHeatPerSlot / hp.heatPerEnergy),
       );
       if (units === 0) continue;
-      byPump[p.uid] = { heat: units * hp.heatPerEnergy, energy: units };
-      pumped += units * hp.heatPerEnergy;
+      const paid = Math.min(owed, units * hp.heatPerEnergy);
+      byPump[p.uid] = { heat: paid, energy: units };
+      pumped += paid;
       pumpEnergy += units;
-      let paying = units * hp.heatPerEnergy;
+      let paying = paid;
       for (const b of reach) {
         const t = Math.min(paying, left.get(b.uid)!);
         paying -= t;
@@ -181,7 +192,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
     }
     const direct = [...left.values()].reduce((a, b) => a + b, 0);
     return {
-      demand: energy + direct * gridCost + pumpEnergy,
+      demand: energy + (gridHeat ? direct * gridCost : 0) + pumpEnergy,
       heat,
       free,
       pumped,
@@ -195,6 +206,8 @@ export function resolveEnergy(ctx: SeasonContext): void {
 
   const spare = perSlot();
   const short = perSlot();
+  /** Heat each pump could still make this slot (its most, less what it paid). */
+  const pumpLeft: Record<Slot, Map<string, number>> = { day: new Map(), night: new Map() };
   /** Heat each building still needs from the grid (or a heat well), by slot and uid. */
   const directLeft: Record<Slot, Map<string, number>> = { day: new Map(), night: new Map() };
   /** Free heat each collector has spare, by slot and uid. */
@@ -219,9 +232,15 @@ export function resolveEnergy(ctx: SeasonContext): void {
       free: s.free,
       pumped: s.pumped,
       pumpEnergy: s.pumpEnergy,
-      direct: s.direct,
-      gridLoss: s.direct * (gridCost - 1),
+      direct: gridHeat ? s.direct : 0,
+      gridLoss: gridHeat ? s.direct * (gridCost - 1) : 0,
     });
+    pumpLeft[slot] = new Map(
+      pumps.map((p) => [
+        p.uid,
+        defOf(content, p).heatPump!.maxHeatPerSlot - (s.byPump[p.uid]?.heat ?? 0),
+      ]),
+    );
     for (const [uid, paid] of Object.entries(s.byPump)) {
       explain(
         ctx,
@@ -270,6 +289,43 @@ export function resolveEnergy(ctx: SeasonContext): void {
     }
   };
 
+  /**
+   * Without grid heat: pumps near a heat well turn spare energy into heat for it, at their
+   * ratio, up to what they could still make. Returns the heat made.
+   */
+  const pumpInto = (well: BuildingState, slot: Slot, want: number): number => {
+    let made = 0;
+    for (const p of pumps.filter((x) => near(x, well)).sort(nearestTo(well))) {
+      if (made >= want) break;
+      const ratio = defOf(content, p).heatPump!.heatPerEnergy;
+      const cap = Math.min(want - made, pumpLeft[slot].get(p.uid) ?? 0);
+      const units = Math.min(spare[slot], Math.ceil(cap / ratio));
+      if (units <= 0) continue;
+      const h = Math.min(cap, units * ratio);
+      spare[slot] -= units;
+      pumpLeft[slot].set(p.uid, (pumpLeft[slot].get(p.uid) ?? 0) - h);
+      report.energy[slot].heat.pumped += h;
+      report.energy[slot].heat.pumpEnergy += units;
+      made += h;
+      explain(ctx, p, `${slot}: ${h} heat into a heat well with ${units} spare energy`);
+    }
+    return made;
+  };
+  /** Without grid heat: a heat well pays whole buildings' heat from its store, nearest first. */
+  const payWhole = (well: BuildingState, slot: Slot) => {
+    for (const b of active
+      .filter((x) => (directLeft[slot].get(x.uid) ?? 0) > 0 && near(well, x))
+      .sort(nearestTo(well))) {
+      const t = directLeft[slot].get(b.uid)!;
+      if (t > (well.stored ?? 0)) continue;
+      well.stored = (well.stored ?? 0) - t;
+      directLeft[slot].set(b.uid, 0);
+      wellLinks.push({ slot, from: well.uid, to: b.uid, amount: t });
+      report.energy[slot].storageDischarged += t;
+      heatPaid[slot] += t;
+    }
+  };
+
   const storages = active.filter((b) => defOf(content, b).storage);
   const storageDef = (b: BuildingState) => defOf(content, b).storage!;
   const room = (b: BuildingState) => storageDef(b).capacity - (b.stored ?? 0);
@@ -291,10 +347,15 @@ export function resolveEnergy(ctx: SeasonContext): void {
     return give;
   };
 
+  // Without grid heat, stored heat pays the buildings it reaches first, whatever the energy.
+  const heatWells = storages.filter((b) => storageDef(b).holds === 'heat');
+  if (!gridHeat) for (const slot of SLOTS) for (const w of heatWells) payWhole(w, slot);
+
   // Stored heat and energy from earlier seasons cover shortfalls first.
   for (const slot of SLOTS) {
     for (const b of storages) {
       if (short[slot] === 0) break;
+      if (!gridHeat && storageDef(b).holds === 'heat') continue;
       const s = storageDef(b);
       if (s.holds === 'heat') {
         // Each heat a well pays saves the grid `gridCost` energy.
@@ -314,9 +375,26 @@ export function resolveEnergy(ctx: SeasonContext): void {
   const heatFirst = [...storages].sort(
     (a, b) => Number(storageDef(b).holds === 'heat') - Number(storageDef(a).holds === 'heat'),
   );
+  // Without grid heat, wells near buildings still cold at night take spare day heat (from
+  // collectors, then nearby pumps' spare capacity) to warm them.
+  if (!gridHeat) {
+    for (const w of heatWells) {
+      if (!storageDef(w).chargesFrom.includes('day')) continue;
+      const want = Math.min(reachable(w, 'night') - (w.stored ?? 0), room(w));
+      if (want <= 0) continue;
+      const fromHeat = Math.min(want, spareNear(w, 'day'));
+      takeSpare(w, 'day', fromHeat);
+      spareHeat.day -= fromHeat;
+      const fromPumps = pumpInto(w, 'day', want - fromHeat);
+      w.stored = (w.stored ?? 0) + fromHeat + fromPumps;
+      report.energy.day.heat.stored += fromHeat + fromPumps;
+      payWhole(w, 'night');
+    }
+  }
   for (const b of heatFirst) {
     if (short.night === 0 || spare.day + spareHeat.day === 0) break;
     const s = storageDef(b);
+    if (!gridHeat && s.holds === 'heat') continue;
     if (!s.chargesFrom.includes('day')) continue;
     if (s.holds === 'heat') {
       const give = Math.min(
@@ -444,6 +522,13 @@ export function resolveEnergy(ctx: SeasonContext): void {
         b.stored = (b.stored ?? 0) + heat;
         spareHeat[slot] -= heat;
         report.energy[slot].heat.stored += heat;
+        if (!gridHeat) {
+          // Energy becomes heat only through a pump.
+          const pumped = pumpInto(b, slot, room(b));
+          b.stored = (b.stored ?? 0) + pumped;
+          report.energy[slot].heat.stored += pumped;
+          continue;
+        }
       }
       const amount = Math.min(spare[slot], room(b));
       if (amount > 0) charge(b, slot, amount);
@@ -454,6 +539,21 @@ export function resolveEnergy(ctx: SeasonContext): void {
   // is worked out again after each one, since heat pumps save less as heat demand falls.
   // A building shut off by day stays off at night.
   const off = new Set<string>();
+  // Without grid heat, a building whose heat no source paid is cold: shut off first.
+  if (!gridHeat) {
+    for (const slot of SLOTS) {
+      for (const b of active) {
+        const n = directLeft[slot].get(b.uid) ?? 0;
+        if (n <= 0) continue;
+        report.energy[slot].heat.cold += n;
+        if (off.has(b.uid)) continue;
+        off.add(b.uid);
+        report.blackouts.push(b.uid);
+        report.cold.push(b.uid);
+        explain(ctx, b, `cold: shut off, no heat source reaches it by ${slot}`);
+      }
+    }
+  }
   for (const slot of SLOTS) {
     const r = report.energy[slot];
     r.shortfall = short[slot];
@@ -486,8 +586,9 @@ export function resolveEnergy(ctx: SeasonContext): void {
         s.left.set(l.to, s.left.get(l.to)! - t);
         links.push({ ...l, amount: t });
       }
-      for (const [uid, n] of s.left)
-        if (n > 0) links.push({ slot, from: 'grid', to: uid, amount: n });
+      if (gridHeat)
+        for (const [uid, n] of s.left)
+          if (n > 0) links.push({ slot, from: 'grid', to: uid, amount: n });
       links.push(...neighborLinks.filter((l) => l.slot === slot && !off.has(l.to)));
     }
     report.heat = links;

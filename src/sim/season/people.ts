@@ -88,7 +88,12 @@ export function feedAndGrow(ctx: SeasonContext): void {
   // A damaged home is as cold and dark as an unpowered one, but for its own reason.
   const homes = buildings.filter((b) => isHome(defOf(content, b)));
   const damagedHomes = homes.filter((b) => b.damage !== undefined).length;
-  const unpoweredHomes = homes.filter((b) => !b.damage && !ctx.powered.has(b.uid)).length;
+  const unpowered = homes.filter((b) => !b.damage && !ctx.powered.has(b.uid));
+  const unpoweredHomes = unpowered.length;
+  // Without grid heat, a home no heat source reaches is shut off cold: the same cost, its own name.
+  const cold = unpowered.filter((b) => ctx.report.cold.includes(b.uid));
+  const coldHomes = cold.length;
+  const coldBeds = cold.reduce((n, b) => n + defOf(content, b).housing, 0);
   if (unfed === 0 && unpoweredHomes === 0 && damagedHomes === 0) {
     lines.push({ kind: 'needsMet', reason: 'every need met', amount: wb.allNeedsMet });
   }
@@ -99,11 +104,18 @@ export function feedAndGrow(ctx: SeasonContext): void {
       amount: unfed * wb.perUnfedCitizen,
     });
   }
-  if (unpoweredHomes > 0) {
+  if (unpoweredHomes - coldHomes > 0) {
     lines.push({
       kind: 'unpowered',
-      reason: `${unpoweredHomes} unpowered homes`,
-      amount: unpoweredHomes * wb.perUnpoweredHome,
+      reason: `${unpoweredHomes - coldHomes} unpowered homes`,
+      amount: (unpoweredHomes - coldHomes) * wb.perUnpoweredHome,
+    });
+  }
+  if (coldHomes > 0) {
+    lines.push({
+      kind: 'unpowered',
+      reason: `${coldHomes} cold home${coldHomes > 1 ? 's' : ''}: no heat source reaches ${coldHomes > 1 ? 'them' : 'it'}`,
+      amount: coldHomes * wb.perUnpoweredHome - coldBeds * rules.localHeat.coldPerBed,
     });
   }
   if (damagedHomes > 0) {

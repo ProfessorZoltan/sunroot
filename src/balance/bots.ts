@@ -8,9 +8,9 @@
  * checking each fix by peeking at how the season would end. They differ in
  * which cards they draft, how they fix problems and how they spend the rest.
  */
-import { hexKey, hexNeighbors, type Tile } from '../sim';
+import { hexDistance, hexKey, hexNeighbors, type Hex, type Tile } from '../sim';
 import { pick, nextFloat, nextInt } from '../sim/rng';
-import type { Turn } from './turn';
+import { siteScore, type Turn } from './turn';
 
 /**
  * How a bot handles water (EXPANSION.md), when the water system is on. The
@@ -155,12 +155,75 @@ function tendWater(turn: Turn, profile: Profile, policy: WaterPolicy): void {
   }
 }
 
+/**
+ * Heat each building still lacks at its neediest (any season, either slot), once the heat
+ * pumps within reach have given what they can, nearest first, in priority order.
+ */
+function uncoveredHeat(turn: Turn): Map<string, number> {
+  const rules = turn.rules;
+  const range = rules.rules.localHeat.range;
+  const buildings = turn.state.priority.map((uid) => turn.state.buildings[uid]!).filter(Boolean);
+  const peak = (id: string) => {
+    const h = rules.byId[id]!.demand?.heat;
+    return h ? Math.max(...h.day, ...h.night) : 0;
+  };
+  const capacity = new Map(
+    buildings
+      .filter((b) => rules.byId[b.type]!.heatPump)
+      .map((b) => [b.uid, rules.byId[b.type]!.heatPump!.maxHeatPerSlot]),
+  );
+  const left = new Map<string, number>();
+  for (const b of buildings) {
+    let need = peak(b.type);
+    if (need === 0) continue;
+    const near = [...capacity.keys()]
+      .map((uid) => turn.state.buildings[uid]!)
+      .filter((p) => hexDistance(p.at, b.at) <= range)
+      .sort((x, y) => hexDistance(x.at, b.at) - hexDistance(y.at, b.at));
+    for (const p of near) {
+      const t = Math.min(need, capacity.get(p.uid)!);
+      capacity.set(p.uid, capacity.get(p.uid)! - t);
+      need -= t;
+    }
+    if (need > 0) left.set(b.uid, need);
+  }
+  return left;
+}
+
+/**
+ * The heat layer, for a bot that minds it: before the cold comes, a heat pump within reach of
+ * every building that needs heat, where it covers the most (a water-source one by the water,
+ * at 3 heat an energy, before an air-source one anywhere).
+ */
+function tendHeat(turn: Turn, profile: Profile): void {
+  const range = turn.rules.rules.localHeat.range;
+  for (let i = 0; i < 3; i++) {
+    const left = uncoveredHeat(turn);
+    if (left.size === 0) return;
+    let best: { id: string; at: Hex; score: number } | null = null;
+    for (const id of ['heatPump', 'airSourceHeatPump']) {
+      if (!turn.canBuild(id, Math.min(profile.reserve, 2))) continue;
+      for (const t of turn.sites(id)) {
+        let covered = 0;
+        for (const [uid, n] of left)
+          if (hexDistance(turn.state.buildings[uid]!.at, t) <= range) covered += n;
+        if (covered === 0) continue;
+        const score = 10 * covered + (id === 'heatPump' ? 5 : 0) + siteScore(turn, id, t);
+        if (!best || score > best.score) best = { id, at: { q: t.q, r: t.r }, score };
+      }
+    }
+    if (!best || !turn.apply({ type: 'place', building: best.id, at: best.at })) return;
+  }
+}
+
 /** The shared needs-first play of the non-random bots. */
 function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): void {
   turn.pick(
     turn.waterOn && water === 'storage' ? ['cistern', 'weir', ...profile.cards] : profile.cards,
   );
   if (turn.waterOn) tendWater(turn, profile, water);
+  // The heat layer: energy can't heat, so a heat-minding bot puts a pump by every home first.
+  if (!turn.rules.rules.localHeat.gridHeat && turn.heatAware) tendHeat(turn, profile);
   if (!turn.has('salvageYard')) turn.build('salvageYard');
   if (!turn.has('workshop')) turn.build('workshop');
 
@@ -233,7 +296,17 @@ function spend(turn: Turn, profile: Profile, options: readonly string[], limit =
 const growHousing = (turn: Turn) =>
   turn.state.citizens >= turn.housing() - 1 && turn.state.wellbeing >= 60;
 
-const NIGHT = ['riverWheel', 'windSpire', 'heatPump', 'heatWell', 'cellBank', 'biogasDigester'];
+// With the heat layer, a cold home counts as a blackout: the heat pumps answer it.
+const NIGHT = [
+  'airSourceHeatPump',
+  'riverWheel',
+  'windSpire',
+  'heatPump',
+  'heatWell',
+  'cellBank',
+  'biogasDigester',
+];
+const DAY = ['solarCanopy', 'airSourceHeatPump'];
 
 const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
   greedyFood: {
@@ -249,7 +322,7 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'cellBank',
     ],
     nightPower: NIGHT,
-    dayPower: ['solarCanopy'],
+    dayPower: DAY,
     food: ['floodplainFarm', 'riceFishPaddy', 'fishPond', 'orchard', 'greenhouse'],
     reserve: 4,
     extras(turn, profile) {
@@ -278,8 +351,16 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'weir',
       'pumpedReservoir',
     ],
-    nightPower: ['windSpire', 'riverWheel', 'heatPump', 'biogasDigester', 'cellBank', 'heatWell'],
-    dayPower: ['solarCanopy', 'riverWheel'],
+    nightPower: [
+      'windSpire',
+      'riverWheel',
+      'heatPump',
+      'airSourceHeatPump',
+      'biogasDigester',
+      'cellBank',
+      'heatWell',
+    ],
+    dayPower: ['solarCanopy', 'riverWheel', 'airSourceHeatPump'],
     food: ['floodplainFarm', 'fishPond', 'greenhouse', 'orchard'],
     reserve: 3,
     extras(turn, profile) {
@@ -309,7 +390,7 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'hedgerow',
     ],
     nightPower: NIGHT,
-    dayPower: ['solarCanopy'],
+    dayPower: DAY,
     food: ['floodplainFarm', 'fishPond', 'orchard', 'greenhouse'],
     reserve: 5,
     extras(turn, profile) {

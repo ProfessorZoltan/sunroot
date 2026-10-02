@@ -6,7 +6,7 @@
 import { applyCommand } from './commands';
 import type { Content } from './content/load';
 import { RESOURCES, SLOTS, type Resource, type Slot } from './content/schema';
-import type { Hex } from './hex';
+import { hexDistance, type Hex } from './hex';
 import { canPlace } from './placement';
 import { standsOn, tileAt } from './queries';
 import { resolveSeason, type ResolveOptions } from './season/resolve';
@@ -109,7 +109,31 @@ export function previewPlacement(
       `Its worker${walks.length > 1 ? 's' : ''} would walk ${d} tiles from the nearest free bed (${free} are free): a home nearer would help.`,
     );
   }
-  if (a.blackouts.includes(uid)) warnings.push('Not enough energy: it will be shut off.');
+  // The heat layer: a building that needs heat with no source in reach goes cold.
+  const rules = contentFor(content, state).rules;
+  if (a.cold.includes(uid)) {
+    warnings.push(
+      `No heat source within ${rules.localHeat.range} tiles: it will be cold and shut off.`,
+    );
+  } else if (!rules.localHeat.gridHeat && def.demand) {
+    const needs = SLOTS.some((s) => def.demand!.heat[s].some((n) => n > 0));
+    const eff = contentFor(content, placed.state);
+    const isSource = (id: string) => {
+      const d = eff.byId[id]!;
+      return (
+        d.heatPump !== undefined || d.heatGeneration !== undefined || d.storage?.holds === 'heat'
+      );
+    };
+    const reached = Object.values(placed.state.buildings).some(
+      (o) => isSource(o.type) && hexDistance(o.at, at) <= rules.localHeat.range,
+    );
+    if (needs && !reached)
+      warnings.push(
+        `It will need heat, and no heat source is within ${rules.localHeat.range} tiles: it will go cold.`,
+      );
+  }
+  if (a.blackouts.includes(uid) && !a.cold.includes(uid))
+    warnings.push('Not enough energy: it will be shut off.');
   const newlyDark = a.blackouts.filter((id) => id !== uid && !b.blackouts.includes(id));
   if (newlyDark.length > 0) {
     const names = newlyDark.map((id) => content.byId[placed.state.buildings[id]!.type]!.name);

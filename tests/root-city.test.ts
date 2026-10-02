@@ -243,7 +243,13 @@ describe('teaching across runs', () => {
       commute: true,
       joining: ['charters', 'commute'],
     });
-    expect(teaching(content, 4)).toMatchObject({ visions: true, joining: ['visions'], next: null });
+    // The heat layer joins at run 4 with visions (DECISIONS.md, Heat needs a building).
+    expect(teaching(content, 4)).toMatchObject({
+      visions: true,
+      localHeat: true,
+      joining: ['visions', 'localHeat'],
+      next: null,
+    });
   });
 
   it("the next run's options: its teaching, the city's gifts and the expedition", () => {

@@ -21,6 +21,8 @@ export function isChannel(def: BuildingDef): boolean {
 
 /** Whether a building exists in this content: water buildings only while water is on. */
 export function available(content: Content, def: BuildingDef): boolean {
+  // The Air-source Heat Pump joins with the heat layer (no heat from the grid).
+  if (def.requiresHeatLayer && content.rules.localHeat.gridHeat) return false;
   return !def.requiresWater || waterOn(content);
 }
 

@@ -325,6 +325,8 @@ export const BuildingSchema = z
       .optional(),
     /** Exists only while the water system is on: the water buildings, and Willow Reach v2 (E3). */
     requiresWater: z.boolean().default(false),
+    /** Exists only with the heat layer, when energy can't pay heat (the Air-source Heat Pump). */
+    requiresHeatLayer: z.boolean().default(false),
     water: BuildingWaterSchema.optional(),
     storage: z
       .object({
@@ -449,6 +451,13 @@ const LocalHeatRulesSchema = z
     range: int.min(1),
     /** Energy each heat costs when paid from the grid (resistive heating), while it is on. */
     gridHeatCost: int.min(1).default(1),
+    /**
+     * Whether energy can pay heat directly at all. Off (the heat layer, run 4, and a Long
+     * Winter), heat comes only from buildings, and a building nothing heats is cold.
+     */
+    gridHeat: z.boolean().default(true),
+    /** A cold home costs this much more wellbeing for each bed in it (its people are cold). */
+    coldPerBed: nonNeg.default(0),
   })
   .strict();
 
@@ -588,7 +597,13 @@ export const RulesSchema = z
     /** The water system (EXPANSION.md, Water system). Off unless `enabled`. */
     water: WaterRulesSchema,
     commute: CommuteRulesSchema.default({ enabled: false, freeDistance: 3, tilesPerWellbeing: 4 }),
-    localHeat: LocalHeatRulesSchema.default({ enabled: false, range: 2, gridHeatCost: 1 }),
+    localHeat: LocalHeatRulesSchema.default({
+      enabled: false,
+      range: 2,
+      gridHeatCost: 1,
+      gridHeat: true,
+      coldPerBed: 0,
+    }),
     mixedGrid: z.object({
       minSourceTypes: int.min(1),
       minShare: z.number().min(0).max(1),

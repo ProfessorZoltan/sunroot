@@ -35,7 +35,7 @@ describe('hand-made art', () => {
 
   it('covers every building in summer and winter, with an icon', () => {
     // Water buildings exist only with the water system, whose art comes with E2 (ART-EXPANSION.md).
-    for (const b of content.buildings.filter((x) => !x.requiresWater)) {
+    for (const b of content.buildings.filter((x) => !x.requiresWater && !x.requiresHeatLayer)) {
       for (const f of [
         `buildings/${b.id}.png`,
         `buildings/${b.id}.winter.png`,

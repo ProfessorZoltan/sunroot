@@ -400,9 +400,11 @@ export function SeasonReportDialog({
                   <>
                     <h3>Heat kept close</h3>
                     <ul class="plain small heat-notes">
-                      {heatNotes(store.rules, store.state, report.heat).map((l) => (
-                        <li>{l}</li>
-                      ))}
+                      {heatNotes(store.rules, store.state, report.heat, report.cold ?? []).map(
+                        (l) => (
+                          <li>{l}</li>
+                        ),
+                      )}
                     </ul>
                   </>
                 )}

@@ -30,7 +30,7 @@ describe('the draft', () => {
     // plus the Cider Press, which only an Orchard Ward in Root City adds to the draft.
     // Water buildings (EXPANSION.md) join only while the water system is on.
     const draftable = content.buildings
-      .filter((b) => b.draftable && !b.starter && !b.requiresWater)
+      .filter((b) => b.draftable && !b.starter && !b.requiresWater && !b.requiresHeatLayer)
       .map((b) => b.id);
     expect(draftable).toHaveLength(17 + 2 + 1);
     expect(blueprintPool(content, s)).not.toContain('ciderPress');

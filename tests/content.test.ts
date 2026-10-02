@@ -14,7 +14,7 @@ describe('content validation', () => {
     const content = loadContent(willowReach);
     // Water buildings come from EXPANSION.md, not the design's 23.
     const buildings = content.buildings.filter(
-      (b) => b.id !== content.campBuilding && !b.requiresWater,
+      (b) => b.id !== content.campBuilding && !b.requiresWater && !b.requiresHeatLayer,
     );
     // Evolved buildings (Milestone 6) are not among the 23: they come from evolutions.
     expect(

@@ -308,6 +308,8 @@ const JOINING: Record<string, string> = {
   visions: 'New this run: visions. Choose a goal for the run at the start, worth extra score.',
   commute:
     'New this run: walks to work. Workers live in the nearest home with a free bed and walk to their work; walks of up to 2 tiles are free, longer ones cost wellbeing. Build cottages near far work, and work near homes. Select a building to see where its workers come from.',
+  localHeat:
+    'New this run: heat needs a building. Energy can no longer heat anything directly: homes, greenhouses and bathhouses need a heat source within 2 tiles (an Air-source Heat Pump anywhere, 2 heat for 1 energy; a Water-source Heat Pump by the water, 3 for 1; solar thermal collectors by day; heat wells to keep it). In the seasons they need heat, buildings no source reaches go cold and are shut off. Select a building to see where its heat comes from.',
   water:
     'New this run: water. This expedition goes upriver, where fields need irrigation. Farms, orchards and greenhouses drink from Irrigation Channels dug from the river (1 material a tile); short of water they make half. The camp has a channel already. Summer brings little water, and every unit taken upstream turns the river wheels slower.',
 };

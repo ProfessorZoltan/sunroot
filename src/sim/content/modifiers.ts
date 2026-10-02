@@ -30,7 +30,7 @@ export interface RunModifierSources {
     water?: boolean;
     /** Commuting is on for this run. */
     commute?: boolean;
-    /** Local heat is on for this run. */
+    /** The heat layer is on for this run: heat is local, and energy can't pay it directly. */
     localHeat?: boolean;
   };
 }
@@ -38,6 +38,7 @@ export interface RunModifierSources {
 const WATER_ON: Modifier = { target: 'rules', path: 'water.enabled', set: true };
 const COMMUTE_ON: Modifier = { target: 'rules', path: 'commute.enabled', set: true };
 const LOCAL_HEAT_ON: Modifier = { target: 'rules', path: 'localHeat.enabled', set: true };
+const NO_GRID_HEAT: Modifier = { target: 'rules', path: 'localHeat.gridHeat', set: false };
 
 /**
  * The modifiers a run plays under, in order: the water system, commuting
@@ -64,7 +65,7 @@ export function runModifiers(content: Content, state: RunModifierSources): Modif
   return [
     ...(state.options?.water ? [WATER_ON] : []),
     ...(state.options?.commute ? [COMMUTE_ON] : []),
-    ...(state.options?.localHeat ? [LOCAL_HEAT_ON] : []),
+    ...(state.options?.localHeat ? [LOCAL_HEAT_ON, NO_GRID_HEAT] : []),
     ...(content.regions.find((r) => r.id === region)?.modifiers ?? []),
     ...harsher,
     ...perks,

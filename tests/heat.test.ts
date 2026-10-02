@@ -28,41 +28,39 @@ describe('Heat Pump', () => {
     expect(canPlace(content, s, 'heatPump', at(6, 3)).ok).toBe(true);
   });
 
-  it('pays 2 heat for each energy', () => {
+  it("pays 3 heat for each energy, in whole energy's worth; the grid pays what is left", () => {
     let s = scenario(VALLEY, { season: 'winter' });
     s = place(s, 'cottage', 3, 1);
     s = place(s, 'cottage', 3, 2);
     s = place(s, 'heatPump', 5, 2);
     s = endSeason(s);
     const night = s.lastReport!.energy.night;
-    // Energy 2 (cottages) + heat 4 (camp 2, cottages 1 + 1), all 4 heat through the pump.
-    expect(night.heat).toMatchObject({ demand: 4, pumped: 4, pumpEnergy: 2, direct: 0 });
-    expect(night.demand).toBe(2 + 2);
+    // Energy 2 (cottages) + heat 4 (camp 2, cottages 1 + 1): 3 through the pump for 1, 1 direct.
+    expect(night.heat).toMatchObject({ demand: 4, pumped: 3, pumpEnergy: 1, direct: 1 });
+    expect(night.demand).toBe(2 + 1 + 1);
     expect(night.shortfall).toBe(2);
-    expect(s.lastReport!.math[uidAt(s, 5, 2)]).toContain('night: paid 4 heat with 2 energy');
+    expect(s.lastReport!.math[uidAt(s, 5, 2)]).toContain('night: paid 3 heat with 1 energy');
   });
 
-  it('pays at most 4 heat a slot; an odd last heat is paid directly', () => {
+  it('pays at most 6 heat a slot', () => {
     let s = scenario(VALLEY, { season: 'winter' });
-    s = place(s, 'cottage', 3, 1);
-    s = place(s, 'cottage', 3, 2);
-    s = place(s, 'cottage', 3, 3);
+    for (const row of [0, 1, 2, 3, 4]) s = place(s, 'cottage', 3, row);
     s = place(s, 'heatPump', 5, 2);
     s = endSeason(s);
     const night = s.lastReport!.energy.night;
-    // Heat 5: 4 pumped for 2 energy, 1 direct; plus 3 energy for the cottages.
-    expect(night.heat).toMatchObject({ demand: 5, pumped: 4, pumpEnergy: 2, direct: 1 });
-    expect(night.demand).toBe(3 + 1 + 2);
+    // Heat 7: 6 pumped for 2 energy, 1 direct; plus 5 energy for the cottages.
+    expect(night.heat).toMatchObject({ demand: 7, pumped: 6, pumpEnergy: 2, direct: 1 });
+    expect(night.demand).toBe(5 + 1 + 2);
   });
 
-  it('two pumps share the heat', () => {
+  it("a second pump takes only whole energy's worth of what the first leaves", () => {
     let s = scenario(VALLEY, { season: 'winter' });
-    for (const row of [0, 1, 2, 3]) s = place(s, 'cottage', 3, row);
+    for (const row of [0, 1, 2, 3, 4]) s = place(s, 'cottage', 3, row);
     s = place(s, 'heatPump', 5, 1);
     s = place(s, 'heatPump', 5, 2);
     s = endSeason(s);
-    // Heat 6: 4 through the first pump, 2 through the second, for 3 energy.
-    expect(s.lastReport!.energy.night.heat).toMatchObject({ pumped: 6, pumpEnergy: 3, direct: 0 });
+    // Heat 7: 6 through the first pump; the last 1 is less than the second's 3 a unit.
+    expect(s.lastReport!.energy.night.heat).toMatchObject({ pumped: 6, pumpEnergy: 2, direct: 1 });
   });
 
   it('blackouts recount demand, because a pump saves less as heat demand falls', () => {
@@ -72,10 +70,10 @@ describe('Heat Pump', () => {
     s = place(s, 'cottage', 3, 3);
     s = place(s, 'heatPump', 5, 2);
     s = endSeason(s);
-    // Demand 6 vs 2. Shutting cottages off: 4 left, then 3, then 1. All three must go.
+    // Demand 6 (energy 3, pump 1, heat 2 direct) vs 2: shutting one cottage leaves 4, two leave 2.
     const r = s.lastReport!;
     expect(r.energy.night.shortfall).toBe(4);
-    expect(r.blackouts).toEqual([uidAt(s, 3, 3), uidAt(s, 3, 2), uidAt(s, 3, 1)]);
+    expect(r.blackouts).toEqual([uidAt(s, 3, 3), uidAt(s, 3, 2)]);
   });
 
   it('is not flood-tolerant', () => {
@@ -194,12 +192,12 @@ describe('the Year 1 winter with heat routes (proposal worked example)', () => {
     )!;
   };
 
-  it('a Heat Pump alone leaves the night 1 short', () => {
+  it('a Water-source Heat Pump alone covers the night: 3 heat for 1 energy', () => {
     const s = winterWith([['heatPump', nearRiver]]);
     const night = s.lastReport!.energy.night;
-    expect(night.heat).toMatchObject({ demand: 3, pumped: 2, direct: 1 });
-    expect(night.demand).toBe(3);
-    expect(night.shortfall).toBe(1);
+    expect(night.heat).toMatchObject({ demand: 3, pumped: 3, direct: 0 });
+    expect(night.demand).toBe(2);
+    expect(night.shortfall).toBe(0);
     expect(walk.totals(s).materials).toBe(10 - 7 + 2 + 3);
   });
 

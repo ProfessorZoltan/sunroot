@@ -202,6 +202,11 @@ export class GameStore {
   }
 
   /** This season's heat as it stands (who warms whom), or null unless heat is local. */
+  /** Buildings going cold this season as it stands (the heat layer). */
+  get coldForecast(): string[] {
+    return this.asIs().lastReport?.cold ?? [];
+  }
+
   get heatForecast(): HeatLink[] | null {
     return this.asIs().lastReport?.heat ?? null;
   }

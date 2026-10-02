@@ -1,5 +1,5 @@
 /**
- * Local heat on screen (as in a Long Winter): a heat pump beside the camp
+ * Local heat on screen (as in a Long Winter): an air-source heat pump beside the camp
  * shows what it warms on the map, in the panels and in the season report.
  */
 import { expect, test, type Page } from '@playwright/test';
@@ -42,7 +42,7 @@ async function endSeason(page: Page, turn: number) {
   }
 }
 
-test('local heat: a heat pump beside the camp and what it warms', async ({ page }) => {
+test('local heat: an air-source heat pump beside the camp and what it warms', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/?sandbox&heat=1');
@@ -63,7 +63,7 @@ test('local heat: a heat pump beside the camp and what it warms', async ({ page 
     const camp = s.state.buildings.b0!.at;
     const d = (a: Hex, b: Hex) =>
       (Math.abs(a.q - b.q) + Math.abs(a.r - b.r) + Math.abs(a.q + a.r - b.q - b.r)) / 2;
-    s.selectBuilding('heatPump');
+    s.selectBuilding('airSourceHeatPump');
     const near = s.legalSites.map((x) => x.at).sort((a, b) => d(a, camp) - d(b, camp))[0]!;
     s.clickAt(near);
     s.selectBuilding(null);
@@ -90,7 +90,9 @@ test('local heat: a heat pump beside the camp and what it warms', async ({ page 
   await page.getByRole('button', { name: 'Season report' }).click();
   const dialog = page.getByRole('dialog', { name: 'Season report' });
   await expect(dialog.getByRole('heading', { name: 'Heat kept close' })).toBeVisible();
-  await expect(dialog.locator('.heat-notes')).toContainText('Heat Pump warmed buildings near it');
+  await expect(dialog.locator('.heat-notes')).toContainText(
+    'Air-source Heat Pump warmed buildings near it',
+  );
   await page.keyboard.press('Escape');
   expect(errors).toEqual([]);
 });
