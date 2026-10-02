@@ -405,6 +405,18 @@ export interface CommuteReport {
   excess: number;
   /** Wellbeing the long walks cost (0 or less). */
   wellbeing: number;
+  /** Walks to water, while homes walk to water (walks and water both on). */
+  toWater?: WaterWalkReport;
+}
+
+/** Each lived-in home's walk to the nearest drinking water, and what long ones cost. */
+export interface WaterWalkReport {
+  /** By home uid: tiles to the nearest drinking water, and what it is (a tile type or building id). */
+  homes: Record<string, { distance: number; source: string }>;
+  /** Tiles beyond the free distance, summed over lived-in homes. */
+  excess: number;
+  /** Wellbeing the long walks cost (0 or less). */
+  wellbeing: number;
 }
 
 /** Heat a source paid for a building this season, while local heat is on. */

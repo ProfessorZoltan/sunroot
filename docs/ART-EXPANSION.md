@@ -33,6 +33,15 @@ The wildlife, festival and wonder art waits in its own folders for E4 and E5.
 | Top-face corners, clockwise from the top | (256, 168), (456, 283.47), (456, 463.47), (256, 579), (56, 463.47), (56, 283.47) | `art/incoming/README.md` |
 | Paper side band                          | 32 px, lowest point y 611                                                        | `art/incoming/README.md` |
 
+## The Well (new request)
+
+Homes now walk to drinking water (DECISIONS.md, Walks to water), and the **Well** is the cheap way
+to bring water to them. It is drawn procedurally until hand-made art comes.
+
+| Piece | Files                                       | Notes                                                                                                                                                     | Source       |
+| ----- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| Well  | `well.png`, `well.winter.png`, and its icon | On the standard frame, a small stone well with a little gabled roof and a bucket, about a quarter of the tile wide. Winter: snow on the roof and the rim. | DECISIONS.md |
+
 ## Hedgerows on edges (delivered)
 
 Hedgerows now run along the **edges between tiles**, not across a tile (DECISIONS.md, Hedgerows on

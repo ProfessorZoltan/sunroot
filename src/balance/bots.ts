@@ -259,6 +259,13 @@ function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): v
   // Long walks to work: a cottage near the far work, when the walks cost wellbeing.
   if (turn.commuteOn && turn.commuteAware && (turn.peek()?.report.commute?.wellbeing ?? 0) < 0)
     turn.build('cottage', profile.reserve);
+  // Long walks to water: a well by the homes far from it.
+  if (
+    turn.commuteOn &&
+    turn.commuteAware &&
+    (turn.peek()?.report.commute?.toWater?.wellbeing ?? 0) < 0
+  )
+    turn.build('well', profile.reserve);
 
   // House growth when people would otherwise stop arriving.
   const p = turn.peek();

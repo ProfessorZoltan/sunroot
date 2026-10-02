@@ -7,7 +7,7 @@
  */
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { waterLedger, waterNotes } from '../game/waterInfo';
-import { commuteNotes } from '../game/commuteInfo';
+import { commuteNotes, waterWalkNotes } from '../game/commuteInfo';
 import { heatNotes } from '../game/heatInfo';
 import type { GameStore } from '../game/store';
 import {
@@ -416,6 +416,16 @@ export function SeasonReportDialog({
                         <li>{l}</li>
                       ))}
                     </ul>
+                    {report.commute.toWater && (
+                      <>
+                        <h3>Walks to water</h3>
+                        <ul class="plain small walk-notes">
+                          {waterWalkNotes(store.rules, store.state, report.commute).map((l) => (
+                            <li>{l}</li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
                   </>
                 )}
                 <Bonuses store={store} report={report} />

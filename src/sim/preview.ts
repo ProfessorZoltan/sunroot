@@ -109,6 +109,13 @@ export function previewPlacement(
       `Its worker${walks.length > 1 ? 's' : ''} would walk ${d} tiles from the nearest free bed (${free} are free): a home nearer would help.`,
     );
   }
+  // Walks to water: a home far from drinking water.
+  const toWater = contentFor(content, state).rules.commute.toWater;
+  const drink = a.commute?.toWater?.homes[uid];
+  if (toWater && drink && drink.distance > toWater.freeDistance)
+    warnings.push(
+      `Its people would walk ${drink.distance} tiles to water (${toWater.freeDistance} are free): a well nearer would help.`,
+    );
   // The heat layer: a building that needs heat with no source in reach goes cold.
   const rules = contentFor(content, state).rules;
   if (a.cold.includes(uid)) {

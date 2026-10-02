@@ -52,7 +52,19 @@ export function commuteAt(
       `Home to ${plural(residents, 'citizen')}${housing > 0 && residents > housing ? ` (${residents - housing} without a bed)` : ''}: ${working} walk to work from here.`,
     );
   }
+  const water = report.toWater?.homes[b.uid];
+  if (water) {
+    const freeWater = content.rules.commute.toWater?.freeDistance ?? 0;
+    lines.push(
+      `Walks to water: ${plural(water.distance, 'tile')} to the ${sourceName(content, water.source)}${water.distance > freeWater ? `, ${water.distance - freeWater} beyond the free ${freeWater}: a well nearer would spare it` : ''}.`,
+    );
+  }
   return lines;
+}
+
+/** What a home fetches its water from: a tile type or a building. */
+export function sourceName(content: Content, source: string): string {
+  return content.byId[source]?.name ?? source;
 }
 
 /** A walk the map draws: from a home to a workplace, for the building in focus. */
@@ -127,5 +139,29 @@ export function commuteNotes(content: Content, state: RunState, report: CommuteR
     lines.push(
       `${plural(c.over, 'citizen')} without a bed, living at the ${nameOf(content, state, c.uid)}.`,
     );
+  return lines;
+}
+
+/** The season report's lines on walks to water. */
+export function waterWalkNotes(content: Content, state: RunState, report: CommuteReport): string[] {
+  const w = report.toWater;
+  const rules = content.rules.commute.toWater;
+  if (!w || !rules) return [];
+  const homes = Object.entries(w.homes);
+  const long = homes
+    .filter(([, h]) => h.distance > rules.freeDistance)
+    .sort((a, b) => b[1].distance - a[1].distance);
+  const lines = [
+    `${plural(homes.length, 'home')} fetched water; ${long.length} walked further than the free ${rules.freeDistance} tiles.`,
+  ];
+  if (w.excess > 0)
+    lines.push(
+      `${plural(w.excess, 'tile')} beyond the free distance: ${w.wellbeing} wellbeing (1 for every ${rules.tilesPerWellbeing}).`,
+    );
+  for (const [uid, h] of long.slice(0, 5))
+    lines.push(
+      `The ${nameOf(content, state, uid)} to the ${sourceName(content, h.source)}: ${plural(h.distance, 'tile')}.`,
+    );
+  if (long.length > 5) lines.push(`…and ${long.length - 5} more long walks.`);
   return lines;
 }

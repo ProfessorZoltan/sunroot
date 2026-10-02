@@ -307,7 +307,7 @@ const JOINING: Record<string, string> = {
     'New this run: charters. At the start of eras 2, 3 and 4, choose one of 3 rules for the rest of the run.',
   visions: 'New this run: visions. Choose a goal for the run at the start, worth extra score.',
   commute:
-    'New this run: walks to work. Workers live in the nearest home with a free bed and walk to their work; walks of up to 2 tiles are free, longer ones cost wellbeing. Build cottages near far work, and work near homes. Select a building to see where its workers come from.',
+    'New this run: walks to work. Workers live in the nearest home with a free bed and walk to their work; walks of up to 2 tiles are free, longer ones cost wellbeing. Build cottages near far work, and work near homes. With water, homes walk to the nearest drinking water too (the river, a lake, a channel, a cistern or a Well, 3 materials): more than 2 tiles costs wellbeing. Select a building to see its walks.',
   localHeat:
     'New this run: heat needs a building. Energy can no longer heat anything directly: homes, greenhouses and bathhouses need a heat source within 2 tiles (an Air-source Heat Pump anywhere, 2 heat for 1 energy; a Water-source Heat Pump by the water, 3 for 1; solar thermal collectors by day; heat wells to keep it). In the seasons they need heat, buildings no source reaches go cold and are shut off. Select a building to see where its heat comes from.',
   water:

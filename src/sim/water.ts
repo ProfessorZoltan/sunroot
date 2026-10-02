@@ -23,7 +23,14 @@ export function isChannel(def: BuildingDef): boolean {
 export function available(content: Content, def: BuildingDef): boolean {
   // The Air-source Heat Pump joins with the heat layer (no heat from the grid).
   if (def.requiresHeatLayer && content.rules.localHeat.gridHeat) return false;
+  // The Well joins with walks to water.
+  if (def.requiresWalks && !walksToWater(content)) return false;
   return !def.requiresWater || waterOn(content);
+}
+
+/** Whether homes walk to water: walks to work and the water system both on, with the rule. */
+export function walksToWater(content: Content): boolean {
+  return content.rules.commute.enabled && waterOn(content) && !!content.rules.commute.toWater;
 }
 
 /** A lake: still water off the river (an oxbow lake), named by its first tile's key. */

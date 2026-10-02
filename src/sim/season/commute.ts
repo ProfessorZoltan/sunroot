@@ -11,10 +11,16 @@
  *     anyone beyond the housing lives at the camp.
  *  3. Every `tilesPerWellbeing` tiles walked beyond `freeDistance`, summed
  *     over all workers, cost 1 wellbeing this season (rounded down).
+ *  4. With water on too, each home someone lives in walks to the nearest
+ *     drinking water: the river, a lake or reservoir, or a channel, cistern
+ *     or well that isn't damaged. Tiles beyond `toWater.freeDistance`, summed
+ *     over homes, cost 1 wellbeing for every `toWater.tilesPerWellbeing`.
  */
 import { hexDistance } from '../hex';
 import { byPriority, defOf, isHome } from '../queries';
-import type { CommuteReport, Walk } from '../types';
+import type { CommuteReport, RunState, Walk, WaterWalkReport } from '../types';
+import type { Content } from '../content/load';
+import { walksToWater } from '../water';
 import type { SeasonContext } from './context';
 
 export function assignCommutes(ctx: SeasonContext): void {
@@ -76,5 +82,47 @@ export function assignCommutes(ctx: SeasonContext): void {
     excess,
     wellbeing: wellbeing === 0 ? 0 : wellbeing,
   };
+  const toWater = waterWalks(content, state, residents);
+  if (toWater) report.toWater = toWater;
   ctx.report.commute = report;
+}
+
+/** Where homes can fetch drinking water: water tiles, and the buildings that hold it. */
+export function drinkingSources(
+  content: Content,
+  state: RunState,
+): { at: { q: number; r: number }; source: string }[] {
+  const sources: { at: { q: number; r: number }; source: string }[] = [];
+  for (const t of Object.values(state.map.tiles))
+    if (t.type === 'river' || t.type === 'reservoir') sources.push({ at: t, source: t.type });
+  for (const b of Object.values(state.buildings))
+    if (defOf(content, b).drinkingWater && !b.damage) sources.push({ at: b.at, source: b.type });
+  return sources;
+}
+
+/** Each lived-in home's walk to water (step 4), or undefined while homes don't walk to water. */
+export function waterWalks(
+  content: Content,
+  state: RunState,
+  residents: Record<string, number>,
+): WaterWalkReport | undefined {
+  const rules = content.rules.commute.toWater;
+  if (!rules || !walksToWater(content)) return undefined;
+  const sources = drinkingSources(content, state);
+  const homes: WaterWalkReport['homes'] = {};
+  let excess = 0;
+  for (const uid of Object.keys(residents).sort()) {
+    const home = state.buildings[uid];
+    if (!home || (residents[uid] ?? 0) === 0) continue;
+    let best: { distance: number; source: string } | null = null;
+    for (const s of sources) {
+      const d = hexDistance(s.at, home.at);
+      if (!best || d < best.distance) best = { distance: d, source: s.source };
+    }
+    if (!best) continue;
+    homes[uid] = best;
+    excess += Math.max(0, best.distance - rules.freeDistance);
+  }
+  const wellbeing = -Math.floor(excess / rules.tilesPerWellbeing);
+  return { homes, excess, wellbeing: wellbeing === 0 ? 0 : wellbeing };
 }

@@ -336,6 +336,10 @@ export const BuildingSchema = z
     requiresWater: z.boolean().default(false),
     /** Exists only with the heat layer, when energy can't pay heat (the Air-source Heat Pump). */
     requiresHeatLayer: z.boolean().default(false),
+    /** Exists only with walks to water (the Well). */
+    requiresWalks: z.boolean().default(false),
+    /** Homes can fetch drinking water here (walks to water): channels, cisterns, wells. */
+    drinkingWater: z.boolean().default(false),
     water: BuildingWaterSchema.optional(),
     storage: z
       .object({
@@ -445,6 +449,15 @@ const CommuteRulesSchema = z
     freeDistance: nonNeg,
     /** Every this many tiles walked beyond the free distance, summed over workers, cost 1 wellbeing. */
     tilesPerWellbeing: int.min(1),
+    /**
+     * Walks to water (DECISIONS.md, Walks to water): with water on too, each lived-in home
+     * walks to the nearest drinking water; tiles beyond `freeDistance`, summed over homes,
+     * cost 1 wellbeing for every `tilesPerWellbeing`.
+     */
+    toWater: z
+      .object({ freeDistance: nonNeg, tilesPerWellbeing: int.min(1) })
+      .strict()
+      .optional(),
   })
   .strict();
 export type CommuteRules = z.infer<typeof CommuteRulesSchema>;

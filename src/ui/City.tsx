@@ -533,7 +533,7 @@ function describeSystem(system: string): string {
   if (system === 'charters') return 'charters at each new era';
   if (system === 'visions') return 'a vision to choose at the start';
   if (system === 'water') return 'water: fields drink from channels dug from the river';
-  if (system === 'commute') return 'walks to work: long walks cost wellbeing';
+  if (system === 'commute') return 'walks to work and to water: long walks cost wellbeing';
   if (system === 'localHeat') return 'heat needs a building: a heat source within 2 tiles';
   return system;
 }

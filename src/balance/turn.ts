@@ -21,6 +21,8 @@ import {
 } from '../sim';
 import { nextFloat, type RngState } from '../sim/rng';
 import { contentFor } from '../sim/content/modifiers';
+import { drinkingSources } from '../sim/season/commute';
+import { walksToWater } from '../sim/water';
 
 export type Sight = 'forecast' | 'outcome';
 export const SIGHTS: readonly Sight[] = ['forecast', 'outcome'];
@@ -210,6 +212,20 @@ function commuteScore(turn: Turn, def: BuildingDef, tile: Hex): number {
   let score = 0;
   if (def.workers > 0 && homes.length > 0)
     score -= 1.5 * def.workers * Math.max(0, nearestHome(tile) - free);
+  // Walks to water: homes near drinking water, and wells by the homes far from it.
+  const water = turn.rules.rules.commute.toWater;
+  if (water && walksToWater(turn.rules)) {
+    const sources = drinkingSources(turn.rules, state);
+    const toWater = (h: Hex) => Math.min(...sources.map((x) => hexDistance(x.at, h)));
+    if (def.housing > 0) score -= 1.5 * Math.max(0, toWater(tile) - water.freeDistance);
+    if (def.drinkingWater)
+      for (const h of homes) {
+        const now = toWater(h.at);
+        const then = Math.min(now, hexDistance(h.at, tile));
+        score +=
+          2 * (Math.max(0, now - water.freeDistance) - Math.max(0, then - water.freeDistance));
+      }
+  }
   if (def.housing > 0) {
     for (const w of buildings) {
       const workers = content.byId[w.type]!.workers;

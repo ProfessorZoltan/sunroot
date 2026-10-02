@@ -260,6 +260,23 @@ export const BUILDING_ART: Record<string, Art> = {
       .lineTo(c.x + 11, c.y)
       .stroke({ width: 1, color: 0x7d7262 });
   },
+  /** A stone well under a little gabled roof, with its bucket. */
+  well(g, c) {
+    shadow(g, c, 11, 4, 8);
+    g.ellipse(c.x, c.y + 5, 9, 4).fill({ color: COLORS.stone });
+    g.rect(c.x - 9, c.y - 1, 18, 6).fill({ color: COLORS.stone });
+    g.ellipse(c.x, c.y - 1, 9, 4).fill({ color: 0xb8ad98 });
+    g.ellipse(c.x, c.y - 1, 6.5, 2.8).fill({ color: 0x4f8fb0 });
+    for (const dx of [-8, 8])
+      g.moveTo(c.x + dx, c.y)
+        .lineTo(c.x + dx, c.y - 15)
+        .stroke({ width: 1.6, color: 0x7a5a36 });
+    g.poly([c.x - 12, c.y - 13, c.x, c.y - 21, c.x + 12, c.y - 13]).fill({ color: 0xa4553a });
+    g.moveTo(c.x, c.y - 13)
+      .lineTo(c.x, c.y - 6)
+      .stroke({ width: 0.8, color: 0x5a4630 });
+    g.rect(c.x - 2.2, c.y - 6, 4.4, 3.4).fill({ color: 0x8a6a42 });
+  },
   /** Reeds in a shallow pool: grey water goes in, clean water comes out. */
   reedBed(g, c) {
     g.ellipse(c.x, c.y + 3, 14, 7)

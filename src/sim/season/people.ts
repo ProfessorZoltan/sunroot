@@ -133,6 +133,14 @@ export function feedAndGrow(ctx: SeasonContext): void {
       amount: commute.wellbeing,
     });
   }
+  const toWater = commute?.toWater;
+  if (toWater && toWater.wellbeing < 0) {
+    lines.push({
+      kind: 'commute',
+      reason: `long walks to water (${toWater.excess} tiles beyond ${content.rules.commute.toWater!.freeDistance})`,
+      amount: toWater.wellbeing,
+    });
+  }
   const clutterSteps = Math.floor(state.stores.clutter / wb.clutterStep);
   if (clutterSteps > 0) {
     lines.push({

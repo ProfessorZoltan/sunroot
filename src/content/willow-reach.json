@@ -86,7 +86,11 @@
     "commute": {
       "enabled": false,
       "freeDistance": 2,
-      "tilesPerWellbeing": 3
+      "tilesPerWellbeing": 3,
+      "toWater": {
+        "freeDistance": 2,
+        "tilesPerWellbeing": 3
+      }
     },
     "localHeat": {
       "enabled": false,
@@ -645,7 +649,23 @@
       "water": {
         "channel": true
       },
+      "drinkingWater": true,
       "stormProof": true
+    },
+    {
+      "id": "well",
+      "name": "Well",
+      "cost": 3,
+      "workers": 0,
+      "kind": "water",
+      "starter": true,
+      "draftable": false,
+      "requiresWater": true,
+      "requiresWalks": true,
+      "drinkingWater": true,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland"]
+      }
     },
     {
       "id": "cistern",
@@ -663,7 +683,8 @@
       "water": {
         "stores": 6,
         "fills": [true, false, true, true]
-      }
+      },
+      "drinkingWater": true
     },
     {
       "id": "reedBed",

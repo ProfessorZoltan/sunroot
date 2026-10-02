@@ -100,6 +100,16 @@ export function mapMarks(content: Content, state: RunState, forecast: SeasonRepo
           `Long walk: the ${name(uid)}'s workers walk ${beyond} tile${beyond > 1 ? 's' : ''} beyond the free ${free}.`,
         );
     }
+    // Walks to water: homes whose people walk far for it.
+    const water = content.rules.commute.toWater;
+    for (const [uid, h] of Object.entries(forecast.commute?.toWater?.homes ?? {}))
+      if (water && h.distance > water.freeDistance)
+        add(
+          atOf(uid),
+          'walk',
+          false,
+          `Long walk to water: the ${name(uid)} walks ${h.distance - water.freeDistance} tile${h.distance - water.freeDistance > 1 ? 's' : ''} beyond the free ${water.freeDistance}.`,
+        );
     // With water, any season can leave a building thirsty.
     for (const [uid, u] of Object.entries(forecast.water?.uses ?? {}))
       if (u.short)
