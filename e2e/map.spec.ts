@@ -37,11 +37,16 @@ test('the map renders, previews, places, undoes and ends a season', async ({ pag
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/?seed=willow-reach-golden&visions=0');
   await expect(page.locator('#map-host canvas')).toBeVisible();
-  // The hand-made art: every tile and building file the importer wrote (tiles in summer and winter,
-  // buildings too, lit windows, rotors, channel and hedgerow arms) is loaded.
+  // The hand-made art: every tile, building, animal and festival prop the importer wrote (tiles in
+  // summer and winter, buildings too, lit windows, rotors, channel and hedgerow arms) is loaded.
+  // Festival cards are WebP, for the interface only.
   await page.waitForFunction(() => 'sunroot' in window);
-  const imported = ['tiles', 'buildings']
-    .map((dir) => readdirSync(new URL(`../src/art/${dir}`, import.meta.url)).length)
+  const imported = ['tiles', 'buildings', 'wildlife', 'festivals']
+    .map(
+      (dir) =>
+        readdirSync(new URL(`../src/art/${dir}`, import.meta.url)).filter((f) => f.endsWith('.png'))
+          .length,
+    )
     .reduce((a, b) => a + b, 0);
   expect(
     await page.evaluate(() => (window as unknown as { sunroot: { art: number } }).sunroot.art),
