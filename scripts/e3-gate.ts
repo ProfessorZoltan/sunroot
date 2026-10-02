@@ -1,12 +1,13 @@
 /**
- * The E3 gate (EXPANSION.md, Build plan): in the simulator, no single new
- * card may appear in more than 40% of winning bot runs. Plays the valley as
- * run 3 plays it (water and walks to work on) with the three profile bots,
- * and counts, for each Willow Reach v2 card, the share of winning runs
- * (Heartwood) that drafted it and that built it, against all runs, with each
- * new combo's discovery rate. Then, since which cards a bot builds is the bot's
- * habit as much as the card's strength, it plays again with each new card
- * left out of the draft: a card the bots can't win without would show there.
+ * The E3 gate (EXPANSION.md, Build plan, as restated in DECISIONS.md Q19):
+ * leaving any one new card out of the draft doesn't lower the bots' Heartwood
+ * share, so no card is one they need to win. EXPANSION.md's first wording, no
+ * card in more than 40% of winning runs, measured the bots' habits more than
+ * the cards. Plays the valley as run 3 plays it (water and walks to work on)
+ * with the three profile bots, and counts, for each Willow Reach v2 card, the
+ * share of winning runs (Heartwood) that drafted it and that built it, against
+ * all runs, with each new combo's discovery rate. Then it plays again with
+ * each new card left out of the draft, on the same seeds, and gives the verdict.
  *
  *   npx tsx scripts/e3-gate.ts [runs per bot, default 30] [WALKS=off]
  */
@@ -76,6 +77,11 @@ console.log(
 // Ablation: each card left out of the draft, the same seeds and bots.
 console.log('\n| Left out of the draft | Heartwood | Median score | Collapsed |');
 console.log('| --- | --- | --- | --- |');
+const heartwood = (rs: RunRecord[]) => rs.filter((r) => r.tier === 'heartwood').length;
+// A drop counts only beyond the noise: one standard error of the share with every card in.
+const base = wins.length / runs.length;
+const noise = Math.sqrt((base * (1 - base)) / runs.length);
+const lowered: string[] = [];
 const line = (label: string, rs: RunRecord[]) =>
   console.log(
     `| ${label} | ${pct(rs.filter((r) => r.tier === 'heartwood').length, rs.length)} | ${med(rs.map((r) => r.score))} | ${pct(rs.filter((r) => r.status === 'collapsed').length, rs.length)} |`,
@@ -92,5 +98,13 @@ for (const out of [...CARDS.map((id) => [id]), CARDS]) {
   const rs: RunRecord[] = [];
   for (const bot of ['balanced', 'greedyFood', 'greedyEnergy'])
     for (let i = 0; i < N; i++) rs.push(playRun(c, BOTS[bot]!, `e3-${i}`));
-  line(out.length === 1 ? content.byId[out[0]!]!.name : 'All five', rs);
+  const label = out.length === 1 ? content.byId[out[0]!]!.name : 'All five';
+  line(label, rs);
+  if (out.length === 1 && base - heartwood(rs) / rs.length > noise) lowered.push(label);
 }
+console.log(
+  lowered.length === 0
+    ? `\nThe gate passes: leaving out any one new card never lowers the Heartwood share by more than the noise (${pct(noise * runs.length, runs.length)}).`
+    : `\nThe gate fails: without ${lowered.join(', ')} the bots reach Heartwood less often, beyond the noise (${pct(noise * runs.length, runs.length)}).`,
+);
+if (lowered.length > 0) process.exitCode = 1;

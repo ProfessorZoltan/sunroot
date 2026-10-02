@@ -210,7 +210,7 @@ Build water in the simulator first and stop at a decision gate before any screen
 2. **E2. Water on screen.** A channel-laying tool, blue flowing lines that thin as water is used, tile tooltips showing water in, used and out by quality, and a priority setting for ties.
    - *Done when:* a player can see where every unit of water went in any season.
 3. **E3. Willow Reach v2 content.** The 6 new draft buildings, the 7 evolutions with the branching choice, the coppice action, 3 chains, 4 formations and their Almanac entries.
-   - *Done when:* every new combo triggers in a unit test and reveals with its card; in the simulator, no single new card appears in more than 40% of winning bot runs.
+   - *Done when:* every new combo triggers in a unit test and reveals with its card; in the simulator, leaving any one new card out of the draft doesn't lower the bots' Heartwood share (restated in DECISIONS.md, Q19; first written as "no single new card appears in more than 40% of winning bot runs").
 4. **E4. Wildlife and festivals.** Four animals with habitat effects and on-screen movement; three festivals.
    - *Done when:* animals appear at their Harmony thresholds and their effects match this doc in unit tests.
 5. **E5. Great Water Garden.** The Willow Reach wonder as the late-run goal.

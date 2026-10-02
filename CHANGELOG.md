@@ -1,5 +1,12 @@
 # Changelog
 
+## The E3 gate, restated and passed
+
+- Willow Reach v2's balance gate now asks whether the bots need any one new card to win: leaving
+  each out of the draft in turn, the bots' Heartwood share never drops by more than the noise.
+  It passes. The first wording (no card in more than 40% of winning runs) counted the bots' habits.
+- `scripts/e3-gate.ts` prints the verdict. The new cards are tuned by playtesting next.
+
 ## Hedgerows on edges, on screen
 
 - The Hedgerow is back in the draft. Pick its card and point at the side of a tile: the side lights
