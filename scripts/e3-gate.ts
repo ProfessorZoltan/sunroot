@@ -12,7 +12,8 @@
  *   npx tsx scripts/e3-gate.ts [runs per bot, default 30] [WALKS=off]
  */
 import willowReach from '../src/content/willow-reach.json';
-import { loadContent, type RunState } from '../src/sim';
+import { loadBiome } from '../src/content';
+import { type RunState } from '../src/sim';
 import { BOTS } from '../src/balance/bots';
 import { playRun, type RunRecord } from '../src/balance/runner';
 
@@ -20,7 +21,7 @@ const N = Number(process.argv[2] ?? 30);
 const raw = structuredClone(willowReach);
 raw.rules.water.enabled = true;
 raw.rules.commute.enabled = process.env.WALKS !== 'off';
-const content = loadContent(raw);
+const content = loadBiome(raw);
 
 const CARDS = ['reedBed', 'bathhouse', 'riceFishPaddy', 'mushroomCellar', 'hedgerow'];
 const COMBOS = content.combos.filter((c) => c.requiresWater).map((c) => c.id);
@@ -94,7 +95,7 @@ for (const out of [...CARDS.map((id) => [id]), CARDS]) {
   const without = structuredClone(raw);
   for (const id of out)
     (without.buildings.find((b) => b.id === id) as { draftable?: boolean }).draftable = false;
-  const c = loadContent(without);
+  const c = loadBiome(without);
   const rs: RunRecord[] = [];
   for (const bot of ['balanced', 'greedyFood', 'greedyEnergy'])
     for (let i = 0; i < N; i++) rs.push(playRun(c, BOTS[bot]!, `e3-${i}`));

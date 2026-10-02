@@ -21,7 +21,8 @@
  *   the best quarter of v2 runs. The gate fails if one layout wins almost every time.
  */
 import willowReach from '../src/content/willow-reach.json';
-import { loadContent, scoreRun, waterOn, type Content, type RunState } from '../src/sim';
+import { loadBiome } from '../src/content';
+import { scoreRun, waterOn, type Content, type RunState } from '../src/sim';
 import { BOTS, WATER_POLICIES, waterBot, type WaterPolicy } from '../src/balance/bots';
 import { playRun } from '../src/balance/runner';
 
@@ -40,7 +41,7 @@ function contentWith(on: boolean): Content {
   if (settings.commute) raw.rules.commute.enabled = settings.commute === 'on';
   if (settings.cistern)
     raw.buildings.find((b) => b.id === 'cistern')!.water!.stores = Number(settings.cistern);
-  return loadContent(raw);
+  return loadBiome(raw);
 }
 
 const med = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)] ?? 0;

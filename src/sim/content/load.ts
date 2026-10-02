@@ -1,4 +1,4 @@
-import { applyModifiers } from './modifiers';
+import { applyModifiers, forBiome } from './modifiers';
 import {
   AUTO_RECIPE,
   ContentSchema,
@@ -72,15 +72,11 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     if (!tierIds.includes(id)) problems.push(`progression names unknown tier ${id}`);
   }
   const districtIds = new Set(data.districts.map((d) => d.id));
-  const cardIds = new Set([
-    ...data.buildings.map((b) => b.id),
-    ...data.tunings.map((t) => t.id),
-    ...data.charters.map((c) => c.id),
-  ]);
   for (const t of data.tunings) if (t.building) known(t.building, `tuning ${t.id}`);
+  // Root City is shared by every biome: its districts may name buildings and cards a biome
+  // doesn't have (they are left out there); every name is checked against some biome by the
+  // biomes test instead.
   for (const d of data.districts) {
-    d.signature.sources.forEach((id) => known(id, `district ${d.id}`));
-    if (!cardIds.has(d.adds)) problems.push(`district ${d.id} adds unknown card ${d.adds}`);
     if (d.perks.length !== data.rules.score.tiers.length)
       problems.push(`district ${d.id} needs a perk for each of the ${tierIds.length} tiers`);
   }
@@ -206,7 +202,7 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     const sources = [
       ...data.tunings,
       ...data.charters,
-      ...data.landmarks,
+      ...data.landmarks.map((l) => ({ id: l.id, modifiers: forBiome(content, l.modifiers) })),
       ...data.twists,
       ...data.regions,
       // Each Tempest level with every level below it, as a run plays it.
@@ -217,7 +213,10 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
       ...data.rules.eraModifiers.map((m) => ({ id: `era ${m.era}`, modifiers: m.modifiers })),
       ...data.projects.map((p) => ({ id: p.id, modifiers: p.effect.modifiers })),
       ...data.districts.flatMap((d) =>
-        d.perks.map((perk, i) => ({ id: `${d.id} perk ${i + 1}`, modifiers: perk.modifiers })),
+        d.perks.map((perk, i) => ({
+          id: `${d.id} perk ${i + 1}`,
+          modifiers: forBiome(content, perk.modifiers),
+        })),
       ),
     ];
     for (const card of sources) {
@@ -268,4 +267,22 @@ function checkCombo(c: Combo, known: (id: string, where: string) => void): void 
       }
       break;
   }
+}
+
+/** Root City's parts of the content, shared by every biome (DECISIONS.md, The Windswept Coast). */
+export const WORLD_KEYS = ['districts', 'landmarks', 'requests', 'progression'] as const;
+
+/**
+ * A biome's raw content with Root City's shared parts (districts, landmarks,
+ * city requests, progression) from `world`. A biome may not define them itself.
+ */
+export function withWorld(world: unknown, biome: unknown): unknown {
+  const w = world as Record<string, unknown>;
+  const b = biome as Record<string, unknown>;
+  const own = WORLD_KEYS.filter((k) => k in b);
+  if (own.length > 0)
+    throw new Error(
+      `Invalid content:\n  the biome defines ${own.join(', ')}, which Root City shares`,
+    );
+  return { ...b, ...Object.fromEntries(WORLD_KEYS.filter((k) => k in w).map((k) => [k, w[k]])) };
 }

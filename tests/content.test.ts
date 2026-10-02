@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { loadContent } from '../src/sim';
 import willowReach from '../src/content/willow-reach.json';
+import { loadBiome } from '../src/content';
 
 /** Buildings added by docs/proposals/heat-routes.md, beyond the design's 23. */
 const HEAT_PROPOSAL = ['heatPump', 'solarThermalCollector'];
@@ -11,7 +11,7 @@ const clone = () => structuredClone(willowReach) as typeof willowReach;
 
 describe('content validation', () => {
   it("loads Willow Reach: the camp, the design's 23 buildings and 2 from the heat proposal", () => {
-    const content = loadContent(willowReach);
+    const content = loadBiome(willowReach);
     // Water buildings come from EXPANSION.md, not the design's 23.
     const buildings = content.buildings.filter(
       (b) => b.id !== content.campBuilding && !b.requiresWater && !b.requiresHeatLayer,
@@ -27,7 +27,7 @@ describe('content validation', () => {
   });
 
   it("matches the design doc's energy table", () => {
-    const { byId } = loadContent(willowReach);
+    const { byId } = loadBiome(willowReach);
     const table: Record<
       string,
       [number, [number, number, number, number], [number, number, number, number]]
@@ -47,18 +47,18 @@ describe('content validation', () => {
   it('rejects bad numbers with a readable message', () => {
     const bad = clone();
     bad.buildings[1]!.cost = -3;
-    expect(() => loadContent(bad)).toThrow(/buildings\.1\.cost/);
+    expect(() => loadBiome(bad)).toThrow(/buildings\.1\.cost/);
   });
 
   it('rejects unknown fields, so typos in data files are caught', () => {
     const bad = clone() as unknown as { buildings: Record<string, unknown>[] };
     bad.buildings[1]!.costt = 3;
-    expect(() => loadContent(bad)).toThrow(/costt/);
+    expect(() => loadBiome(bad)).toThrow(/costt/);
   });
 
   it('rejects references to buildings that do not exist', () => {
     const bad = clone();
     bad.guidedYear[0] = ['orchard', 'unicornStable'];
-    expect(() => loadContent(bad)).toThrow(/unicornStable/);
+    expect(() => loadBiome(bad)).toThrow(/unicornStable/);
   });
 });

@@ -6,9 +6,9 @@
  */
 import { describe, expect, it } from 'vitest';
 import willowReach from '../src/content/willow-reach.json';
+import { loadBiome } from '../src/content';
 import {
   computeHarmony,
-  loadContent,
   festivalThisSeason,
   habitatOf,
   hexDistance,
@@ -200,7 +200,7 @@ describe('what the animals do (EXPANSION.md, Wildlife)', () => {
   it('content whose beavers and Beaver Dam disagree on Harmony is rejected at load', () => {
     const raw = structuredClone(willowReach) as { wildlife: { id: string; harmony: number }[] };
     raw.wildlife.find((a) => a.id === 'beavers')!.harmony = 45;
-    expect(() => loadContent(raw)).toThrow(/beavers arrives at Harmony 45 but beaverDam needs 50/);
+    expect(() => loadBiome(raw)).toThrow(/beavers arrives at Harmony 45 but beaverDam needs 50/);
   });
 
   it('deer: +1 wellbeing per season for each herd (each wood of 4+ tiles)', () => {

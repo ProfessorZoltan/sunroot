@@ -5,11 +5,11 @@
  *   npx tsx scripts/food-analysis.ts [runs per bot] [bots]
  */
 import willowReach from '../src/content/willow-reach.json';
+import { loadBiome } from '../src/content';
 import { BOTS } from '../src/balance/bots';
 import { playRun } from '../src/balance/runner';
-import { loadContent } from '../src/sim';
 
-const content = loadContent(willowReach);
+const content = loadBiome(willowReach);
 const runs = Number(process.argv[2] ?? 50);
 const bots = (process.argv[3] ?? 'greedyFood,greedyEnergy,balanced').split(',');
 

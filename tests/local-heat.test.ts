@@ -6,16 +6,9 @@
  * grid can't pay heat at all.
  */
 import { describe, expect, it } from 'vitest';
-import {
-  canPlace,
-  hexDistance,
-  hexKey,
-  loadContent,
-  type Content,
-  type Hex,
-  type RunState,
-} from '../src/sim';
+import { canPlace, hexDistance, hexKey, type Content, type Hex, type RunState } from '../src/sim';
 import willowReach from '../src/content/willow-reach.json';
+import { loadBiome } from '../src/content';
 import { BOTS } from '../src/balance/bots';
 import { playRun } from '../src/balance/runner';
 import { act, at, endSeason, place, scenario, uidAt } from './helpers';
@@ -39,7 +32,7 @@ function local(on: boolean): Content {
   raw.rules.localHeat.enabled = on;
   const pump = raw.buildings.find((b) => b.id === 'heatPump') as { heatPump?: unknown };
   pump.heatPump = { heatPerEnergy: 2, maxHeatPerSlot: 4 };
-  return loadContent(raw);
+  return loadBiome(raw);
 }
 const L = local(true);
 const P = local(false);
@@ -150,7 +143,7 @@ describe('with local heat off', () => {
     const withRange = (enabled: boolean, range: number): Content => {
       const raw = structuredClone(willowReach);
       raw.rules.localHeat = { ...raw.rules.localHeat, enabled, range };
-      return loadContent(raw);
+      return loadBiome(raw);
     };
     const seasons = (c: Content) => {
       const out: string[] = [];

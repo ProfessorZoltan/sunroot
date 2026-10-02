@@ -10,7 +10,8 @@
  *   npx tsx scripts/calibrate-layers.ts [runs, default 40] [bots, default balanced,greedyEnergy,greedyFood] [water=N commute=N heat=N]
  */
 import willowReach from '../src/content/willow-reach.json';
-import { loadContent, scoreRun, type Content, type RunState } from '../src/sim';
+import { loadBiome } from '../src/content';
+import { scoreRun, type Content, type RunState } from '../src/sim';
 import { BOTS } from '../src/balance/bots';
 import { playRun } from '../src/balance/runner';
 
@@ -27,7 +28,7 @@ function contentWith(water: boolean, commute: boolean, heat: boolean, points: Po
   raw.rules.localHeat.enabled = heat;
   (raw.rules.localHeat as { gridHeat?: boolean }).gridHeat = !heat;
   (raw.rules.score as { layers?: unknown }).layers = points;
-  return loadContent(raw);
+  return loadBiome(raw);
 }
 
 function play(content: Content, bot: string) {

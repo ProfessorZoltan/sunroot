@@ -15,10 +15,12 @@ import {
   type CityState,
   type Graft,
 } from '../src/sim';
+import { withWorld } from '../src/sim/content/load';
 
-const content = loadContent(
-  JSON.parse(readFileSync(new URL('../src/content/willow-reach.json', import.meta.url), 'utf8')),
-);
+const json = (file: string): unknown =>
+  JSON.parse(readFileSync(new URL(`../src/content/${file}`, import.meta.url), 'utf8'));
+// Willow Reach with Root City's shared parts, as the game loads it (src/content/index.ts).
+const content = loadContent(withWorld(json('root-city.json'), json('willow-reach.json')));
 const SHOTS = process.env.SUNROOT_SHOTS;
 
 const graft = (district: string, tier = 'seedling'): Graft => ({

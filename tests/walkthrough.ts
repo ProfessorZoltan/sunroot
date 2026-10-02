@@ -10,15 +10,15 @@ import {
   hexDistance,
   hexKey,
   hexNeighbors,
-  loadContent,
   type Command,
   type Content,
   type Hex,
   type RunState,
 } from '../src/sim';
 import willowReach from '../src/content/willow-reach.json';
+import { loadBiome } from '../src/content';
 
-export const content: Content = loadContent(willowReach);
+export const content: Content = loadBiome(willowReach);
 export const GOLDEN_SEED = 'willow-reach-golden';
 
 export function act(state: RunState, command: Command, c: Content = content): RunState {

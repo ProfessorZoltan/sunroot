@@ -15,7 +15,6 @@ import {
   createRun,
   hexDistance,
   hexKey,
-  loadContent,
   offsetToAxial,
   SEASONS,
   type Command,
@@ -29,10 +28,11 @@ import {
   type TileType,
 } from '../src/sim';
 import willowReach from '../src/content/willow-reach.json';
+import { loadBiome } from '../src/content';
 import { available } from '../src/sim/water';
 import { contentFor } from '../src/sim/content/modifiers';
 
-export const content: Content = loadContent(willowReach);
+export const content: Content = loadBiome(willowReach);
 
 /**
  * Willow Reach with the water system on (EXPANSION.md), which the game keeps
@@ -52,7 +52,7 @@ export function withWater(
   if (changes.beside !== undefined) raw.rules.water.drawBesideRiver = changes.beside;
   if (changes.campChannel !== undefined) raw.rules.water.campChannel = changes.campChannel;
   changes.edit?.(raw);
-  return loadContent(raw);
+  return loadBiome(raw);
 }
 
 const TOKENS: Record<string, TileType> = {

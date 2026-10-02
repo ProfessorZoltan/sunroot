@@ -19,7 +19,7 @@
 import { Application } from 'pixi.js';
 import { render } from 'preact';
 import { fontsReady } from './fonts';
-import willowReach from './content/willow-reach.json';
+import { biomeContent, HOME_BIOME } from './content';
 import { connectAudio } from './audio/director';
 import { AudioEngine } from './audio/engine';
 import { loadAlmanac, saveAlmanac } from './game/almanac';
@@ -37,7 +37,6 @@ import {
   canPlace,
   createCity,
   createRun,
-  loadContent,
   makeSave,
   needsExpedition,
   nextRunOptions,
@@ -56,7 +55,8 @@ async function start() {
   // The type is served with the app; wait for it so nothing changes font after the first paint.
   await fontsReady();
   const params = new URLSearchParams(location.search);
-  const content = loadContent(willowReach);
+  // Root City and the run share the home biome's content until a second biome joins (B5).
+  const content = biomeContent(HOME_BIOME);
   let storage: Storage | null = null;
   try {
     storage = window.localStorage;

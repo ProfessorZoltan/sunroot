@@ -642,6 +642,19 @@ Water costs the balanced bot 6 to 14 points of 389 and the food bot 31 to 40 of 
 wins most seeds, but none clearly beats doing little either: the bots answer a dry summer by
 building more farms. Q17 asks what to do about that before E2.
 
+## The Windswept Coast (Milestone 11)
+
+The second biome follows [proposals/windswept-coast.md](proposals/windswept-coast.md), reviewed
+by the playtester: the king tide salts crofts (half food for 2 seasons) and then leaves saltmarsh
+crofts +1 food for the rest of the year; the Tide Turbine is the coast's starter and the Tide Mill
+the Tidal Quarter's card; the coast joins at run 5; its art is procedural first. Built in steps
+B1 to B6 (the proposal's build plan).
+
+| Topic                    | Decision                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Source                             |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| Root City is shared (B1) | Its districts, landmarks, city requests and progression moved from `willow-reach.json` to `root-city.json`; a biome's content is its own file with those merged in (`loadBiome`), and a biome may not define them. A district's perk or a landmark that changes a building or combo a biome lacks is left out in that biome (the Millrace Quarter's cheaper river wheels on a coast without one); a district's card is offered only where it can be placed. A test checks every name Root City uses is in some biome. | `src/content/index.ts`, `forBiome` |
+| Saves and the Almanac    | Already per biome: a run's save names its biome (`contentId`) and loads only with it; the Almanac is kept per biome. Tempest unlocks become per biome with B5.                                                                                                                                                                                                                                                                                                                                                        | `readSave`, `src/game/almanac.ts`  |
+
 ## Deferred to later milestones
 
 - The world map that heals as runs are completed, Tempest levels, and biome unlocks (Highland,

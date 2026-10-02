@@ -1,7 +1,8 @@
 /** Runs many games, in parallel worker threads when asked, in a stable order. */
 import { Worker } from 'node:worker_threads';
-import { loadContent, type Content } from '../sim';
+import { type Content } from '../sim';
 import willowReach from '../content/willow-reach.json';
+import { loadBiome } from '../content';
 import { BOTS } from './bots';
 import { playRun, type RunRecord } from './runner';
 import type { Sight } from './turn';
@@ -23,7 +24,7 @@ export interface SimulateOptions {
 }
 
 export function loadWillowReach(): Content {
-  return loadContent(willowReach);
+  return loadBiome(willowReach);
 }
 
 export function planJobs(

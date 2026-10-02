@@ -50,12 +50,16 @@ const NO_GRID_HEAT: Modifier = { target: 'rules', path: 'localHeat.gridHeat', se
 export function runModifiers(content: Content, state: RunModifierSources): Modifier[] {
   const city = state.options?.city;
   const tiers = content.rules.score.tiers.map((t) => t.id);
+  // Root City's perks and landmarks, as far as this biome has what they change.
   const perks = Object.entries(city?.districts ?? {}).flatMap(([id, tier]) => {
     const perks = content.districts.find((d) => d.id === id)?.perks ?? [];
-    return perks[Math.min(Math.max(0, tiers.indexOf(tier)), perks.length - 1)]?.modifiers ?? [];
+    return forBiome(
+      content,
+      perks[Math.min(Math.max(0, tiers.indexOf(tier)), perks.length - 1)]?.modifiers ?? [],
+    );
   });
-  const landmarks = (city?.landmarks ?? []).flatMap(
-    (id) => content.landmarks.find((l) => l.id === id)?.modifiers ?? [],
+  const landmarks = (city?.landmarks ?? []).flatMap((id) =>
+    forBiome(content, content.landmarks.find((l) => l.id === id)?.modifiers ?? []),
   );
   const twist = state.options?.expedition?.twist;
   const region = state.options?.expedition?.region;
@@ -80,6 +84,23 @@ export function runModifiers(content: Content, state: RunModifierSources): Modif
     ...state.tunings.flatMap((id) => content.tuningById[id]?.modifiers ?? []),
     ...state.charters.flatMap((id) => content.charterById[id]?.modifiers ?? []),
   ];
+}
+
+/**
+ * Root City's modifiers that apply in this biome: a perk on a building or a
+ * combo the biome doesn't have (the Reach's river wheel on a coast without
+ * one) is left out.
+ */
+export function forBiome(
+  content: { byId: Record<string, unknown>; comboById: Record<string, unknown> },
+  modifiers: Modifier[],
+): Modifier[] {
+  return modifiers.filter((m) => {
+    if (m.id === undefined) return true;
+    if (m.target === 'building') return m.id in content.byId;
+    if (m.target === 'combo') return m.id in content.comboById;
+    return true;
+  });
 }
 
 /** The content as the run plays it: Root City, the twist, tunings and charters applied. */

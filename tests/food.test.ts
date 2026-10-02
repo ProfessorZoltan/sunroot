@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { applyCommand, hexDistance, loadContent, waterDistance } from '../src/sim';
+import { applyCommand, hexDistance, waterDistance } from '../src/sim';
 import willowReach from '../src/content/willow-reach.json';
+import { loadBiome } from '../src/content';
 import { act, at, content, endSeason, place, scenario, tileTypeAt, uidAt } from './helpers';
 
 // Floodplain along both banks of a river in column 4.
@@ -256,7 +257,7 @@ describe('other food buildings', () => {
   });
 
   it("with rotsInto set to scraps, rot follows the design's original rule", () => {
-    const original = loadContent({
+    const original = loadBiome({
       ...willowReach,
       rules: { ...willowReach.rules, rotsInto: 'scraps' },
     });

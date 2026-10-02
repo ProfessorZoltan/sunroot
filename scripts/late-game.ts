@@ -7,11 +7,12 @@
  *   npx tsx scripts/late-game.ts [runs per bot, default 40]
  */
 import willowReach from '../src/content/willow-reach.json';
-import { loadContent, scoreRun, type RunState } from '../src/sim';
+import { loadBiome } from '../src/content';
+import { scoreRun, type RunState } from '../src/sim';
 import { BOTS } from '../src/balance/bots';
 import { playRun } from '../src/balance/runner';
 
-const content = loadContent(willowReach);
+const content = loadBiome(willowReach);
 const N = Number(process.argv[2] ?? 40);
 const med = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)] ?? 0;
 const pct = (n: number) => `${Math.round((n / N) * 100)}%`;

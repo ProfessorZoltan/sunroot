@@ -5,7 +5,8 @@
  *   npx tsx scripts/wonder-balance.ts [runs, default 40]
  */
 import willowReach from '../src/content/willow-reach.json';
-import { loadContent, scoreRun, type RunState } from '../src/sim';
+import { loadBiome } from '../src/content';
+import { scoreRun, type RunState } from '../src/sim';
 import { BOTS } from '../src/balance/bots';
 import { playRun } from '../src/balance/runner';
 const N = Number(process.argv[2] ?? 40);
@@ -21,7 +22,7 @@ for (const [name, water, commute, heat] of cases) {
   raw.rules.commute.enabled = commute;
   raw.rules.localHeat.enabled = heat;
   (raw.rules.localHeat as { gridHeat?: boolean }).gridHeat = !heat;
-  const c = loadContent(raw);
+  const c = loadBiome(raw);
   const scores: number[] = [];
   let heart = 0,
     gardens = 0;

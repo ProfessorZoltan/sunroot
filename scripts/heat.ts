@@ -16,7 +16,8 @@
  * may collapse.
  */
 import willowReach from '../src/content/willow-reach.json';
-import { loadContent, scoreRun, type Content, type RunState } from '../src/sim';
+import { loadBiome } from '../src/content';
+import { scoreRun, type Content, type RunState } from '../src/sim';
 import { BOTS, heatBlindBot, type Bot } from '../src/balance/bots';
 import { playRun } from '../src/balance/runner';
 
@@ -33,7 +34,7 @@ function contentWith(layer: boolean, below: boolean): Content {
   raw.rules.water.enabled = below;
   raw.rules.commute.enabled = below;
   (raw.rules.score as { layers?: unknown }).layers = { water: 0, commute: 0, localHeat: 0 };
-  return loadContent(raw);
+  return loadBiome(raw);
 }
 
 const med = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)] ?? 0;
@@ -112,7 +113,7 @@ for (const c of cases) {
     raw.rules.water.enabled = c.below;
     raw.rules.commute.enabled = c.below;
     (raw.rules.score as { layers?: unknown }).layers = { water: 0, commute: 0, localHeat: 0 };
-    content = loadContent(raw);
+    content = loadBiome(raw);
   }
   const rs = seeds.map((s) => play(content, c.bot, s, c.twist));
   console.log(

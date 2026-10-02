@@ -15,11 +15,13 @@ import {
   makeSave,
   type RunState,
 } from '../src/sim';
+import { withWorld } from '../src/sim/content/load';
 
 const SHOTS = process.env.SUNROOT_SHOTS;
-const content = loadContent(
-  JSON.parse(readFileSync(new URL('../src/content/willow-reach.json', import.meta.url), 'utf8')),
-);
+const json = (file: string): unknown =>
+  JSON.parse(readFileSync(new URL(`../src/content/${file}`, import.meta.url), 'utf8'));
+// Willow Reach with Root City's shared parts, as the game loads it (src/content/index.ts).
+const content = loadContent(withWorld(json('root-city.json'), json('willow-reach.json')));
 
 /** A sandbox run with water, its Bath Loop and 3 reed beds standing, and the garden just started. */
 function gardenRun(): RunState {

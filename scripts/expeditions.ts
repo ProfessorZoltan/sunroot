@@ -11,7 +11,8 @@
  * COMMUTE=on plays with commuting.
  */
 import willowReach from '../src/content/willow-reach.json';
-import { loadContent, scoreRun, type RunExpedition, type RunState } from '../src/sim';
+import { loadBiome } from '../src/content';
+import { scoreRun, type RunExpedition, type RunState } from '../src/sim';
 import { BOTS } from '../src/balance/bots';
 import { playRun } from '../src/balance/runner';
 
@@ -19,7 +20,7 @@ const raw = structuredClone(willowReach);
 if (process.env.WATER) raw.rules.water.enabled = true;
 if (process.env.WATER === 'beside') raw.rules.water.drawBesideRiver = true;
 if (process.env.COMMUTE) raw.rules.commute.enabled = true;
-const content = loadContent(raw);
+const content = loadBiome(raw);
 const N = Number(process.argv[2] ?? 30);
 const bot = BOTS[process.argv[3] ?? 'balanced']!;
 const med = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)] ?? 0;

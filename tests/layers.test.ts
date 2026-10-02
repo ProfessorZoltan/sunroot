@@ -4,8 +4,9 @@
  * it gets points for each, and the same play earns the same Graft tier.
  */
 import { describe, expect, it } from 'vitest';
-import { createRun, loadContent, scoreRun, type RunState } from '../src/sim';
+import { createRun, scoreRun, type RunState } from '../src/sim';
 import willowReach from '../src/content/willow-reach.json';
+import { loadBiome } from '../src/content';
 import { content } from './helpers';
 
 const finished = (options: { water?: boolean; commute?: boolean }): RunState => ({
@@ -39,7 +40,7 @@ describe('score lines for the layers', () => {
   it('content with the water system on by itself counts too (the simulator and the tests)', () => {
     const raw = structuredClone(willowReach);
     raw.rules.water.enabled = true;
-    const wet = loadContent(raw);
+    const wet = loadBiome(raw);
     const s: RunState = { ...createRun(wet, { seed: 'wet' }), status: 'complete', turn: 48 };
     expect(scoreRun(wet, s).lines.find((l) => l.reason === 'water to manage')?.points).toBe(water);
   });

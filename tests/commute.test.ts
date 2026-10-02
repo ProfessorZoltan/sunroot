@@ -17,7 +17,7 @@ import {
   type RunState,
 } from '../src/sim';
 import willowReach from '../src/content/willow-reach.json';
-import { loadContent } from '../src/sim';
+import { loadBiome, rootCity } from '../src/content';
 import { content, endSeason, place, scenario, uidAt } from './helpers';
 
 // The camp at column 1; workplaces along the row.
@@ -132,9 +132,9 @@ describe('the teaching ladder', () => {
   });
 
   it('a city whose ladder has no commuting never gets it, even with the full valley', () => {
-    const raw = structuredClone(willowReach);
-    delete (raw.progression.teaching as { commute?: number }).commute;
-    const unlisted = loadContent(raw);
+    const world = structuredClone(rootCity);
+    delete (world.progression.teaching as { commute?: number }).commute;
+    const unlisted = loadBiome(willowReach, {}, world);
     expect(teaching(unlisted, 5).commute).toBe(false);
     const city: CityState = { ...createCity(unlisted, 'c'), runs: 5, fullValley: true };
     expect(nextRunOptions(unlisted, city).commute).toBeUndefined();

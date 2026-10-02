@@ -14,7 +14,8 @@
  * more runs collapsing.
  */
 import willowReach from '../src/content/willow-reach.json';
-import { loadContent, scoreRun, type Content, type RunState } from '../src/sim';
+import { loadBiome } from '../src/content';
+import { scoreRun, type Content, type RunState } from '../src/sim';
 import { BOTS, commuteBlindBot, type Bot } from '../src/balance/bots';
 import { playRun } from '../src/balance/runner';
 
@@ -28,7 +29,7 @@ function contentWith(water: boolean, commute: boolean): Content {
   raw.rules.commute.enabled = commute;
   if (settings.free) raw.rules.commute.freeDistance = Number(settings.free);
   if (settings.per) raw.rules.commute.tilesPerWellbeing = Number(settings.per);
-  return loadContent(raw);
+  return loadBiome(raw);
 }
 
 const med = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)] ?? 0;

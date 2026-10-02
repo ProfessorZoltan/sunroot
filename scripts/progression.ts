@@ -16,10 +16,10 @@
  */
 import { readFileSync } from 'node:fs';
 import willowReach from '../src/content/willow-reach.json';
-import { loadContent } from '../src/sim';
+import { loadBiome } from '../src/content';
 import { createRng, nextFloat, nextInt } from '../src/sim/rng';
 
-const content = loadContent(willowReach);
+const content = loadBiome(willowReach);
 const argv = process.argv.slice(2);
 const opt = (name: string) => {
   const i = argv.indexOf(name);

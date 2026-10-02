@@ -28,7 +28,8 @@ import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'nod
 import { join } from 'node:path';
 import { chromium } from '@playwright/test';
 import willowReach from '../src/content/willow-reach.json';
-import { loadContent, TILE_TYPES } from '../src/sim';
+import { loadBiome } from '../src/content';
+import { TILE_TYPES } from '../src/sim';
 
 const IN = 'art/incoming';
 const OUT = 'src/art';
@@ -45,7 +46,7 @@ interface Manifest {
   assets: { file: string; rotation_hub?: [number, number] }[];
 }
 
-const content = loadContent(willowReach);
+const content = loadBiome(willowReach);
 const manifest = JSON.parse(readFileSync(join(IN, 'manifest.json'), 'utf8')) as Manifest;
 const tiles = new Set<string>(TILE_TYPES);
 /** Buildings, and pieces drawn with them: the sluice gate at a channel's intake. */
