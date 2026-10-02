@@ -43,6 +43,7 @@ import { effectiveContent } from '../content/modifiers';
 import { dealCharters } from '../draft';
 import { cityRequest, eraGoal, goalMet, visionMet } from '../score';
 import { finishProjects } from '../projects';
+import { festivalThisSeason, updateWildlife, wildlifeYields } from '../wildlife';
 
 export interface ResolveOptions {
   /**
@@ -91,6 +92,7 @@ export function resolveSeason(
   producePowered(ctx);
   applyLoopBonuses(ctx);
   applyFormationYields(ctx);
+  wildlifeYields(ctx);
   feedAndGrow(ctx); // 8
   scrapsAndHarmony(ctx); // 9
   checkCombos(ctx); // 10
@@ -155,6 +157,8 @@ function advance(content: Content, ctx: SeasonContext): RunState {
   // The last 4 seasons' reports: the last of each season, for the season report.
   state.recentReports = [...state.recentReports, report].slice(-4);
   state.spent = {};
+  // The Harvest Festival's free reroll waits for a later draft.
+  state.freeRerolls += festivalThisSeason(content, state)?.freeRerolls ?? 0;
   if (state.vision && state.visionAchieved === null && visionMet(content, state)) {
     state.visionAchieved = state.turn;
     report.visionAchieved = true;
@@ -192,6 +196,11 @@ function advance(content: Content, ctx: SeasonContext): RunState {
 
   state.turn += 1;
   state.notices = [];
+  const festival = report.festival && content.festivals.find((f) => f.id === report.festival!.id);
+  if (festival && !report.festival!.lit)
+    state.notices.push(
+      `The lanterns went dark: a night ran short of energy, so ${festival.name} gave no wellbeing`,
+    );
   if (state.wellbeing <= content.rules.wellbeing.min) {
     state.status = 'collapsed';
   } else if (state.turn >= content.rules.yearsPerRun * SEASONS.length) {
@@ -206,6 +215,8 @@ function advance(content: Content, ctx: SeasonContext): RunState {
   if (state.status === 'active') startSeason(content, state);
   else state.draft = { offer: [], picked: null, extraBought: false };
   state.harmony = computeHarmony(content, state);
+  // Animals come, or leave, as the season starts.
+  if (state.status === 'active') updateWildlife(content, state);
   state.seasonStart = snapshot(state);
   return state;
 }

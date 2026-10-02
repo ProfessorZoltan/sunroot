@@ -22,6 +22,7 @@ import {
   tileAt,
 } from './queries';
 import { flow } from './season/context';
+import { festivalProblem, festivalThisSeason } from './wildlife';
 import { resolveSeason } from './season/resolve';
 import { cloneState, snapshot } from './snapshot';
 import type { Command, CommandResult, RunState } from './types';
@@ -142,9 +143,13 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
     }
     case 'rerollDraft': {
       if (s.draft.picked !== null) return 'already picked a card this season';
-      if (s.stores.knowledge < k.reroll) return `rerolling needs ${k.reroll} knowledge`;
-      s.stores.knowledge -= k.reroll;
-      flow(s.spent, 'knowledge', 'used', 'Rerolling the draft', k.reroll);
+      // A reroll a festival gave is used first.
+      if (s.freeRerolls > 0) s.freeRerolls -= 1;
+      else {
+        if (s.stores.knowledge < k.reroll) return `rerolling needs ${k.reroll} knowledge`;
+        s.stores.knowledge -= k.reroll;
+        flow(s.spent, 'knowledge', 'used', 'Rerolling the draft', k.reroll);
+      }
       const count = content.rules.draftCards + (s.draft.extraBought ? 1 : 0);
       s.draft.offer = drawCards(content, s, count);
       return null;
@@ -224,6 +229,30 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
         flow(s.spent, res, 'used', `Project: ${p.name}`, n);
       }
       s.projects = [...s.projects, { id: p.id, started: s.turn, done: null }];
+      return null;
+    }
+    case 'holdFestival': {
+      const problem = festivalProblem(content, s, command.festival);
+      if (problem) return problem;
+      const f = content.festivals.find((x) => x.id === command.festival)!;
+      for (const [res, n] of Object.entries(f.cost) as [Resource, number][]) {
+        s.stores[res] -= n;
+        flow(s.spent, res, 'used', `Festival: ${f.name}`, n);
+      }
+      s.festivals = { ...s.festivals, [f.id]: s.year };
+      return null;
+    }
+    case 'cancelFestival': {
+      const f = festivalThisSeason(content, s);
+      if (!f || f.id !== command.festival) return 'that festival is not being held this season';
+      for (const [res, n] of Object.entries(f.cost) as [Resource, number][]) {
+        s.stores[res] += n;
+        const used = s.spent[res]?.used;
+        if (used) delete used[`Festival: ${f.name}`];
+      }
+      const rest = { ...s.festivals };
+      delete rest[f.id];
+      s.festivals = rest;
       return null;
     }
     case 'demolish': {

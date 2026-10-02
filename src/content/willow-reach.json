@@ -2613,6 +2613,111 @@
       }
     }
   ],
+  "wildlife": [
+    {
+      "id": "wildBees",
+      "name": "Wild bees",
+      "text": "Wild bees come to the meadows at Harmony 20. In summer, every farm next to 2 or more meadow tiles makes 1 more food.",
+      "harmony": 20,
+      "habitat": {
+        "kind": "tiles",
+        "tiles": ["meadow"]
+      },
+      "effect": {
+        "kind": "nextToTiles",
+        "buildings": ["floodplainFarm", "agrivoltaicField"],
+        "tiles": ["meadow"],
+        "count": 2,
+        "seasons": ["summer"],
+        "food": 1
+      }
+    },
+    {
+      "id": "otters",
+      "name": "Otters",
+      "text": "Otters come at Harmony 40 to a river tile beside a reed bed. Fish ponds and rice-fish paddies within 2 tiles of them make 1 more food.",
+      "harmony": 40,
+      "habitat": {
+        "kind": "tiles",
+        "tiles": ["river"],
+        "wild": true,
+        "nextToBuildings": ["reedBed"]
+      },
+      "effect": {
+        "kind": "nearHabitat",
+        "buildings": ["fishPond", "riceFishPaddy"],
+        "range": 2,
+        "food": 1
+      }
+    },
+    {
+      "id": "beavers",
+      "name": "Beavers",
+      "text": "Beavers come at Harmony 50 to a weir beside woodland, and make it a Beaver Dam.",
+      "harmony": 50,
+      "habitat": {
+        "kind": "building",
+        "buildings": ["weir", "beaverDam"],
+        "nextToTiles": ["woodland"]
+      },
+      "effect": {
+        "kind": "evolution",
+        "combo": "beaverDam"
+      }
+    },
+    {
+      "id": "deer",
+      "name": "Deer",
+      "text": "Deer come at Harmony 70 to woodland in groups of 4 or more tiles. Each herd (each such wood) gives 1 wellbeing every season.",
+      "harmony": 70,
+      "habitat": {
+        "kind": "tiles",
+        "tiles": ["woodland"],
+        "wild": true,
+        "minGroup": 4
+      },
+      "effect": {
+        "kind": "wellbeing",
+        "perHerd": 1
+      }
+    }
+  ],
+  "festivals": [
+    {
+      "id": "floodFair",
+      "name": "Flood Fair",
+      "text": "A spring fair on the high ground as the water rises. +3 wellbeing, and the flood's silt reaches one more ring of farms.",
+      "season": "spring",
+      "cost": {
+        "materials": 5
+      },
+      "wellbeing": 3,
+      "siltRings": 1
+    },
+    {
+      "id": "harvestFestival",
+      "name": "Harvest Festival",
+      "text": "An autumn feast of the year's food. +5 wellbeing and one free draft reroll.",
+      "season": "autumn",
+      "cost": {
+        "food": 10
+      },
+      "wellbeing": 5,
+      "freeRerolls": 1
+    },
+    {
+      "id": "lanternNight",
+      "name": "Lantern Night",
+      "text": "A winter night of lanterns. +3 wellbeing if no night this season runs short of energy, and the valley's animals come out to see.",
+      "season": "winter",
+      "cost": {
+        "materials": 5
+      },
+      "wellbeing": 3,
+      "needsNightPowered": true,
+      "showsWildlife": true
+    }
+  ],
   "twists": [
     {
       "id": "fairWeather",

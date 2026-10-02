@@ -10,6 +10,7 @@ import type { AudioEngine } from '../audio/engine';
 import { reachSummary } from '../game/marks';
 import type { GameStore } from '../game/store';
 import { LoopsPanel } from './Combos';
+import { WildlifeStatus } from './Festivals';
 import { Arrow, Undo, Wind } from './icons';
 import { LastSeason, CivicStatus } from './LeftPanel';
 import { EraGoalStatus, ExpeditionStatus, VisionStatus } from './RunUi';
@@ -277,6 +278,7 @@ export function RunOverview({ store, onClose }: { store: GameStore; onClose: () 
           <CivicStatus store={store} />
           <LastSeason store={store} />
           <LoopsPanel store={store} />
+          <WildlifeStatus store={store} />
         </div>
       </div>
     </div>

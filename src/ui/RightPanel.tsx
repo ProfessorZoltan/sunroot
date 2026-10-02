@@ -14,6 +14,7 @@ import {
   repairCost,
 } from '../sim';
 import { CharterPanel, EvolutionPanel } from './Combos';
+import { FestivalPanel } from './Festivals';
 import { VisionPanel } from './RunUi';
 import { autoText, describeBuilding } from './describe';
 import { Reroll } from './icons';
@@ -51,6 +52,7 @@ export function RightPanel({ store, ui }: { store: GameStore; ui: Ui }) {
       ) : (
         <DraftPanel store={store} ui={ui} />
       )}
+      <FestivalPanel store={store} />
       <ProjectsPanel store={store} />
       <BuildPanel store={store} ui={ui} />
       <PlacementPanel store={store} />
@@ -110,11 +112,12 @@ function DraftPanel({ store, ui }: { store: GameStore; ui: Ui }) {
           <button
             type="button"
             class="button small-button"
-            disabled={state.stores.knowledge < k.reroll}
+            disabled={state.freeRerolls === 0 && state.stores.knowledge < k.reroll}
             onClick={() => store.dispatch({ type: 'rerollDraft' })}
             aria-keyshortcuts="R"
           >
-            <Reroll size={16} /> Reroll · {k.reroll} knowledge
+            <Reroll size={16} /> Reroll ·{' '}
+            {state.freeRerolls > 0 ? `free (${state.freeRerolls})` : `${k.reroll} knowledge`}
           </button>
           {!state.draft.extraBought && (
             <button

@@ -8,7 +8,15 @@
  * checking each fix by peeking at how the season would end. They differ in
  * which cards they draft, how they fix problems and how they spend the rest.
  */
-import { hexDistance, hexKey, hexNeighbors, type Hex, type Tile } from '../sim';
+import {
+  effectiveContent,
+  festivals,
+  hexDistance,
+  hexKey,
+  hexNeighbors,
+  type Hex,
+  type Tile,
+} from '../sim';
 import { pick, nextFloat, nextInt } from '../sim/rng';
 import { siteScore, type Turn } from './turn';
 import { edgeBuilding } from '../sim/edges';
@@ -309,6 +317,36 @@ function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): v
     const materials = project.cost.materials ?? 0;
     if (turn.state.stores.materials - materials < profile.reserve) continue;
     if (turn.apply({ type: 'startProject', project: project.id })) break;
+  }
+
+  // Festivals: hold this season's when it pays (more wellbeing, nobody hungrier, the lanterns
+  // lit) and keeps the materials reserve; otherwise take it back, as a free undo would.
+  const festival = festivals(effectiveContent(turn.content, turn.state)).find(
+    (f) => f.season === turn.state.season,
+  );
+  if (festival && turn.state.stores.materials - (festival.cost.materials ?? 0) >= profile.reserve) {
+    const outcome = () =>
+      peekOr(
+        turn,
+        (p) => ({
+          wellbeing: p.state.wellbeing,
+          unfed: p.report.food.unfed,
+          lit: p.report.festival?.lit ?? false,
+        }),
+        null,
+      );
+    const before = outcome();
+    const saved = turn.save();
+    if (turn.apply({ type: 'holdFestival', festival: festival.id })) {
+      const after = outcome();
+      const pays =
+        before &&
+        after &&
+        after.lit &&
+        after.unfed <= before.unfed &&
+        after.wellbeing > before.wellbeing;
+      if (!pays) turn.restore(saved);
+    }
   }
 }
 

@@ -14,6 +14,7 @@ import type { PopulationReason, WellbeingLine } from '../types';
 import { formationWellbeing } from '../combos';
 import { finishedProjects } from '../projects';
 import { flow, type SeasonContext } from './context';
+import { festivalWellbeing, wildlifeWellbeing } from '../wildlife';
 
 export function feedAndGrow(ctx: SeasonContext): void {
   const { content, state, report } = ctx;
@@ -196,6 +197,7 @@ export function feedAndGrow(ctx: SeasonContext): void {
   for (const f of formationWellbeing(ctx)) {
     lines.push({ kind: 'formation', reason: f.reason, amount: f.amount });
   }
+  lines.push(...wildlifeWellbeing(ctx), ...festivalWellbeing(ctx));
   if (wb.nightPowered !== 0 && report.energy.night.shortfall === 0) {
     lines.push({ kind: 'charter', reason: 'the night market', amount: wb.nightPowered });
   }

@@ -9,6 +9,7 @@ import { snapshot } from './snapshot';
 import type { MapState, RunOptions, RunState, Stores } from './types';
 import type { Hex } from './hex';
 import { available, campChannelPath, waterOn } from './water';
+import { updateWildlife } from './wildlife';
 
 export interface CreateRunOverrides {
   /** Use this map instead of generating one (tests and hand-made scenarios). */
@@ -79,6 +80,9 @@ export function createRun(
     hedges: [],
     everCold: [],
     hints: [],
+    wildlife: [],
+    festivals: {},
+    freeRerolls: 0,
     // Visions draw from their own stream, so turning them on never changes the run itself.
     visionOffer: opts.visions
       ? shuffled(
@@ -116,6 +120,8 @@ export function createRun(
     }
   }
   state.harmony = computeHarmony(content, state);
+  // A valley wild enough from the start has its animals from the start.
+  updateWildlife(content, state, false);
   state.draft.offer = dealOffer(content, state);
   state.seasonStart = snapshot(state);
   return state;

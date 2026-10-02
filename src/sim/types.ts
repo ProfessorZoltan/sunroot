@@ -158,6 +158,12 @@ export interface RunState {
   everCold: string[];
   /** Almanac hints bought with knowledge this run. */
   hints: string[];
+  /** Animals living in the valley this season (E4), in the order they came. */
+  wildlife: string[];
+  /** Festivals held, by id: the year each was last held (E4). */
+  festivals: Record<string, number>;
+  /** Draft rerolls owed by a festival, used before knowledge (the Harvest Festival). */
+  freeRerolls: number;
   /** Visions on offer at the start (one must be chosen), the chosen one, and when it was achieved. */
   visionOffer: string[];
   vision: string | null;
@@ -229,6 +235,9 @@ export type Command =
   | { type: 'spreadCompost'; at: Hex }
   /** Starts a project: its cost is paid now; it finishes after its seasons. */
   | { type: 'startProject'; project: string }
+  /** Holds this season's festival: its cost now, its reward as the season ends; or calls it off. */
+  | { type: 'holdFestival'; festival: string }
+  | { type: 'cancelFestival'; festival: string }
   /** Removes a building: energy this season, rubble, and the tile reverts (see rules.demolition). */
   | { type: 'demolish'; uid: string }
   | { type: 'setRecipe'; uid: string; recipe: string }
@@ -318,7 +327,9 @@ export type WellbeingKind =
   | 'civic'
   | 'formation'
   | 'charter'
-  | 'expectations';
+  | 'expectations'
+  | 'wildlife'
+  | 'festival';
 
 export interface WellbeingLine {
   kind: WellbeingKind;
@@ -423,6 +434,16 @@ export interface WaterWalkReport {
   wellbeing: number;
 }
 
+/** The season's wildlife (E4). */
+export interface WildlifeReport {
+  /** Animals living in the valley this season. */
+  present: string[];
+  /** Each present animal's habitat tiles (tile keys), and its herds (groups of habitat). */
+  habitat: Record<string, { tiles: string[]; herds: number }>;
+  /** Food each building got from animals, by uid: the animal's id and the amount. */
+  food: Record<string, { animal: string; amount: number }[]>;
+}
+
 /** Heat a source paid for a building this season, while local heat is on. */
 export interface HeatLink {
   slot: Slot;
@@ -467,6 +488,10 @@ export interface SeasonReport {
   neighborHeat: HeatLink[];
   /** Buildings shut off cold this season (no grid heat, and no source reached them). */
   cold: string[];
+  /** The valley's animals this season and what they did, while wildlife is on. */
+  wildlife: WildlifeReport | null;
+  /** The festival held as this season ended, and whether it got its wellbeing (Lantern Night's lit). */
+  festival: { id: string; lit: boolean } | null;
   /** Buildings a storm could damage: on exposed land (hills), not next to woodland (unless the Mixed Grid holds). */
   exposed: string[];
   silted: string[];

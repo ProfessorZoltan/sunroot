@@ -3,6 +3,7 @@ import { hexDistance, hexKey } from '../hex';
 import { nextInt } from '../rng';
 import { defOf, occupancy, stormExposed } from '../queries';
 import type { SeasonContext } from './context';
+import { festivalThisSeason, siltBeyond } from '../wildlife';
 
 /**
  * Mixed Grid: 3 or more source types each supplied at least 15% of the
@@ -87,6 +88,15 @@ export function applyEvent(ctx: SeasonContext): void {
           b.damage = { cause: 'flood', turn: state.turn };
           report.damaged.push(b.uid);
         }
+      }
+      // The Flood Fair: the silt reaches farms beyond the water, which does them no harm.
+      const rings = festivalThisSeason(content, state)?.siltRings ?? 0;
+      for (const uid of siltBeyond(content, state, flooded, rings)) {
+        const b = state.buildings[uid]!;
+        if (report.silted.includes(uid) && b.siltShare === 1) continue;
+        b.siltYear = state.year;
+        b.siltShare = 1;
+        if (!report.silted.includes(uid)) report.silted.push(uid);
       }
       break;
     }

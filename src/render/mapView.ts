@@ -5,7 +5,7 @@
  * river flow, buildings, then the overlay (hover, ghost, preview numbers).
  */
 import type { Application } from 'pixi.js';
-import { Container, Graphics, Text, type Sprite } from 'pixi.js';
+import { Container, Graphics, Sprite, Text } from 'pixi.js';
 import type { PhaseName, Timeline } from '../game/timeline';
 import type { Content } from '../sim/content/load';
 import { hexKey, hexNeighbors, parseHexKey, type Hex } from '../sim/hex';
@@ -35,6 +35,7 @@ import { ambientFor, drawAmbient, type Ambient } from './ambient';
 import { drawBird, drawDeer, drawOtter, drawSeason, wildlifeFor, type Wildlife } from './seasonArt';
 import { dashedLine, drawFogTile, drawTile } from './tileArt';
 import {
+  artScale,
   artSprite,
   armTexture,
   buildingTexture,
@@ -43,8 +44,13 @@ import {
   hasGround,
   rotorSprite,
   rotorTexture,
+  propTexture,
   tileTexture,
+  wildlifeTexture,
 } from './sprites';
+import { festivalProps, poseAt, wildlifeActors, type Actor, type Prop } from './wildlifeArt';
+import { animals as wildlifeOf } from '../sim/wildlife';
+import { effectiveContent } from '../sim/content/modifiers';
 
 export interface MapViewEvents {
   /** The tile under the pointer, and which of its sides the pointer is nearest (for hedges). */
@@ -110,6 +116,10 @@ export class MapView {
   private readonly rotors = new Container();
   private readonly spinning = new Map<Sprite, number>();
   private readonly wildlife = new Graphics();
+  /** The valley's animals (E4) and a festival's props, as sprites. */
+  private readonly animalLayer = new Container();
+  private actors: { actor: Actor; sprite: Sprite }[] = [];
+  private props: Prop[] = [];
   private readonly overFx = new Container();
   private readonly overlay = new Graphics();
   /** The edge the hedge tool aims at. */
@@ -150,6 +160,7 @@ export class MapView {
       this.walks,
       this.marksOver,
       this.wildlife,
+      this.animalLayer,
       this.overFx,
       this.overlay,
       this.edgeCursor,
@@ -261,7 +272,7 @@ export class MapView {
     }
     this.state = state;
     this.drawBuildings(state);
-    const seasonSignature = `${signature}|${state.turn}|${Object.keys(state.buildings).length}|${state.harmony}`;
+    const seasonSignature = `${signature}|${state.turn}|${Object.keys(state.buildings).length}|${state.harmony}|${state.wildlife.join(',')}|${JSON.stringify(state.festivals)}`;
     if (seasonSignature !== this.seasonSignature) {
       this.seasonSignature = seasonSignature;
       // Hand-made tiles have their own seasons' look: the procedural blossom and snow skip them.
@@ -273,6 +284,10 @@ export class MapView {
       );
       this.ground.updateCacheTexture();
       this.animals = wildlifeFor(this.content, state);
+      // With wildlife on, the valley's own animals take the place of the stand-in deer and otters.
+      if (wildlifeOf(effectiveContent(this.content, state)).length > 0)
+        this.animals = { ...this.animals, deer: [], otters: [] };
+      this.placeAnimals(state);
       this.ambient = ambientFor(this.content, state);
       this.drawWildlife();
     }
@@ -398,6 +413,9 @@ export class MapView {
     birds: boolean;
     deer: number;
     otters: number;
+    /** The valley's own animals on screen (E4), by kind, and a festival's props. */
+    animals: Record<string, number>;
+    props: Record<string, number>;
     butterflies: number;
     bees: number;
     smoke: number;
@@ -411,6 +429,8 @@ export class MapView {
       birds: this.animals.birds,
       deer: this.animals.deer.length,
       otters: this.animals.otters.length,
+      animals: count(this.actors.map((a) => a.actor.kind)),
+      props: count(this.props.map((p) => p.kind)),
       butterflies: a?.butterflies.length ?? 0,
       bees: a?.bees.length ?? 0,
       smoke: a?.smoke.length ?? 0,
@@ -420,7 +440,59 @@ export class MapView {
     };
   }
 
+  /** Sprites for the animals living in the valley and the festival's props. */
+  private placeAnimals(state: RunState): void {
+    for (const child of this.animalLayer.removeChildren()) child.destroy();
+    const k = artScale() * SHOW_SCALE;
+    // The run's own rules: wildlife comes with the water system, a run option.
+    const rules = effectiveContent(this.content, state);
+    this.props = festivalProps(rules, state);
+    for (const p of this.props) {
+      const tex = propTexture(
+        p.kind === 'lantern' ? (p.lit ? 'lantern.lit' : 'lantern') : 'bunting',
+      );
+      if (!tex) continue;
+      const s = new Sprite(tex);
+      s.position.set(p.at.x, p.at.y);
+      if (p.kind === 'bunting' && p.to) {
+        // The string runs from its left peg (8, 22) to its right (120, 22), in the 128 px frame.
+        s.anchor.set(8 / 128, 22 / 128);
+        const span = (112 / 128) * tex.width;
+        s.scale.set(Math.hypot(p.to.x - p.at.x, p.to.y - p.at.y) / span, k);
+        s.rotation = Math.atan2(p.to.y - p.at.y, p.to.x - p.at.x);
+      } else {
+        s.anchor.set(0.5, 8 / 128);
+        s.scale.set(k);
+      }
+      this.animalLayer.addChild(s);
+    }
+    this.actors = [];
+    for (const actor of wildlifeActors(rules, state)) {
+      const tex = wildlifeTexture(poseAt(actor, 0, true).frame, state.season);
+      if (!tex) continue;
+      const sprite = new Sprite(tex);
+      // Bottom centre (64, 120), where it meets the ground or water; the bees at their centre.
+      sprite.anchor.set(0.5, actor.kind === 'wildBees' ? 0.5 : 120 / 128);
+      this.animalLayer.addChild(sprite);
+      this.actors.push({ actor, sprite });
+    }
+    this.moveAnimals();
+  }
+
+  private moveAnimals(): void {
+    const season = this.state?.season ?? 'spring';
+    const k = artScale() * SHOW_SCALE;
+    for (const { actor, sprite } of this.actors) {
+      const pose = poseAt(actor, this.clock, this.reducedMotion);
+      const tex = wildlifeTexture(pose.frame, season);
+      if (tex && sprite.texture !== tex) sprite.texture = tex;
+      sprite.position.set(pose.x, pose.y);
+      sprite.scale.set(pose.flip ? -k : k, k);
+    }
+  }
+
   private drawWildlife(): void {
+    this.moveAnimals();
     const g = this.wildlife.clear();
     const { birds, deer, otters } = this.animals;
     const still = this.reducedMotion;
@@ -966,4 +1038,17 @@ function nearestSide(h: Hex, p: Point): number {
     }
   });
   return best;
+}
+
+/**
+ * Animals and festival props are drawn half as big again as the tile scale
+ * they were made at, so they can be seen at the usual zoom (a deer at tile
+ * scale is a quarter of a tile long).
+ */
+const SHOW_SCALE = 1.5;
+
+function count(kinds: string[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const k of kinds) out[k] = (out[k] ?? 0) + 1;
+  return out;
 }

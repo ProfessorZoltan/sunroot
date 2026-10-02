@@ -1061,6 +1061,102 @@ export const ProgressionSchema = z
   .strict();
 export type Progression = z.infer<typeof ProgressionSchema>;
 
+/**
+ * Wildlife (EXPANSION.md, E4): an animal arrives at the start of a season once
+ * Harmony is at its threshold and its habitat is on the map, and leaves when
+ * either is gone. What it does depends only on its habitat: the animals moving
+ * on screen are for show.
+ */
+const HabitatSchema = z.discriminatedUnion('kind', [
+  /**
+   * Tiles of these types: without a building (`wild`), beside one of these
+   * buildings, and in connected groups of at least `minGroup` (each group a herd).
+   */
+  z
+    .object({
+      kind: z.literal('tiles'),
+      tiles: z.array(TileTypeSchema).min(1),
+      wild: z.boolean().default(false),
+      nextToBuildings: z.array(z.string()).optional(),
+      minGroup: int.min(1).default(1),
+    })
+    .strict(),
+  /** One of these buildings, beside one of these tiles (the beavers' weir by woodland). */
+  z
+    .object({
+      kind: z.literal('building'),
+      buildings: z.array(z.string()).min(1),
+      nextToTiles: z.array(TileTypeSchema).optional(),
+    })
+    .strict(),
+]);
+export type Habitat = z.infer<typeof HabitatSchema>;
+
+const WildlifeEffectSchema = z.discriminatedUnion('kind', [
+  /** These buildings, next to `count`+ tiles of these types, make more food in these seasons. */
+  z
+    .object({
+      kind: z.literal('nextToTiles'),
+      buildings: z.array(z.string()).min(1),
+      tiles: z.array(TileTypeSchema).min(1),
+      count: int.min(1),
+      seasons: z.array(z.enum(SEASONS)).min(1),
+      food: int.min(1),
+    })
+    .strict(),
+  /** These buildings, within `range` tiles of the habitat, make more food when they make any. */
+  z
+    .object({
+      kind: z.literal('nearHabitat'),
+      buildings: z.array(z.string()).min(1),
+      range: int.min(1),
+      food: int.min(1),
+    })
+    .strict(),
+  /** Their arrival is what an evolution waits for (beavers and the Beaver Dam). */
+  z.object({ kind: z.literal('evolution'), combo: z.string() }).strict(),
+  /** Wellbeing every season for each herd (each group of habitat). */
+  z.object({ kind: z.literal('wellbeing'), perHerd: int.min(1) }).strict(),
+]);
+export type WildlifeEffect = z.infer<typeof WildlifeEffectSchema>;
+
+export const WildlifeSchema = z
+  .object({
+    ...CardText,
+    /** The Harmony they arrive at, and leave below. */
+    harmony: int.min(1),
+    habitat: HabitatSchema,
+    effect: WildlifeEffectSchema,
+    /** They come with the water system (EXPANSION.md). */
+    requiresWater: z.boolean().default(true),
+  })
+  .strict();
+export type Wildlife = z.infer<typeof WildlifeSchema>;
+
+/**
+ * A festival (EXPANSION.md, E4): an optional, cheap choice, once a year each,
+ * held in its season. Its cost is paid when chosen; its reward comes as the
+ * season ends.
+ */
+export const FestivalSchema = z
+  .object({
+    ...CardText,
+    season: z.enum(SEASONS),
+    cost: z.partialRecord(ResourceSchema, int.min(1)),
+    wellbeing: int.min(1),
+    /** The wellbeing only if no night of the season ran short (Lantern Night). */
+    needsNightPowered: z.boolean().default(false),
+    /** Silt reaches this many rings of tiles beyond the flood (Flood Fair). */
+    siltRings: nonNeg.default(0),
+    /** Free draft rerolls it gives (Harvest Festival). */
+    freeRerolls: nonNeg.default(0),
+    /** The valley's animals come out on screen (Lantern Night). */
+    showsWildlife: z.boolean().default(false),
+    requiresWater: z.boolean().default(true),
+  })
+  .strict();
+export type Festival = z.infer<typeof FestivalSchema>;
+
 export const ContentSchema = z
   .object({
     id: z.string(),
@@ -1085,6 +1181,8 @@ export const ContentSchema = z
     districts: z.array(DistrictSchema).default([]),
     landmarks: z.array(LandmarkSchema).default([]),
     projects: z.array(ProjectSchema).default([]),
+    wildlife: z.array(WildlifeSchema).default([]),
+    festivals: z.array(FestivalSchema).default([]),
     twists: z.array(TwistSchema).default([]),
     regions: z.array(RegionSchema).default([]),
     tempest: TempestSchema.default({ seedsPerLevel: 0, levels: [] }),

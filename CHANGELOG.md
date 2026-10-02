@@ -1,5 +1,19 @@
 # Changelog
 
+## Wildlife and festivals
+
+- From run 2 (with water), **animals come to the valley** as Harmony rises, if their habitat is
+  there, and leave if either goes: **wild bees** at Harmony 20 (summer farms next to 2 meadows +1
+  food), **otters** at 40 by a reed bed on the river (fish ponds and paddies nearby +1 food),
+  **beavers** at 50 at a weir by woodland (they make the Beaver Dam) and **deer** at 70 in woods of
+  4 or more tiles (+1 wellbeing a season per herd). They move about their habitat on the map, and
+  the run overview says who is here and what would bring the rest.
+- **Festivals**, once a year each, from a card in the right column in their season: the **Flood
+  Fair** (spring, 5 materials: +3 wellbeing, silt one tile beyond the flood), the **Harvest
+  Festival** (autumn, 10 food: +5 wellbeing and a free reroll) and **Lantern Night** (winter, 5
+  materials: +3 wellbeing if no night runs short, lanterns at the homes, and the animals come out).
+  Bunting goes up while one is held; calling it off gives the cost back.
+
 ## Heat kept close, earned
 
 - From run 4 (and in a Long Winter) the heat layer's score line is earned instead of flat: 1 point

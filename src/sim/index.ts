@@ -112,3 +112,11 @@ export {
 export { demolishCheck, type DemolishCheck } from './demolish';
 export { energyLedger, SHORT, type EnergyLedger } from './energyLedger';
 export { finishedProjects, projectBlocked } from './projects';
+export {
+  animals,
+  festivalProblem,
+  festivals,
+  festivalThisSeason,
+  habitatOf,
+  welcomes,
+} from './wildlife';

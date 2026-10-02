@@ -13,8 +13,12 @@
  * - `art.json`: the frame's geometry, the rotors' pivots, and which buildings
  *   are drawn with their own tile (their side band is filled in).
  *
- * It reads `tiles/` and `buildings/`; wildlife, festivals and wonders wait for
- * the milestones that use them (E4, E5).
+ * - wildlife and festival props (`wildlife/`, `festivals/`), off the standard
+ *   frame, at half size like the rest (a 128 px frame becomes 64);
+ * - festival cards (`id.card.png`) as WebP at full size, for the interface only.
+ *
+ * It reads `tiles/`, `buildings/`, `wildlife/` and `festivals/`; the wonders
+ * wait for the milestone that uses them (E5).
  *
  *   npx tsx scripts/import-art.ts
  */
@@ -70,7 +74,8 @@ try {
     `data:image/png;base64,${readFileSync(join(IN, f)).toString('base64')}`;
 
   rmSync(OUT, { recursive: true, force: true });
-  for (const dir of ['tiles', 'buildings', 'icons']) mkdirSync(join(OUT, dir), { recursive: true });
+  for (const dir of ['tiles', 'buildings', 'icons', 'wildlife', 'festivals'])
+    mkdirSync(join(OUT, dir), { recursive: true });
   const write = (path: string, dataUrl: string) =>
     writeFileSync(join(OUT, path), Buffer.from(dataUrl.split(',')[1]!, 'base64'));
 
@@ -206,6 +211,36 @@ try {
     if (result.hasGround) ground.push(id);
   }
 
+  // Wildlife and festival props at half size; festival cards as WebP, for the interface.
+  const animals = new Set(['wildBees', 'otter', 'beaver', 'deer']);
+  const festivals = new Set([...content.festivals.map((f) => f.id), 'bunting', 'lantern']);
+  let extras = 0;
+  for (const dir of ['wildlife', 'festivals'] as const) {
+    for (const file of readdirSync(join(IN, dir)).filter((f) => f.endsWith('.png'))) {
+      const id = idOf(file);
+      if (!(dir === 'wildlife' ? animals : festivals).has(id))
+        throw new Error(`not a known ${dir} id: ${dir}/${file}`);
+      const card = file.endsWith('.card.png');
+      const out = await page.evaluate(
+        async ({ src, scale, card }) => {
+          const img = new Image();
+          img.src = src;
+          await img.decode();
+          const c = document.createElement('canvas');
+          c.width = Math.round(img.width * scale);
+          c.height = Math.round(img.height * scale);
+          const g = c.getContext('2d')!;
+          g.imageSmoothingQuality = 'high';
+          g.drawImage(img, 0, 0, c.width, c.height);
+          return card ? c.toDataURL('image/webp', 0.82) : c.toDataURL('image/png');
+        },
+        { src: read(join(dir, file)), scale: card ? 1 : SCALE, card },
+      );
+      write(join(dir, card ? file.replace(/\.png$/, '.webp') : file), out);
+      extras++;
+    }
+  }
+
   const given = Object.fromEntries(
     manifest.assets
       .filter((a) => a.rotation_hub && !a.file.includes('.winter'))
@@ -234,7 +269,7 @@ try {
   };
   writeFileSync(join(OUT, 'art.json'), `${JSON.stringify(art, null, 2)}\n`);
   console.log(
-    `${files.length} files into ${OUT}; drawn with their own tile: ${ground.join(', ')}; rotors: ${Object.keys(pivots).join(', ')}`,
+    `${files.length + extras} files into ${OUT}; drawn with their own tile: ${ground.join(', ')}; rotors: ${Object.keys(pivots).join(', ')}`,
   );
 } finally {
   await browser.close();

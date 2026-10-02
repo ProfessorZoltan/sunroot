@@ -33,6 +33,28 @@ describe('hand-made art', () => {
     }
   });
 
+  it('has every animal frame, and the festival cards and props (E4)', () => {
+    const frames = [
+      'wildBees.1',
+      'wildBees.2',
+      'wildBees.3',
+      'otter.swim.1',
+      'otter.swim.2',
+      'otter.rest',
+      'beaver.swim.1',
+      'beaver.swim.2',
+      'beaver.carry',
+      ...['walk.1', 'walk.2', 'walk.3', 'walk.4', 'graze.1', 'graze.2'].flatMap((f) => [
+        `deer.${f}`,
+        `deer.${f}.winter`,
+      ]),
+    ];
+    for (const f of frames) expect(art(`wildlife/${f}.png`), f).toBe(true);
+    for (const f of content.festivals) expect(art(`festivals/${f.id}.card.webp`), f.id).toBe(true);
+    for (const f of ['bunting', 'lantern', 'lantern.lit'])
+      expect(art(`festivals/${f}.png`), f).toBe(true);
+  });
+
   it('covers every building in summer and winter, with an icon', () => {
     // Asked for in ART-EXPANSION.md; drawn procedurally until it comes.
     const awaiting = ['well'];

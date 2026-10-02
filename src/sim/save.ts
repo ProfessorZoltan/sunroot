@@ -43,6 +43,9 @@ const ADDED_FIELDS: Partial<RunState> = {
   evolutionOffer: [],
   hedges: [],
   everCold: [],
+  wildlife: [],
+  festivals: {},
+  freeRerolls: 0,
 };
 
 export type ReadSave = { ok: true; save: SaveFile } | { ok: false; error: string };

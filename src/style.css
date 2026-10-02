@@ -1275,6 +1275,39 @@ ul.flow li {
   fill: var(--bad);
 }
 
+/* ---------------------------------------------------------------- festivals and wildlife */
+
+.festival-card {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 768 / 480;
+  max-height: 150px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin: 6px 0;
+  border: 1.5px solid var(--line);
+}
+.festival.held .festival-card {
+  border-color: var(--gold);
+}
+.festival-row {
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+  gap: 8px;
+}
+ul.wildlife-list {
+  gap: 8px;
+}
+.wildlife-list li {
+  padding-left: 8px;
+  border-left: 3px solid var(--line);
+}
+.wildlife-list li.here {
+  border-left-color: var(--gold);
+}
+
 /* ---------------------------------------------------------------- projects */
 
 ul.projects {

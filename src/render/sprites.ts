@@ -152,3 +152,15 @@ export function rotorSprite(id: string, texture: Texture, c: Point): Sprite | nu
   );
   return s;
 }
+
+/** A frame of an animal's art (`deer.walk.2`), in winter dress if it has one. */
+export function wildlifeTexture(frame: string, season: Season): Texture | null {
+  return season === 'winter'
+    ? pick(`wildlife/${frame}.winter.png`, `wildlife/${frame}.png`)
+    : pick(`wildlife/${frame}.png`);
+}
+
+/** A festival prop: `bunting`, `lantern` or `lantern.lit`. */
+export function propTexture(name: string): Texture | null {
+  return pick(`festivals/${name}.png`);
+}

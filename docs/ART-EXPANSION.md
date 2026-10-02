@@ -11,7 +11,7 @@ Anything without art falls back to a procedural drawing, so nothing here blocks 
 **Delivered (E2 and E3):** every building, evolved form, channel and hedgerow piece and the Sluice
 Gate are in `art/incoming/buildings/`, tiles in `art/incoming/tiles/`, and in the game. The Singing
 Spire's rotor pivot, (257, 195), is measured by the importer from its hub, as the manifest has none.
-The wildlife, festival and wonder art waits in its own folders for E4 and E5.
+The wildlife and festival art is in the game (E4): the importer brings the animals and props at half size into `src/art/wildlife/` and `src/art/festivals/`, and the festival cards as WebP. The game draws animals and props half as big again as tile scale, so they read at the usual zoom. The wonder art waits in its folder for E5.
 
 ## Order
 

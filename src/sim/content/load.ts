@@ -140,6 +140,34 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     data.tempest.levels.map((l) => l.id),
     'Tempest level',
   );
+  unique(
+    data.wildlife.map((a) => a.id),
+    'animal',
+  );
+  unique(
+    data.festivals.map((f) => f.id),
+    'festival',
+  );
+  for (const a of data.wildlife) {
+    const where = `wildlife ${a.id}`;
+    const h = a.habitat;
+    (h.kind === 'tiles' ? (h.nextToBuildings ?? []) : h.buildings).forEach((id) =>
+      known(id, where),
+    );
+    const e = a.effect;
+    if (e.kind === 'nextToTiles' || e.kind === 'nearHabitat')
+      e.buildings.forEach((id) => known(id, where));
+    if (e.kind === 'evolution') {
+      // The animals are what the evolution waits for: it needs the same Harmony.
+      const combo = data.combos.find((c) => c.id === e.combo);
+      if (!combo || combo.layer !== 'evolution' || combo.when.kind !== 'nextTo')
+        problems.push(`${where} names ${e.combo}, not an evolution by neighbours`);
+      else if (combo.when.minHarmony !== a.harmony)
+        problems.push(
+          `${where} arrives at Harmony ${a.harmony} but ${e.combo} needs ${combo.when.minHarmony}`,
+        );
+    }
+  }
   const { harmony } = data.rules;
   if (!harmony.tiers.every((t, i, a) => i === 0 || t.min > a[i - 1]!.min)) {
     problems.push('rules.harmony.tiers must be sorted by min');
