@@ -362,6 +362,11 @@ function playOut(state: RunState): RunState {
       s = ok(applyCommand(content, s, { type: 'pickVision', vision: s.visionOffer[0]! }));
     if (s.charterOffer.length > 0)
       s = ok(applyCommand(content, s, { type: 'pickCharter', charter: s.charterOffer[0]! }));
+    // A branching evolution: the first choice, as the balance runner takes.
+    for (const o of s.evolutionOffer)
+      s = ok(
+        applyCommand(content, s, { type: 'chooseEvolution', uid: o.uid, combo: o.options[0]! }),
+      );
     s = ok(applyCommand(content, s, { type: 'endSeason' }));
   }
   return s;

@@ -76,3 +76,16 @@ there to be found by a player: every one triggers in a unit test.
    literal 40% fails only for the balanced bot's bathhouse habit. DECISIONS.md Q19 asks.
 2. **Playtest the new cards before tuning them.** The bots find them slightly weak, but bots don't
    chase combos, and the new cards are mostly combo pieces.
+
+## After hedgerows on edges
+
+The same 90 runs with hedges along tile edges (DECISIONS.md, Hedgerows on edges), the Hedgerow
+put back in the bots' draft for the check. Two bots now plant a hedge by anything storms could
+damage, so it is built in 67% of all runs and 69% of winning ones; like the Bathhouse, that is
+their habit, not the card's strength. No bot joins 4 hedges into a Windbreak.
+
+| Left out of the draft | Heartwood | Median score | Collapsed | Source               |
+| --------------------- | --------- | ------------ | --------- | -------------------- |
+| Nothing               | 18%       | 335          | 0%        | `scripts/e3-gate.ts` |
+| Hedgerow              | 18%       | 333          | 1%        | `scripts/e3-gate.ts` |
+| All five              | 16%       | 317          | 0%        | `scripts/e3-gate.ts` |

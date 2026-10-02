@@ -5,7 +5,6 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { RunState } from '../src/sim';
-import { stormExposed } from '../src/sim/queries';
 import { content, endSeason, place, scenario, uidAt, withWater } from './helpers';
 
 const W = withWater({ campChannel: 0 });
@@ -190,24 +189,6 @@ describe('Water Ladder', () => {
     s = end(s);
     expect(hits(s, 'waterLadder')).toHaveLength(1);
     for (const col of [1, 2, 3]) expect(math(s, col, 0)).toContain('+1 food from the Water Ladder');
-  });
-});
-
-describe('Windbreak', () => {
-  // Hedgerows along the top row; a canopy on the hills 2 rows down.
-  const HEDGES = ['~ f , , , , ,', '~ f , , , , ,', '~ f ^ ^ ^ ^ ^', '~ f , C , , ,'];
-
-  it('4 hedgerows in a line shelter buildings within 2 tiles from storms', () => {
-    let s = build(start('spring', HEDGES), 'solarCanopy', [[3, 2]]);
-    s = build(s, 'hedgerow', [
-      [2, 0],
-      [3, 0],
-      [4, 0],
-    ]);
-    const canopy = () => s.buildings[uidAt(s, 3, 2)]!;
-    expect(stormExposed(W, s, canopy())).toBe(true);
-    s = build(s, 'hedgerow', [[5, 0]]);
-    expect(stormExposed(W, s, canopy())).toBe(false);
   });
 });
 

@@ -152,6 +152,8 @@ export interface RunState {
    * evolutions it can take. The player picks one before the season ends.
    */
   evolutionOffer: { uid: string; options: string[] }[];
+  /** Hedges along tile edges (src/sim/edges.ts), by edge key. */
+  hedges: string[];
   /** Almanac hints bought with knowledge this run. */
   hints: string[];
   /** Visions on offer at the start (one must be chosen), the chosen one, and when it was achieved. */
@@ -200,6 +202,8 @@ export interface ComboHit {
   combo: string;
   members: string[];
   tiles?: string[];
+  /** Edge keys, for a formation of hedges (the Windbreak). */
+  edges?: string[];
 }
 
 export type SeasonSnapshot = Omit<RunState, 'seasonStart' | 'seasonCommands'>;
@@ -213,6 +217,9 @@ export type Command =
   /** Coppices a woodland tile (Coppice Wood); `stopCoppice` lets it grow back. */
   | { type: 'coppice'; at: Hex }
   | { type: 'stopCoppice'; uid: string }
+  /** Plants a hedge along the edge between two tiles side by side, or clears one. */
+  | { type: 'plantHedge'; a: Hex; b: Hex }
+  | { type: 'removeHedge'; a: Hex; b: Hex }
   | { type: 'buyHint'; combo: string }
   | { type: 'rerollDraft' }
   | { type: 'buyExtraCard' }

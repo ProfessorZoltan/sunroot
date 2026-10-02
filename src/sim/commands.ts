@@ -9,6 +9,7 @@ import { projectBlocked } from './projects';
 import { drawCards, isTuning } from './draft';
 import { hexKey } from './hex';
 import { canPlace } from './placement';
+import { edgeBuilding, edgeKey, hedgeProblem } from './edges';
 import { coppiceCombo, coppiceProblem, evolve, hintable, placementEvolution } from './combos';
 import { effectiveContent } from './content/modifiers';
 import {
@@ -111,6 +112,23 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       // It grows back: woodland again after the regrowth's seasons.
       b.type = combo.when.regrowth;
       b.builtTurn = s.turn;
+      return null;
+    }
+    case 'plantHedge': {
+      const problem = hedgeProblem(content, s, command.a, command.b);
+      if (problem) return problem;
+      const def = edgeBuilding(content)!;
+      if (!s.unlocked.includes(def.id)) return `${def.name} is not unlocked`;
+      if (s.stores.materials < def.cost) return `${def.name} costs ${def.cost} materials`;
+      s.stores.materials -= def.cost;
+      flow(s.spent, 'materials', 'used', `Building: ${def.name}`, def.cost);
+      s.hedges = [...s.hedges, edgeKey(command.a, command.b)].sort();
+      return null;
+    }
+    case 'removeHedge': {
+      const key = edgeKey(command.a, command.b);
+      if (!s.hedges.includes(key)) return 'there is no hedge there';
+      s.hedges = s.hedges.filter((e) => e !== key);
       return null;
     }
     case 'buyHint': {

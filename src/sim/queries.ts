@@ -1,5 +1,6 @@
 /** Read-only helpers over run state shared by commands and season resolution. */
 import { formationHarmony, shelteredByFormation } from './combos';
+import { edgeBuilding, hedged } from './edges';
 import { finishedProjects } from './projects';
 import type { Content } from './content/load';
 import type { BuildingDef, Season, TileType } from './content/schema';
@@ -91,7 +92,9 @@ export function stormExposed(content: Content, state: RunState, b: BuildingState
   const type = tileAt(state, b.at)?.type;
   if (!type || !content.events.storm.exposedOn.includes(type)) return false;
   if (neighborTiles(state, b.at).some((t) => t.type === 'woodland')) return false;
-  // A hedgerow next to it breaks the wind, and a Windbreak further.
+  // A hedgerow next to it breaks the wind: one along an edge of its tile, or a hedgerow building
+  // beside it; a Windbreak further.
+  if (hedged(state, b.at)) return false;
   if (neighborBuildings(state, b).some((n) => defOf(content, n).sheltersNeighbors)) return false;
   return !shelteredByFormation(content, state, b);
 }
@@ -186,6 +189,14 @@ export function harmonyLines(content: Content, state: RunState): HarmonyLine[] {
     }
   }
   for (const [name, e] of byBuilding) lines.push({ label: `${e.n} ${name}`, amount: e.amount });
+  // Hedges along tile edges: 1 Harmony for every few segments.
+  const hedge = edgeBuilding(content);
+  const segments = state.hedges.length;
+  if (hedge?.edge && segments >= hedge.edge.harmonyPer)
+    lines.push({
+      label: `${segments} hedge segment${segments > 1 ? 's' : ''}`,
+      amount: Math.floor(segments / hedge.edge.harmonyPer),
+    });
   for (const [name, e] of penalties) lines.push({ label: `${e.n} ${name}`, amount: e.amount });
   lines.push(...formationHarmony(content, state));
   if (harmony.bonus !== 0) lines.push({ label: 'Root City', amount: harmony.bonus });

@@ -28,6 +28,8 @@ export function canPlace(
         ? `${def.name} joins when energy can no longer heat buildings directly`
         : `${def.name} needs the water system`,
     };
+  if (def.edge)
+    return { ok: false, reason: `${def.name} is planted along the edge between two tiles` };
   const tile = tileAt(state, at);
   if (!tile) return { ok: false, reason: 'outside the valley' };
   const occupant = occupancy(state).get(hexKey(at));

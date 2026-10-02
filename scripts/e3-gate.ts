@@ -19,6 +19,9 @@ const N = Number(process.argv[2] ?? 30);
 const raw = structuredClone(willowReach);
 raw.rules.water.enabled = true;
 raw.rules.commute.enabled = process.env.WALKS !== 'off';
+// Hedgerows run along edges (DECISIONS.md, Hedgerows on edges); out of the game's draft until the
+// map can show them, but in the bots' here.
+(raw.buildings.find((b) => b.id === 'hedgerow') as { draftable?: boolean }).draftable = true;
 const content = loadContent(raw);
 
 const CARDS = ['reedBed', 'bathhouse', 'riceFishPaddy', 'mushroomCellar', 'hedgerow'];

@@ -76,6 +76,7 @@ export function createRun(
     charters: [],
     charterOffer: [],
     evolutionOffer: [],
+    hedges: [],
     hints: [],
     // Visions draw from their own stream, so turning them on never changes the run itself.
     visionOffer: opts.visions

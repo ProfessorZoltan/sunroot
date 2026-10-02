@@ -5,7 +5,6 @@
  */
 import { describe, expect, it } from 'vitest';
 import { canPlace, energyLedger, harmonyLines, type RunState, type WaterReport } from '../src/sim';
-import { stormExposed } from '../src/sim/queries';
 import { at, content, endSeason, place, scenario, uidAt, withWater } from './helpers';
 
 const W = withWater({ campChannel: 0 });
@@ -215,39 +214,5 @@ describe('Mushroom Cellar', () => {
     expect(yieldOf(s, 4, 0, 'food')).toBe(3);
     expect(yieldOf(s, 2, 2, 'food')).toBe(3);
     expect(yieldOf(s, 5, 3, 'food')).toBe(2);
-  });
-});
-
-describe('Hedgerow', () => {
-  // Woodland at (5,0), away from the hill at (2,0).
-  const HILLS = ['~ f ^ , , W', '~ f , ^ , ,', '~ f , C , ,'];
-  const hills = () => scenario(HILLS, { content: W, citizens: 30, stores: { food: 500 } });
-
-  it('stands only on scrub or meadow', () => {
-    const s = hills();
-    expect(canPlace(W, s, 'hedgerow', at(2, 1)).ok).toBe(true);
-    expect(canPlace(W, s, 'hedgerow', at(2, 0)).ok).toBe(false); // hill
-    expect(canPlace(W, s, 'hedgerow', at(5, 0)).ok).toBe(false); // woodland
-  });
-
-  it('counts its scrub tile as meadow for Harmony, without changing the tile', () => {
-    const s0 = hills();
-    const s = build(s0, 'hedgerow', [[2, 1]]);
-    const count = (x: RunState, type: string) =>
-      Number(
-        harmonyLines(W, x)
-          .find((l) => l.label.includes(` ${type} tiles`))
-          ?.label.split(' ')[0] ?? 0,
-      );
-    expect(count(s, 'meadow')).toBe(count(s0, 'meadow') + 1);
-    expect(s.map.tiles[`${at(2, 1).q},${at(2, 1).r}`]?.type).toBe('scrub');
-  });
-
-  it('shelters the buildings next to it from storms', () => {
-    let s = build(hills(), 'solarCanopy', [[2, 0]]);
-    const canopy = () => s.buildings[uidAt(s, 2, 0)]!;
-    expect(stormExposed(W, s, canopy())).toBe(true);
-    s = build(s, 'hedgerow', [[2, 1]]);
-    expect(stormExposed(W, s, canopy())).toBe(false);
   });
 });

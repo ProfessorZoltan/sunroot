@@ -29,6 +29,7 @@ import { defOf, neighborBuildings, neighborTiles, occupancy, tileAt } from './qu
 import { addYield, explain, type FormationEffect, type SeasonContext } from './season/context';
 import type { BuildingState, ComboHit, RunState } from './types';
 import { available, waterOn } from './water';
+import { edgeTiles, hedgeRuns } from './edges';
 
 type ComboOf<L extends Combo['layer']> = Extract<Combo, { layer: L }>;
 
@@ -132,6 +133,9 @@ export function findFormations(
         seen.add(key);
         hits.push({ combo: combo.id, members: members.map((m) => m.uid) });
       }
+    } else if (shape.kind === 'hedgeRun') {
+      for (const run of hedgeRuns(state))
+        if (run.length >= shape.length) hits.push({ combo: combo.id, members: [], edges: run });
     } else {
       const strip = findStrip(state, shape.tiles, shape.gaps);
       if (strip) hits.push({ combo: combo.id, members: [], tiles: strip });
@@ -278,8 +282,12 @@ export function shelteredByFormation(content: Content, state: RunState, b: Build
   if (shelters.length === 0) return false;
   for (const hit of findFormations(content, state, shelters)) {
     const radius = (content.comboById[hit.combo] as ComboOf<'formation'>).effect.shelterRadius;
-    if (hit.members.some((uid) => hexDistance(state.buildings[uid]!.at, b.at) <= radius))
-      return true;
+    // Its buildings, or for a run of hedges the tiles along it.
+    const at = [
+      ...hit.members.map((uid) => state.buildings[uid]!.at),
+      ...(hit.edges ?? []).flatMap(edgeTiles),
+    ];
+    if (at.some((h) => hexDistance(h, b.at) <= radius)) return true;
   }
   return false;
 }

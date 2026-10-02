@@ -783,13 +783,13 @@
       "workers": 0,
       "kind": "nature",
       "requiresWater": true,
-      "floodTolerant": true,
-      "stormProof": true,
       "placement": {
-        "tiles": ["scrub", "meadow"]
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "ruin"]
       },
-      "harmonyAsTile": "meadow",
-      "sheltersNeighbors": true
+      "edge": {
+        "harmonyPer": 2
+      },
+      "draftable": false
     },
     {
       "id": "solarCanopy",
@@ -1559,13 +1559,13 @@
       "name": "Windbreak",
       "requiresWater": true,
       "shape": {
-        "kind": "line",
-        "sequence": ["hedgerow", "hedgerow", "hedgerow", "hedgerow"]
+        "kind": "hedgeRun",
+        "length": 4
       },
       "effect": {
         "shelterRadius": 2
       },
-      "text": "4 hedgerows in an unbroken line: storms can't damage any building within 2 tiles of them, on any side.",
+      "text": "4 hedges joined end to end along the edges between tiles: storms can’t damage any building within 2 tiles of them, on any side.",
       "hint": "A long hedge stops more wind than a short one."
     },
     {

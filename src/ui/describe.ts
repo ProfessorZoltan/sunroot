@@ -6,6 +6,14 @@ const SEASON_LIST = (values: readonly number[]) => values.join(' / ');
 
 export function describeBuilding(content: Content, def: BuildingDef): string[] {
   const lines: string[] = [];
+  // A hedgerow runs along the edges between tiles.
+  if (def.edge) {
+    return [
+      `Planted along the edge between two tiles (not water), ${def.cost} materials a segment.`,
+      'Storms can’t damage the buildings on either side of it.',
+      `1 Harmony for every ${def.edge.harmonyPer} segments.`,
+    ];
+  }
   const where = def.placement.tiles.length >= 6 ? 'any land' : def.placement.tiles.join(' or ');
   const near = def.placement.adjacentTo
     ? `, next to ${[

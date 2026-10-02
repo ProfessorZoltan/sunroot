@@ -11,6 +11,8 @@
 import { hexDistance, hexKey, hexNeighbors, type Hex, type Tile } from '../sim';
 import { pick, nextFloat, nextInt } from '../sim/rng';
 import { siteScore, type Turn } from './turn';
+import { edgeBuilding } from '../sim/edges';
+import { stormExposed } from '../sim/queries';
 
 /**
  * How a bot handles water (EXPANSION.md), when the water system is on. The
@@ -216,6 +218,23 @@ function tendHeat(turn: Turn, profile: Profile): void {
   }
 }
 
+/**
+ * Hedges along an edge of each building storms could damage (each shelters the tiles on both
+ * its sides), until the valley has `max` segments.
+ */
+function plantHedges(turn: Turn, profile: Profile, max: number): void {
+  const def = edgeBuilding(turn.rules);
+  if (!def || !turn.unlocked(def.id)) return;
+  for (const uid of turn.state.priority) {
+    if (turn.state.hedges.length >= max) return;
+    if (turn.state.stores.materials < def.cost + profile.reserve) return;
+    const b = turn.state.buildings[uid];
+    if (!b || !stormExposed(turn.rules, turn.state, b)) continue;
+    for (const n of hexNeighbors(b.at))
+      if (turn.apply({ type: 'plantHedge', a: b.at, b: n })) break;
+  }
+}
+
 /** The shared needs-first play of the non-random bots. */
 function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): void {
   turn.pick(
@@ -368,9 +387,9 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       const options =
         spare >= 2 ? ['workshop', 'kiln'] : ['riverWheel', 'windSpire', 'solarCanopy'];
       if (growHousing(turn)) options.unshift('cottage');
-      // Hedgerows by the hill generators storms can reach.
-      if (turn.count('hedgerow') < 4) options.push('hedgerow');
       spend(turn, profile, options, 2);
+      // Hedges by the hill generators storms can reach.
+      plantHedges(turn, profile, 6);
     },
   },
   balanced: {
@@ -400,8 +419,9 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       // A bathhouse for wellbeing, and a reed bed to clean what it lets out.
       if (turn.state.citizens >= 12 && turn.count('bathhouse') < 1) options.unshift('bathhouse');
       if (turn.count('reedBed') < turn.count('bathhouse')) options.unshift('reedBed');
-      if (turn.count('hedgerow') < 2) options.push('hedgerow');
       spend(turn, profile, options, 2);
+      // Hedges to shelter what storms could damage.
+      plantHedges(turn, profile, 4);
       // Spread spare compost on the poorest land.
       while (turn.state.stores.compost >= turn.content.rules.compostPerTileStep) {
         const barren = Object.values(turn.state.map.tiles).find((t) => t.type === 'barren');

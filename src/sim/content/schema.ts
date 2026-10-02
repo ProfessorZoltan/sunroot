@@ -273,6 +273,15 @@ export const BuildingSchema = z
     harmonyAsTile: TileTypeSchema.optional(),
     /** Storms can't damage the buildings next to it (the Hedgerow). */
     sheltersNeighbors: z.boolean().default(false),
+    /**
+     * Runs along the edges between tiles instead of standing on one (the Hedgerow): planted
+     * between two tiles of `placement.tiles`, it shelters both from storms, and every
+     * `harmonyPer` segments give 1 Harmony.
+     */
+    edge: z
+      .object({ harmonyPer: int.min(1) })
+      .strict()
+      .optional(),
     /** Gone after this many seasons, leaving its tile as it was (a coppice regrowing). */
     revertsAfterSeasons: int.min(1).optional(),
     /**
@@ -744,6 +753,8 @@ export const ComboSchema = z.discriminatedUnion('layer', [
         }),
         /** One building of each of these types, every one touching every other. */
         z.object({ kind: z.literal('cluster'), buildings: z.array(z.string()).min(2).max(3) }),
+        /** An unbroken run of at least `length` hedges along tile edges, joined end to end. */
+        z.object({ kind: z.literal('hedgeRun'), length: int.min(2) }),
         /** Buildings in a straight line, in this order (either direction), on these tiles. */
         z.object({
           kind: z.literal('line'),

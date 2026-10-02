@@ -33,6 +33,21 @@ The wildlife, festival and wonder art waits in its own folders for E4 and E5.
 | Top-face corners, clockwise from the top | (256, 168), (456, 283.47), (456, 463.47), (256, 579), (56, 463.47), (56, 283.47) | `art/incoming/README.md` |
 | Paper side band                          | 32 px, lowest point y 611                                                        | `art/incoming/README.md` |
 
+## Hedgerows on edges (new request)
+
+Hedgerows now run along the **edges between tiles**, not across a tile (DECISIONS.md, Hedgerows on
+edges), so the hub-and-arms hedgerow pieces below no longer fit. Each tile draws the hedges on
+three of its sides; the tile next door draws the other three. Please draw:
+
+| Piece                      | Files                                                 | Notes                                                                                                                                                             | Source       |
+| -------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| Hedge along the east side  | `hedgerow.edge.e.png`, `hedgerow.edge.e.winter.png`   | On the standard frame, centred on the tile's east side, from (456, 283) to (456, 463), as if the tile were there. A hedge about 60 px high, standing on the line. | DECISIONS.md |
+| Hedge along the north-east | `hedgerow.edge.ne.png`, `hedgerow.edge.ne.winter.png` | Along the side from (256, 168) to (456, 283).                                                                                                                     | DECISIONS.md |
+| Hedge along the north-west | `hedgerow.edge.nw.png`, `hedgerow.edge.nw.winter.png` | Along the side from (56, 283) to (256, 168).                                                                                                                      | DECISIONS.md |
+
+The ends should taper or stop at a small shrub, so pieces meeting at a corner (up to three) look
+joined. Winter: bare branches with a few berries, as before.
+
 ## Connecting pieces: Irrigation Channel and Hedgerow
 
 Channels and hedgerows run as paths across tiles, so each is delivered as a **hub** and **six

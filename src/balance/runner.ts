@@ -1,4 +1,5 @@
 /** Plays one run with a bot and records what the balance report needs. */
+import { edgeBuilding } from '../sim/edges';
 import {
   applyCommand,
   createRun,
@@ -164,6 +165,11 @@ export function playRun(
     if (turn.actions === 0) record.idleByEra[era - 1]! += 1;
     for (const c of state.seasonCommands) {
       if (c.type === 'place') record.built[c.building] = (record.built[c.building] ?? 0) + 1;
+      // A hedge segment counts as building the hedgerow.
+      if (c.type === 'plantHedge') {
+        const id = edgeBuilding(content)?.id ?? 'hedgerow';
+        record.built[id] = (record.built[id] ?? 0) + 1;
+      }
     }
 
     state = ok(applyCommand(content, state, { type: 'endSeason' }));

@@ -1,5 +1,15 @@
 # Changelog
 
+## Hedgerows on edges, in the simulation
+
+Built in the simulation only: the map can't show them yet, so the Hedgerow is out of the draft
+until it can. Nothing changes in play.
+
+- A hedge runs along the edge between two tiles (2 materials a segment) and takes no tile.
+- It shelters the buildings on both its sides from storms; every 2 segments give 1 Harmony.
+- The Windbreak is now 4 hedges joined end to end; it shelters everything within 2 tiles.
+- Bots plant hedges beside the buildings storms could damage.
+
 ## Hand-made art for the expansion
 
 - Every Willow Reach v2 building and evolution, the Irrigation Channel and Hedgerow (which now join

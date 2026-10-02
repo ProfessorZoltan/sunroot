@@ -301,16 +301,6 @@ export function siteScore(
       if (shaded) score += 2;
       break;
     }
-    case 'hedgerow': {
-      // Shelter for buildings storms can reach; nothing to shelter, no hedge.
-      const exposed = neighbors.filter(
-        (b) =>
-          !content.byId[b.type]!.stormProof &&
-          content.events.storm.exposedOn.includes(state.map.tiles[hexKey(b.at)]!.type),
-      ).length;
-      score += exposed > 0 ? 3 * exposed : -100;
-      break;
-    }
     case 'apiary':
       score += 3 * touching('floodplainFarm', 'orchard');
       if (touching('windSpire') > 0) score -= 100;
