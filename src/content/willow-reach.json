@@ -175,8 +175,8 @@
       "visionBonus": 40,
       "layers": {
         "water": 12,
-        "commute": 3,
-        "localHeat": 18
+        "commute": 5,
+        "localHeat": 14
       },
       "tiers": [
         {

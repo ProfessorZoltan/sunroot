@@ -362,7 +362,7 @@ interleaved with the systems that already join over the first runs.
 - **Skipping ahead:** experienced players can turn every layer on from the start ("Full valley").
   Tempest levels always play with every layer.
 - **Scores:** each layer a run plays with adds a score line, so the same play earns the same Graft
-  tier: "water to manage" +12, "walks to work" +3 (`rules.score.layers`). Sized on the balanced bot,
+  tier: "water to manage" +12, "walks to work" +5, "heat kept close" +14 (`rules.score.layers`; recalibrated with the cap on tunings, from +3 and +18). Sized on the balanced bot,
   which the tier bands were set on, to keep its Heartwood share (80%) on every rung of the ladder;
   see "Score lines for the layers" below.
 - **Order:** E2 (water on screen) first; commuting and local heat after it, each built headless
@@ -425,8 +425,27 @@ water and walks (run 3 on), with the layers' score lines at 0, then with the cho
 Matching the balanced bot's median would need 6 and 4 points, but leaves its Heartwood share at 70%
 and 63%; matching its Heartwood share needs 12 and 3. The food and energy bots, standing in for
 players who don't plan for water and walks, still score a little less: those are decisions.
-Tempest levels play with every layer, so their scores rise by 15 against the Tempest table above,
-which was measured without them.
+
+**Recalibrated with the cap on tunings** (12 a run, Tunings per run above) and the heat layer, on the
+new tier bands (Heartwood from 375): the lines that bring the balanced bot's Heartwood share back
+to run 1's on every rung are water +12 (unchanged), walks +5 (was +3) and heat +14 (was +18).
+
+| Bot                                                                                               | Case                                 | Median at 0 | Heartwood at 0 | Median with the lines | Heartwood with the lines | Source                           |
+| ------------------------------------------------------------------------------------------------- | ------------------------------------ | ----------- | -------------- | --------------------- | ------------------------ | -------------------------------- |
+| balanced                                                                                          | No layers (run 1)                    | 382         | 75%            | 382                   | 75%                      | `scripts/calibrate-layers.ts 40` |
+| balanced                                                                                          | Water (run 2)                        | 377         | 53%            | 389                   | 75%                      | `scripts/calibrate-layers.ts 40` |
+| balanced                                                                                          | Water and commuting (run 3)          | 378         | 53%            | 395                   | 75%                      | `scripts/calibrate-layers.ts 40` |
+| balanced                                                                                          | Water, commuting and heat (run 4 on) | 359         | 15%            | 390                   | 75%                      | `scripts/calibrate-layers.ts 40` |
+| greedyEnergy                                                                                      | No layers (run 1)                    | 262         | 0%             | 262                   | 0%                       | `scripts/calibrate-layers.ts 40` |
+| greedyEnergy                                                                                      | Water (run 2)                        | 246         | 0%             | 258                   | 0%                       | `scripts/calibrate-layers.ts 40` |
+| greedyEnergy                                                                                      | Water and commuting (run 3)          | 240         | 0%             | 257                   | 0%                       | `scripts/calibrate-layers.ts 40` |
+| greedyEnergy                                                                                      | Water, commuting and heat (run 4 on) | 244         | 0%             | 275                   | 0%                       | `scripts/calibrate-layers.ts 40` |
+| greedyFood                                                                                        | No layers (run 1)                    | 305         | 0%             | 305                   | 0%                       | `scripts/calibrate-layers.ts 40` |
+| greedyFood                                                                                        | Water (run 2)                        | 330         | 10%            | 342                   | 20%                      | `scripts/calibrate-layers.ts 40` |
+| greedyFood                                                                                        | Water and commuting (run 3)          | 330         | 3%             | 347                   | 15%                      | `scripts/calibrate-layers.ts 40` |
+| greedyFood                                                                                        | Water, commuting and heat (run 4 on) | 312         | 5%             | 343                   | 23%                      | `scripts/calibrate-layers.ts 40` |
+| Tempest levels play with every layer, so their scores rise by 15 against the Tempest table above, |
+| which was measured without them.                                                                  |
 
 ### Local heat (H1)
 
@@ -520,7 +539,7 @@ run-4 layer, with local heat, and a cold building to be shut off like a blackout
 | Heat wells  | Charge only from spare free heat or a pump within reach turning spare energy into heat at its ratio, never 1:1 from energy. They pay a building's whole heat or none, so stored heat isn't spent half-warming a home that goes cold anyway.                                                                                                                                                                                                 | `src/sim/season/energy.ts`               |
 | Cold        | A building whose heat no source pays in a slot is shut off for the season, before any energy blackout: a cold greenhouse makes no food, a cold home costs an unpowered home's 2 wellbeing and 1 more for each bed in it. Its own wellbeing line, energy-ledger line ("Cold: heat no source paid"), tooltip and season-report lines; placing a home with no source in reach warns.                                                           | `coldPerBed`                             |
 | Cold's cost | At an unpowered home's 2, ignoring heat cost the bots almost nothing. At 1 more a bed the layer passes its gate: ignoring heat costs 48 to 62 points, minding it wins most back, and no more runs collapse.                                                                                                                                                                                                                                 | [balance/heat-h2.md](balance/heat-h2.md) |
-| Score line  | "Heat kept close" +18, which brings run 4's Heartwood share back near the other rungs'. A Long Winter gets it too.                                                                                                                                                                                                                                                                                                                          | `rules.score.layers.localHeat`           |
+| Score line  | "Heat kept close" +14 (was +18 before the cap on tunings), which brings run 4's Heartwood share back near the other rungs'. A Long Winter gets it too.                                                                                                                                                                                                                                                                                      | `rules.score.layers.localHeat`           |
 | Long Winter | Uses the layer instead of H1's grid heat at 2 energy: 344 for the balanced bot with water and walks (354 before local heat), 95% Heartwood with the lifted tier, 3% collapsed.                                                                                                                                                                                                                                                              | `twists.longWinter`                      |
 | Bots        | A bot that minds heat puts a pump (water-source first) within reach of every building that needs heat before the cold comes; every bot answers a cold building as it would a blackout.                                                                                                                                                                                                                                                      | `src/balance/bots.ts`                    |
 

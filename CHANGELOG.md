@@ -13,6 +13,8 @@
   blueprints only, and once every blueprint is drafted there is no draft. Tuning cards and the
   Loops panel show how many you've taken.
 - Graft tiers follow the lower scores: Sapling from 240 (was 245), Heartwood from 375 (was 385).
+- The layers' score lines are re-sized so each run of the ladder reaches Heartwood as often:
+  walks to work +5 (was +3), heat kept close +14 (was +18); water stays +12.
 
 ## Start over
 
