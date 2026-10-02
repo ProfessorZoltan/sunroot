@@ -28,7 +28,7 @@ import { indexedDbSlot, throttled } from './game/saves';
 import { GameStore, type Reveal } from './game/store';
 import { buildTimeline } from './game/timeline';
 import { renderBuildingIcons } from './render/icons';
-import { artLoaded, iconUrl, loadArt } from './render/sprites';
+import { artLoaded, iconUrl, loadArt, windowsTexture } from './render/sprites';
 import { MapView } from './render/mapView';
 import { COLORS } from './render/palette';
 import {
@@ -286,6 +286,7 @@ async function start() {
     if (r && r.id !== playing) {
       playing = r.id;
       const timeline = buildTimeline(store.rules, store.state, r.report, {
+        lights: (type) => windowsTexture(type) !== null,
         reducedMotion: motion.matches,
       });
       view!.playResolution(timeline, {

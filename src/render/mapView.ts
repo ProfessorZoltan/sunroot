@@ -8,10 +8,11 @@ import type { Application } from 'pixi.js';
 import { Container, Graphics, Text, type Sprite } from 'pixi.js';
 import type { PhaseName, Timeline } from '../game/timeline';
 import type { Content } from '../sim/content/load';
-import { hexKey, type Hex } from '../sim/hex';
+import { hexKey, hexNeighbors, type Hex } from '../sim/hex';
 import type { PlacementPreview, PreviewKey } from '../sim/preview';
 import type { RunState, WaterReport } from '../sim/types';
-import { drawDitches, drawWater, waterView, type WaterView } from './waterArt';
+import { channels } from '../sim/water';
+import { drawDitches, drawWater, waterBeside, waterView, type WaterView } from './waterArt';
 import type { WalkLine } from '../game/commuteInfo';
 import type { HeatLine } from '../game/heatInfo';
 import { BUILDING_ART, drawCondition } from './buildingArt';
@@ -34,7 +35,9 @@ import { drawBird, drawDeer, drawOtter, drawSeason, wildlifeFor, type Wildlife }
 import { dashedLine, drawFogTile, drawTile } from './tileArt';
 import {
   artSprite,
+  armTexture,
   buildingTexture,
+  hasArms,
   hasGround,
   rotorSprite,
   rotorTexture,
@@ -568,6 +571,15 @@ export class MapView {
     );
     // Row by row, so each row covers the side band of the row behind it.
     const tiles = Object.entries(state.map.tiles).sort(([, a], [, b]) => a.r - b.r || a.q - b.q);
+    // Channels drawn by hand: a hub on each channel tile, an arm towards each tile of channel next
+    // to it, and at an end an arm into the water beside it (its intake, or where it rejoins).
+    const ditch = this.content.rules.water.channelBuilding;
+    const channelArt = hasArms(ditch);
+    const channelAt = new Set(
+      Object.values(state.buildings)
+        .filter((b) => this.content.byId[b.type]?.water?.channel)
+        .map((b) => hexKey(b.at)),
+    );
     let procedural: Graphics | null = null;
     for (const [key, tile] of tiles) {
       const c = hexToPixel(tile);
@@ -578,12 +590,44 @@ export class MapView {
       if (texture) {
         this.tileLayer.addChild(artSprite(texture, c));
         procedural = null;
-        continue;
+      } else {
+        if (!procedural) this.tileLayer.addChild((procedural = new Graphics()));
+        drawTile(procedural, tile, c, key);
       }
-      if (!procedural) this.tileLayer.addChild((procedural = new Graphics()));
-      drawTile(procedural, tile, c, key);
+      if (channelArt && channelAt.has(key)) {
+        const links = hexNeighbors(tile).map((n) => channelAt.has(hexKey(n)));
+        const arms = links.map((linked, i) => (linked ? i : -1)).filter((i) => i >= 0);
+        if (arms.length <= 1) {
+          const water = waterBeside(state, tile);
+          if (water) {
+            const i = hexNeighbors(tile).findIndex((n) => hexKey(n) === hexKey(water));
+            if (i >= 0) arms.push(i);
+          }
+        }
+        for (const i of arms) {
+          const arm = armTexture(ditch, i, state.season);
+          if (arm) this.tileLayer.addChild(artSprite(arm, c));
+        }
+        const hub = buildingTexture(ditch, state.season);
+        if (hub) this.tileLayer.addChild(artSprite(hub, c));
+        procedural = null;
+      }
     }
-    drawDitches(this.ditches.clear(), this.content, state);
+    const ditches = this.ditches.clear();
+    if (!channelArt) drawDitches(ditches, this.content, state);
+    // A sluice gate where each channel leaves the river, at the edge of its first tile.
+    const gate = buildingTexture('sluiceGate', state.season);
+    if (gate && channelArt) {
+      for (const ch of channels(this.content, state)) {
+        if (!ch.intake || !('river' in ch.intake)) continue;
+        const first = state.buildings[ch.uids[0]!];
+        const water = first && waterBeside(state, first.at, ch.intake.river);
+        if (!first || !water) continue;
+        const a = hexToPixel(first.at);
+        const b = hexToPixel(water);
+        this.tileLayer.addChild(artSprite(gate, { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }));
+      }
+    }
 
     // The river's flow line runs through tile centres and on into the fog.
     const f = this.flow.clear();
@@ -642,13 +686,24 @@ export class MapView {
     const sorted = Object.values(state.buildings).sort(
       (a, b) => a.at.r - b.at.r || a.at.q - b.at.q,
     );
+    const occupant = new Map(sorted.map((b) => [hexKey(b.at), b.uid]));
     let procedural: Graphics | null = null;
     for (const b of sorted) {
       const c = hexToPixel(b.at);
-      // Channels are ditches in the ground (drawn with the terrain).
-      if (this.content.byId[b.type]?.water?.channel) {
+      // Channels are ditches in the ground (drawn with the terrain); a canal-top solar's
+      // panels stand over its ditch.
+      if (b.type === this.content.rules.water.channelBuilding) {
         if (b.damage) drawCondition(g, c, 'damaged');
         continue;
+      }
+      // A hedgerow reaches out to the hedgerows beside it.
+      if (hasArms(b.type)) {
+        hexNeighbors(b.at).forEach((n, i) => {
+          if (state.buildings[occupant.get(hexKey(n)) ?? '']?.type !== b.type) return;
+          const arm = armTexture(b.type, i, state.season);
+          if (arm) this.buildingLayer.addChild(artSprite(arm, c));
+        });
+        procedural = null;
       }
       const texture = buildingTexture(b.type, state.season);
       // Buildings drawn with their own tile are part of the terrain.
@@ -665,7 +720,8 @@ export class MapView {
         // Blades turn quickly, a river wheel slowly; a damaged one stands still.
         sprite.rotation = (b.at.q * 1.7 + b.at.r) % (Math.PI * 2);
         this.rotors.addChild(sprite);
-        if (!b.damage) this.spinning.set(sprite, b.type === 'windSpire' ? 1.6 : 0.6);
+        const wind = b.type === 'windSpire' || b.type === 'singingSpire';
+        if (!b.damage) this.spinning.set(sprite, wind ? 1.6 : 0.6);
       }
       if (b.damage) drawCondition(g, c, 'damaged');
       // While the season resolves, blackouts show when night falls.

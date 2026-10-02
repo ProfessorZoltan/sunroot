@@ -45,7 +45,7 @@ function isChannelAt(content: Content, state: RunState): Map<string, Hex> {
 }
 
 /** The water tile an end of a channel touches: at this river position, or any lake, or any. */
-function waterBeside(state: RunState, h: Hex, riverIndex?: number): Tile | undefined {
+export function waterBeside(state: RunState, h: Hex, riverIndex?: number): Tile | undefined {
   const tiles = hexNeighbors(h)
     .map((n) => state.map.tiles[hexKey(n)])
     .filter((t): t is Tile => t !== undefined && (t.type === 'river' || t.type === 'reservoir'));

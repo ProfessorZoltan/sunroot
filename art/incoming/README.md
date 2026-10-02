@@ -1,5 +1,15 @@
 # Sunroot — option C artwork
 
+**Layout since the water expansion:** `tiles/` and `buildings/` hold everything on the map (the
+original set and the expansion's); `wildlife/`, `festivals/` and `wonders/` wait for milestones E4
+and E5. `scripts/import-art.ts` reads `tiles/` and `buildings/`. File names are game ids:
+`heatPump` is the Water-source Heat Pump (delivered as `water-source_heat_pump`),
+`airSourceHeatPump` the Air-source one (the first Heat Pump art), and `coppiceRegrowth` the
+regrowing coppice (delivered as `coppiceWood.regrowing`). Channels and hedgerows come as a hub,
+`id.png`, and an arm towards each neighbour, `id.e.png` … `id.se.png`; `sluiceGate` is drawn where
+a channel leaves the river. A rotor without a pivot in `manifest.json` (the Singing Spire's) has it
+measured from its orange hub. The notes below describe the original delivery.
+
 96 individual transparent RGBA PNGs, all on the same untrimmed **512 × 640 pixel frame**. The art is warm storybook papercraft, softly lit from the upper left. No magenta keying or sheet slicing is required.
 
 ## Shared geometry

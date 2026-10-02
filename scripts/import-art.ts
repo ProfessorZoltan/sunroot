@@ -5,11 +5,16 @@
  * - every frame at half size (256 x 320; the tile is still 200 px wide, four
  *   times the game's 50), which keeps the textures to about a quarter of the
  *   memory and is sharp at the closest zoom;
- * - for homes with a night version (`id.lit.png`), only the windows that light
- *   up (`id.windows.png`), so the game can draw them glowing over the night;
+ * - for buildings with a night version (`id.lit.png`), only the windows that
+ *   light up (`id.windows.png`), so the game can draw them glowing over the night;
+ * - connecting pieces (channels, hedgerows) as a hub, `id.png`, and an arm
+ *   towards each neighbour, `id.e.png` to `id.se.png`, each with a winter dress;
  * - an icon per building for the interface: the building cropped to a square;
  * - `art.json`: the frame's geometry, the rotors' pivots, and which buildings
  *   are drawn with their own tile (their side band is filled in).
+ *
+ * It reads `tiles/` and `buildings/`; wildlife, festivals and wonders wait for
+ * the milestones that use them (E4, E5).
  *
  *   npx tsx scripts/import-art.ts
  */
@@ -36,12 +41,23 @@ interface Manifest {
 
 const content = loadContent(willowReach);
 const manifest = JSON.parse(readFileSync(join(IN, 'manifest.json'), 'utf8')) as Manifest;
-const files = readdirSync(IN).filter((f) => f.endsWith('.png'));
 const tiles = new Set<string>(TILE_TYPES);
-const buildings = new Set(content.buildings.map((b) => b.id));
+/** Buildings, and pieces drawn with them: the sluice gate at a channel's intake. */
+const DECORATIONS = ['sluiceGate'];
+const buildings = new Set([...content.buildings.map((b) => b.id), ...DECORATIONS]);
 const idOf = (file: string) => file.split('.')[0]!.replace(/-\d+$/, '');
-const unknown = files.filter((f) => !tiles.has(idOf(f)) && !buildings.has(idOf(f)));
-if (unknown.length > 0) throw new Error(`not a tile type or building id: ${unknown.join(', ')}`);
+const inDir = (dir: 'tiles' | 'buildings') =>
+  readdirSync(join(IN, dir))
+    .filter((f) => f.endsWith('.png'))
+    .map((f) => ({ dir, file: f }));
+const files = [...inDir('tiles'), ...inDir('buildings')];
+const unknown = files.filter(
+  ({ dir, file }) => !(dir === 'tiles' ? tiles : buildings).has(idOf(file)),
+);
+if (unknown.length > 0)
+  throw new Error(
+    `not a tile type or building id: ${unknown.map((f) => `${f.dir}/${f.file}`).join(', ')}`,
+  );
 
 const g = manifest.geometry;
 const [fw, fh] = g.frame;
@@ -59,12 +75,14 @@ try {
     writeFileSync(join(OUT, path), Buffer.from(dataUrl.split(',')[1]!, 'base64'));
 
   const ground: string[] = [];
-  for (const file of files) {
+  /** Each rotor's measured centre, in the full frame. */
+  const centres: Record<string, [number, number]> = {};
+  for (const { dir, file } of files) {
     const id = idOf(file);
-    const isTile = tiles.has(id);
+    const isTile = dir === 'tiles';
     const lit = file.endsWith('.lit.png');
     const result = await page.evaluate(
-      async ({ src, day, fw, fh, scale, band, icon, wantGround, wantIcon }) => {
+      async ({ src, day, fw, fh, scale, band, icon, wantGround, wantIcon, wantCentre }) => {
         const load = async (s: string) => {
           const img = new Image();
           img.src = s;
@@ -149,34 +167,63 @@ try {
           );
           iconUrl = c.toDataURL('image/png');
         }
-        return { png: half.toDataURL('image/png'), hasGround, icon: iconUrl };
+        // A rotor's pivot, for one the manifest doesn't give: the centre of its hub, the orange
+        // disc the blades turn on (the blades themselves aren't symmetric in this view).
+        let centre: [number, number] | null = null;
+        if (wantCentre) {
+          const data = fg.getImageData(0, 0, fw, fh).data;
+          let [sx, sy, n] = [0, 0, 0];
+          for (let y = 0; y < fh; y++)
+            for (let x = 0; x < fw; x++) {
+              const i = (y * fw + x) * 4;
+              const [r, g, b, a] = [data[i]!, data[i + 1]!, data[i + 2]!, data[i + 3]!];
+              if (a < 200 || r < 180 || g < 110 || g > 190 || b > 90) continue;
+              sx += x;
+              sy += y;
+              n++;
+            }
+          if (n > 50) centre = [Math.round(sx / n), Math.round(sy / n)];
+        }
+        return { png: half.toDataURL('image/png'), hasGround, icon: iconUrl, centre };
       },
       {
-        src: read(file),
-        day: lit ? read(`${id}.png`) : null,
+        src: read(join(dir, file)),
+        day: lit ? read(join(dir, `${id}.png`)) : null,
         fw,
         fh,
         scale: SCALE,
         band: g.band_bottom,
         icon: ICON,
         wantGround: !isTile && file === `${id}.png`,
-        wantIcon: !isTile && file === `${id}.png`,
+        wantIcon: !isTile && file === `${id}.png` && !DECORATIONS.includes(id),
+        wantCentre: file === `${id}.rotor.png`,
       },
     );
+    if (result.centre) centres[id] = result.centre;
     const name = lit ? `${id}.windows.png` : file;
     write(join(isTile ? 'tiles' : 'buildings', name), result.png);
     if (result.icon) write(join('icons', `${id}.png`), result.icon);
     if (result.hasGround) ground.push(id);
   }
 
-  const pivots = Object.fromEntries(
+  const given = Object.fromEntries(
     manifest.assets
       .filter((a) => a.rotation_hub && !a.file.includes('.winter'))
-      .map((a) => [
-        idOf(a.file.split('/').pop()!),
-        [a.rotation_hub![0] * SCALE, a.rotation_hub![1] * SCALE],
-      ]),
+      .map((a) => [idOf(a.file.split('/').pop()!), a.rotation_hub!]),
   );
+  // The manifest's pivots where it has them; measured ones for the rest (and a check on both).
+  for (const [id, [x, y]] of Object.entries(given)) {
+    const m = centres[id];
+    if (m && Math.hypot(m[0] - x, m[1] - y) > 4)
+      console.warn(
+        `${id}: the manifest's pivot (${x}, ${y}) is far from its measured centre (${m[0]}, ${m[1]})`,
+      );
+  }
+  const pivots = Object.fromEntries(
+    Object.entries({ ...centres, ...given }).map(([id, [x, y]]) => [id, [x * SCALE, y * SCALE]]),
+  );
+  for (const id of Object.keys(centres))
+    if (!given[id]) console.log(`${id}: rotor pivot measured at (${centres[id]!.join(', ')})`);
   const art = {
     source: `${IN} (see its README.md); made by scripts/import-art.ts`,
     frame: [fw * SCALE, fh * SCALE],

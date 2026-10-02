@@ -3,9 +3,22 @@
   "frame": [256, 320],
   "tileCentre": [128, 186.75],
   "tileWidth": 200,
-  "ground": ["pumpedReservoir", "rewildedRuin", "salvageYard", "weir", "windSpire"],
+  "ground": [
+    "beaverDam",
+    "coppiceRegrowth",
+    "coppiceWood",
+    "oldWorldArchive",
+    "pumpedReservoir",
+    "rewildedRuin",
+    "riceFishPaddy",
+    "salvageYard",
+    "singingSpire",
+    "weir",
+    "windSpire"
+  ],
   "pivots": {
     "riverWheel": [111, 154.5],
+    "singingSpire": [128.5, 97.5],
     "windSpire": [127, 90.5]
   }
 }

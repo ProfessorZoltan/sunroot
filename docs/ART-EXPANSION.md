@@ -8,6 +8,11 @@ everything that sits on the map, and files delivered to `art/incoming/` as befor
 
 Anything without art falls back to a procedural drawing, so nothing here blocks the game.
 
+**Delivered (E2 and E3):** every building, evolved form, channel and hedgerow piece and the Sluice
+Gate are in `art/incoming/buildings/`, tiles in `art/incoming/tiles/`, and in the game. The Singing
+Spire's rotor pivot, (257, 195), is measured by the importer from its hub, as the manifest has none.
+The wildlife, festival and wonder art waits in its own folders for E4 and E5.
+
 ## Order
 
 | Milestone                   | Needs art? | What to draw first                            | Source                                      |

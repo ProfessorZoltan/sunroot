@@ -94,5 +94,6 @@ describe('the command', () => {
     );
     expect(readFileSync(join(out, 'report.md'), 'utf8')).toContain('# Sunroot balance report');
     expect(lines.at(-1)).toMatch(/^Wrote /);
-  });
+    // Two whole runs per bot: like the test above, more than the default 5 s.
+  }, 30_000);
 });

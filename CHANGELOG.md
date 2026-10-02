@@ -1,5 +1,14 @@
 # Changelog
 
+## Hand-made art for the expansion
+
+- Every Willow Reach v2 building and evolution, the Irrigation Channel and Hedgerow (which now join
+  up with their neighbours), the Sluice Gate where a channel leaves the river, and the Cistern now
+  have hand-made art, summer and winter.
+- The Water-source Heat Pump has its own art; the Air-source Heat Pump takes the first Heat Pump's.
+- The Bathhouse, Aquaponics Hall, Mushroom Cellar and Old World Archive light their windows at
+  night; the Singing Spire's blades turn.
+
 ## Heat needs a building (run 4)
 
 - From run 4, and in a Long Winter, energy can no longer heat anything directly. Homes,

@@ -2,6 +2,7 @@
  * Milestone 3 in a real browser: the map renders, placement previews and
  * places through the simulation's rules, undo is free, and seasons end.
  */
+import { readdirSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
 
 interface Sunroot {
@@ -36,12 +37,15 @@ test('the map renders, previews, places, undoes and ends a season', async ({ pag
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/?seed=willow-reach-golden&visions=0');
   await expect(page.locator('#map-host canvas')).toBeVisible();
-  // The hand-made art: every tile type (2 summer, 1 winter) and building (summer, winter), the
-  // homes' lit windows and the turning rotors.
+  // The hand-made art: every tile and building file the importer wrote (tiles in summer and winter,
+  // buildings too, lit windows, rotors, channel and hedgerow arms) is loaded.
   await page.waitForFunction(() => 'sunroot' in window);
+  const imported = ['tiles', 'buildings']
+    .map((dir) => readdirSync(new URL(`../src/art/${dir}`, import.meta.url)).length)
+    .reduce((a, b) => a + b, 0);
   expect(
     await page.evaluate(() => (window as unknown as { sunroot: { art: number } }).sunroot.art),
-  ).toBe(96);
+  ).toBe(imported);
   await expect(page.getByText('Choose one')).toBeVisible();
 
   // The canvas has actually drawn the valley (not a blank paper colour).

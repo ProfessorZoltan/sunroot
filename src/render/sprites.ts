@@ -81,7 +81,24 @@ export function rotorTexture(id: string, season: Season): Texture | null {
     : pick(`buildings/${id}.rotor.png`);
 }
 
-/** The windows a home lights at night, alone. */
+/** The arms of a connecting piece (a channel, a hedgerow), in HEX_DIRECTIONS order. */
+export const ARMS = ['e', 'ne', 'nw', 'w', 'sw', 'se'] as const;
+
+/** One arm of a connecting piece, from its hub towards the neighbour in that direction. */
+export function armTexture(id: string, arm: number, season: Season): Texture | null {
+  const name = ARMS[arm];
+  if (!name) return null;
+  return season === 'winter'
+    ? pick(`buildings/${id}.${name}.winter.png`, `buildings/${id}.${name}.png`)
+    : pick(`buildings/${id}.${name}.png`);
+}
+
+/** Whether a building is drawn as a hub with arms to its neighbours. */
+export function hasArms(id: string): boolean {
+  return textures.has(`buildings/${id}.e.png`);
+}
+
+/** The windows a building lights at night, alone. */
 export function windowsTexture(id: string): Texture | null {
   return pick(`buildings/${id}.windows.png`);
 }

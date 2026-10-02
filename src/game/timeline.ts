@@ -116,7 +116,11 @@ export function buildTimeline(
   content: Content,
   after: RunState,
   report: SeasonReport,
-  options: { reducedMotion?: boolean } = {},
+  options: {
+    reducedMotion?: boolean;
+    /** Buildings besides homes that light their windows at night (those with art for it). */
+    lights?: (type: string) => boolean;
+  } = {},
 ): Timeline {
   const d = options.reducedMotion ? REDUCED_DURATIONS : FULL_DURATIONS;
   const phases: Phase[] = [];
@@ -286,7 +290,9 @@ export function buildTimeline(
 
   const litHomes = Object.values(after.buildings).filter(
     (b) =>
-      (content.byId[b.type]?.housing ?? 0) > 0 && !report.blackouts.includes(b.uid) && !b.damage,
+      ((content.byId[b.type]?.housing ?? 0) > 0 || (options.lights?.(b.type) ?? false)) &&
+      !report.blackouts.includes(b.uid) &&
+      !b.damage,
   );
   const lit = litHomes.map((b) => b.at);
 

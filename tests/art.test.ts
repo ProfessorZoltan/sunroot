@@ -34,8 +34,7 @@ describe('hand-made art', () => {
   });
 
   it('covers every building in summer and winter, with an icon', () => {
-    // Water buildings exist only with the water system, whose art comes with E2 (ART-EXPANSION.md).
-    for (const b of content.buildings.filter((x) => !x.requiresWater && !x.requiresHeatLayer)) {
+    for (const b of content.buildings) {
       for (const f of [
         `buildings/${b.id}.png`,
         `buildings/${b.id}.winter.png`,
@@ -45,20 +44,42 @@ describe('hand-made art', () => {
     }
   });
 
-  it('lights the homes at night and turns the wind spire and river wheel', () => {
-    for (const home of ['foundersCamp', 'cottage', 'treehouseCommons'])
-      expect(art(`buildings/${home}.windows.png`), home).toBe(true);
-    for (const id of ['windSpire', 'riverWheel']) {
+  it('lights homes and some others at night, and turns the spires and the river wheel', () => {
+    for (const lit of [
+      'foundersCamp',
+      'cottage',
+      'treehouseCommons',
+      'bathhouse',
+      'aquaponicsHall',
+      'mushroomCellar',
+      'oldWorldArchive',
+    ])
+      expect(art(`buildings/${lit}.windows.png`), lit).toBe(true);
+    for (const id of ['windSpire', 'riverWheel', 'singingSpire']) {
       expect(art(`buildings/${id}.rotor.png`), id).toBe(true);
       expect(info.pivots[id], id).toHaveLength(2);
     }
   });
 
+  it('draws channels and hedgerows as a hub with an arm to each neighbour, and a sluice gate', () => {
+    for (const id of ['irrigationChannel', 'hedgerow'])
+      for (const arm of ['e', 'ne', 'nw', 'w', 'sw', 'se'])
+        for (const season of ['', '.winter'])
+          expect(art(`buildings/${id}.${arm}${season}.png`), `${id}.${arm}${season}`).toBe(true);
+    expect(art('buildings/sluiceGate.png')).toBe(true);
+  });
+
   it('marks only buildings that stand on one kind of tile as carrying their own', () => {
     expect(info.ground).toEqual([
+      'beaverDam',
+      'coppiceRegrowth',
+      'coppiceWood',
+      'oldWorldArchive',
       'pumpedReservoir',
       'rewildedRuin',
+      'riceFishPaddy',
       'salvageYard',
+      'singingSpire',
       'weir',
       'windSpire',
     ]);
@@ -69,14 +90,16 @@ describe('hand-made art', () => {
   });
 
   it('is imported from everything delivered', () => {
-    const delivered = readdirSync(new URL('../art/incoming', import.meta.url)).filter((f) =>
-      f.endsWith('.png'),
-    );
-    for (const f of delivered) {
-      const id = f.split('.')[0]!.replace(/-\d+$/, '');
-      const folder = (TILE_TYPES as readonly string[]).includes(id) ? 'tiles' : 'buildings';
-      const name = f.endsWith('.lit.png') ? `${id}.windows.png` : f;
-      expect(art(`${folder}/${name}`), f).toBe(true);
+    // Wildlife, festivals and wonders wait for the milestones that use them (E4, E5).
+    for (const folder of ['tiles', 'buildings']) {
+      const delivered = readdirSync(new URL(`../art/incoming/${folder}`, import.meta.url)).filter(
+        (f) => f.endsWith('.png'),
+      );
+      for (const f of delivered) {
+        const id = f.split('.')[0]!;
+        const name = f.endsWith('.lit.png') ? `${id}.windows.png` : f;
+        expect(art(`${folder}/${name}`), `${folder}/${f}`).toBe(true);
+      }
     }
   });
 });
