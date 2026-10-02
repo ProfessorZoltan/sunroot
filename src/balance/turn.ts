@@ -120,6 +120,23 @@ export class Turn {
     );
   }
 
+  /** Whether the water system is on (EXPANSION.md). */
+  get waterOn(): boolean {
+    return this.content.rules.water.enabled;
+  }
+
+  /** Whether a building here could draw water: beside the river, a lake or a channel. */
+  watered(h: Hex, occ: Map<string, BuildingState> = occupancyOf(this.state)): boolean {
+    return hexNeighbors(h).some((n) => {
+      const key = hexKey(n);
+      const tile = this.state.map.tiles[key];
+      if (tile && (tile.type === 'river' || tile.type === 'reservoir'))
+        return this.content.rules.water.drawBesideRiver;
+      const b = occ.get(key);
+      return b !== undefined && (this.content.byId[b.type]!.water?.channel ?? false);
+    });
+  }
+
   /** The best-scoring legal site for a building, or undefined. */
   bestSite(id: string): Hex | undefined {
     let best: Tile | undefined;
@@ -180,6 +197,8 @@ export function siteScore(
 
   // Keep the floodplain for things that survive the flood (and farm it).
   if (tile.type === 'floodplain') score += def.floodTolerant ? -1 : -100;
+  // With the water system on, buildings that need water go where they can draw it.
+  if (turn.waterOn && def.water?.needs.some((n) => n > 0) && turn.watered(tile, occ)) score += 4;
   if (tile.type === 'meadow' || tile.type === 'woodland') score -= 1;
 
   switch (id) {
@@ -235,6 +254,15 @@ export function siteScore(
     case 'salvageYard':
       score += (tile.salvage ?? 0) / 10;
       break;
+    case 'cistern': {
+      // On the floodplain the spring flood fills it; upstream, it serves more of the river.
+      score += tile.type === 'floodplain' ? 5 : 0;
+      const near = hexNeighbors(tile)
+        .map((h) => state.map.tiles[hexKey(h)]?.riverIndex)
+        .filter((i): i is number => i !== undefined);
+      if (near.length > 0) score += 3 * (1 - Math.min(...near) / state.map.river.length);
+      break;
+    }
     case 'levee':
       score += neighborTiles.filter((t) => t.type === 'floodplain').length;
       break;

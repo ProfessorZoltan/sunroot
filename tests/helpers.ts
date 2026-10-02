@@ -38,10 +38,16 @@ export const content: Content = loadContent(willowReach);
  * a test lays every channel itself.
  */
 export function withWater(
-  changes: { campChannel?: number; edit?: (raw: typeof willowReach) => void } = {},
+  changes: {
+    campChannel?: number;
+    /** Buildings beside the river or a lake draw straight from it (the alternative rule). */
+    beside?: boolean;
+    edit?: (raw: typeof willowReach) => void;
+  } = {},
 ): Content {
   const raw = structuredClone(willowReach);
   raw.rules.water.enabled = true;
+  if (changes.beside !== undefined) raw.rules.water.drawBesideRiver = changes.beside;
   if (changes.campChannel !== undefined) raw.rules.water.campChannel = changes.campChannel;
   changes.edit?.(raw);
   return loadContent(raw);

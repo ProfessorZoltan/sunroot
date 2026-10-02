@@ -21,14 +21,14 @@ import willowReach from '../src/content/willow-reach.json';
 export const content: Content = loadContent(willowReach);
 export const GOLDEN_SEED = 'willow-reach-golden';
 
-export function act(state: RunState, command: Command): RunState {
-  const result = applyCommand(content, state, command);
+export function act(state: RunState, command: Command, c: Content = content): RunState {
+  const result = applyCommand(c, state, command);
   if (!result.ok) throw new Error(`${command.type} failed: ${result.error}`);
   return result.state;
 }
 
-export function place(state: RunState, building: string, at: Hex): RunState {
-  return act(state, { type: 'place', building, at });
+export function place(state: RunState, building: string, at: Hex, c: Content = content): RunState {
+  return act(state, { type: 'place', building, at }, c);
 }
 
 export function buildingAt(state: RunState, at: Hex) {
@@ -51,7 +51,7 @@ export interface Sites {
 }
 
 /** Choose tiles the way a sensible first-time player would. */
-export function findSites(state: RunState): Sites {
+export function findSites(state: RunState, c: Content = content): Sites {
   const tiles = Object.values(state.map.tiles);
   const used = new Set<string>();
   const occupied = new Set(Object.values(state.buildings).map((b) => hexKey(b.at)));
@@ -63,7 +63,7 @@ export function findSites(state: RunState): Sites {
     return h;
   };
   const dry = (h: Hex) => typeAt(h) !== 'floodplain';
-  const ok = (building: string, h: Hex) => free(h) && canPlace(content, state, building, h).ok;
+  const ok = (building: string, h: Hex) => free(h) && canPlace(c, state, building, h).ok;
 
   const ruin = take(
     tiles.find((t) => ok('salvageYard', t)),

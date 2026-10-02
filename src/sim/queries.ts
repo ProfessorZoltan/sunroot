@@ -87,6 +87,7 @@ export function repairCost(content: Content, b: BuildingState): number | null {
 
 /** Whether a storm can damage this building: on exposed land, with no woodland beside it. */
 export function stormExposed(content: Content, state: RunState, b: BuildingState): boolean {
+  if (defOf(content, b).stormProof) return false;
   const type = tileAt(state, b.at)?.type;
   if (!type || !content.events.storm.exposedOn.includes(type)) return false;
   return !neighborTiles(state, b.at).some((t) => t.type === 'woodland');

@@ -1,5 +1,25 @@
 # Changelog
 
+## Water, in the simulation (E1)
+
+Water from [docs/EXPANSION.md](docs/EXPANSION.md), built in the simulation only: the game keeps it
+off until it can be seen and laid (E2). Nothing changes in play yet.
+
+- The river brings 12, 4, 8 and 6 units of water a season from the top of the map. Irrigation
+  Channels (1 material a tile, not on hills) carry up to 4 from the river or a lake to the
+  buildings along them, nearest the intake first; summer evaporates 1 for every 4 tiles; what is
+  left at a channel's end returns to the river if the end touches it. The camp starts with 3 tiles.
+- Farms, orchards and greenhouses need water; short of it they make half. Fish ponds feed
+  nutrient-rich water into a channel beside them (+1 food on a farm). Grey water that reaches the
+  river costs Harmony.
+- Cisterns store 6 (beside a channel, the river or a lake), fill outside summer and in the flood,
+  and cover what runs short below them. A weir holds back 4 of spring's water for summer. River
+  wheels turn with the water passing them, so water drawn upstream costs power.
+- `scripts/water.ts` compares the valley with and without water for the E1 decision gate; the
+  report is [docs/balance/water-e1.md](docs/balance/water-e1.md). A proposed Year 1 walkthrough
+  with water waits for review.
+- Art for the expansion is listed in [docs/ART-EXPANSION.md](docs/ART-EXPANSION.md).
+
 ## Tempest
 
 - Tempest levels 1 to 10: a Heartwood Graft at your highest level opens the next. Each level adds

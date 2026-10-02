@@ -5,13 +5,19 @@
  * in The Reach; regions without a twist.
  *
  *   npx tsx scripts/expeditions.ts [runs each, default 30] [bot, default balanced] [only: ids, comma-separated]
+ *
+ * WATER=on plays with the water system (EXPANSION.md) as the data sets it; WATER=beside
+ * also lets buildings beside the river draw straight from it (rules.water.drawBesideRiver).
  */
 import willowReach from '../src/content/willow-reach.json';
 import { loadContent, scoreRun, type RunExpedition, type RunState } from '../src/sim';
 import { BOTS } from '../src/balance/bots';
 import { playRun } from '../src/balance/runner';
 
-const content = loadContent(willowReach);
+const raw = structuredClone(willowReach);
+if (process.env.WATER) raw.rules.water.enabled = true;
+if (process.env.WATER === 'beside') raw.rules.water.drawBesideRiver = true;
+const content = loadContent(raw);
 const N = Number(process.argv[2] ?? 30);
 const bot = BOTS[process.argv[3] ?? 'balanced']!;
 const med = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)] ?? 0;

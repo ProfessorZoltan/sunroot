@@ -8,8 +8,27 @@
  * checking each fix by peeking at how the season would end. They differ in
  * which cards they draft, how they fix problems and how they spend the rest.
  */
+import { hexKey, hexNeighbors, type Tile } from '../sim';
 import { pick, nextFloat, nextInt } from '../sim/rng';
 import type { Turn } from './turn';
+
+/**
+ * How a bot handles water (EXPANSION.md), when the water system is on. The
+ * E1 decision gate compares them:
+ * - `river`: digs nothing beyond the camp's channel; builds what needs water beside water.
+ * - `short`: starts new channels from the river, never extends one.
+ * - `long`: extends the channels it has, never starts another.
+ * - `fields`: lays whichever tile reaches the most dry farmland (the default).
+ * - `storage`: as `fields`, plus cisterns and weirs to carry spring's water into summer.
+ */
+export type WaterPolicy = 'river' | 'short' | 'long' | 'fields' | 'storage';
+export const WATER_POLICIES: readonly WaterPolicy[] = [
+  'river',
+  'short',
+  'long',
+  'fields',
+  'storage',
+];
 
 export interface Bot {
   name: string;
@@ -71,9 +90,77 @@ const foodGap = (t: Turn) =>
     0,
   );
 
+/** Free sites a farm or orchard could take that can draw water. */
+function wateredSites(turn: Turn): number {
+  const taken = new Set(Object.values(turn.state.buildings).map((b) => hexKey(b.at)));
+  const fits = (t: Tile) =>
+    ['floodplainFarm', 'orchard'].some((id) =>
+      turn.content.byId[id]!.placement.tiles.includes(t.type),
+    );
+  return Object.values(turn.state.map.tiles).filter(
+    (t) => !taken.has(hexKey(t)) && fits(t) && turn.watered(t),
+  ).length;
+}
+
+/** The tile of channel that would bring water to the most dry farmland, by the policy's rules. */
+function bestChannelSite(turn: Turn, policy: WaterPolicy): Tile | undefined {
+  const channelAt = new Set(
+    Object.values(turn.state.buildings)
+      .filter((b) => turn.content.byId[b.type]!.water?.channel)
+      .map((b) => hexKey(b.at)),
+  );
+  const taken = new Set(Object.values(turn.state.buildings).map((b) => hexKey(b.at)));
+  const farm = turn.content.byId.floodplainFarm!.placement.tiles;
+  const orchard = turn.content.byId.orchard!.placement.tiles;
+  let best: Tile | undefined;
+  let bestScore = 2;
+  for (const t of turn.sites(turn.content.rules.water.channelBuilding)) {
+    const extends_ = hexNeighbors(t).some((n) => channelAt.has(hexKey(n)));
+    if (policy === 'short' && extends_) continue;
+    if (policy === 'long' && !extends_ && channelAt.size > 0) continue;
+    let score = t.type === 'floodplain' ? -1 : 0;
+    for (const n of hexNeighbors(t)) {
+      const tile = turn.state.map.tiles[hexKey(n)];
+      if (!tile || taken.has(hexKey(n)) || turn.watered(n)) continue;
+      if (farm.includes(tile.type)) score += 2;
+      else if (orchard.includes(tile.type)) score += 1;
+    }
+    score += nextFloat(turn.rng) * 0.1;
+    if (score > bestScore) {
+      best = t;
+      bestScore = score;
+    }
+  }
+  return best;
+}
+
+/** Water: channels towards dry farmland when watered sites run low, and storage. */
+function tendWater(turn: Turn, profile: Profile, policy: WaterPolicy): void {
+  if (!turn.waterOn || policy === 'river') return;
+  const channel = turn.content.rules.water.channelBuilding;
+  for (let i = 0; i < 2 && wateredSites(turn) < 3; i++) {
+    if (!turn.canBuild(channel, profile.reserve)) break;
+    const site = bestChannelSite(turn, policy);
+    if (!site || !turn.apply({ type: 'place', building: channel, at: { q: site.q, r: site.r } }))
+      break;
+  }
+  if (policy === 'storage') {
+    // A cistern for every 4 buildings that need water in summer, built before summer.
+    const thirsty = Object.values(turn.state.buildings).filter(
+      (b) => (turn.content.byId[b.type]!.water?.needs[1] ?? 0) > 0,
+    ).length;
+    const season = turn.state.season;
+    if ((season === 'spring' || season === 'winter') && turn.count('cistern') * 4 < thirsty)
+      turn.build('cistern', profile.reserve);
+  }
+}
+
 /** The shared needs-first play of the non-random bots. */
-function survive(turn: Turn, profile: Profile): void {
-  turn.pick(profile.cards);
+function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): void {
+  turn.pick(
+    turn.waterOn && water === 'storage' ? ['cistern', 'weir', ...profile.cards] : profile.cards,
+  );
+  if (turn.waterOn) tendWater(turn, profile, water);
   if (!turn.has('salvageYard')) turn.build('salvageYard');
   if (!turn.has('workshop')) turn.build('workshop');
 
@@ -218,6 +305,18 @@ const profileBot = (name: keyof typeof profiles, description: string): Bot => ({
   description,
   playSeason: (turn) => survive(turn, profiles[name]),
 });
+
+/** A profile bot playing a given water policy (for the E1 decision gate). */
+export function waterBot(
+  name: 'greedyFood' | 'greedyEnergy' | 'balanced',
+  policy: WaterPolicy,
+): Bot {
+  return {
+    name: `${name}+${policy}`,
+    description: `${BOTS[name]!.description} Water: ${policy}.`,
+    playSeason: (turn) => survive(turn, profiles[name], policy),
+  };
+}
 
 export const BOTS: Record<string, Bot> = {
   random: {

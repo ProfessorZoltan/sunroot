@@ -13,6 +13,7 @@ import {
   canPlace,
   channels,
   createRun,
+  effectiveContent,
   hexKey,
   forecastSeason,
   harmonyLines,
@@ -25,6 +26,8 @@ import { createRng, nextInt } from '../src/sim/rng';
 import { at, content, endSeason, place, scenario, uidAt, withWater } from './helpers';
 
 const W = withWater({ campChannel: 0 });
+/** The alternative rule: buildings beside the river or a lake draw straight from it. */
+const B = withWater({ campChannel: 0, beside: true });
 
 // Barren top row and scrub bottom row keep Harmony under 20, so yields aren't multiplied.
 const VALLEY = [
@@ -67,26 +70,6 @@ describe('the river', () => {
       expect(water(s).flowAt.at(-1)).toBe(water(s).riverFlow);
     }
     expect(flows).toEqual([12, 4, 8, 6]);
-  });
-
-  it('serves buildings beside it upstream first, ties by priority', () => {
-    // Summer brings 4. Build order is priority: the farm at row 4 outranks the one at row 3.
-    let s = build(start('summer'), 'floodplainFarm', [
-      [1, 4],
-      [1, 3],
-      [1, 2],
-      [1, 1],
-      [1, 0],
-    ]);
-    s = endSeason(s, W);
-    // Rows 0, 1 and 2 draw at river positions 0, 1 and 1; rows 3 and 4 both at position 3.
-    expect(water(s).flowAt).toEqual([3, 1, 1, 0, 0]);
-    expect(use(s, 1, 0).from).toBe('river');
-    expect(use(s, 1, 4).short).toBe(false);
-    expect(use(s, 1, 3)).toMatchObject({ short: true, got: { clean: 0 } });
-    // Short of water: half its yield, rounded down.
-    expect(food(s, 1, 4)).toBe(4);
-    expect(food(s, 1, 3)).toBe(2);
   });
 
   it('replaces the low river\'s "far from water" rule', () => {
@@ -219,6 +202,28 @@ describe('channels', () => {
     expect(water(t).out['lost at channel ends']).toBe(1);
   });
 
+  it("are earthworks: storms can't damage them", () => {
+    const wild = withWater({
+      campChannel: 0,
+      edit: (raw) =>
+        ((raw.events.storm as { exposedOn?: string[] }).exposedOn = [
+          'floodplain',
+          'barren',
+          'scrub',
+          'meadow',
+        ]),
+    });
+    let s = start('autumn', wild);
+    s = channel(s, 3, wild);
+    s = endSeason(s, wild);
+    // Everything on open land is exposed, the camp included, but no tile of channel.
+    const ditches = Object.values(s.buildings)
+      .filter((b) => b.type === 'irrigationChannel')
+      .map((b) => b.uid);
+    expect(s.lastReport!.exposed).toContain('b0');
+    for (const uid of ditches) expect(s.lastReport!.exposed).not.toContain(uid);
+  });
+
   it('a damaged tile breaks the channel below it', () => {
     let s = channel(start('summer'), 3);
     s = build(s, 'floodplainFarm', [[3, 1]]);
@@ -291,14 +296,22 @@ describe('water qualities', () => {
   });
 
   it('grey water reaching the river costs 1 Harmony a unit, until next season', () => {
-    // Beside the river with no channel, the bath drinks from the river and drains into it.
-    let s = build(start('summer', Q), 'testBath', [[1, 1]], Q);
+    // A channel from river position 0 back to position 3 carries the bath's grey water home.
+    const u: [number, number][] = [
+      [1, 0],
+      [2, 0],
+      [2, 1],
+      [2, 2],
+      [1, 3],
+    ];
+    let s = build(start('summer', Q), 'irrigationChannel', u, Q);
+    s = build(s, 'testBath', [[3, 1]], Q);
     s = endSeason(s, Q);
     expect(water(s).greyToRiver).toBe(1);
     const grey = (x: RunState) => harmonyLines(Q, x).find((l) => /grey water/.test(l.label));
     expect(grey(s)).toEqual({ label: '1 grey water in the river', amount: -1 });
     // Demolished, the bath sends no more: the Harmony comes back once the next season resolves.
-    const r = applyCommand(Q, s, { type: 'demolish', uid: uidAt(s, 1, 1) });
+    const r = applyCommand(Q, s, { type: 'demolish', uid: uidAt(s, 3, 1) });
     if (!r.ok) throw new Error(r.error);
     s = endSeason(r.state, Q);
     expect(water(s).greyToRiver).toBe(0);
@@ -342,6 +355,45 @@ describe('storage', () => {
     expect(s.buildings[uidAt(s, 2, 1)]!.stored).toBe(4);
   });
 
+  it('a cistern beside the river keeps water for the channels below it, and refills outside summer', () => {
+    const dry = withWater({ campChannel: 0, edit: (raw) => (raw.rules.water.riverFlow[1] = 0) });
+    let s = start('summer', dry);
+    s = build(s, 'cistern', [[1, 1]], dry);
+    const cistern = uidAt(s, 1, 1);
+    s.buildings[cistern]!.stored = 6;
+    // A channel from river position 3, below the cistern (position 1), with two farms on it.
+    s = build(
+      s,
+      'irrigationChannel',
+      [
+        [1, 4],
+        [2, 4],
+      ],
+      dry,
+    );
+    s = build(
+      s,
+      'floodplainFarm',
+      [
+        [1, 3],
+        [2, 3],
+      ],
+      dry,
+    );
+    s = endSeason(s, dry);
+    // A dry summer: the river brings nothing, the cistern gives the channel what it needs.
+    expect(use(s, 1, 3).short).toBe(false);
+    expect(use(s, 2, 3).short).toBe(false);
+    expect(water(s).channels[0]).toMatchObject({ intake: { river: 3 }, drawn: 2 });
+    // Cisterns don't refill in summer.
+    expect(s.buildings[cistern]!.stored).toBe(4);
+    s = endSeason(s, dry);
+    // Autumn's river refills it at its position, before the channel below draws its 2.
+    expect(s.buildings[cistern]!.stored).toBe(6);
+    expect(water(s).flowAt[1]).toBe(8 - 2);
+    expect(water(s).flowAt[3]).toBe(8 - 2 - 2);
+  });
+
   it('the spring flood fills a cistern on the floodplain', () => {
     let s = channel(start(), 2);
     s = build(s, 'cistern', [[1, 1]]);
@@ -363,15 +415,90 @@ describe('storage', () => {
     expect(s.buildings[weir]!.stored).toBe(0);
   });
 
-  it('a lake is filled by the spring flood and serves the buildings beside it', () => {
+  it('a lake is filled by the spring flood and feeds a channel dug from it', () => {
     const lakeValley = ['~ f . L L .', '~ f m m m m', '~ f , , C ,'];
     let s = scenario(lakeValley, { content: W, citizens: 10 });
-    s = build(s, 'floodplainFarm', [[3, 1]]);
+    s = build(s, 'irrigationChannel', [[3, 1]]);
+    s = build(s, 'floodplainFarm', [[4, 1]]);
     s = endSeason(s, W);
-    expect(use(s, 3, 1)).toMatchObject({ from: 'lake', short: false });
+    expect(use(s, 4, 1)).toMatchObject({ from: 'channel', short: false });
+    expect(water(s).channels[0]!.intake).toEqual({ lake: hexKey(at(3, 0)) });
     const lake = [at(3, 0), at(4, 0)].map((h) => s.map.tiles[hexKey(h)]!.water ?? 0);
     expect(lake[0]! + lake[1]!).toBe(2 * 2 - 1);
     expect(water(s).in.flood).toBe(4);
+  });
+});
+
+describe('drawing beside the river (the alternative rule, off in Willow Reach)', () => {
+  it('off: a building beside the river draws only through a channel', () => {
+    let s = start('summer');
+    s = channel(s, 2);
+    s = build(s, 'floodplainFarm', [
+      [1, 0],
+      [1, 3],
+    ]);
+    s = endSeason(s, W);
+    // (1, 0) touches the river but no channel; (1, 3) touches the channel's first tile.
+    expect(use(s, 1, 0)).toMatchObject({ from: null, short: true });
+    expect(use(s, 1, 3)).toMatchObject({ from: 'channel', short: false });
+  });
+
+  it('on: buildings beside the river draw from it upstream first, ties by priority', () => {
+    // Summer brings 4. Build order is priority: the farm at row 4 outranks the one at row 3.
+    let s = build(
+      start('summer', B),
+      'floodplainFarm',
+      [
+        [1, 4],
+        [1, 3],
+        [1, 2],
+        [1, 1],
+        [1, 0],
+      ],
+      B,
+    );
+    s = endSeason(s, B);
+    // Rows 0, 1 and 2 draw at river positions 0, 1 and 1; rows 3 and 4 both at position 3.
+    expect(water(s).flowAt).toEqual([3, 1, 1, 0, 0]);
+    expect(use(s, 1, 0).from).toBe('river');
+    expect(use(s, 1, 4).short).toBe(false);
+    expect(use(s, 1, 3)).toMatchObject({ short: true, got: { clean: 0 } });
+    // Short of water: half its yield, rounded down.
+    expect(food(s, 1, 4)).toBe(4);
+    expect(food(s, 1, 3)).toBe(2);
+  });
+
+  it('on: a cistern beside the river covers buildings at or below it, and refills outside summer', () => {
+    const dry = withWater({
+      campChannel: 0,
+      beside: true,
+      edit: (raw) => (raw.rules.water.riverFlow[1] = 0),
+    });
+    let s = start('summer', dry);
+    s = build(s, 'cistern', [[1, 1]], dry);
+    const cistern = uidAt(s, 1, 1);
+    s.buildings[cistern]!.stored = 6;
+    s = build(
+      s,
+      'floodplainFarm',
+      [
+        [1, 0],
+        [1, 2],
+        [1, 3],
+        [1, 4],
+      ],
+      dry,
+    );
+    s = endSeason(s, dry);
+    // A dry summer: the farm above the cistern (river position 0) goes short; the three below don't.
+    expect(use(s, 1, 0).short).toBe(true);
+    for (const row of [2, 3, 4]) expect(use(s, 1, row).short).toBe(false);
+    // Cisterns don't refill in summer.
+    expect(s.buildings[cistern]!.stored).toBe(3);
+    s = endSeason(s, dry);
+    // Autumn's river refills it at its position, after the farms above and beside it drink.
+    expect(s.buildings[cistern]!.stored).toBe(6);
+    expect(water(s).flowAt[1]).toBe(8 - 2 - 3);
   });
 });
 
@@ -391,11 +518,12 @@ describe('river wheels', () => {
 
   it('lose power to water drawn upstream', () => {
     let s = build(start(), 'riverWheel', [[1, 4]]);
+    s = channel(s, 5);
     s = build(s, 'floodplainFarm', [
-      [1, 0],
-      [1, 1],
-      [1, 2],
-      [1, 3],
+      [2, 1],
+      [2, 3],
+      [3, 1],
+      [3, 3],
     ]);
     s = endSeason(s, W);
     // 12 − 4 = 8 passes the wheel: 2 a slot instead of 3.
@@ -427,6 +555,15 @@ describe('the camp and the switch', () => {
     const r = canPlace(content, sandbox, 'irrigationChannel', at(1, 1));
     expect(r.ok ? '' : r.reason).toBe('Irrigation Channel needs the water system');
     expect(resolveAsIs(content, s).lastReport!.water).toBeNull();
+  });
+
+  it('Drought Year lowers the river: none in summer, 4 in autumn', () => {
+    const s = createRun(W, {
+      seed: 'drought',
+      expedition: { twist: 'droughtYear', request: null },
+    });
+    const rules = effectiveContent(W, s).rules.water;
+    expect(rules.riverFlow).toEqual([12, 0, 4, 6]);
   });
 
   it('every water building has a legal site on generated maps', () => {

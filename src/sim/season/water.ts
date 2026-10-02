@@ -14,6 +14,11 @@
  *     summer the first water taken pays evaporation. Cisterns cover what the
  *     channel can't, for buildings at or below them, then refill from what
  *     is left. Water left at the end rejoins the river, or is lost.
+ *  5. A cistern beside the river (or a lake) and on no channel keeps water
+ *     for the river: whatever draws at or below its position and finds the
+ *     river short (a building beside it, a channel's intake) takes from it.
+ *     It refills from the river where it stands once the river has served
+ *     everything above. Cisterns refill only in the seasons they fill.
  *
  * Every unit is accounted for in the report: `in` equals `out`.
  */
@@ -67,6 +72,25 @@ export function resolveWater(ctx: SeasonContext): void {
   const ofLake = lakeOf(lakes);
   const lakeWater = (id: string) => lakes.get(id)!.reduce((s, t) => s + (t.water ?? 0), 0);
   const cisterns = order.filter((b) => (defOf(content, b).water?.stores ?? 0) > 0);
+  const fillsNow = (b: BuildingState) => defOf(content, b).water!.fills[si]!;
+  /** Fills a cistern from `take`, up to its capacity; returns what it took. */
+  const refill = (b: BuildingState, take: (n: number) => number): number => {
+    const cap = defOf(content, b).water!.stores;
+    const gain = fillsNow(b) ? take(cap - (b.stored ?? 0)) : 0;
+    b.stored = (b.stored ?? 0) + gain;
+    explain(ctx, b, `water: holds ${b.stored} of ${cap}`);
+    return gain;
+  };
+  /** Releases up to `n` from these cisterns, in order; returns what they gave. */
+  const release = (from: BuildingState[], n: number): number => {
+    let given = 0;
+    for (const c of from) {
+      const t = Math.min(n - given, c.stored ?? 0);
+      c.stored = (c.stored ?? 0) - t;
+      given += t;
+    }
+    return given;
+  };
   const weirs = order.filter((b) => defOf(content, b).water?.holdsBack);
   const stored = () =>
     [...cisterns, ...weirs].reduce((s, b) => s + (b.stored ?? 0), 0) +
@@ -132,8 +156,9 @@ export function resolveWater(ctx: SeasonContext): void {
     // Buildings that return or clean water work through their channel; others drink from the
     // river (or a lake) when they stand beside it, and from a channel otherwise.
     const onChannel = attachment(b);
-    const river = riverIndexesNear(state, b.at);
-    const lake = lakeNear(state, b.at, ofLake);
+    const besideWater = rules.drawBesideRiver;
+    const river = besideWater ? riverIndexesNear(state, b.at) : [];
+    const lake = besideWater ? lakeNear(state, b.at, ofLake) : null;
     let source: Source | null = null;
     const channelFirst = w.returns !== undefined || w.cleans > 0 || !w.accepts.includes('clean');
     if (channelFirst && onChannel) source = { kind: 'channel', at: onChannel };
@@ -161,6 +186,17 @@ export function resolveWater(ctx: SeasonContext): void {
     );
   };
   for (const { b, need, source } of users) if (!source) finish(use(b, need, null), b);
+
+  // Cisterns on no channel stand by the river (at their most upstream position) or a lake.
+  const working = cisterns.filter(works);
+  const riverCisterns = working
+    .filter((c) => !attachment(c) && riverIndexesNear(state, c.at).length > 0)
+    .map((c) => ({ b: c, at: Math.min(...riverIndexesNear(state, c.at)) }));
+  const lakeCisterns = working.filter(
+    (c) => !attachment(c) && riverIndexesNear(state, c.at).length === 0,
+  );
+  const lakeCisternsOf = (id: string) =>
+    lakeCisterns.filter((c) => lakeNear(state, c.at, ofLake) === id);
 
   // A building drawing straight from the river or a lake (river water is clean: the river
   // dilutes what reaches it). What it returns goes back where it came from.
@@ -289,13 +325,11 @@ export function resolveWater(ctx: SeasonContext): void {
     }
     // Cisterns refill, upstream first: from clean water left in the channel, then fresh.
     for (const cis of myCisterns) {
-      const cap = defOf(content, cis.b).water!.stores;
-      let gain = Math.min(cap - (cis.b.stored ?? 0), pool.clean);
-      pool.clean -= gain;
-      gain += fresh(cap - (cis.b.stored ?? 0) - gain);
-      cis.b.stored = (cis.b.stored ?? 0) + gain;
-      r.stored += gain;
-      explain(ctx, cis.b, `water: holds ${cis.b.stored} of ${cap}`);
+      r.stored += refill(cis.b, (n) => {
+        const spare = Math.min(n, pool.clean);
+        pool.clean -= spare;
+        return spare + fresh(n - spare);
+      });
     }
     add(report.out, 'evaporated', r.evaporated);
     for (const q of WATER_QUALITIES) {
@@ -322,7 +356,11 @@ export function resolveWater(ctx: SeasonContext): void {
 
   // 2. Lakes, then channels that touch no water at their ends.
   for (const id of lakes.keys()) {
-    const take = lakeTake(id);
+    const fromLake = lakeTake(id);
+    const take = (n: number) => {
+      const t = fromLake(n);
+      return t + release(lakeCisternsOf(id), n - t);
+    };
     const giveBack = (q: WaterQuality, n: number) => {
       if (q === 'grey') report.greyToRiver += n;
       const first = lakes.get(id)![0]!;
@@ -338,6 +376,7 @@ export function resolveWater(ctx: SeasonContext): void {
         .map(({ ch, c }) => ({ uid: ch.uids[0]!, run: () => runChannel(c, take, null) })),
     ].sort((a, b) => rank.get(a.uid)! - rank.get(b.uid)!);
     for (const t of turns) t.run();
+    for (const c of lakeCisternsOf(id)) refill(c, fromLake);
   }
   chans.forEach((ch, c) => {
     if (ch.intake === null) runChannel(c, () => 0, null);
@@ -368,10 +407,19 @@ export function resolveWater(ctx: SeasonContext): void {
       if ((w.stored ?? 0) > 0) explain(ctx, w, `water: released ${w.stored} held back`);
       w.stored = 0;
     }
-    const take = (n: number) => {
+    // Cisterns beside the river at or above here, nearest first, cover what it can't.
+    const reserves = riverCisterns
+      .filter((c) => c.at <= i)
+      .sort((a, b) => b.at - a.at || rank.get(a.b.uid)! - rank.get(b.b.uid)!)
+      .map((c) => c.b);
+    const fromRiver = (n: number) => {
       const t = Math.min(n, flow);
       flow -= t;
       return t;
+    };
+    const take = (n: number) => {
+      const t = fromRiver(n);
+      return t + release(reserves, n - t);
     };
     const giveBack = (q: WaterQuality, n: number) => {
       const u = units();
@@ -403,6 +451,7 @@ export function resolveWater(ctx: SeasonContext): void {
       w.stored = (w.stored ?? 0) + h;
       if (h > 0) explain(ctx, w, `water: holds back ${h} for ${hold.release}`);
     }
+    for (const c of riverCisterns) if (c.at === i) refill(c.b, fromRiver);
     report.flowAt[i] = flow;
   }
   // Water returned below the last position flows out of the valley.

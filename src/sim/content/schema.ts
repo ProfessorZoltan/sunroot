@@ -78,8 +78,13 @@ const BuildingWaterSchema = z
     cleans: nonNeg.default(0),
     /** A tile of Irrigation Channel. */
     channel: z.boolean().default(false),
-    /** Stores this much water from its channel's spare capacity, released when it runs short. */
+    /**
+     * Stores this much water (the Cistern), beside a channel, the river or a lake: it fills
+     * from what is spare in the seasons of `fills` and releases it to buildings at or below
+     * it that run short.
+     */
     stores: nonNeg.default(0),
+    fills: PerSeasonFlags.default([true, true, true, true]),
     /** Fed by the river beside it: puts this water into a neighbouring channel each season (Fish Pond). */
     feeds: z
       .object({ quality: WaterQualitySchema, amount: int.min(1) })
@@ -141,6 +146,8 @@ export const BuildingSchema = z
     /** First era in which the blueprint can be drafted. */
     minEra: int.min(1).default(1),
     floodTolerant: z.boolean().default(false),
+    /** Storms can't damage it (earthworks, such as a channel). */
+    stormProof: z.boolean().default(false),
     /** Counts as this source type for the Mixed Grid (an Agrivoltaic Field is solar). */
     sourceType: z.string().optional(),
     /** Tall buildings shade neighbouring solar canopies. */
@@ -349,6 +356,11 @@ const WaterRulesSchema = z
     enabled: z.boolean().default(false),
     /** Units entering the river at the top of the map each season. */
     riverFlow: PerSeason,
+    /**
+     * Whether buildings beside the river or a lake draw straight from it. Off, every
+     * building draws through a channel (EXPANSION.md as written).
+     */
+    drawBesideRiver: z.boolean().default(true),
     /** Most water a channel takes from its source in a season, evaporation included. */
     channelCapacity: int.min(1),
     /** A channel loses 1 unit for every `tilesPerUnit` tiles (rounded down) in these seasons. */

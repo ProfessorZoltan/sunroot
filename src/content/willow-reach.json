@@ -69,6 +69,7 @@
     "water": {
       "enabled": false,
       "riverFlow": [12, 4, 8, 6],
+      "drawBesideRiver": false,
       "channelCapacity": 4,
       "evaporation": {
         "tilesPerUnit": 4,
@@ -626,7 +627,8 @@
       },
       "water": {
         "channel": true
-      }
+      },
+      "stormProof": true
     },
     {
       "id": "cistern",
@@ -638,11 +640,12 @@
       "floodTolerant": true,
       "placement": {
         "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland"],
-        "adjacentTo": [],
+        "adjacentTo": ["river", "reservoir"],
         "adjacentToBuildings": ["irrigationChannel"]
       },
       "water": {
-        "stores": 6
+        "stores": 6,
+        "fills": [true, false, true, true]
       }
     },
     {
@@ -1978,6 +1981,16 @@
           "id": "lowRiver",
           "path": "farYieldFactor",
           "set": 0.25
+        },
+        {
+          "target": "rules",
+          "path": "water.riverFlow.1",
+          "set": 0
+        },
+        {
+          "target": "rules",
+          "path": "water.riverFlow.2",
+          "set": 4
         }
       ],
       "graftTierBonus": 1

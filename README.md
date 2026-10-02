@@ -131,3 +131,7 @@ idle seasons, blackouts, food made, eaten and rotted, energy by source, wellbein
 picks, buildings). `report.md` summarizes it and answers the design's balance questions. Results
 depend only on the seeds, not on the number of threads. The last full report is kept in
 [docs/balance/baseline-report.md](docs/balance/baseline-report.md).
+
+`npx tsx scripts/water.ts [runs] [bot] [setting=value ...]` plays the valley with and without the
+water system (off in the game until it can be seen) and reports the E1 decision gate; see
+[docs/balance/water-e1.md](docs/balance/water-e1.md).
