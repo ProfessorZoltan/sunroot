@@ -228,123 +228,125 @@ export function EndScreen({
   return (
     <div class="modal-backdrop">
       <div class="modal glass end" role="dialog" aria-modal="true" aria-label="The run has ended">
-        <span class="card-kind">{complete ? 'Sprout complete' : 'Sprout ended'}</span>
-        <h2 class="glass-title">
-          {complete ? 'The valley is breathing again' : 'The settlement has scattered'}
-        </h2>
-        <p>
-          {complete
-            ? `Twelve years in ${content.name}: ${state.citizens} citizens, Harmony ${state.harmony}.`
-            : `Wellbeing reached 0 in year ${state.year}. Every run still sends something home.`}
-          {vision &&
-            (state.visionAchieved !== null
-              ? ` Vision achieved: ${vision.name}.`
-              : ` The vision, ${vision.name}, was not reached.`)}
-        </p>
-        <table class="keys">
-          {score.lines.map((l) => (
-            <tr>
-              <th>{l.reason}</th>
-              <td>{l.points}</td>
+        <div class="glass-scroll">
+          <span class="card-kind">{complete ? 'Sprout complete' : 'Sprout ended'}</span>
+          <h2 class="glass-title">
+            {complete ? 'The valley is breathing again' : 'The settlement has scattered'}
+          </h2>
+          <p>
+            {complete
+              ? `Twelve years in ${content.name}: ${state.citizens} citizens, Harmony ${state.harmony}.`
+              : `Wellbeing reached 0 in year ${state.year}. Every run still sends something home.`}
+            {vision &&
+              (state.visionAchieved !== null
+                ? ` Vision achieved: ${vision.name}.`
+                : ` The vision, ${vision.name}, was not reached.`)}
+          </p>
+          <table class="keys">
+            {score.lines.map((l) => (
+              <tr>
+                <th>{l.reason}</th>
+                <td>{l.points}</td>
+              </tr>
+            ))}
+            <tr class="total">
+              <th>Score: {score.tier.name} Graft</th>
+              <td>{score.total}</td>
             </tr>
-          ))}
-          <tr class="total">
-            <th>Score: {score.tier.name} Graft</th>
-            <td>{score.total}</td>
-          </tr>
-        </table>
-        {score.lift && (
-          <div class="small">
-            {score.lift.by} lifted the Graft {score.lift.tiers} tier
-            {score.lift.tiers > 1 ? 's' : ''}, to {score.tier.name}.
-          </div>
-        )}
-        {score.next && (
-          <div class="small">
-            {score.next.points} more points would have made a {score.next.tier.name} Graft.
-          </div>
-        )}
-        {seeds.total > 0 && (
-          <div class="small seeds">
-            Seeds earned: <strong>{seeds.total}</strong> (
-            {seeds.lines.map((l) => `${l.reason}: ${l.points}`).join(', ')}).{' '}
-            {store.bankedSeeds > 0 ? `With ${store.bankedSeeds} banked, ` : ''}
-            <strong>{inHand}</strong> in hand; planting a Graft costs {cost}.
-          </div>
-        )}
-        {(() => {
-          // Tempest: the mark this run's Graft carries, and the level a Heartwood Graft opens.
-          const levels = content.tempest.levels.length;
-          if (levels === 0) return null;
-          const top = content.rules.score.tiers.at(-1);
-          const next = store.tempest + 1;
-          const lines: string[] = [];
-          if (store.tempest > 0)
-            lines.push(`Played at Tempest ${store.tempest}: its Graft carries the Tempest mark.`);
-          if (score.tier === top && next <= levels)
-            lines.push(`A ${top.name} Graft: Tempest ${next} is open in Root City.`);
-          return lines.length > 0 ? <div class="small">{lines.join(' ')}</div> : null;
-        })()}
-        {!sent && store.canPlant && (
-          <>
-            <h3 class="glass-subtitle">Choose the Graft to plant in Root City</h3>
-            <div class="graft-options">
-              {offer.options.map((o, i) => (
-                <button
-                  type="button"
-                  class="card graft"
-                  ref={i === 0 ? first : undefined}
-                  onClick={() => store.chooseGraft(o.district.id)}
-                >
-                  <span class="card-body">
-                    <span class="card-kind">
-                      {o.district.earnedBy}
-                      {o.lean > 0 ? ` · ${Math.round(Math.min(1, o.lean) * 100)}% match` : ''}
-                    </span>
-                    <span class="card-name">{o.district.name}</span>
-                    <span class="card-text">
-                      {score.tier.name}:{' '}
-                      {o.district.perks[Math.min(tierIndex, o.district.perks.length - 1)]!.text}.
-                      Adds {cardLabel(content, o.district.adds)} to future drafts.
-                    </span>
-                  </span>
-                </button>
-              ))}
+          </table>
+          {score.lift && (
+            <div class="small">
+              {score.lift.by} lifted the Graft {score.lift.tiers} tier
+              {score.lift.tiers > 1 ? 's' : ''}, to {score.tier.name}.
             </div>
-          </>
-        )}
-        {!sent && !store.canPlant && (
-          <p class="small">
-            Not enough Seeds to plant a Graft: {cost - inHand} more are needed. Bank them, and a
-            later run can add to them.
-          </p>
-        )}
-        {sent && (
-          <p class="graft-sent" role="status">
-            {result.graft
-              ? `The ${chosen?.name ?? 'Graft'} is on its way to Root City as a ${score.tier.name} Graft. ${inHand - result.spent} Seeds are banked.`
-              : `${inHand} Seeds are banked in Root City for the next run.`}
-          </p>
-        )}
-        <div class="row">
-          {!sent && (
-            <button
-              type="button"
-              class={store.canPlant ? 'button' : 'button primary'}
-              ref={store.canPlant ? undefined : first}
-              onClick={() => store.bankSeeds()}
-            >
-              {store.canPlant ? 'Bank the Seeds instead' : 'Bank the Seeds'}
-            </button>
+          )}
+          {score.next && (
+            <div class="small">
+              {score.next.points} more points would have made a {score.next.tier.name} Graft.
+            </div>
+          )}
+          {seeds.total > 0 && (
+            <div class="small seeds">
+              Seeds earned: <strong>{seeds.total}</strong> (
+              {seeds.lines.map((l) => `${l.reason}: ${l.points}`).join(', ')}).{' '}
+              {store.bankedSeeds > 0 ? `With ${store.bankedSeeds} banked, ` : ''}
+              <strong>{inHand}</strong> in hand; planting a Graft costs {cost}.
+            </div>
+          )}
+          {(() => {
+            // Tempest: the mark this run's Graft carries, and the level a Heartwood Graft opens.
+            const levels = content.tempest.levels.length;
+            if (levels === 0) return null;
+            const top = content.rules.score.tiers.at(-1);
+            const next = store.tempest + 1;
+            const lines: string[] = [];
+            if (store.tempest > 0)
+              lines.push(`Played at Tempest ${store.tempest}: its Graft carries the Tempest mark.`);
+            if (score.tier === top && next <= levels)
+              lines.push(`A ${top.name} Graft: Tempest ${next} is open in Root City.`);
+            return lines.length > 0 ? <div class="small">{lines.join(' ')}</div> : null;
+          })()}
+          {!sent && store.canPlant && (
+            <>
+              <h3 class="glass-subtitle">Choose the Graft to plant in Root City</h3>
+              <div class="graft-options">
+                {offer.options.map((o, i) => (
+                  <button
+                    type="button"
+                    class="card graft"
+                    ref={i === 0 ? first : undefined}
+                    onClick={() => store.chooseGraft(o.district.id)}
+                  >
+                    <span class="card-body">
+                      <span class="card-kind">
+                        {o.district.earnedBy}
+                        {o.lean > 0 ? ` · ${Math.round(Math.min(1, o.lean) * 100)}% match` : ''}
+                      </span>
+                      <span class="card-name">{o.district.name}</span>
+                      <span class="card-text">
+                        {score.tier.name}:{' '}
+                        {o.district.perks[Math.min(tierIndex, o.district.perks.length - 1)]!.text}.
+                        Adds {cardLabel(content, o.district.adds)} to future drafts.
+                      </span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+          {!sent && !store.canPlant && (
+            <p class="small">
+              Not enough Seeds to plant a Graft: {cost - inHand} more are needed. Bank them, and a
+              later run can add to them.
+            </p>
           )}
           {sent && (
-            <button type="button" class="button primary" ref={first} onClick={onNewRun}>
-              Go to Root City
-            </button>
+            <p class="graft-sent" role="status">
+              {result.graft
+                ? `The ${chosen?.name ?? 'Graft'} is on its way to Root City as a ${score.tier.name} Graft. ${inHand - result.spent} Seeds are banked.`
+                : `${inHand} Seeds are banked in Root City for the next run.`}
+            </p>
           )}
-          <button type="button" class="button" onClick={onClose}>
-            Look at the valley
-          </button>
+          <div class="row">
+            {!sent && (
+              <button
+                type="button"
+                class={store.canPlant ? 'button' : 'button primary'}
+                ref={store.canPlant ? undefined : first}
+                onClick={() => store.bankSeeds()}
+              >
+                {store.canPlant ? 'Bank the Seeds instead' : 'Bank the Seeds'}
+              </button>
+            )}
+            {sent && (
+              <button type="button" class="button primary" ref={first} onClick={onNewRun}>
+                Go to Root City
+              </button>
+            )}
+            <button type="button" class="button" onClick={onClose}>
+              Look at the valley
+            </button>
+          </div>
         </div>
       </div>
     </div>

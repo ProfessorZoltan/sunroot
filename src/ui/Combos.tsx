@@ -286,7 +286,7 @@ export function RevealCard({ store }: { store: GameStore }) {
         aria-label={label}
         key={key}
       >
-        {body}
+        <div class="glass-scroll">{body}</div>
         <button
           type="button"
           class="button primary"
