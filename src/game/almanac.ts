@@ -38,6 +38,15 @@ export function saveAlmanac(content: Content, storage: Storage | null, almanac: 
   }
 }
 
+/** Forgets every discovery and bought hint (Start over). */
+export function forgetAlmanac(content: Content, storage: Storage | null): void {
+  try {
+    storage?.removeItem(KEY(content));
+  } catch {
+    // Blocked storage: nothing was kept to forget.
+  }
+}
+
 /** Adds a run's discoveries and hints. `fresh` lists combos new to the Almanac, in order. */
 export function recordRun(
   almanac: Almanac,

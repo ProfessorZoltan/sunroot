@@ -1,5 +1,10 @@
 # Changelog
 
+## Start over
+
+- **Start over** in Root City forgets the city and any run in progress and begins again at run 1,
+  as a new player would. It asks first; tick its box to forget the Almanac's discoveries too.
+
 ## The E3 gate, restated and passed
 
 - Willow Reach v2's balance gate now asks whether the bots need any one new card to win: leaving

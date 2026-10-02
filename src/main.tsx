@@ -22,7 +22,7 @@ import willowReach from './content/willow-reach.json';
 import { connectAudio } from './audio/director';
 import { AudioEngine } from './audio/engine';
 import { loadAlmanac, saveAlmanac } from './game/almanac';
-import { loadCity, saveCity } from './game/city';
+import { loadCity, saveCity, startOver } from './game/city';
 import { PlayLog } from './game/playlog';
 import { indexedDbSlot, throttled } from './game/saves';
 import { GameStore, type Reveal } from './game/store';
@@ -131,6 +131,16 @@ async function start() {
         onSave={keepCity}
         onSetOut={() => go('?new')}
         onBack={() => go('')}
+        onStartOver={
+          sandbox
+            ? undefined
+            : (almanac) =>
+                void citySaving
+                  .then(() =>
+                    startOver(content, { run: slot, city: citySlot }, storage, { almanac }),
+                  )
+                  .then(() => (location.href = location.pathname))
+        }
         audio={audio}
       />,
       root,

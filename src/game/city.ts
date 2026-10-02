@@ -4,6 +4,7 @@
  * Grafts sent home before Milestone 8) is read once and moved over.
  */
 import { createCity, makeCitySave, readCity, type CityState, type Content } from '../sim';
+import { forgetAlmanac } from './almanac';
 import type { SaveSlot } from './saves';
 
 export type { CityState, Graft, RunResult } from '../sim';
@@ -48,6 +49,26 @@ export async function loadCity(
     }
   }
   return { city: createCity(content, seed), problem: null };
+}
+
+/**
+ * Start over: forgets Root City and the run in progress, so the next visit
+ * begins at run 1 as a new player's would. The Almanac goes too if asked;
+ * the playtest log and sound settings stay.
+ */
+export async function startOver(
+  content: Content,
+  slots: { run: SaveSlot; city: SaveSlot },
+  storage: Storage | null,
+  options: { almanac: boolean },
+): Promise<void> {
+  await Promise.all([slots.run.clear(), slots.city.clear()]);
+  try {
+    storage?.removeItem(OLD_KEY);
+  } catch {
+    // Blocked storage: no old city could have been kept there.
+  }
+  if (options.almanac) forgetAlmanac(content, storage);
 }
 
 export function saveCity(slot: SaveSlot, city: CityState, savedAt: string): Promise<void> {

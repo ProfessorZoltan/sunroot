@@ -281,3 +281,33 @@ test('Tempest: chosen in Root City, played in the run, its mark on the district'
   );
   expect(errors).toEqual([]);
 });
+
+test('Start over forgets Root City and begins again at run 1', async ({ page }) => {
+  await seedCity(
+    page,
+    city([
+      { type: 'sendHome', result: { graft: graft('orchardWard'), earned: 40, spent: 35 } },
+      { type: 'place', slot: 0 },
+      { type: 'sendHome', result: { graft: graft('millraceQuarter'), earned: 45, spent: 35 } },
+    ]),
+  );
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Root City' })).toBeVisible();
+  await page.getByRole('button', { name: 'Start over' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Start over?' });
+  await expect(dialog).toContainText('2 runs sent home, 1 district and 15 Seeds');
+  // Cancelling keeps the city.
+  await expect(dialog.getByRole('button', { name: 'Keep my city' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+  expect((await cityNow(page)).runs).toBe(2);
+
+  await page.getByRole('button', { name: 'Start over' }).click();
+  await dialog.getByRole('button', { name: 'Start over' }).click();
+  // Run 1 begins, guided, and the new city has sent nothing home.
+  await expect(page.locator('#map-host canvas')).toBeVisible();
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as Win).sunroot.store?.state.options))
+    .toMatchObject({ guided: true });
+  await expect.poll(() => cityNow(page).then((c) => c.runs)).toBe(0);
+});

@@ -199,6 +199,7 @@ export function CityScreen({
   onSave,
   onSetOut,
   onBack,
+  onStartOver,
   audio,
 }: {
   content: Content;
@@ -208,9 +209,12 @@ export function CityScreen({
   onSave: (city: CityState) => void;
   onSetOut: (city: CityState) => void;
   onBack?: () => void;
+  /** Forgets the city and any run in progress (and the Almanac, if asked); back to run 1. */
+  onStartOver?: (almanac: boolean) => void;
   audio?: AudioEngine;
 }) {
   const [city, setCity] = useState(initial);
+  const [startingOver, setStartingOver] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [events, setEvents] = useState<CityEvent[]>([]);
@@ -306,6 +310,11 @@ export function CityScreen({
         )}
         <span class="grow" />
         {audio && <SoundButton engine={audio} />}
+        {onStartOver && (
+          <button type="button" class="button" onClick={() => setStartingOver(true)}>
+            Start over
+          </button>
+        )}
         {readOnly && onBack && (
           <button type="button" class="button primary" onClick={onBack}>
             Back to the run
@@ -487,6 +496,14 @@ export function CityScreen({
           <DistrictGuide content={content} />
         </aside>
       </div>
+      {startingOver && onStartOver && (
+        <StartOverDialog
+          city={city}
+          runInProgress={readOnly}
+          onConfirm={onStartOver}
+          onClose={() => setStartingOver(false)}
+        />
+      )}
       {events.length > 0 && (
         <CityReveal
           content={content}
@@ -833,6 +850,61 @@ function CityReveal({
         <button type="button" class="button primary" ref={button} onClick={onClose}>
           Continue
         </button>
+      </div>
+    </div>
+  );
+}
+
+/** Asks before forgetting Root City: everything since run 1 goes. */
+function StartOverDialog({
+  city,
+  runInProgress,
+  onConfirm,
+  onClose,
+}: {
+  city: CityState;
+  runInProgress: boolean;
+  onConfirm: (almanac: boolean) => void;
+  onClose: () => void;
+}) {
+  const cancel = useRef<HTMLButtonElement>(null);
+  const [almanac, setAlmanac] = useState(false);
+  useEffect(() => cancel.current?.focus(), []);
+  const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? '' : 's'}`;
+  return (
+    <div class="modal-backdrop" onClick={onClose}>
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Start over?"
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      >
+        <h2>Start over?</h2>
+        <p class="small">
+          Root City is forgotten: {plural(city.runs, 'run')} sent home,{' '}
+          {plural(city.districts.length, 'district')} and {plural(city.seeds, 'Seed')}
+          {runInProgress ? ', and the run in progress' : ''}. You begin again at run 1, with its
+          guided first year. This can't be undone.
+        </p>
+        <label class="small">
+          <input
+            type="checkbox"
+            checked={almanac}
+            onChange={(e) => setAlmanac((e.target as HTMLInputElement).checked)}
+          />{' '}
+          Forget the Almanac's discoveries and hints too
+        </label>
+        <p class="small quiet">The playtest log and sound settings are kept.</p>
+        <div class="row">
+          <button type="button" class="button" ref={cancel} onClick={onClose}>
+            Keep my city
+          </button>
+          <button type="button" class="button primary" onClick={() => onConfirm(almanac)}>
+            Start over
+          </button>
+        </div>
       </div>
     </div>
   );

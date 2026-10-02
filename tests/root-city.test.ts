@@ -29,7 +29,7 @@ import { BOTS } from '../src/balance/bots';
 import { Turn } from '../src/balance/turn';
 import { createRng } from '../src/sim/rng';
 import { GameStore } from '../src/game/store';
-import { loadCity, saveCity } from '../src/game/city';
+import { loadCity, saveCity, startOver } from '../src/game/city';
 import { memorySlot } from '../src/game/saves';
 import { content } from './helpers';
 
@@ -341,6 +341,35 @@ describe('city saves', () => {
     expect(loaded.city.pending.map((g) => g.district)).toEqual(['mendedCommons']);
     expect(storage.has('sunroot:city')).toBe(false);
     expect((await loadCity(content, slot, null, 'other')).city).toEqual(loaded.city);
+  });
+
+  it('start over forgets the city and the run in progress, and the Almanac only if asked', async () => {
+    const almanacKey = `sunroot:almanac:${content.id}`;
+    const storage = new Map<string, string>([
+      [almanacKey, JSON.stringify({ version: 1, discovered: ['sunTrap'], hints: [] })],
+      ['sunroot:playlog', '[]'],
+      ['sunroot:audio', '{}'],
+    ]);
+    const local = {
+      getItem: (k: string) => storage.get(k) ?? null,
+      removeItem: (k: string) => storage.delete(k),
+    } as unknown as Storage;
+    const city = memorySlot();
+    const run = memorySlot({ some: 'run' });
+    await saveCity(city, cityWith([['orchardWard', 'sapling']], 12), 'now');
+
+    await startOver(content, { run, city }, local, { almanac: false });
+    expect(await run.load()).toBeUndefined();
+    expect(await city.load()).toBeUndefined();
+    expect(storage.has(almanacKey)).toBe(true);
+    // The next visit begins a new city: no runs sent home.
+    expect((await loadCity(content, city, local, 'fresh')).city).toEqual(
+      createCity(content, 'fresh'),
+    );
+
+    await startOver(content, { run, city }, local, { almanac: true });
+    expect(storage.has(almanacKey)).toBe(false);
+    expect([...storage.keys()]).toEqual(['sunroot:playlog', 'sunroot:audio']);
   });
 });
 
