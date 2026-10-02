@@ -5,7 +5,7 @@
  * placed so the valley starts at exactly the biome's starting Harmony.
  */
 import type { Content } from './content/load';
-import type { TileType } from './content/schema';
+import type { CoastMapGen, TileType, ValleyMapGen } from './content/schema';
 import { hexDistance, hexKey, hexNeighbors, offsetToAxial, type Hex } from './hex';
 import { chance, createRng, nextInt, shuffled, type RngState } from './rng';
 import type { MapState, Tile } from './types';
@@ -17,6 +17,11 @@ export interface GeneratedMap {
 
 export function generateMap(content: Content, seed: string): GeneratedMap {
   const gen = content.map;
+  if (gen.kind === 'coast') return generateCoast(content, gen, seed);
+  return generateValley(content, gen, seed);
+}
+
+function generateValley(content: Content, gen: ValleyMapGen, seed: string): GeneratedMap {
   const rng = createRng(`${seed}:map`);
   const tiles: Record<string, Tile> = {};
   const order: string[] = [];
@@ -166,6 +171,161 @@ export function generateMap(content: Content, seed: string): GeneratedMap {
     .map((k) => ({ k, d: riverDistance(tiles[k]!) }))
     .sort((a, b) => a.d - b.d)
     .map((x) => x.k);
+
+  return {
+    map: { width: gen.width, height: gen.height, tiles, river, floodOrder },
+    camp: { q: camp.q, r: camp.r },
+  };
+}
+
+/**
+ * A coast (the Windswept Coast): the sea along the east edge with a wandering
+ * shore, headlands reaching out into it, mudflat or dunes on the shore with
+ * saltmarsh behind the mudflat, a stream from the west edge down to the sea
+ * (its mouth an estuary of mudflat), damaged land inland with a few ruins of
+ * an old harbour, and green land summing to the starting Harmony.
+ */
+function generateCoast(content: Content, gen: CoastMapGen, seed: string): GeneratedMap {
+  const rng = createRng(`${seed}:map`);
+  const tiles: Record<string, Tile> = {};
+  const order: string[] = [];
+  const at = (col: number, row: number) => tiles[hexKey(offsetToAxial(col, row))];
+  for (let row = 0; row < gen.height; row++) {
+    for (let col = 0; col < gen.width; col++) {
+      const h = offsetToAxial(col, row);
+      tiles[hexKey(h)] = { ...h, type: 'barren' };
+      order.push(hexKey(h));
+    }
+  }
+  const tile = (h: Hex) => tiles[hexKey(h)];
+
+  // The sea: the east columns, the shore wandering a column either way from row to row.
+  const base = gen.width - gen.seaColumns;
+  let shore = base;
+  const shoreCol: number[] = [];
+  for (let row = 0; row < gen.height; row++) {
+    shoreCol.push(shore);
+    for (let col = shore; col < gen.width; col++) at(col, row)!.type = 'sea';
+    const step = nextInt(rng, 3) - 1;
+    shore = Math.max(base - 1, Math.min(base + 1, shore + step));
+  }
+
+  // Headlands: a rocky spur from the shore out into the sea.
+  const rows = shuffled(
+    rng,
+    Array.from({ length: Math.max(0, gen.height - 4) }, (_, i) => i + 2),
+  ).filter((r, i, all) => all.slice(0, i).every((o) => Math.abs(o - r) > 2));
+  for (const row of rows.slice(0, gen.headlands)) {
+    const from = shoreCol[row]! - 1;
+    for (let col = from; col < Math.min(gen.width - 1, from + 1 + gen.headlandLength); col++)
+      at(col, row)!.type = 'hill';
+  }
+
+  // The stream: from the west edge, east to the sea, wandering a row now and then.
+  const [minRow, maxRow] = gen.streamRows;
+  let row = minRow + nextInt(rng, maxRow - minRow + 1);
+  const river: string[] = [];
+  for (let col = 0; col < gen.width; col++) {
+    const t = at(col, row)!;
+    if (t.type === 'sea') break;
+    if (t.type === 'hill') {
+      // Round a headland's root.
+      row = Math.min(gen.height - 2, row + 1);
+      continue;
+    }
+    t.type = 'river';
+    t.riverIndex = river.length;
+    river.push(hexKey(t));
+    if (col > 1 && chance(rng, 0.3)) {
+      const next = Math.max(1, Math.min(gen.height - 2, row + (chance(rng, 0.5) ? 1 : -1)));
+      if (next !== row && at(col, next)!.type === 'barren') {
+        row = next;
+        const s = at(col, row)!;
+        s.type = 'river';
+        s.riverIndex = river.length;
+        river.push(hexKey(s));
+      }
+    }
+  }
+
+  // Distance to the sea, over the map.
+  const seaDistance = new Map<string, number>();
+  const queue = order.filter((k) => tiles[k]!.type === 'sea');
+  for (const k of queue) seaDistance.set(k, 0);
+  for (let i = 0; i < queue.length; i++) {
+    const t = tiles[queue[i]!]!;
+    for (const n of hexNeighbors(t)) {
+      const k = hexKey(n);
+      if (!tiles[k] || seaDistance.has(k)) continue;
+      seaDistance.set(k, seaDistance.get(queue[i]!)! + 1);
+      queue.push(k);
+    }
+  }
+  const fromSea = (t: Tile) => seaDistance.get(hexKey(t)) ?? Infinity;
+
+  // The shore: mudflat or dune; the stream's mouth is an estuary of mudflat.
+  const mouth = river.length > 0 ? tiles[river.at(-1)!]! : undefined;
+  for (const key of order) {
+    const t = tiles[key]!;
+    if (t.type !== 'barren' || fromSea(t) !== 1) continue;
+    const rocky = hexNeighbors(t).some((n) => tile(n)?.type === 'hill');
+    const estuary = mouth !== undefined && hexDistance(t, mouth) <= 1;
+    t.type = estuary || (!rocky && chance(rng, gen.mudflatChance)) ? 'mudflat' : 'dune';
+  }
+  // Behind the shore: saltmarsh behind mudflat, dunes behind dunes.
+  for (const key of order) {
+    const t = tiles[key]!;
+    if (t.type !== 'barren' || fromSea(t) !== 2) continue;
+    const behind = hexNeighbors(t).map((n) => tile(n)?.type);
+    if (behind.includes('mudflat') && chance(rng, gen.saltmarshChance)) t.type = 'saltmarsh';
+    else if (behind.includes('dune') && chance(rng, gen.duneChance)) t.type = 'dune';
+  }
+
+  // Damaged land inland: barren or scrub.
+  for (const key of order) {
+    const t = tiles[key]!;
+    if (t.type === 'barren' && !chance(rng, gen.barrenChance)) t.type = 'scrub';
+  }
+  const isPlainLand = (t: Tile) => t.type === 'barren' || t.type === 'scrub';
+
+  // The old harbour's ruins, a little way back from the sea, never touching each other.
+  let ruinsLeft = gen.ruins;
+  for (const key of shuffled(rng, order)) {
+    if (ruinsLeft === 0) break;
+    const t = tiles[key]!;
+    if (!isPlainLand(t) || fromSea(t) < 2 || fromSea(t) > 4) continue;
+    if (hexNeighbors(t).some((n) => tile(n)?.type === 'ruin' || tile(n)?.type === 'river'))
+      continue;
+    t.type = 'ruin';
+    t.salvage = gen.ruinSalvage;
+    ruinsLeft--;
+  }
+
+  // The Founders' Camp: plain land a short walk from the sea, mid-coast.
+  const [nearest, farthest] = gen.campSeaDistance;
+  const midRows = (r: number) => r >= gen.height / 4 && r < (gen.height * 3) / 4;
+  const campOptions = order.filter((key) => {
+    const t = tiles[key]!;
+    const d = fromSea(t);
+    return isPlainLand(t) && d >= nearest && d <= farthest && midRows(t.r);
+  });
+  if (campOptions.length === 0) throw new Error('map has no site for the Founders Camp');
+  const campKey = campOptions[nextInt(rng, campOptions.length)]!;
+  const camp = tiles[campKey]!;
+  camp.type = 'scrub';
+
+  placeGreenLand(content, rng, tiles, order, campKey);
+
+  // The king tide reaches the mudflat, then the saltmarsh beside it, nearest the sea first.
+  const floodOrder = order
+    .filter((k) => {
+      const t = tiles[k]!;
+      return (
+        t.type === 'mudflat' ||
+        (t.type === 'saltmarsh' && hexNeighbors(t).some((n) => tile(n)?.type === 'mudflat'))
+      );
+    })
+    .sort((a, b) => fromSea(tiles[a]!) - fromSea(tiles[b]!) || order.indexOf(a) - order.indexOf(b));
 
   return {
     map: { width: gen.width, height: gen.height, tiles, river, floodOrder },

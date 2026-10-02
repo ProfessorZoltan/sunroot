@@ -182,6 +182,8 @@ export const BuildingSchema = z
       adjacentTo: z.array(TileTypeSchema).optional(),
       /** Buildings that also satisfy adjacentTo (a Fish Pond counts as water for a Heat Pump). */
       adjacentToBuildings: z.array(z.string()).optional(),
+      /** Must not touch any tile of these types (a wave buoy, out in the deep sea). */
+      awayFrom: z.array(TileTypeSchema).optional(),
     }),
     housing: nonNeg.default(0),
     foodStorage: nonNeg.default(0),
@@ -701,8 +703,10 @@ export const RulesSchema = z
   .strict();
 export type Rules = z.infer<typeof RulesSchema>;
 
-export const MapGenSchema = z
+/** A river valley (Willow Reach). */
+const ValleyMapSchema = z
   .object({
+    kind: z.literal('valley').default('valley'),
     width: int.min(6),
     height: int.min(4),
     riverColumns: z.tuple([nonNeg, nonNeg]),
@@ -724,7 +728,43 @@ export const MapGenSchema = z
     lakeSize: int.min(1).default(3),
   })
   .strict();
+
+/**
+ * A coast (the Windswept Coast): the sea along the east edge, mudflat, saltmarsh
+ * and dunes on the shore, headlands reaching out, a stream from the west edge to
+ * the sea (proposals/windswept-coast.md, Map).
+ */
+const CoastMapSchema = z
+  .object({
+    kind: z.literal('coast'),
+    width: int.min(8),
+    height: int.min(6),
+    /** Columns of sea at the east edge (the shore wanders a column either way). */
+    seaColumns: int.min(2),
+    headlands: nonNeg,
+    headlandLength: int.min(1),
+    /** A shore tile is mudflat by this chance (else dune). */
+    mudflatChance: z.number().min(0).max(1),
+    /** A tile behind the mudflat is saltmarsh by this chance. */
+    saltmarshChance: z.number().min(0).max(1),
+    /** A tile behind the dunes is dune too by this chance. */
+    duneChance: z.number().min(0).max(1),
+    /** The rows where the stream may start at the west edge. */
+    streamRows: z.tuple([nonNeg, nonNeg]),
+    ruins: nonNeg,
+    ruinSalvage: int.min(1),
+    barrenChance: z.number().min(0).max(1),
+    woodlands: nonNeg,
+    startingHarmony: nonNeg,
+    /** Tiles from the sea where the camp may stand. */
+    campSeaDistance: z.tuple([int.min(1), int.min(1)]),
+  })
+  .strict();
+
+export const MapGenSchema = z.union([CoastMapSchema, ValleyMapSchema]);
 export type MapGen = z.infer<typeof MapGenSchema>;
+export type ValleyMapGen = z.infer<typeof ValleyMapSchema>;
+export type CoastMapGen = z.infer<typeof CoastMapSchema>;
 
 /**
  * A data modifier: tunings and charters change numbers in the content for the
