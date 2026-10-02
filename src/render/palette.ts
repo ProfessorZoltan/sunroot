@@ -17,6 +17,11 @@ export const TILE_COLORS: Record<TileType, TileColors> = {
   scrub: { top: 0xcdd196, side: 0xa6aa6c, detail: 0xa7b06e },
   meadow: { top: 0xb3cd8f, side: 0x88a56a, detail: 0x86a866 },
   woodland: { top: 0x94b780, side: 0x6c8e5c, detail: 0x4a6e43 },
+  // The Windswept Coast: deeper water, grey-brown mud, salt-green marsh, pale sand.
+  sea: { top: 0x6fa5bb, side: 0x4f8196, detail: 0xd6ecf2 },
+  mudflat: { top: 0xb5a98e, side: 0x8f846b, detail: 0x9fb6b8 },
+  saltmarsh: { top: 0xa9c08f, side: 0x7f9868, detail: 0xc9b98a },
+  dune: { top: 0xe8dab2, side: 0xc4b38a, detail: 0xb7c48a },
 };
 
 export const COLORS = {

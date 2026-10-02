@@ -72,7 +72,7 @@ export function drawSeason(
   // Silt glitters on farms the flood fed, for the seasons it lasts.
   const flood = content.events.flood;
   for (const b of Object.values(state.buildings)) {
-    if (b.siltYear !== state.year || !flood.siltSeasons.includes(state.season)) continue;
+    if (!flood || b.siltYear !== state.year || !flood.siltSeasons.includes(state.season)) continue;
     const c = hexToPixel(b.at);
     const rand = tileRandom(`${hexKey(b.at)}:silt`);
     for (let i = 0; i < 5; i++) {

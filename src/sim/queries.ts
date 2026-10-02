@@ -3,7 +3,7 @@ import { formationHarmony, shelteredByFormation } from './combos';
 import { edgeBuilding, hedged } from './edges';
 import { finishedProjects } from './projects';
 import type { Content } from './content/load';
-import type { BuildingDef, Season, TileType } from './content/schema';
+import type { BuildingDef, EventId, Events, Season, TileType } from './content/schema';
 import { SEASONS } from './content/schema';
 import { hexDistance, hexKey, hexNeighbors, type Hex } from './hex';
 import type { BuildingState, RunState, Tile } from './types';
@@ -101,17 +101,28 @@ export function isHome(def: BuildingDef): boolean {
  * What repairing a damaged building costs in materials, or null when it needs
  * no repair (undamaged, or storm damage that clears by itself).
  */
+/** A season event the calendar names (the loader checks each is in the biome's events). */
+export function eventOf<K extends EventId>(content: Content, id: K): NonNullable<Events[K]> {
+  const event = content.events[id] as Events[K];
+  if (!event) throw new Error(`${content.id} has no ${id} event`);
+  return event;
+}
+
 export function repairCost(content: Content, b: BuildingState): number | null {
   if (!b.damage) return null;
-  const cost = content.events[b.damage.cause].repairCost;
+  const cost = content.events[b.damage.cause]?.repairCost ?? 0;
   return b.damage.cause === 'storm' && cost === 0 ? null : cost;
 }
 
 /** Whether a storm can damage this building: on exposed land, with no woodland beside it. */
 export function stormExposed(content: Content, state: RunState, b: BuildingState): boolean {
   if (defOf(content, b).stormProof) return false;
+  const storm = content.events.storm;
   const type = tileAt(state, b.at)?.type;
-  if (!type || !content.events.storm.exposedOn.includes(type)) return false;
+  if (!storm || !type) return false;
+  // Offshore (the coast's sea buildings): nothing on land breaks the wind there.
+  if (storm.exposedAnywhereOn.includes(type)) return true;
+  if (!storm.exposedOn.includes(type)) return false;
   if (neighborTiles(state, b.at).some((t) => t.type === 'woodland')) return false;
   // A hedgerow next to it breaks the wind: one along an edge of its tile, or a hedgerow building
   // beside it; a Windbreak further.

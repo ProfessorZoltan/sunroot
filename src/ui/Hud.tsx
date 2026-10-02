@@ -5,6 +5,7 @@
  * everything else is in the menu; the run's goals and history open from the
  * Overview.
  */
+import { eventOf } from '../sim';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { AudioEngine } from '../audio/engine';
 import { reachSummary } from '../game/marks';
@@ -19,8 +20,8 @@ import { SEASON_NAMES } from './TopBar';
 /** This season's event and the next, along the top of the map. */
 export function ForecastBanner({ store }: { store: GameStore }) {
   const { content, state } = store;
-  const event = content.events[state.forecast.event];
-  const next = content.events[state.forecast.next];
+  const event = eventOf(content, state.forecast.event);
+  const next = eventOf(content, state.forecast.next);
   const reach = reachSummary(store.marks);
   return (
     <div class="forecast-banner" role="note" aria-label="Forecast" title={event.description}>

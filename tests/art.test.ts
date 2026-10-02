@@ -27,7 +27,9 @@ const info = JSON.parse(readFileSync(new URL('../src/art/art.json', import.meta.
 
 describe('hand-made art', () => {
   it('covers every tile type, in summer (two ways) and winter', () => {
-    for (const t of TILE_TYPES) {
+    // The Windswept Coast's tiles are drawn procedurally until their art comes (B4).
+    const awaiting = ['sea', 'mudflat', 'saltmarsh', 'dune'];
+    for (const t of TILE_TYPES.filter((x) => !awaiting.includes(x))) {
       for (const f of [`${t}.png`, `${t}-2.png`, `${t}.winter.png`])
         expect(art(`tiles/${f}`), f).toBe(true);
     }

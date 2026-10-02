@@ -64,7 +64,7 @@ export function mapMarks(content: Content, state: RunState, forecast: SeasonRepo
   // Lasting effects.
   const flood = content.events.flood;
   for (const b of Object.values(state.buildings)) {
-    if (b.siltYear === state.year && flood.siltSeasons.includes(state.season)) {
+    if (flood && b.siltYear === state.year && flood.siltSeasons.includes(state.season)) {
       const bonus = Math.round(flood.siltBonus * (b.siltShare ?? 1) * 100);
       add(b.at, 'silt', false, `Silted by the flood: +${bonus}% food this ${state.season}.`);
     }
@@ -147,7 +147,7 @@ export function mapMarks(content: Content, state: RunState, forecast: SeasonRepo
       add(atOf(uid), 'dry', true, `Low river: the ${name(uid)} is far from water and loses food.`);
   } else if (event === 'storm') {
     for (const uid of forecast.exposed) {
-      if (forecast.mixedGrid && content.events.storm.mixedGridShelters)
+      if (forecast.mixedGrid && content.events.storm?.mixedGridShelters)
         add(atOf(uid), 'calm', true, `The Mixed Grid shelters the ${name(uid)} from the storm.`);
       else
         add(

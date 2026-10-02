@@ -114,7 +114,7 @@ export {
 export { demolishCheck, type DemolishCheck } from './demolish';
 export { energyLedger, SHORT, type EnergyLedger } from './energyLedger';
 export { finishedProjects, projectBlocked } from './projects';
-export { buildingAt } from './queries';
+export { buildingAt, eventOf } from './queries';
 export {
   finishedWonders,
   flower,

@@ -1,7 +1,7 @@
 /** Step 3: the season's event. */
 import { hexDistance, hexKey } from '../hex';
 import { nextInt } from '../rng';
-import { defOf, occupancy, stormExposed } from '../queries';
+import { defOf, eventOf, occupancy, stormExposed } from '../queries';
 import type { SeasonContext } from './context';
 import { festivalThisSeason, siltBeyond } from '../wildlife';
 
@@ -84,7 +84,7 @@ export function applyEvent(ctx: SeasonContext): void {
           b.siltShare = 1;
           report.silted.push(b.uid);
         }
-        if (!def.floodTolerant && content.events.flood.damages) {
+        if (!def.floodTolerant && eventOf(content, 'flood').damages) {
           b.damage = { cause: 'flood', turn: state.turn };
           report.damaged.push(b.uid);
         }
@@ -107,8 +107,9 @@ export function applyEvent(ctx: SeasonContext): void {
       report.exposed = state.priority.filter((uid) =>
         stormExposed(content, state, state.buildings[uid]!),
       );
-      if (report.mixedGrid && content.events.storm.mixedGridShelters) break;
-      const count = content.events.storm.disableCount;
+      const storm = eventOf(content, 'storm');
+      if (report.mixedGrid && storm.mixedGridShelters) break;
+      const count = storm.disableCount;
       for (let i = 0; i < count; i++) {
         const exposed = state.priority
           .map((uid) => state.buildings[uid]!)

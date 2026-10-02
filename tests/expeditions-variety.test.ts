@@ -191,7 +191,9 @@ describe('new twists change how a run plays', () => {
     expect(summerFood('richSilt')).toBe(8); // 4 + 100%
     const rules = (id: string | null) =>
       effectiveContent(content, { tunings: [], charters: [], options: twist(id).run });
-    expect(rules('richSilt').events.flood.repairCost).toBe(rules(null).events.flood.repairCost + 2);
+    expect(rules('richSilt').events.flood!.repairCost).toBe(
+      rules(null).events.flood!.repairCost + 2,
+    );
   });
 
   it('Steady Winds and Clear Skies trade wind against solar', () => {
@@ -218,7 +220,7 @@ describe('new twists change how a run plays', () => {
       charters: [],
       options: twist('steadyWinds').run,
     });
-    expect(storms.events.storm.disableCount).toBe(2);
+    expect(storms.events.storm!.disableCount).toBe(2);
   });
 
   it('Lean Start: 5 materials, 4 food and 4 citizens, the Graft a tier higher', () => {
@@ -315,11 +317,11 @@ describe('the hard twists bite (asked for in playtesting)', () => {
     const broke = autumn('wildStorms', 0);
     expect(broke.buildings[uidAt(broke, 7, 3)]!.damage?.cause).toBe('storm');
     expect(broke.notices).toContain('Cottage is still storm-damaged: repairs need 3 materials');
-    expect(rulesOf('wildStorms').events.storm.repairCost).toBe(3);
+    expect(rulesOf('wildStorms').events.storm!.repairCost).toBe(3);
   });
 
   it('without the twist, storms stay as they were: hills only, a season of damage, the Mixed Grid shelters', () => {
-    const storm = content.events.storm;
+    const storm = content.events.storm!;
     expect(storm.exposedOn).toEqual(['hill']);
     expect(storm.mixedGridShelters).toBe(true);
     expect(storm.repairCost).toBe(0);

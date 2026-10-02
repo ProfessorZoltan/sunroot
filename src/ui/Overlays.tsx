@@ -9,7 +9,7 @@ import { logToCsv, type PlayLog } from '../game/playlog';
 import type { GameStore } from '../game/store';
 import { gaugeLines, type StorageGauge } from '../game/storageInfo';
 import type { MapView } from '../render/mapView';
-import { hexKey } from '../sim';
+import { eventOf, hexKey } from '../sim';
 import { Sun } from './icons';
 import { SEASON_NAMES } from './TopBar';
 import { SoundSettings } from './Sound';
@@ -24,7 +24,7 @@ const PHASE_TEXT = {
 /** Shown over the map while a season plays out, with Pause and Skip. */
 export function ResolutionBanner({ store }: { store: GameStore }) {
   const r = store.resolution!;
-  const event = store.content.events[r.report.event];
+  const event = eventOf(store.content, r.report.event);
   return (
     <div class="pill resolution" role="status" aria-label="The season is resolving">
       <Sun size={16} />

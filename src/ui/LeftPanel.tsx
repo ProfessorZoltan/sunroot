@@ -1,4 +1,5 @@
 /** Left column: stores with this season's change, workers, and what happened last season. */
+import { eventOf } from '../sim';
 import type { GameStore } from '../game/store';
 import { POPULATION_REASONS } from '../game/insight';
 import type { Resource } from '../sim';
@@ -229,14 +230,14 @@ export function LastSeason({ store }: { store: GameStore }) {
   const name = (uid: string) =>
     content.byId[state.buildings[uid]?.type ?? '']?.name ?? 'a building';
   const lines: string[] = [];
-  const event = content.events[r.event];
+  const event = eventOf(content, r.event);
   if (r.flooded.length) lines.push(`${event.name}: ${r.flooded.length} tiles flooded.`);
   if (r.silted.length)
     lines.push(`Silt on ${r.silted.length} farm${r.silted.length > 1 ? 's' : ''}.`);
   if (r.damaged.length) lines.push(`Damaged: ${r.damaged.map(name).join(', ')}.`);
   if (r.mixedGrid)
     lines.push(
-      store.rules.events.storm.mixedGridShelters
+      store.rules.events.storm?.mixedGridShelters
         ? 'Mixed Grid: no storm damage, and extra energy in every slot.'
         : 'Mixed Grid: extra energy in every slot (it gives no shelter from these storms).',
     );

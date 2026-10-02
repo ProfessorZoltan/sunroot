@@ -8,7 +8,7 @@ import type { Content } from './content/load';
 import { RESOURCES, SLOTS, type Resource, type Slot } from './content/schema';
 import { hexDistance, type Hex } from './hex';
 import { canPlace } from './placement';
-import { standsOn, tileAt } from './queries';
+import { eventOf, standsOn, tileAt } from './queries';
 import { resolveSeason, type ResolveOptions } from './season/resolve';
 import { placementEvolution } from './combos';
 import { contentFor, effectiveContent } from './content/modifiers';
@@ -91,7 +91,7 @@ export function previewPlacement(
   }
 
   const warnings: string[] = [];
-  const event = content.events[a.event];
+  const event = eventOf(content, a.event);
   if (a.damaged.includes(uid))
     warnings.push(`The ${event.name.toLowerCase()} will disable it this season.`);
   if (a.atRisk.includes(uid))

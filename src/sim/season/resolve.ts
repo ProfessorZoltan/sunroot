@@ -197,7 +197,7 @@ function advance(content: Content, ctx: SeasonContext): RunState {
     else b.stored = Math.max(0, (b.stored ?? 0) - s.decayPerSeason);
   }
   // Storm damage lasts one season, unless storms need repairs (Wild Storms).
-  if (content.events.storm.repairCost === 0) {
+  if ((content.events.storm?.repairCost ?? 0) === 0) {
     for (const b of Object.values(state.buildings)) {
       if (b.damage?.cause === 'storm') delete b.damage;
     }

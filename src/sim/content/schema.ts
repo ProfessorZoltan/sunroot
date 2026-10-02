@@ -22,6 +22,11 @@ export const TILE_TYPES = [
   'scrub',
   'meadow',
   'woodland',
+  // The Windswept Coast (Milestone 11).
+  'sea',
+  'mudflat',
+  'saltmarsh',
+  'dune',
 ] as const;
 export const TileTypeSchema = z.enum(TILE_TYPES);
 export type TileType = z.infer<typeof TileTypeSchema>;
@@ -391,6 +396,11 @@ const EventBase = z.object({
   summary: z.string(),
   description: z.string(),
 });
+/**
+ * The season events. Each biome has the ones its calendar names, with its own
+ * names and numbers: the Reach's flood is the coast's king tide (salt, not
+ * silt), its storm the coast's gale.
+ */
 export const EventsSchema = z
   .object({
     flood: EventBase.extend({
@@ -399,11 +409,30 @@ export const EventsSchema = z
       repairCost: nonNeg,
       /** Whether the flood damages buildings that aren't flood-tolerant (River Keepers: no). */
       damages: z.boolean().default(true),
-    }),
+      /**
+       * Salt water (the coast's king tide): farmland it reaches makes `factor` of its food
+       * for `seasons` seasons; then, for the rest of the year, farmland on `bonusOn` makes
+       * `bonus` more.
+       */
+      salt: z
+        .object({
+          factor: z.number().min(0).max(1),
+          seasons: int.min(1),
+          bonusOn: z.array(TileTypeSchema).default([]),
+          bonus: nonNeg.default(0),
+        })
+        .strict()
+        .optional(),
+    }).optional(),
     lowRiver: EventBase.extend({
       farFromWaterDistance: int.min(0),
       farYieldFactor: z.number().min(0).max(1),
-    }),
+    }).optional(),
+    /** Sea fog (the coast's summer): solar makes less; cisterns catch water. */
+    fog: EventBase.extend({
+      solarPenalty: nonNeg,
+      cisternCatch: nonNeg.default(0),
+    }).optional(),
     storm: EventBase.extend({
       disableCount: nonNeg,
       /** The tiles whose buildings the storm can damage (unless next to woodland). */
@@ -412,11 +441,15 @@ export const EventsSchema = z
       mixedGridShelters: z.boolean().default(true),
       /** 0: storm damage lasts the season. More: it lasts until repaired, for these materials. */
       repairCost: nonNeg.default(0),
-    }),
-    freeze: EventBase,
+      /** Buildings on these tiles are exposed too, wherever they stand (the coast's offshore ones). */
+      exposedAnywhereOn: z.array(TileTypeSchema).default([]),
+    }).optional(),
+    freeze: EventBase.optional(),
   })
   .strict();
-export type EventId = keyof z.infer<typeof EventsSchema>;
+export type Events = z.infer<typeof EventsSchema>;
+export const EVENT_IDS = ['flood', 'lowRiver', 'fog', 'storm', 'freeze'] as const;
+export type EventId = (typeof EVENT_IDS)[number];
 
 export const ModifierSchema = z
   .object({
@@ -1189,12 +1222,7 @@ export const ContentSchema = z
     rules: RulesSchema,
     map: MapGenSchema,
     /** The event at the end of each season, spring to winter. */
-    calendar: z.tuple([
-      z.enum(['flood', 'lowRiver', 'storm', 'freeze']),
-      z.enum(['flood', 'lowRiver', 'storm', 'freeze']),
-      z.enum(['flood', 'lowRiver', 'storm', 'freeze']),
-      z.enum(['flood', 'lowRiver', 'storm', 'freeze']),
-    ]),
+    calendar: z.tuple([z.enum(EVENT_IDS), z.enum(EVENT_IDS), z.enum(EVENT_IDS), z.enum(EVENT_IDS)]),
     events: EventsSchema,
     campBuilding: z.string(),
     buildings: z.array(BuildingSchema).min(1),

@@ -162,7 +162,7 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
   let multiplier = 1;
   if (res === 'food' && def.farmland) {
     const flood = content.events.flood;
-    if (b.siltYear === state.year && flood.siltSeasons.includes(state.season)) {
+    if (flood && b.siltYear === state.year && flood.siltSeasons.includes(state.season)) {
       const silt = 1 + flood.siltBonus * (b.siltShare ?? 1);
       multiplier *= silt;
       lines.push(`× ${silt} silt`);
@@ -170,6 +170,7 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
     const low = content.events.lowRiver;
     // With the water system on, water replaces the low river's "far from water" rule.
     if (
+      low &&
       !ctx.report.water &&
       ctx.lowRiver &&
       !def.ignoresLowRiver &&

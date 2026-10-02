@@ -182,6 +182,8 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     if (goal.kind === 'wonder' && !byId[goal.building]?.wonder)
       problems.push(`a goal names ${goal.building}, which is not a wonder`);
   }
+  for (const id of data.calendar)
+    if (!data.events[id]) problems.push(`the calendar names ${id}, which has no event`);
   const { harmony } = data.rules;
   if (!harmony.tiers.every((t, i, a) => i === 0 || t.min > a[i - 1]!.min)) {
     problems.push('rules.harmony.tiers must be sorted by min');

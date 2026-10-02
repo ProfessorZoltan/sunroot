@@ -33,9 +33,9 @@ describe('harsher seasons', () => {
   it('era 3: dearer flood repairs and wilder storms; era 4: colder winter nights', () => {
     const rules = (year: number, tunings: string[] = []) =>
       effectiveContent(content, { ...scenario(LAND, { year }), tunings });
-    expect(rules(6).events.flood.repairCost).toBe(2);
-    expect(rules(7).events.flood.repairCost).toBe(3);
-    expect(rules(7).events.storm.disableCount).toBe(2);
+    expect(rules(6).events.flood!.repairCost).toBe(2);
+    expect(rules(7).events.flood!.repairCost).toBe(3);
+    expect(rules(7).events.storm!.disableCount).toBe(2);
     expect(rules(9).byId.cottage!.demand!.heat.night[3]).toBe(1);
     expect(rules(10).byId.cottage!.demand!.heat.night[3]).toBe(2);
     // Insulated Homes still does away with it.

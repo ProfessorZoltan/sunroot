@@ -34,7 +34,7 @@ describe('repairs', () => {
     const b = s.buildings[uidAt(s, 5, 5)]!;
     expect(s.lastReport!.damaged).toEqual([b.uid]);
     expect(b.damage).toBeUndefined();
-    const cost = content.events.flood.repairCost;
+    const cost = content.events.flood!.repairCost;
     expect(s.notices).toContain(`Repaired Workshop after the flood for ${cost} materials`);
     expect(s.lastReport!.flows.materials!.used['Flood repairs']!.amount).toBe(cost);
   });
@@ -46,7 +46,9 @@ describe('repairs', () => {
     expect(b.damage?.cause).toBe('flood');
     expect(b.holdRepairs).toBe(true);
     expect(held.notices).toContain('Workshop is flood-damaged: repairs are on hold');
-    expect(held.stores.materials - repaired.stores.materials).toBe(content.events.flood.repairCost);
+    expect(held.stores.materials - repaired.stores.materials).toBe(
+      content.events.flood!.repairCost,
+    );
     // It stays held, season after season.
     const later = endSeason(held);
     expect(later.buildings[b.uid]!.damage?.cause).toBe('flood');
@@ -108,7 +110,7 @@ describe('repairs', () => {
     const probe = setup(0, true);
     const left = endSeason(probe.s).stores.materials;
     // ...so start with exactly enough for one repair.
-    const cost = content.events.flood.repairCost;
+    const cost = content.events.flood!.repairCost;
     const { s, first, second } = setup(cost - left, false);
     const after = endSeason(s);
     expect(after.buildings[second]!.damage).toBeUndefined();
@@ -146,7 +148,7 @@ describe('what the player is told', () => {
       (m) => m.kind === 'damaged',
     )!.text;
     expect(text).toBe(
-      `Flood-damaged: idle until repaired for ${content.events.flood.repairCost} materials.`,
+      `Flood-damaged: idle until repaired for ${content.events.flood!.repairCost} materials.`,
     );
   });
 });

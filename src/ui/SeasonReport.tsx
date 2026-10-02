@@ -5,6 +5,7 @@
  * energy by source and use, the combos, loops and other bonuses at work, and
  * wellbeing and population.
  */
+import { eventOf } from '../sim';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { waterLedger, waterNotes } from '../game/waterInfo';
 import { commuteNotes, waterWalkNotes } from '../game/commuteInfo';
@@ -265,7 +266,7 @@ function Bonuses({ store, report }: { store: GameStore; report: SeasonReport }) 
   if (report.silted.length > 0) lines.push(`Silt on ${report.silted.length} farms.`);
   if (report.mixedGrid)
     lines.push(
-      store.rules.events.storm.mixedGridShelters
+      store.rules.events.storm?.mixedGridShelters
         ? 'Mixed Grid: extra energy in every slot, no storm damage.'
         : 'Mixed Grid: extra energy in every slot (no shelter from these storms).',
     );
@@ -428,7 +429,7 @@ export function SeasonReportDialog({
                 aria-label={`${SEASON_NAMES[report.season]}, year ${report.year}`}
               >
                 <p class="small quiet">
-                  {content.events[report.event].name}. Harmony {report.harmony.value}.{' '}
+                  {eventOf(content, report.event).name}. Harmony {report.harmony.value}.{' '}
                   {report.population.change !== 0
                     ? `${report.population.change > 0 ? '+' : ''}${report.population.change} citizens.`
                     : ''}

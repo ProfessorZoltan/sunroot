@@ -274,7 +274,7 @@ export function buildTimeline(
   }
   if (report.event === 'storm') {
     const struck = new Set(report.damaged);
-    const sheltered = report.mixedGrid && content.events.storm.mixedGridShelters;
+    const sheltered = report.mixedGrid && content.events.storm?.mixedGridShelters;
     for (const uid of report.exposed) {
       if (struck.has(uid)) continue;
       fx(sheltered ? 'calm' : 'exposed', at(uid), across(at(uid) ?? { q: 0, r: 0 }));
