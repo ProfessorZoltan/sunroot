@@ -472,6 +472,11 @@ export function LoopsPanel({ store }: { store: GameStore }) {
           <strong>Charter:</strong> {content.charterById[id]!.name}
         </div>
       ))}
+      {state.tunings.length > 0 && (
+        <div class="quiet small">
+          Tunings: {state.tunings.length} of {content.rules.maxTunings} this run
+        </div>
+      )}
       {state.tunings.map((id) => (
         <div class="small" title={content.tuningById[id]!.text}>
           <strong>Tuning:</strong> {content.tuningById[id]!.name}

@@ -66,6 +66,7 @@
       "hint": 5
     },
     "draftCards": 3,
+    "maxTunings": 12,
     "water": {
       "enabled": false,
       "riverFlow": [12, 4, 8, 6],
@@ -186,12 +187,12 @@
         {
           "id": "sapling",
           "name": "Sapling",
-          "min": 245
+          "min": 240
         },
         {
           "id": "heartwood",
           "name": "Heartwood",
-          "min": 385
+          "min": 375
         }
       ]
     },

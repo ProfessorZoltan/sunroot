@@ -517,6 +517,8 @@ export const RulesSchema = z
     compostPerTileStep: int.min(1),
     knowledge: z.object({ reroll: nonNeg, extraCard: nonNeg, hint: nonNeg }),
     draftCards: int.min(1),
+    /** Tunings and refinements a run can take in all; past this, drafts deal blueprints only. */
+    maxTunings: int.min(0).default(12),
     /** Salvage gained per unit drawn from a ruin (Repair Culture doubles it). */
     ruinSalvageFactor: z.number().min(0).default(1),
     /** Multiplies what flexible consumers (workshops, kilns) make, rounded down (Slow Power). */

@@ -1,5 +1,12 @@
 # Changelog
 
+## Fewer tunings
+
+- A run takes at most 12 tunings and refinements, down from about 28. Past that, drafts offer
+  blueprints only, and once every blueprint is drafted there is no draft. Tuning cards and the
+  Loops panel show how many you've taken.
+- Graft tiers follow the lower scores: Sapling from 240 (was 245), Heartwood from 375 (was 385).
+
 ## Start over
 
 - **Start over** in Root City forgets the city and any run in progress and begins again at run 1,

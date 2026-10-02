@@ -38,7 +38,7 @@ export {
   type PreviewKey,
 } from './preview';
 export { generateMap } from './map';
-export { blueprintPool, cardAllowed, refinementPool, timesTaken } from './draft';
+export { blueprintPool, cardAllowed, refinementPool, timesTaken, tuningsFull } from './draft';
 export {
   cityRequest,
   eraGoal,

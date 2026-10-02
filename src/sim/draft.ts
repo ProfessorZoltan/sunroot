@@ -32,9 +32,14 @@ export function blueprintPool(content: Content, state: RunState, exclude: string
     .map((b) => b.id);
 }
 
+/** Whether the run has taken all the tunings and refinements it may (`rules.maxTunings`). */
+export function tuningsFull(content: Content, state: RunState): boolean {
+  return state.tunings.length >= content.rules.maxTunings;
+}
+
 /** Tunings not taken yet. They share the draft with blueprints, once the run has tunings. */
 export function tuningPool(content: Content, state: RunState, exclude: string[] = []): string[] {
-  if (state.options.tunings === false) return [];
+  if (state.options.tunings === false || tuningsFull(content, state)) return [];
   return content.tunings
     .filter((t) => !t.refinement)
     .map((t) => t.id)
@@ -53,6 +58,7 @@ export function refinementPool(
   state: RunState,
   exclude: string[] = [],
 ): string[] {
+  if (tuningsFull(content, state)) return [];
   return content.tunings
     .filter(
       (t) =>

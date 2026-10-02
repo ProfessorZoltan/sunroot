@@ -8,6 +8,7 @@ import {
   demolishCheck,
   projectBlocked,
   timesTaken,
+  tuningsFull,
   type BuildingDef,
   type Content,
   repairCost,
@@ -63,7 +64,11 @@ function DraftPanel({ store, ui }: { store: GameStore; ui: Ui }) {
     return (
       <section>
         <h2>Draft</h2>
-        <div class="quiet small">Nothing left to draft this season.</div>
+        <div class="quiet small">
+          {tuningsFull(content, state)
+            ? `Nothing left to draft: every blueprint is drafted and the run has its ${content.rules.maxTunings} tunings.`
+            : 'Nothing left to draft this season.'}
+        </div>
       </section>
     );
   }
