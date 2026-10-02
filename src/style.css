@@ -1266,6 +1266,14 @@ ul.projects {
 .map-tip .mark-line.coming {
   color: var(--gold-text);
 }
+/* Walks to work: the left panel's row, and lines in the map tooltip and the inspector. */
+.walks-row .strong,
+.water-row .strong {
+  white-space: nowrap;
+}
+.walk-line {
+  color: #7a5230;
+}
 /* Water: the first seasons' hint, and lines in the map tooltip and the inspector. */
 .water-hint {
   margin: 4px 0 6px;

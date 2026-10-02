@@ -478,8 +478,8 @@ export function CityScreen({
                     apply({ type: 'setFullValley', on: (e.target as HTMLInputElement).checked })
                   }
                 />{' '}
-                Full valley: water from the next run, whatever its number (Tempest levels always
-                have it)
+                Full valley: water and walks to work from the next run, whatever its number (Tempest
+                levels always have them)
               </label>
             )}
           </section>
@@ -516,6 +516,7 @@ function describeSystem(system: string): string {
   if (system === 'charters') return 'charters at each new era';
   if (system === 'visions') return 'a vision to choose at the start';
   if (system === 'water') return 'water: fields drink from channels dug from the river';
+  if (system === 'commute') return 'walks to work: long walks cost wellbeing';
   return system;
 }
 

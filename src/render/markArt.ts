@@ -21,6 +21,7 @@ const BADGE: Record<MarkKind, { fill: number; ink: number }> = {
   exposed: { fill: 0x5b6770, ink: 0xffffff },
   calm: { fill: 0x3f7a3a, ink: 0xffffff },
   cold: { fill: 0x7fb2d6, ink: 0xffffff },
+  walk: { fill: 0x9a6a3c, ink: 0xfff3e0 },
 };
 
 /** Tile washes and outlines, under the buildings. */
@@ -169,6 +170,11 @@ function icon(g: Graphics, kind: MarkKind, p: Point, ink: number): void {
           .quadraticCurveTo(x + 4.5, y + dy - 0.5, x + 3, y + dy - 2.5)
           .stroke({ width: 1.2, color: ink, cap: 'round' });
       }
+      break;
+    case 'walk':
+      // Two footprints.
+      g.ellipse(x - 1.8, y + 1.5, 1.4, 2.4).fill({ color: ink });
+      g.ellipse(x + 1.8, y - 1.5, 1.4, 2.4).fill({ color: ink });
       break;
     case 'cold':
       for (let i = 0; i < 3; i++) {

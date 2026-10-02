@@ -1,6 +1,7 @@
 /** Right column: the draft, the building palette, and the placement preview or building inspector. */
 import type { GameStore } from '../game/store';
 import { waterAt } from '../game/waterInfo';
+import { commuteAt } from '../game/commuteInfo';
 import {
   AUTO_RECIPE,
   demolishCheck,
@@ -396,6 +397,7 @@ function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
   const def = store.rules.byId[b.type]!;
   const now = store.insight.now;
   const water = waterAt(store.rules, state, store.waterForecast, b.at);
+  const walks = commuteAt(store.rules, state, store.commuteForecast, b.at);
   const status: string[] = [];
   const repair = repairCost(store.rules, b);
   const materials = state.stores.materials;
@@ -447,6 +449,9 @@ function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
         ))}
       {water.map((line) => (
         <div class="small water-line">{line}</div>
+      ))}
+      {walks.map((line) => (
+        <div class="small walk-line">{line}</div>
       ))}
       {store.waterForecast?.uses[b.uid] && (
         <div class="small quiet">

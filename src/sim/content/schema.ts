@@ -465,6 +465,14 @@ export const RulesSchema = z
       perLoop: int,
       perDiscovery: int,
       visionBonus: int,
+      /**
+       * Points for each layer of the teaching ladder the run plays with (DECISIONS.md,
+       * Teaching by layers), so a run with more to manage scores as well as one without.
+       */
+      layers: z
+        .object({ water: nonNeg.default(0), commute: nonNeg.default(0) })
+        .strict()
+        .default({ water: 0, commute: 0 }),
       /** Graft tiers from lowest; a run reaches the highest tier whose `min` its score meets. */
       tiers: z.array(z.object({ id: z.string(), name: z.string(), min: int.min(0) })).min(1),
     }),

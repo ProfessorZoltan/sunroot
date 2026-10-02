@@ -236,10 +236,12 @@ describe('teaching across runs', () => {
       water: true,
       joining: ['water', 'tunings'],
     });
+    // Walks to work join at run 3 too (DECISIONS.md, Teaching by layers).
     expect(teaching(content, 3)).toMatchObject({
       guided: false,
       charters: true,
-      joining: ['charters'],
+      commute: true,
+      joining: ['charters', 'commute'],
     });
     expect(teaching(content, 4)).toMatchObject({ visions: true, joining: ['visions'], next: null });
   });

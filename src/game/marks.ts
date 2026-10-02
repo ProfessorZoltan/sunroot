@@ -41,7 +41,9 @@ export type MarkKind =
   /** Coming: the Mixed Grid keeps the storm from damaging anything. */
   | 'calm'
   /** Coming: the freeze makes this home need heat at night. */
-  | 'cold';
+  | 'cold'
+  /** This season: its workers walk further than the free distance. */
+  | 'walk';
 
 export interface Mark {
   at: Hex;
@@ -86,6 +88,18 @@ export function mapMarks(content: Content, state: RunState, forecast: SeasonRepo
       add(atOf(uid), 'unstaffed', false, `${name(uid)}: no worker this season.`);
     for (const uid of Object.keys(forecast.shaded))
       add(atOf(uid), 'shade', false, `${name(uid)}: in shade, making less.`);
+    // With commuting, work whose workers walk far.
+    const free = content.rules.commute.freeDistance;
+    for (const [uid, walks] of Object.entries(forecast.commute?.walks ?? {})) {
+      const beyond = walks.reduce((s, w) => s + Math.max(0, w.distance - free), 0);
+      if (beyond > 0)
+        add(
+          atOf(uid),
+          'walk',
+          false,
+          `Long walk: the ${name(uid)}'s workers walk ${beyond} tile${beyond > 1 ? 's' : ''} beyond the free ${free}.`,
+        );
+    }
     // With water, any season can leave a building thirsty.
     for (const [uid, u] of Object.entries(forecast.water?.uses ?? {}))
       if (u.short)

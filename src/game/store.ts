@@ -28,7 +28,9 @@ import {
   type RunState,
   type SeasonReport,
   type WaterReport,
+  type CommuteReport,
 } from '../sim';
+import { walkLines, type WalkLine } from './commuteInfo';
 import { EMPTY_ALMANAC, entryView, recordRun, type Almanac } from './almanac';
 import type { Graft, RunResult } from '../sim';
 import { computeInsight, type Insight } from './insight';
@@ -157,6 +159,27 @@ export class GameStore {
   /** The content as this run plays it (Root City's perks, the twist, tunings, charters). */
   get rules(): Content {
     return effectiveContent(this.content, this.state);
+  }
+
+  /** This season's walks to work as they stand (a forecast), or null without commuting. */
+  get commuteForecast(): CommuteReport | null {
+    return this.asIs().lastReport?.commute ?? null;
+  }
+
+  /**
+   * The walks to draw: those of the building being inspected, or else of the
+   * building under the cursor when no tool is in hand.
+   */
+  get walkLines(): WalkLine[] {
+    const report = this.resolution ? null : this.commuteForecast;
+    if (!report) return [];
+    const focus =
+      this.inspected ??
+      (this.tool || !this.hover
+        ? null
+        : (Object.values(this.state.buildings).find((b) => hexKey(b.at) === hexKey(this.hover!))
+            ?.uid ?? null));
+    return walkLines(this.rules, this.state, report, focus);
   }
 
   /** This season's water as it stands (a forecast), or null when the run has no water. */

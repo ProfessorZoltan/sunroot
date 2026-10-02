@@ -7,6 +7,7 @@
  */
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { waterLedger, waterNotes } from '../game/waterInfo';
+import { commuteNotes } from '../game/commuteInfo';
 import type { GameStore } from '../game/store';
 import {
   energyLedger,
@@ -394,6 +395,16 @@ export function SeasonReportDialog({
                 />
                 <Energy content={content} report={report} />
                 {report.water && <Water store={store} report={report.water} />}
+                {report.commute && (
+                  <>
+                    <h3>Walks to work</h3>
+                    <ul class="plain small walk-notes">
+                      {commuteNotes(store.rules, store.state, report.commute).map((l) => (
+                        <li>{l}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
                 <Bonuses store={store} report={report} />
               </div>
             )}

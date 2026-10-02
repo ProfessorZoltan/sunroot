@@ -299,6 +299,8 @@ const JOINING: Record<string, string> = {
   charters:
     'New this run: charters. At the start of eras 2, 3 and 4, choose one of 3 rules for the rest of the run.',
   visions: 'New this run: visions. Choose a goal for the run at the start, worth extra score.',
+  commute:
+    'New this run: walks to work. Workers live in the nearest home with a free bed and walk to their work; walks of up to 2 tiles are free, longer ones cost wellbeing. Build cottages near far work, and work near homes. Select a building to see where its workers come from.',
   water:
     'New this run: water. This expedition goes upriver, where fields need irrigation. Farms, orchards and greenhouses drink from Irrigation Channels dug from the river (1 material a tile); short of water they make half. The camp has a channel already. Summer brings little water, and every unit taken upstream turns the river wheels slower.',
 };

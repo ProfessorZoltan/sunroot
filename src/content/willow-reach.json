@@ -167,6 +167,10 @@
       "perLoop": 5,
       "perDiscovery": 5,
       "visionBonus": 40,
+      "layers": {
+        "water": 12,
+        "commute": 3
+      },
       "tiers": [
         {
           "id": "seedling",
@@ -2503,7 +2507,8 @@
       "tunings": 2,
       "charters": 3,
       "visions": 4,
-      "water": 2
+      "water": 2,
+      "commute": 3
     }
   },
   "guidedYear": [

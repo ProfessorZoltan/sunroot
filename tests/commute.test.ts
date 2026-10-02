@@ -119,21 +119,24 @@ describe('what long walks cost', () => {
 });
 
 describe('the teaching ladder', () => {
-  it('commuting stays out of the game until it is on the ladder', () => {
-    expect(content.progression!.teaching.commute).toBeUndefined();
-    expect(teaching(content, 3).commute).toBe(false);
-    const city: CityState = { ...createCity(content, 'c'), runs: 5, fullValley: true };
-    expect(nextRunOptions(content, city).commute).toBeUndefined();
+  it('joins at run 3, and with the full valley from any run', () => {
+    expect(content.progression!.teaching.commute).toBe(3);
+    expect(teaching(content, 2).commute).toBe(false);
+    expect(teaching(content, 3)).toMatchObject({ commute: true });
+    expect(teaching(content, 3).joining).toEqual(['charters', 'commute']);
+    const first = createCity(content, 'c');
+    expect(nextRunOptions(content, first).commute).toBeUndefined();
+    expect(nextRunOptions(content, { ...first, fullValley: true }).commute).toBe(true);
+    const third: CityState = { ...first, runs: 2 };
+    expect(nextRunOptions(content, third)).toMatchObject({ water: true, commute: true });
   });
 
-  it('once on the ladder, it joins at its run, and with the full valley', () => {
+  it('a city whose ladder has no commuting never gets it, even with the full valley', () => {
     const raw = structuredClone(willowReach);
-    (raw.progression.teaching as { commute?: number }).commute = 3;
-    const laddered = loadContent(raw);
-    expect(teaching(laddered, 2)).toMatchObject({ commute: false });
-    expect(teaching(laddered, 3)).toMatchObject({ commute: true });
-    expect(teaching(laddered, 3).joining).toContain('commute');
-    const first = createCity(laddered, 'c');
-    expect(nextRunOptions(laddered, { ...first, fullValley: true }).commute).toBe(true);
+    delete (raw.progression.teaching as { commute?: number }).commute;
+    const unlisted = loadContent(raw);
+    expect(teaching(unlisted, 5).commute).toBe(false);
+    const city: CityState = { ...createCity(unlisted, 'c'), runs: 5, fullValley: true };
+    expect(nextRunOptions(unlisted, city).commute).toBeUndefined();
   });
 });

@@ -5,6 +5,7 @@
  * open; every weight lives in the content file (see DECISIONS.md).
  */
 import type { Content } from './content/load';
+import { contentFor } from './content/modifiers';
 import type { CityRequest, District, EraGoal, Goal, Vision } from './content/schema';
 import { finishedProjects } from './projects';
 import type { RunState } from './types';
@@ -61,6 +62,12 @@ export function scoreRun(content: Content, state: RunState): RunScore {
   for (const p of finishedProjects(content, state))
     if (p.effect.score !== 0) lines.push({ reason: p.name, points: p.effect.score });
   if (state.status === 'complete') lines.push({ reason: 'run completed', points: w.completeBonus });
+  // More to manage, so the same play scores the same (DECISIONS.md, Teaching by layers).
+  const rules = contentFor(content, state).rules;
+  if (rules.water.enabled && w.layers.water > 0)
+    lines.push({ reason: 'water to manage', points: w.layers.water });
+  if (rules.commute.enabled && w.layers.commute > 0)
+    lines.push({ reason: 'walks to work', points: w.layers.commute });
   const total = lines.reduce((sum, l) => sum + l.points, 0);
   const tiers = w.tiers;
   const scored = Math.max(0, tiers.filter((t) => total >= t.min).length - 1);

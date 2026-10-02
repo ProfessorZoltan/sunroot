@@ -357,9 +357,10 @@ interleaved with the systems that already join over the first runs.
   is rain-fed; the second expedition goes where fields need irrigation.
 - **Skipping ahead:** experienced players can turn every layer on from the start ("Full valley").
   Tempest levels always play with every layer.
-- **Scores:** water costs the bots 6 to 14 points of 389 (the E1 report), so later runs would score
-  lower for reasons the player can't help. The Graft tiers (or the Seeds) are to be calibrated per
-  layer once the layers exist; until then a run with water scores as any other.
+- **Scores:** each layer a run plays with adds a score line, so the same play earns the same Graft
+  tier: "water to manage" +12, "walks to work" +3 (`rules.score.layers`). Sized on the balanced bot,
+  which the tier bands were set on, to keep its Heartwood share (80%) on every rung of the ladder;
+  see "Score lines for the layers" below.
 - **Order:** E2 (water on screen) first; commuting and local heat after it, each built headless
   first with its own gate (as water was), before E3's content is balanced with all of them on.
 
@@ -377,9 +378,9 @@ interleaved with the systems that already join over the first runs.
 
 ### Commuting (C1)
 
-Built in the simulation first, as water was, and off in the game until it can be seen (C2): it isn't
-on the teaching ladder yet (`progression.teaching.commute` is unset), so no run gets it, not even
-with the full valley. The simulator, the bots and the tests turn it on (`RunOptions.commute`).
+Built in the simulation first, as water was. Until C2 put it on screen it was on no rung of the
+teaching ladder; it now joins at run 3 (see Commuting on screen). The simulator, the bots and the
+tests turn it on directly (`RunOptions.commute`).
 
 | Topic                                            | Decision                                                                                                                                                                                                                                                                                                                                                                       | Source                                         |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------- |
@@ -390,6 +391,38 @@ with the full valley. The simulator, the bots and the tests turn it on (`RunOpti
 | Wellbeing's cap                                  | The bots' wellbeing sits at 100 for most of a run, so walks bite in the early years, when wellbeing decides growth. Worth watching in play: a player with lower wellbeing feels walks more.                                                                                                                                                                                    | [balance/commute-c1.md](balance/commute-c1.md) |
 | Water with commuting                             | Water's plans still score close together with commuting on (368 to 377); commuting doesn't make water a choice by itself (Q17).                                                                                                                                                                                                                                                | [balance/commute-c1.md](balance/commute-c1.md) |
 | Scores by layer                                  | With water and commuting both on, the plain valley's Heartwood share falls from 60% to 30% for the bots: the per-layer calibration of the Graft tiers is due before both are in the game.                                                                                                                                                                                      | [balance/commute-c1.md](balance/commute-c1.md) |
+
+### Commuting on screen (C2)
+
+| Topic             | Decision                                                                                                                                                                                                                                                                       | Source                    |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- |
+| On the ladder     | Walks to work join at run 3, with charters (`progression.teaching.commute`); the full valley brings them from any run, and Tempest levels always have them.                                                                                                                    | `src/sim/city.ts`         |
+| Walks on the map  | Select a building (or hover one with no tool in hand): a dashed arc from each home to the work, green within the free distance and brown beyond, thicker for more workers. A home shows its workers' walks.                                                                    | `src/render/mapView.ts`   |
+| Long walks        | Work whose workers walk beyond the free distance has a footprints badge; the tooltip and the panel say where its workers come from and how far; the left panel's Walks row gives this season's cost. Placing a building whose worker would walk far warns before it is placed. | `src/game/commuteInfo.ts` |
+| The season report | "Walks to work": how many walked, how many walked far, what it cost, the longest walks, and anyone without a bed.                                                                                                                                                              | `src/ui/SeasonReport.tsx` |
+
+### Score lines for the layers
+
+`scripts/calibrate-layers.ts` plays 40 seeds with no layers (run 1), with water (run 2) and with
+water and walks (run 3 on), with the layers' score lines at 0, then with the chosen points.
+
+| Bot          | Case                           | Median at 0 | Heartwood at 0 | Median with the lines | Heartwood with the lines | Source                                                                               |
+| ------------ | ------------------------------ | ----------- | -------------- | --------------------- | ------------------------ | ------------------------------------------------------------------------------------ |
+| balanced     | No layers (run 1)              | 393         | 80%            | 393                   | 80%                      | `scripts/calibrate-layers.ts 40 balanced,greedyEnergy,greedyFood water=12 commute=3` |
+| balanced     | Water (run 2)                  | 387         | 55%            | 399                   | 80%                      | `scripts/calibrate-layers.ts 40 balanced,greedyEnergy,greedyFood water=12 commute=3` |
+| balanced     | Water and commuting (run 3 on) | 383         | 45%            | 398                   | 80%                      | `scripts/calibrate-layers.ts 40 balanced,greedyEnergy,greedyFood water=12 commute=3` |
+| greedyEnergy | No layers (run 1)              | 269         | 0%             | 269                   | 0%                       | `scripts/calibrate-layers.ts 40 balanced,greedyEnergy,greedyFood water=12 commute=3` |
+| greedyEnergy | Water (run 2)                  | 252         | 0%             | 264                   | 0%                       | `scripts/calibrate-layers.ts 40 balanced,greedyEnergy,greedyFood water=12 commute=3` |
+| greedyEnergy | Water and commuting (run 3 on) | 253         | 0%             | 268                   | 0%                       | `scripts/calibrate-layers.ts 40 balanced,greedyEnergy,greedyFood water=12 commute=3` |
+| greedyFood   | No layers (run 1)              | 324         | 0%             | 324                   | 0%                       | `scripts/calibrate-layers.ts 40 balanced,greedyEnergy,greedyFood water=12 commute=3` |
+| greedyFood   | Water (run 2)                  | 304         | 0%             | 316                   | 0%                       | `scripts/calibrate-layers.ts 40 balanced,greedyEnergy,greedyFood water=12 commute=3` |
+| greedyFood   | Water and commuting (run 3 on) | 292         | 0%             | 307                   | 0%                       | `scripts/calibrate-layers.ts 40 balanced,greedyEnergy,greedyFood water=12 commute=3` |
+
+Matching the balanced bot's median would need 6 and 4 points, but leaves its Heartwood share at 70%
+and 63%; matching its Heartwood share needs 12 and 3. The food and energy bots, standing in for
+players who don't plan for water and walks, still score a little less: those are decisions.
+Tempest levels play with every layer, so their scores rise by 15 against the Tempest table above,
+which was measured without them.
 
 ### The E1 decision gate
 

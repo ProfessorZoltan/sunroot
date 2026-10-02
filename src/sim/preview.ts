@@ -11,7 +11,7 @@ import { canPlace } from './placement';
 import { standsOn, tileAt } from './queries';
 import { resolveSeason, type ResolveOptions } from './season/resolve';
 import { placementEvolution } from './combos';
-import { effectiveContent } from './content/modifiers';
+import { contentFor, effectiveContent } from './content/modifiers';
 import { buildingAt } from './queries';
 import type { ComboHit, RunState } from './types';
 
@@ -99,6 +99,16 @@ export function previewPlacement(
       `The storms may disable it: it stands ${standsOn(tileAt(state, at)?.type)} with no woodland beside it.`,
     );
   if (a.unstaffed.includes(uid)) warnings.push('No free worker: it will not run.');
+  // Walks to work: a worker housed far away (asked for: long walks cost wellbeing).
+  const walks = a.commute?.walks[uid] ?? [];
+  const free = contentFor(content, state).rules.commute.freeDistance;
+  const far = walks.filter((w) => w.distance > free);
+  if (far.length > 0) {
+    const d = Math.max(...far.map((w) => w.distance));
+    warnings.push(
+      `Its worker${walks.length > 1 ? 's' : ''} would walk ${d} tiles from the nearest free bed (${free} are free): a home nearer would help.`,
+    );
+  }
   if (a.blackouts.includes(uid)) warnings.push('Not enough energy: it will be shut off.');
   const newlyDark = a.blackouts.filter((id) => id !== uid && !b.blackouts.includes(id));
   if (newlyDark.length > 0) {

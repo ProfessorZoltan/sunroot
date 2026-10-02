@@ -29,6 +29,7 @@ export function LeftPanel({ store }: { store: GameStore }) {
         <div class="divider" />
         <WorkersRow store={store} />
         <WaterRow store={store} />
+        <WalksRow store={store} />
         <div class="quiet small">Numbers on the right: the change by the end of this season.</div>
       </section>
       <VisionStatus store={store} />
@@ -145,6 +146,35 @@ function WaterRow({ store }: { store: GameStore }) {
         </div>
       )}
     </>
+  );
+}
+
+/** Walks to work this season, as they stand: what long walks cost. */
+function WalksRow({ store }: { store: GameStore }) {
+  const c = store.commuteForecast;
+  if (!c) return null;
+  const free = store.rules.rules.commute.freeDistance;
+  return (
+    <div
+      class="store-row walks-row"
+      title={`Walks to work this season, if it ended now: ${c.excess} tiles walked beyond the free ${free}. Select a building to see where its workers come from.`}
+    >
+      <Feet />
+      <span class="grow">Walks</span>
+      <span class={`strong ${c.wellbeing < 0 ? 'bad' : ''}`}>
+        {c.wellbeing < 0 ? `−${-c.wellbeing} wellbeing` : 'short'}
+      </span>
+      <span class="delta-num" />
+    </div>
+  );
+}
+
+function Feet() {
+  return (
+    <svg class="icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+      <ellipse cx="5.5" cy="10" rx="2.2" ry="3.6" fill="#9a6a3c" />
+      <ellipse cx="10.5" cy="6" rx="2.2" ry="3.6" fill="#9a6a3c" />
+    </svg>
   );
 }
 

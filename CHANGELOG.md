@@ -1,5 +1,17 @@
 # Changelog
 
+## Walks to work on screen (C2), from run 3; score lines for the layers
+
+- Walks to work join at run 3: workers live in the nearest home with a free bed and walk to work;
+  walks of up to 2 tiles are free, longer ones cost wellbeing. The start card explains it.
+- Select a building to see its walks drawn on the map, green or brown for short or long. Work whose
+  workers walk far has a footprints badge; tooltips and the building panel say who walks from where;
+  the left panel has a Walks row; placing work far from any free bed warns first; the season report
+  has a "Walks to work" section.
+- Score lines for the layers: "water to manage" +12 and "walks to work" +3, so a run with more to
+  manage earns the same Graft tier for the same play. `scripts/calibrate-layers.ts` sizes them.
+- Root City's "Full valley" brings walks to work too. `?commute=1` turns them on for a seeded run.
+
 ## Commuting, in the simulation (C1)
 
 Built in the simulation only, as water was: off in the game until it can be seen (C2), and not on

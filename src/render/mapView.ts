@@ -12,6 +12,7 @@ import { hexKey, type Hex } from '../sim/hex';
 import type { PlacementPreview, PreviewKey } from '../sim/preview';
 import type { RunState, WaterReport } from '../sim/types';
 import { drawDitches, drawWater, waterView, type WaterView } from './waterArt';
+import type { WalkLine } from '../game/commuteInfo';
 import { BUILDING_ART, drawCondition } from './buildingArt';
 import {
   HEX_RADIUS,
@@ -85,6 +86,9 @@ export class MapView {
   /** Water in the ditches and the river's strength, drawn each frame. */
   private readonly water = new Graphics();
   private waterView: WaterView | null = null;
+  /** Walks to work for the building in focus. */
+  private readonly walks = new Graphics();
+  private walkSignature = '';
   private readonly marksUnder = new Graphics();
   private readonly marksOver = new Graphics();
   private marks: Mark[] = [];
@@ -134,6 +138,7 @@ export class MapView {
       this.underFx,
       this.built,
       this.rotors,
+      this.walks,
       this.marksOver,
       this.wildlife,
       this.overFx,
@@ -295,6 +300,42 @@ export class MapView {
     const g = this.water.clear();
     if (this.waterView) drawWater(g, this.waterView, this.clock, this.reducedMotion);
   }
+
+  /**
+   * Walks to work for the building in focus: a dotted path from each home to
+   * the work, green within the free distance and brown beyond it, thicker for
+   * more workers.
+   */
+  setWalks(lines: WalkLine[]): void {
+    const signature = lines.map((l) => `${hexKey(l.from)}>${hexKey(l.to)}x${l.count}`).join('|');
+    if (signature === this.walkSignature) return;
+    this.walkSignature = signature;
+    this.walksShown = lines.length;
+    const g = this.walks.clear();
+    for (const l of lines) {
+      const a = hexToPixel(l.from);
+      const b = hexToPixel(l.to);
+      const color = l.long ? 0x9a6a3c : 0x3f7a3a;
+      // A gentle arc, so walks to the same work don't overlap.
+      const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 - Math.min(24, l.distance * 4) };
+      const points: Point[] = [];
+      for (let i = 0; i <= 16; i++) {
+        const t = i / 16;
+        points.push({
+          x: (1 - t) * (1 - t) * a.x + 2 * (1 - t) * t * mid.x + t * t * b.x,
+          y: (1 - t) * (1 - t) * a.y + 2 * (1 - t) * t * mid.y + t * t * b.y,
+        });
+      }
+      // A pale edge under the dashes, so the walk reads over any ground.
+      dashedLine(g, points, 5, 3, { width: 4.5 + l.count, color: 0xfffbf0, alpha: 0.85 });
+      dashedLine(g, points, 5, 3, { width: 2.5 + l.count, color, alpha: 1 });
+      g.circle(a.x, a.y, 4).fill({ color }).stroke({ width: 1.5, color: 0xfffbf0 });
+      g.circle(b.x, b.y, 3).fill({ color: 0xfffbf0 }).stroke({ width: 1.5, color });
+    }
+  }
+
+  /** How many walks the map shows (for tests). */
+  walksShown = 0;
 
   /** What the water layer shows (for tests): units carried along each channel. */
   get waterShown(): { channels: number[][]; river: number[] } | null {
