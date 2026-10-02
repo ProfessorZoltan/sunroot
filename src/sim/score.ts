@@ -68,8 +68,13 @@ export function scoreRun(content: Content, state: RunState): RunScore {
     lines.push({ reason: 'water to manage', points: w.layers.water });
   if (rules.commute.enabled && w.layers.commute > 0)
     lines.push({ reason: 'walks to work', points: w.layers.commute });
-  if (rules.localHeat.enabled && w.layers.localHeat > 0)
-    lines.push({ reason: 'heat kept close', points: w.layers.localHeat });
+  if (rules.localHeat.enabled && w.layers.localHeat > 0) {
+    const warm = warmCitizens(content, state);
+    lines.push({
+      reason: `${warm} citizens in homes kept warm`,
+      points: warm * w.layers.localHeat,
+    });
+  }
   const total = lines.reduce((sum, l) => sum + l.points, 0);
   const tiers = w.tiers;
   const scored = Math.max(0, tiers.filter((t) => total >= t.min).length - 1);
@@ -294,4 +299,18 @@ export function leanOf(signature: Signature, district: District): number {
       ? sources.reduce((sum, id) => sum + (signature.energyShare[id] ?? 0), 0)
       : signature[metric];
   return value / full;
+}
+
+/**
+ * Heat kept close, earned: the citizens living in homes that were never cold all run
+ * (beds in those homes, up to the citizens there are).
+ */
+export function warmCitizens(content: Content, state: RunState): number {
+  const cold = new Set(state.everCold ?? []);
+  let beds = 0;
+  for (const b of Object.values(state.buildings)) {
+    const housing = content.byId[b.type]?.housing ?? 0;
+    if (housing > 0 && !cold.has(b.uid)) beds += housing;
+  }
+  return Math.min(state.citizens, beds);
 }

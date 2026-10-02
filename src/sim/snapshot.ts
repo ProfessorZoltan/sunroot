@@ -42,6 +42,7 @@ export function snapshot(state: SeasonSnapshot): SeasonSnapshot {
     charterOffer: [...state.charterOffer],
     evolutionOffer: state.evolutionOffer.map((o) => ({ ...o, options: [...o.options] })),
     hedges: [...state.hedges],
+    everCold: [...state.everCold],
     hints: [...state.hints],
     visionOffer: [...state.visionOffer],
     vision: state.vision,

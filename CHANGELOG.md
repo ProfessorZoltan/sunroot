@@ -1,5 +1,11 @@
 # Changelog
 
+## Heat kept close, earned
+
+- From run 4 (and in a Long Winter) the heat layer's score line is earned instead of flat: 1 point
+  for each citizen living in a home that was never cold all run, about as much as the old +14 and
+  the day-energy change took away together.
+
 ## Day energy for industry; energy and heat apart; storage gauges
 
 - **Salvage Yards, Workshops and Kilns need 1 day energy** to work, and workshop and kiln runs use

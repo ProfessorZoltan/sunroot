@@ -560,8 +560,10 @@ export const RulesSchema = z
       perDiscovery: int,
       visionBonus: int,
       /**
-       * Points for each layer of the teaching ladder the run plays with (DECISIONS.md,
+       * Points for the layers of the teaching ladder the run plays with (DECISIONS.md,
        * Teaching by layers), so a run with more to manage scores as well as one without.
+       * Water and walks are flat; `localHeat` is earned: points per citizen living in a
+       * home that was never cold all run (Heat kept close, earned).
        */
       layers: z
         .object({

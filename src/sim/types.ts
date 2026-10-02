@@ -154,6 +154,8 @@ export interface RunState {
   evolutionOffer: { uid: string; options: string[] }[];
   /** Hedges along tile edges (src/sim/edges.ts), by edge key. */
   hedges: string[];
+  /** Buildings that went cold at least once this run (the heat layer), for its score line. */
+  everCold: string[];
   /** Almanac hints bought with knowledge this run. */
   hints: string[];
   /** Visions on offer at the start (one must be chosen), the chosen one, and when it was achieved. */

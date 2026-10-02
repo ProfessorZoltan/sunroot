@@ -50,6 +50,7 @@ export {
   runSignature,
   scoreRun,
   seedsForRun,
+  warmCitizens,
   canPlantGraft,
   visionMet,
   visionProgress,

@@ -148,6 +148,9 @@ function advance(content: Content, ctx: SeasonContext): RunState {
     },
   };
   state.history = [...state.history, summary];
+  // Heat kept close is earned by homes that are never cold (the heat layer's score line).
+  for (const uid of report.cold)
+    if (!state.everCold.includes(uid)) state.everCold = [...state.everCold, uid];
   state.lastReport = report;
   // The last 4 seasons' reports: the last of each season, for the season report.
   state.recentReports = [...state.recentReports, report].slice(-4);

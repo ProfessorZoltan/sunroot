@@ -180,7 +180,7 @@
       "layers": {
         "water": 12,
         "commute": 5,
-        "localHeat": 14
+        "localHeat": 1
       },
       "tiers": [
         {

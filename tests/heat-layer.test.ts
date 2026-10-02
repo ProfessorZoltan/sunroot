@@ -12,7 +12,9 @@ import {
   energyLedger,
   hexDistance,
   nextRunOptions,
+  scoreRun,
   teaching,
+  warmCitizens,
   type CityState,
   type RunState,
 } from '../src/sim';
@@ -139,6 +141,35 @@ describe('heat wells', () => {
     s = endSeason(s);
     expect(s.lastReport!.cold).toEqual(['b0']);
     expect(night(s).storageDischarged).toBe(0);
+  });
+});
+
+describe('heat kept close: the score line is earned', () => {
+  const line = (s: RunState) =>
+    scoreRun(content, s).lines.find((l) => l.reason.endsWith('in homes kept warm'));
+  const per = content.rules.score.layers.localHeat;
+
+  it('counts the citizens in homes that were never cold', () => {
+    // The camp (6 beds) warmed by a pump all winter, and a cottage beyond its reach.
+    let s = place(heatLayer(), 'airSourceHeatPump', 3, 2);
+    s = place(s, 'cottage', 8, 3);
+    s.citizens = 9;
+    s = endSeason(s);
+    expect(s.everCold).toEqual([uidAt(s, 8, 3)]);
+    expect(warmCitizens(content, s)).toBe(content.byId.foundersCamp!.housing);
+    expect(line(s)).toEqual({
+      reason: `${content.byId.foundersCamp!.housing} citizens in homes kept warm`,
+      points: content.byId.foundersCamp!.housing * per,
+    });
+  });
+
+  it('a home cold once stays out of the count; and no line without the heat layer', () => {
+    let s = endSeason(heatLayer());
+    expect(s.everCold).toContain('b0');
+    s = endSeason(place(s, 'airSourceHeatPump', 3, 2));
+    expect(warmCitizens(content, s)).toBe(0);
+    const plain = endSeason(scenario(VALLEY, { season: 'winter', stores: { food: 500 } }));
+    expect(scoreRun(content, plain).lines.some((l) => l.reason.endsWith('kept warm'))).toBe(false);
   });
 });
 

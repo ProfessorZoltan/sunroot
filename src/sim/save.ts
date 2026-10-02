@@ -42,6 +42,7 @@ const ADDED_FIELDS: Partial<RunState> = {
   projects: [],
   evolutionOffer: [],
   hedges: [],
+  everCold: [],
 };
 
 export type ReadSave = { ok: true; save: SaveFile } | { ok: false; error: string };
