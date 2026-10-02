@@ -1,5 +1,12 @@
 # Changelog
 
+## Playtesting the new cards
+
+- The playtest log records the layers each run plays with, the combos discovered each season and
+  evolutions chosen, and hedges and coppices among what was placed.
+- [docs/playtest/willow-reach-v2-cards.md](docs/playtest/willow-reach-v2-cards.md): how to reach
+  the five new cards quickly, and what to look for when playing them.
+
 ## Fewer tunings
 
 - A run takes at most 12 tunings and refinements, down from about 28. Past that, drafts offer

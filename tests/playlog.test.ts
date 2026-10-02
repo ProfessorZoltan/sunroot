@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PlayLog, logToCsv } from '../src/game/playlog';
 import { GameStore } from '../src/game/store';
-import { at, content, scenario } from './helpers';
+import { at, content, place, scenario, withWater } from './helpers';
 
 const DRY = ['^ ^ ^ , ~ , , , ^ ^', ' ^ ^ , , ~ , , , ^ ^', '^ , C , ~ , , , , ^'];
 
@@ -59,5 +59,39 @@ describe('the playtest log', () => {
     expect(csv[1]).toContain('cottage; cottage');
     log.clear();
     expect(new PlayLog(content, storage).rows).toEqual([]);
+  });
+
+  it('names the layers, hedges planted and combos discovered, for playtesting the new cards', () => {
+    const W = withWater({ campChannel: 0 });
+    const VALLEY = ['~ f . . . . .', '~ f m m m m m', '~ f m m m m m', '~ f , , C , ,'];
+    let s = scenario(VALLEY, {
+      content: W,
+      citizens: 30,
+      stores: { food: 500, biomass: 10, materials: 20 },
+    });
+    // A Keyhole Garden: a composter with 3 farms next to it.
+    s = place(s, 'composter', 3, 1, W);
+    for (const [col, row] of [
+      [2, 1],
+      [4, 1],
+      [3, 2],
+    ] as const)
+      s = place(s, 'floodplainFarm', col, row, W);
+    s.unlocked.push('hedgerow');
+    const log = new PlayLog(W, null);
+    const store = new GameStore(W, s, {
+      onCommand: (c, ok, before, after) => log.command(c, ok, before, after),
+      onResolution: (playing, skipped, state) => log.resolution(playing, skipped, state),
+    });
+    log.begin(store.state);
+    expect(store.dispatch({ type: 'plantHedge', a: at(5, 2), b: at(6, 2) })).toBe(true);
+    store.dispatch({ type: 'endSeason' });
+    store.finishResolution();
+    expect(log.rows[0]).toMatchObject({
+      layers: ['water'],
+      placed: ['hedgerow'],
+      discovered: expect.arrayContaining(['keyholeGarden']),
+    });
+    expect(logToCsv(log.rows).split('\n')[0]).toContain('notes,layers,discovered,materials');
   });
 });

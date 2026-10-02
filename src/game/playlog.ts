@@ -25,6 +25,10 @@ export interface SeasonRow {
   vision: string | null;
   hints: string[];
   notes: string[];
+  /** The layers the run plays with (water, walks to work, heat). */
+  layers: string[];
+  /** Combos discovered as the season ended, and evolutions chosen in it. */
+  discovered: string[];
   /** The run at the end of the season. */
   materials: number;
   food: number;
@@ -66,6 +70,18 @@ interface Current {
   placed: string[];
   hints: string[];
   notes: string[];
+  chosen: string[];
+}
+
+/** The layers a run plays with: from its options, or switched on in the content itself. */
+function layersOf(content: Content, state: RunState): string[] {
+  const o = state.options;
+  const r = content.rules;
+  return [
+    (o.water || r.water.enabled) && 'water',
+    (o.commute || r.commute.enabled) && 'walks',
+    (o.localHeat || r.localHeat.gridHeat === false) && 'heat',
+  ].filter((l): l is string => typeof l === 'string');
 }
 
 /** Watches play and writes a row when each season ends. */
@@ -95,6 +111,7 @@ export class PlayLog {
       placed: [],
       hints: [],
       notes: [],
+      chosen: [],
     };
   }
 
@@ -123,6 +140,13 @@ export class PlayLog {
         vision: before.vision,
         hints: c.hints,
         notes: c.notes,
+        layers: layersOf(this.content, before),
+        discovered: [
+          ...new Set([
+            ...c.chosen,
+            ...after.discoveries.filter((id) => !before.discoveries.includes(id)),
+          ]),
+        ],
         materials: after.stores.materials,
         food: after.stores.food,
         citizens: after.citizens,
@@ -141,6 +165,10 @@ export class PlayLog {
     c.commands += 1;
     if (command.type === 'undo') c.undos += 1;
     if (command.type === 'place') c.placed.push(command.building);
+    // Hedges and coppices are placed by their own commands; the log names them like buildings.
+    if (command.type === 'plantHedge') c.placed.push('hedgerow');
+    if (command.type === 'coppice') c.placed.push('coppiceWood');
+    if (command.type === 'chooseEvolution') c.chosen.push(command.combo);
     if (command.type === 'buyHint') c.hints.push(command.combo);
   }
 
@@ -201,6 +229,8 @@ const COLUMNS: (keyof SeasonRow)[] = [
   'vision',
   'hints',
   'notes',
+  'layers',
+  'discovered',
   'materials',
   'food',
   'citizens',
