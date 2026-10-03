@@ -14,7 +14,13 @@ import {
   hexToPixel,
 } from '../src/render/layout';
 import { TILE_TYPES } from '../src/sim';
+import { biomeContent } from '../src/content';
 import { content } from './helpers';
+
+const COAST = biomeContent('windsweptCoast');
+/** Buildings of the Reach and the coast; the Highland's are drawn in code until its art comes. */
+const drawn = [...content.buildings, ...COAST.buildings.filter((b) => !content.byId[b.id])];
+const byId = { ...COAST.byId, ...content.byId };
 
 const art = (path: string) => existsSync(new URL(`../src/art/${path}`, import.meta.url));
 const info = JSON.parse(readFileSync(new URL('../src/art/art.json', import.meta.url), 'utf8')) as {
@@ -27,12 +33,22 @@ const info = JSON.parse(readFileSync(new URL('../src/art/art.json', import.meta.
 
 describe('hand-made art', () => {
   it('covers every tile type, in summer (two ways) and winter', () => {
-    // The Windswept Coast's and the Highland's tiles are drawn procedurally until their art comes.
-    const awaiting = ['sea', 'mudflat', 'saltmarsh', 'dune', 'crag', 'bog'];
+    // The Highland's tiles are drawn procedurally until their art comes.
+    const awaiting = ['crag', 'bog'];
+    // The coast's tiles came with one summer look (the sea with three).
+    const coast = ['mudflat', 'saltmarsh', 'dune'];
     for (const t of TILE_TYPES.filter((x) => !awaiting.includes(x))) {
-      for (const f of [`${t}.png`, `${t}-2.png`, `${t}.winter.png`])
+      const second = coast.includes(t) ? [] : [`${t}-2.png`];
+      for (const f of [`${t}.png`, ...second, `${t}.winter.png`])
         expect(art(`tiles/${f}`), f).toBe(true);
     }
+    expect(art('tiles/sea-3.png')).toBe(true);
+  });
+
+  it("gives the coast its own headlands, in place of the Reach's hills", () => {
+    for (const f of ['hill.coast.png', 'hill.coast.winter.png'])
+      expect(art(`tiles/${f}`), f).toBe(true);
+    expect(COAST.land).toBe('coast');
   });
 
   it('has every animal frame, and the festival cards and props (E4)', () => {
@@ -50,15 +66,20 @@ describe('hand-made art', () => {
         `deer.${f}`,
         `deer.${f}.winter`,
       ]),
+      // The coast's (B6), each with a winter dress.
+      ...['tern.fly.1', 'tern.fly.2', 'tern.rest', 'seal.swim.1', 'seal.swim.2', 'seal.rest']
+        .concat(['puffin.1', 'puffin.2', 'dolphin.1', 'dolphin.2', 'dolphin.3'])
+        .flatMap((f) => [f, `${f}.winter`]),
     ];
     for (const f of frames) expect(art(`wildlife/${f}.png`), f).toBe(true);
-    for (const f of content.festivals) expect(art(`festivals/${f.id}.card.webp`), f.id).toBe(true);
+    for (const f of [...content.festivals, ...COAST.festivals])
+      expect(art(`festivals/${f.id}.card.webp`), f.id).toBe(true);
     for (const f of ['bunting', 'lantern', 'lantern.lit'])
       expect(art(`festivals/${f}.png`), f).toBe(true);
   });
 
   it('has each wonder finished, in winter and at its 3 stages, with an icon (E5)', () => {
-    for (const b of content.buildings.filter((d) => d.wonder)) {
+    for (const b of drawn.filter((d) => d.wonder)) {
       for (const f of ['', '.winter', '.stage1', '.stage2', '.stage3'])
         expect(art(`wonders/${b.id}${f}.png`), `${b.id}${f}`).toBe(true);
       expect(art(`icons/${b.id}.png`), b.id).toBe(true);
@@ -66,11 +87,9 @@ describe('hand-made art', () => {
   });
 
   it('covers every building in summer and winter, with an icon', () => {
-    // Asked for in ART-EXPANSION.md; drawn procedurally until it comes.
-    const awaiting = ['well'];
-    for (const b of content.buildings) {
-      // Wonders have their own frame (below).
-      if (awaiting.includes(b.id) || b.wonder) continue;
+    for (const b of drawn) {
+      // Wonders have their own frame (above).
+      if (b.wonder) continue;
       for (const f of [
         `buildings/${b.id}.png`,
         `buildings/${b.id}.winter.png`,
@@ -80,7 +99,7 @@ describe('hand-made art', () => {
     }
   });
 
-  it('lights homes and some others at night, and turns the spires and the river wheel', () => {
+  it('lights homes and some others at night, and turns the spires, the river wheel and the tide turbine', () => {
     for (const lit of [
       'foundersCamp',
       'cottage',
@@ -89,9 +108,10 @@ describe('hand-made art', () => {
       'aquaponicsHall',
       'mushroomCellar',
       'oldWorldArchive',
+      'lighthouse',
     ])
       expect(art(`buildings/${lit}.windows.png`), lit).toBe(true);
-    for (const id of ['windSpire', 'riverWheel', 'singingSpire']) {
+    for (const id of ['windSpire', 'riverWheel', 'singingSpire', 'tideTurbine']) {
       expect(art(`buildings/${id}.rotor.png`), id).toBe(true);
       expect(info.pivots[id], id).toHaveLength(2);
     }
@@ -112,23 +132,30 @@ describe('hand-made art', () => {
         expect(art(`buildings/hedgerow.edge.${side}${season}.png`), `${side}${season}`).toBe(true);
   });
 
-  it('marks only buildings that stand on one kind of tile as carrying their own', () => {
+  it('marks only buildings that stand on one kind of tile, or fields, as carrying their own', () => {
     expect(info.ground).toEqual([
       'beaverDam',
       'coppiceRegrowth',
       'coppiceWood',
+      'croft',
+      'estuaryTurbine',
+      'lighthouse',
+      'machairCroft',
       'oldWorldArchive',
       'pumpedReservoir',
       'rewildedRuin',
       'riceFishPaddy',
+      'rockPool',
       'salvageYard',
       'singingSpire',
       'weir',
       'windSpire',
     ]);
     for (const id of info.ground) {
-      const tiles = content.byId[id]!.placement.tiles;
-      expect(tiles, id).toHaveLength(1);
+      const def = byId[id]!;
+      // A croft's strips are its ground, on whichever land it is dug (ART-EXPANSION.md).
+      if (def.farmland) continue;
+      expect(def.placement.tiles, id).toHaveLength(1);
     }
   });
 
@@ -140,8 +167,11 @@ describe('hand-made art', () => {
       );
       for (const f of delivered) {
         const id = f.split('.')[0]!;
-        const name = f.endsWith('.lit.png') ? `${id}.windows.png` : f;
-        expect(art(`${folder}/${name}`), `${folder}/${f}`).toBe(true);
+        // A delivered icon takes the icon's place; lit windows are kept alone.
+        const path = f.endsWith('.icon.png')
+          ? `icons/${id}.png`
+          : `${folder}/${f.endsWith('.lit.png') ? `${id}.windows.png` : f}`;
+        expect(art(path), `${folder}/${f}`).toBe(true);
       }
     }
   });

@@ -707,6 +707,17 @@ still short on the coast (55% against 85%): it finishes the Lagoon a little less
 Garden, and the coast's +25 line was set before the Lagoon. Left for playtesting rather than
 tuned to one bot.
 
+The coast's hand-made art and the Well's were delivered together, and replace their procedural
+drawings:
+
+| Topic                | Decision                                                                                                                                                                                                                                                     | Source                   |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------ |
+| The coast's headland | The coast's hills share the `hill` tile type with the Reach's, so their art is a biome's own look: `hill.coast.png` (and `.winter`), named for the content's `land`. A tile takes its land's art when there is some, else the shared art.                    | `tileTexture`            |
+| Crofts carry a field | The croft and the machair croft were drawn with their own ground, as asked, so they take the place of the tile under them on any land they're dug on (meadow, saltmarsh, mudflat, scrub). Other buildings with their own ground stand on one tile type only. | `art.json`, `ground`     |
+| A delivered icon     | `id.icon.png` (the Well's) is the building's icon, scaled to the interface's size, in place of the one cropped from its art.                                                                                                                                 | `scripts/import-art.ts`  |
+| The Tide Turbine     | Its rotor turns slowly, as the river wheel's, about its hub at (256, 366), measured by the importer (the delivery gave no pivot).                                                                                                                            | `art.json`, `pivots`     |
+| The lighthouse       | Its lantern lights at night, from `lighthouse.lit.png`, as the homes' windows do.                                                                                                                                                                            | `lighthouse.windows.png` |
+
 ## The Highland (Milestone 12)
 
 The third biome follows [proposals/highland.md](proposals/highland.md), reviewed by the

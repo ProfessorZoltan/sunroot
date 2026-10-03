@@ -299,7 +299,8 @@ export class MapView {
         this.seasonLayer,
         this.content,
         state,
-        (key) => tileTexture(state.map.tiles[key]!.type, key, state.season) !== null,
+        (key) =>
+          tileTexture(state.map.tiles[key]!.type, key, state.season, this.content.land) !== null,
       );
       this.ground.updateCacheTexture();
       this.animals = wildlifeFor(this.content, state);
@@ -762,7 +763,7 @@ export class MapView {
       const own = grounded.get(key);
       const texture = own
         ? buildingTexture(own, state.season)
-        : tileTexture(tile.type, key, state.season);
+        : tileTexture(tile.type, key, state.season, this.content.land);
       if (texture) {
         this.tileLayer.addChild(artSprite(texture, c));
         procedural = null;

@@ -7,10 +7,15 @@
     "beaverDam",
     "coppiceRegrowth",
     "coppiceWood",
+    "croft",
+    "estuaryTurbine",
+    "lighthouse",
+    "machairCroft",
     "oldWorldArchive",
     "pumpedReservoir",
     "rewildedRuin",
     "riceFishPaddy",
+    "rockPool",
     "salvageYard",
     "singingSpire",
     "weir",
@@ -19,6 +24,7 @@
   "pivots": {
     "riverWheel": [111, 154.5],
     "singingSpire": [128.5, 97.5],
+    "tideTurbine": [128, 183],
     "windSpire": [127, 90.5]
   }
 }

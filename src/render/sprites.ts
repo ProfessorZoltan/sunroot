@@ -55,8 +55,22 @@ const pick = (...paths: string[]): Texture | null => {
   return null;
 };
 
-/** A tile's art: one of its variants (the same every time for a tile), in winter dress if it has one. */
-export function tileTexture(type: string, key: string, season: Season): Texture | null {
+/**
+ * A tile's art: one of its variants (the same every time for a tile), in winter dress if it has
+ * one. A biome's land may have its own look for a shared type (the coast's headlands,
+ * `hill.coast.png`), which it takes in place of the shared one.
+ */
+export function tileTexture(
+  type: string,
+  key: string,
+  season: Season,
+  land?: string,
+): Texture | null {
+  if (land && textures.has(`tiles/${type}.${land}.png`)) {
+    return season === 'winter'
+      ? pick(`tiles/${type}.${land}.winter.png`, `tiles/${type}.${land}.png`)
+      : pick(`tiles/${type}.${land}.png`);
+  }
   const variants = [`tiles/${type}.png`, `tiles/${type}-2.png`, `tiles/${type}-3.png`].filter((p) =>
     textures.has(p),
   );

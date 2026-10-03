@@ -1,5 +1,14 @@
 # Changelog
 
+## The coast's art, and the Well's
+
+- The Windswept Coast is **hand-drawn**: the sea, mudflat, saltmarsh, dunes and rocky headlands;
+  every coast building, from crofts and tide turbines to the lighthouse, whose lantern lights at
+  night, and the tide turbine's turning blades; terns, seals, puffins and dolphins, summer and
+  winter; Kite Day's and the Harvest of the Sea's cards; and the Tidal Lagoon, as it is built
+  and finished.
+- The **Well** has its own art and icon.
+
 ## The Highland: its glen and its rules
 
 - The third biome's land: a stream falling down a glen, slopes rising to crags, bogs and old

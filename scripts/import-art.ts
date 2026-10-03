@@ -11,7 +11,10 @@
  *   towards each neighbour, `id.e.png` to `id.se.png`, each with a winter dress;
  * - an icon per building for the interface: the building cropped to a square;
  * - `art.json`: the frame's geometry, the rotors' pivots, and which buildings
- *   are drawn with their own tile (their side band is filled in).
+ *   are drawn with their own tile (their side band is filled in);
+ * - a biome's own look for a shared tile type, `id.land.png` (the coast's
+ *   headlands, `hill.coast.png`), as delivered;
+ * - a delivered icon, `id.icon.png`, in place of the one cropped from the art.
  *
  * - wildlife and festival props (`wildlife/`, `festivals/`), off the standard
  *   frame, at half size like the rest (a 128 px frame becomes 64);
@@ -45,7 +48,7 @@ interface Manifest {
   assets: { file: string; rotation_hub?: [number, number] }[];
 }
 
-// Art for every biome: Willow Reach and the Windswept Coast share one art folder.
+// Art for every biome: they share one art folder.
 const biomes = Object.keys(BIOMES).map((id) => biomeContent(id));
 const byId = Object.fromEntries(biomes.flatMap((c) => Object.entries(c.byId)));
 const manifest = JSON.parse(readFileSync(join(IN, 'manifest.json'), 'utf8')) as Manifest;
@@ -54,6 +57,8 @@ const tiles = new Set<string>(TILE_TYPES);
 const DECORATIONS = ['sluiceGate'];
 const buildings = new Set([...Object.keys(byId), ...DECORATIONS]);
 const idOf = (file: string) => file.split('.')[0]!.replace(/-\d+$/, '');
+/** A biome's own look for a tile type: `hill.coast.png`, `hill.coast.winter.png`. */
+const lands = new Set(biomes.map((c) => c.land));
 const inDir = (dir: 'tiles' | 'buildings') =>
   readdirSync(join(IN, dir))
     .filter((f) => f.endsWith('.png'))
@@ -86,7 +91,8 @@ try {
   const ground: string[] = [];
   /** Each rotor's measured centre, in the full frame. */
   const centres: Record<string, [number, number]> = {};
-  for (const { dir, file } of files) {
+  const delivered = files.filter(({ file }) => file.endsWith('.icon.png'));
+  for (const { dir, file } of files.filter((f) => !delivered.includes(f))) {
     const id = idOf(file);
     const isTile = dir === 'tiles';
     const lit = file.endsWith('.lit.png');
@@ -208,11 +214,34 @@ try {
         wantCentre: file === `${id}.rotor.png`,
       },
     );
+    const land = file.split('.')[1];
+    if (isTile && land !== undefined && !['png', 'winter'].includes(land) && !lands.has(land))
+      throw new Error(`not a biome's land: tiles/${file}`);
     if (result.centre) centres[id] = result.centre;
     const name = lit ? `${id}.windows.png` : file;
     write(join(isTile ? 'tiles' : 'buildings', name), result.png);
     if (result.icon) write(join('icons', `${id}.png`), result.icon);
     if (result.hasGround) ground.push(id);
+  }
+
+  // Delivered icons, scaled to the interface's size, in place of the cropped ones.
+  for (const { dir, file } of delivered) {
+    const out = await page.evaluate(
+      async ({ src, icon }) => {
+        const img = new Image();
+        img.src = src;
+        await img.decode();
+        const c = document.createElement('canvas');
+        c.width = icon;
+        c.height = icon;
+        const g = c.getContext('2d')!;
+        g.imageSmoothingQuality = 'high';
+        g.drawImage(img, 0, 0, icon, icon);
+        return c.toDataURL('image/png');
+      },
+      { src: read(join(dir, file)), icon: ICON },
+    );
+    write(join('icons', `${idOf(file)}.png`), out);
   }
 
   // Wildlife and festival props at half size; festival cards as WebP, for the interface.

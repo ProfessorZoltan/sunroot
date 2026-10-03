@@ -13,6 +13,14 @@ Gate are in `art/incoming/buildings/`, tiles in `art/incoming/tiles/`, and in th
 Spire's rotor pivot, (257, 195), is measured by the importer from its hub, as the manifest has none.
 The wildlife and festival art is in the game (E4): the importer brings the animals and props at half size into `src/art/wildlife/` and `src/art/festivals/`, and the festival cards as WebP. The game draws animals and props half as big again as tile scale, so they read at the usual zoom. The Great Water Garden's art is in the game too (E5): the importer brings it at half size into `src/art/wonders/`, with an icon from the finished garden; the game draws it in place of its 7 tiles, its centre tile on the tile it is built on.
 
+**Delivered (the coast and the Well):** every coast tile (the sea with 3 summer looks; mudflat,
+saltmarsh and dune with one each), the headland (`hill.coast.png`, the coast's own look for its
+hills), all 13 coast buildings and 3 evolutions, the Tide Turbine's rotor (its pivot, (256, 366),
+measured from its hub), the lighthouse's lantern, the 4 animals in summer and winter, Kite Day's
+and the Harvest of the Sea's cards, and the Tidal Lagoon finished, in winter and at its 3 stages;
+and the Well with its own icon (`well.icon.png`). All in the game. Still drawn in code: the
+Highland's tiles and buildings (their request comes with HL4).
+
 ## Order
 
 | Milestone                   | Needs art? | What to draw first                            | Source                                      |
@@ -36,10 +44,10 @@ The wildlife and festival art is in the game (E4): the importer brings the anima
 | Top-face corners, clockwise from the top | (256, 168), (456, 283.47), (456, 463.47), (256, 579), (56, 463.47), (56, 283.47) | `art/incoming/README.md` |
 | Paper side band                          | 32 px, lowest point y 611                                                        | `art/incoming/README.md` |
 
-## The Well (new request)
+## The Well (delivered)
 
 Homes now walk to drinking water (DECISIONS.md, Walks to water), and the **Well** is the cheap way
-to bring water to them. It is drawn procedurally until hand-made art comes.
+to bring water to them. Its art and icon are in the game.
 
 | Piece | Files                                       | Notes                                                                                                                                                     | Source       |
 | ----- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
@@ -167,13 +175,13 @@ seasons, so it also needs 3 stages of construction.
 ## The Windswept Coast (B4 to B6)
 
 The second biome ([proposals/windswept-coast.md](proposals/windswept-coast.md)). Everything here is
-drawn in code until hand-made art comes, so any piece can arrive on its own. Same frame, light and
+delivered and in the game. Same frame, light and
 seasons as everything else: a summer `id.png` and a winter `id.winter.png`, delivered to the same
 folders of `art/incoming/` as the Reach's (`tiles/`, `buildings/`, `wildlife/`, `festivals/`,
 `wonders/`); `scripts/import-art.ts` takes every biome's names. A coast winter is grey and wet more
 than white: frost on the dunes, ice only in the saltmarsh pools.
 
-The game draws these in code, so don't paint them: the tide (the sea rising over the mudflat by
+All of it is delivered (see the top of this guide). The game draws these in code, so they weren't painted: the tide (the sea rising over the mudflat by
 night and falling back by day), the king tide's salt marks, the smoke over a working smokehouse,
 lit windows from a `.lit.png` (as before), and a rotor's turn from a `.rotor.png` (as the Wind
 Spire's).
@@ -216,7 +224,7 @@ Spire's).
 
 ### The coast's wonder, animals and festivals (B6)
 
-Drawn in code until this art comes, like the rest of the coast.
+Delivered and in the game, like the rest of the coast.
 
 | Name               | Id                | Files                                                                  | Notes                                                                                                                                                                                                                       | Source              |
 | ------------------ | ----------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |

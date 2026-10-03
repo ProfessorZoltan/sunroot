@@ -7,8 +7,12 @@ and E5. `scripts/import-art.ts` reads `tiles/` and `buildings/`. File names are 
 `airSourceHeatPump` the Air-source one (the first Heat Pump art), and `coppiceRegrowth` the
 regrowing coppice (delivered as `coppiceWood.regrowing`). Channels and hedgerows come as a hub,
 `id.png`, and an arm towards each neighbour, `id.e.png` … `id.se.png`; `sluiceGate` is drawn where
-a channel leaves the river. A rotor without a pivot in `manifest.json` (the Singing Spire's) has it
-measured from its orange hub. The notes below describe the original delivery.
+a channel leaves the river. A rotor without a pivot in `manifest.json` (the Singing Spire's, the
+Tide Turbine's) has it measured from its orange hub. A biome's own look for a shared tile type is
+`id.land.png`: the coast's headlands are `tiles/hill.coast.png`. A delivered icon is
+`buildings/id.icon.png` (the Well's). The coast's art and the Well's came as one folder,
+`coast_and_well`, sorted into these folders when imported. The notes below describe the original
+delivery.
 
 96 individual transparent RGBA PNGs, all on the same untrimmed **512 × 640 pixel frame**. The art is warm storybook papercraft, softly lit from the upper left. No magenta keying or sheet slicing is required.
 
