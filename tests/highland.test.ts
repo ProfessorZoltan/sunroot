@@ -133,6 +133,16 @@ describe('the Highland rules', () => {
     expect(Object.keys(t.buildings)).toHaveLength(8);
   });
 
+  it('a glen farm drinks from the stream beside it, with no channel', () => {
+    let s = place(start('summer'), 'glenFarm', 3, 4, HIGH);
+    s = end(s);
+    const use = s.lastReport!.water!.uses[uidAt(s, 3, 4)]!;
+    expect(use.from).toBe('river');
+    expect(use.short).toBe(false);
+    // A terrace farm beside the same stream still needs a channel.
+    expect(HIGH.byId.terraceFarm!.water!.besideRiver).toBe(false);
+  });
+
   it('the snowmelt floods the glen floor: a glen farm stands it, a workshop does not; no silt', () => {
     let s = place(start('spring'), 'glenFarm', 3, 4, HIGH);
     s = place(s, 'workshop', 3, 5, HIGH);

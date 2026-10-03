@@ -159,14 +159,16 @@ export class Turn {
   }
 
   /** Whether a building here could draw water: beside the river, a lake or a channel. */
-  watered(h: Hex, occ: Map<string, BuildingState> = occupancyOf(this.state)): boolean {
+  watered(h: Hex, occ: Map<string, BuildingState> = occupancyOf(this.state), id?: string): boolean {
+    const besideRiver =
+      this.rules.rules.water.drawBesideRiver ||
+      (id !== undefined && (this.content.byId[id]?.water?.besideRiver ?? false));
     // Water runs only downhill (the Highland): a channel below the tile can't feed it.
     const height = this.state.map.tiles[hexKey(h)]?.height ?? 0;
     return hexNeighbors(h).some((n) => {
       const key = hexKey(n);
       const tile = this.state.map.tiles[key];
-      if (tile && (tile.type === 'river' || tile.type === 'reservoir'))
-        return this.rules.rules.water.drawBesideRiver;
+      if (tile && (tile.type === 'river' || tile.type === 'reservoir')) return besideRiver;
       const b = occ.get(key);
       return (
         b !== undefined &&
@@ -299,7 +301,8 @@ export function siteScore(
   // With local heat on, heat sources go near what needs heat, and the reverse.
   if (turn.localHeatOn && turn.heatAware) score += heatScore(turn, def, tile);
   // With the water system on, buildings that need water go where they can draw it.
-  if (turn.waterOn && def.water?.needs.some((n) => n > 0) && turn.watered(tile, occ)) score += 4;
+  if (turn.waterOn && def.water?.needs.some((n) => n > 0) && turn.watered(tile, occ, id))
+    score += 4;
   if (tile.type === 'meadow' || tile.type === 'woodland') score -= 1;
 
   switch (id) {

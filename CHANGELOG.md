@@ -10,8 +10,9 @@
 - **8 Highland tunings** and **2 charters** (Mountain Rescue, Hearth Keepers).
 - Bothies burn 1 biomass in autumn and winter for their heat, and house 3. A snow fence keeps a
   high solar canopy making a little in winter.
-- Balance: glen and terrace farms make more, the glen has a fourth old mine, and a Highland run
-  scores +30 for wintering in it.
+- Balance: glen and terrace farms make more, and glen farms drink straight from the stream; the
+  glen has a fourth old mine; Lantern Night comes to the Highland; and a Highland run scores +35
+  for wintering in it.
 
 ## The coast's art, and the Well's
 

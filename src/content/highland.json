@@ -201,7 +201,7 @@
       ],
       "biome": {
         "reason": "a cold glen to winter in",
-        "points": 30
+        "points": 35
       }
     },
     "visionChoices": 2
@@ -424,7 +424,8 @@
         "accepts": ["nutrient", "clean"],
         "nutrientBonus": {
           "food": 1
-        }
+        },
+        "besideRiver": true
       }
     },
     {
@@ -2532,7 +2533,20 @@
     }
   ],
   "wildlife": [],
-  "festivals": [],
+  "festivals": [
+    {
+      "id": "lanternNight",
+      "name": "Lantern Night",
+      "text": "A winter night of lanterns. +3 wellbeing if no night this season runs short of energy, and the glen’s animals come out to see.",
+      "season": "winter",
+      "cost": {
+        "materials": 5
+      },
+      "wellbeing": 3,
+      "needsNightPowered": true,
+      "showsWildlife": true
+    }
+  ],
   "twists": [
     {
       "id": "fairWeather",

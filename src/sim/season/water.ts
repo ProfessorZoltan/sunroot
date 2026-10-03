@@ -176,7 +176,7 @@ export function resolveWater(ctx: SeasonContext): void {
     // Buildings that return or clean water work through their channel; others drink from the
     // river (or a lake) when they stand beside it, and from a channel otherwise.
     const onChannel = attachment(b);
-    const besideWater = rules.drawBesideRiver;
+    const besideWater = rules.drawBesideRiver || w.besideRiver;
     const river = besideWater ? riverIndexesNear(state, b.at) : [];
     const lake = besideWater ? lakeNear(state, b.at, ofLake) : null;
     let source: Source | null = null;

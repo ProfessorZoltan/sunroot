@@ -93,6 +93,8 @@ const BuildingWaterSchema = z
      */
     stores: nonNeg.default(0),
     fills: PerSeasonFlags.default([true, true, true, true]),
+    /** Drinks from the river beside it even where buildings otherwise draw by channel (a glen farm). */
+    besideRiver: z.boolean().default(false),
     /** Fed by the river beside it: puts this water into a neighbouring channel each season (Fish Pond). */
     feeds: z
       .object({ quality: WaterQualitySchema, amount: int.min(1) })

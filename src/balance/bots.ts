@@ -135,9 +135,11 @@ const idleWorkshops = (t: Turn) =>
 /** Free sites a farm or orchard could take that can draw water. */
 function wateredSites(turn: Turn): number {
   const taken = new Set(Object.values(turn.state.buildings).map((b) => hexKey(b.at)));
-  const fits = (t: Tile) => fitsAny(turn, [...FARMS, ...ORCHARDS], t);
+  const ids = [...FARMS, ...ORCHARDS];
   return Object.values(turn.state.map.tiles).filter(
-    (t) => !taken.has(hexKey(t)) && fits(t) && turn.watered(t),
+    (t) =>
+      !taken.has(hexKey(t)) &&
+      ids.some((id) => fitsAny(turn, [id], t) && turn.watered(t, undefined, id)),
   ).length;
 }
 
