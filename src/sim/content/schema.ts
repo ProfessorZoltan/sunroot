@@ -195,7 +195,10 @@ export const BuildingSchema = z
       .strict()
       .optional(),
     /** Buildings within this many tiles can't be damaged by a storm (a lighthouse). */
-    shelters: z.object({ radius: int.min(1) }).strict().optional(),
+    shelters: z
+      .object({ radius: int.min(1) })
+      .strict()
+      .optional(),
     /** Salvage the storm washes up for it (a beachcombing yard after a gale). */
     strandline: nonNeg.default(0),
     /** While it is powered, food beyond storage doesn't rot (a smokehouse). */

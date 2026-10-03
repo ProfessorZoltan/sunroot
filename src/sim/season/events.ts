@@ -127,7 +127,8 @@ export function applyEvent(ctx: SeasonContext): void {
       // The strandline: what the storm washes up (a beachcombing yard after a gale).
       for (const b of Object.values(state.buildings)) {
         const washed = defOf(content, b).strandline;
-        if (washed > 0 && !b.damage) addYield(ctx, b, 'salvage', washed, 'Strandline after the storm');
+        if (washed > 0 && !b.damage)
+          addYield(ctx, b, 'salvage', washed, 'Strandline after the storm');
       }
       const storm = eventOf(content, 'storm');
       if (report.mixedGrid && storm.mixedGridShelters) break;
