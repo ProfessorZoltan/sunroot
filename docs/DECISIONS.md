@@ -677,6 +677,10 @@ B1 to B6 (the proposal's build plan).
 | Coast regions | The Coast as it is; Shingle Spit (5 columns of sea); Saltmarsh Estuary (mudflat and saltmarsh all along the shore); Sea Cliffs (4 headlands of 3 tiles, packed 2 rows apart, little mudflat; the Graft a tier higher); Drowned Harbour (7 ruins asked for, as many as fit apart, 30 salvage each). | `windswept-coast.json` |
 | Coast twists | The shared ones that fit (Long Winter, Wild Storms, Steady Winds, Clear Skies, Lean Start, Big Families, Scavengers' Shore), and its own: Big Tides (the king tide reaches every low tile within 2 of the mudflat, never the camp; tide turbines +1 by day and night), Becalmed (wind spires −1; the Graft a tier higher), Fogbound (solar canopies −1 by day all year). | `kingTideReach` |
 
+| The coast in Root City | From run 5 (`progression.biomes`), and at once for a city already past it, the expeditions take turns between the biomes: offer 1 goes to one, offer 2 to the other, and which comes first changes each run. Each offer draws a twist and region from its own biome; city requests stay shared. Root City itself keeps working with the home biome's content, so saved cities stay valid; a run plays in its expedition's biome, and a saved run resumes in its own. | `openBiomes`, `expeditionOffer` |
+| A first coast run | The first run in a biome other than the home one has a guided first year (the coast's own offers) and opens with what is new there (`intro`). Root City counts each biome's runs (`biomeRuns`). | `nextRunOptions` |
+| Tempest per biome | A Heartwood Graft unlocks the next Tempest level in the biome it was earned in (the home biome's levels stay in `tempestUnlocked`). The chosen level holds wherever it is unlocked; elsewhere a run plays the highest level its biome has. | `tempestUnlockedIn` |
+
 The coast against the Reach: 20 seeds per row, water on.
 
 | Bot          | Biome                   | Median score | Heartwood | Collapsed | Source                     |

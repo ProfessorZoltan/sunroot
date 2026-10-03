@@ -1,5 +1,19 @@
 # Changelog
 
+## The Windswept Coast in Root City
+
+- From run 5, Root City's expeditions go to **either biome**, taking turns, each with its own
+  twists and regions. The first coast run has a guided first year and opens with what is new
+  there.
+- The coast's **regions**: Shingle Spit, Saltmarsh Estuary, Sea Cliffs (the Graft a tier higher)
+  and Drowned Harbour; its own **twists**: Big Tides, Becalmed (the Graft a tier higher) and
+  Fogbound.
+- A new district, the **Tidal Quarter**, from tide-powered runs: 4 draft cards in the first
+  season of each era, and the **Tide Mill** (a store the tide fills each season) in coast drafts.
+  Next to the Millrace Quarter it makes the **Estuary Works**: coast runs start with the
+  **Estuary Turbine** at the stream's mouth.
+- **Tempest levels unlock per biome**, where the Heartwood Graft was earned.
+
 ## The Windswept Coast on screen
 
 - A coast run can be played with **`?biome=windsweptCoast`**, until Root City sends expeditions

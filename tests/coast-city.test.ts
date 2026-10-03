@@ -4,10 +4,24 @@
  * landmark and its Estuary Turbine, the coast's regions and its own twists.
  */
 import { describe, expect, it } from 'vitest';
-import { biomeContent } from '../src/content';
+import { biomeContent, loadBiome, willowReach } from '../src/content';
 import { blueprintPool, draftSize } from '../src/sim/draft';
 import { contentFor } from '../src/sim/content/modifiers';
-import { createRun, hexKey, leanOf, type RunState } from '../src/sim';
+import {
+  applyCityCommand,
+  biomeOf,
+  createCity,
+  createRun,
+  expeditionOffer,
+  hexKey,
+  leanOf,
+  nextRunBiome,
+  nextRunOptions,
+  openBiomes,
+  tempestUnlockedIn,
+  type CityState,
+  type RunState,
+} from '../src/sim';
 import { endSeason, place, rejects, scenario, at, uidAt } from './helpers';
 
 const COAST = biomeContent('windsweptCoast');
@@ -156,5 +170,80 @@ describe("the coast's regions and twists", () => {
     const fogbound = contentFor(COAST, run(null, 'fogbound'));
     const solar = COAST.byId.solarCanopy!.generation!;
     expect(fogbound.byId.solarCanopy!.generation!.day).toEqual(solar.day.map((n) => n - 1));
+  });
+});
+
+describe('Root City sends expeditions to the coast from run 5', () => {
+  const HOME = biomeContent('willowReach');
+  const cityAt = (runs: number): CityState => ({ ...createCity(HOME, 'atlas'), runs });
+
+  it('the coast opens at run 5; a city already past it has it at once', () => {
+    expect(openBiomes(HOME, cityAt(3))).toEqual(['willowReach']);
+    expect(openBiomes(HOME, cityAt(4))).toEqual(['willowReach', 'windsweptCoast']);
+    expect(openBiomes(HOME, cityAt(12))).toEqual(['willowReach', 'windsweptCoast']);
+    // Content loaded on its own knows no other biome.
+    expect(openBiomes(loadBiome(willowReach), cityAt(12))).toEqual(['willowReach']);
+  });
+
+  it('the offers take turns between the biomes, each with its own twists and regions', () => {
+    for (const runs of [4, 5, 6, 7]) {
+      const offer = expeditionOffer(HOME, cityAt(runs));
+      expect(new Set(offer.map((o) => o.biome ?? 'willowReach')).size).toBe(2);
+      for (const o of offer) {
+        const c = biomeOf(HOME, o.biome);
+        expect(c.twists.map((t) => t.id)).toContain(o.twist);
+        if (o.region) expect(c.regions.map((r) => r.id)).toContain(o.region);
+      }
+    }
+    // Each biome leads in turn.
+    const first = [4, 5].map((runs) => expeditionOffer(HOME, cityAt(runs))[0]!.biome);
+    expect(first).toEqual([undefined, 'windsweptCoast']);
+  });
+
+  it('a coast expedition plays on the coast, guided the first time', () => {
+    let city = cityAt(5);
+    const index = expeditionOffer(HOME, city).findIndex((o) => o.biome === 'windsweptCoast');
+    const chosen = applyCityCommand(HOME, city, { type: 'chooseExpedition', index });
+    expect(chosen.ok).toBe(true);
+    city = chosen.ok ? chosen.city : city;
+    expect(nextRunBiome(HOME, city)).toBe('windsweptCoast');
+    const options = nextRunOptions(HOME, city);
+    expect(options.guided).toBe(true);
+    const run = createRun(biomeOf(HOME, nextRunBiome(HOME, city)), options);
+    expect(run.contentId).toBe('windsweptCoast');
+    // Sent home: the next coast run is not guided.
+    const home = applyCityCommand(HOME, city, {
+      type: 'sendHome',
+      result: { graft: null, earned: 10, spent: 0, tier: 'sapling', biome: 'windsweptCoast' },
+    });
+    expect(home.ok && home.city.biomeRuns).toEqual({ windsweptCoast: 1 });
+    const again = home.ok ? home.city : city;
+    const coast = expeditionOffer(HOME, again).findIndex((o) => o.biome === 'windsweptCoast');
+    const next = applyCityCommand(HOME, again, { type: 'chooseExpedition', index: coast });
+    expect(next.ok && nextRunOptions(HOME, next.city).guided).toBe(false);
+  });
+
+  it('Tempest levels unlock in the biome where the Heartwood Graft was earned', () => {
+    const city = { ...cityAt(6), tempestUnlocked: 2 };
+    const sent = applyCityCommand(HOME, city, {
+      type: 'sendHome',
+      result: { graft: null, earned: 10, spent: 0, tier: 'heartwood', biome: 'windsweptCoast' },
+    });
+    expect(sent.ok).toBe(true);
+    if (!sent.ok) return;
+    expect(sent.events).toContainEqual({ kind: 'tempest', level: 1, biome: 'windsweptCoast' });
+    expect(sent.city.tempestUnlocked).toBe(2);
+    expect(tempestUnlockedIn(HOME, sent.city, 'windsweptCoast')).toBe(1);
+    // Tempest 2 chosen: the Reach plays it, the coast only the level it has unlocked.
+    const set = applyCityCommand(HOME, sent.city, { type: 'setTempest', level: 2 });
+    const c = set.ok ? set.city : sent.city;
+    const reach = expeditionOffer(HOME, c).findIndex((o) => o.biome === undefined);
+    const coast = expeditionOffer(HOME, c).findIndex((o) => o.biome === 'windsweptCoast');
+    const tempestFor = (index: number) => {
+      const r = applyCityCommand(HOME, c, { type: 'chooseExpedition', index });
+      return r.ok ? nextRunOptions(HOME, r.city).expedition?.tempest : -1;
+    };
+    expect(tempestFor(reach)).toBe(2);
+    expect(tempestFor(coast)).toBe(1);
   });
 });

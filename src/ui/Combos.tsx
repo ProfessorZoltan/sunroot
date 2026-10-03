@@ -343,6 +343,8 @@ export function runStart(store: GameStore, joining: string[]): { title: string; 
   const region = content.regions.find((r) => r.id === state.options.expedition?.region);
   const tempest = content.tempest.levels.slice(0, state.options.expedition?.tempest ?? 0);
   const lines: string[] = [];
+  // The first run in a new biome (guided) is told what is different there.
+  if (content.intro && state.options.guided) lines.push(content.intro);
   if (tempest.length > 0)
     lines.push(
       `Tempest ${tempest.length}: ${tempest.map((l) => `${l.name} (${l.text.replace(/\.$/, '')})`).join('; ')}.`,

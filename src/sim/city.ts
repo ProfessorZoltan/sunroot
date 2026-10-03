@@ -43,6 +43,8 @@ export interface RunResult {
   /** The run's Graft tier, planted or not, and its Tempest level: a Heartwood Graft unlocks the next. */
   tier?: string;
   tempest?: number;
+  /** The biome the run was in (missing: the home biome). Tempest levels unlock per biome. */
+  biome?: string;
 }
 
 export interface CityDistrict {
@@ -65,6 +67,8 @@ export interface Expedition {
   request: string | null;
   /** The valley's variation; null (or missing, in older saves) for the biome as it is. */
   region?: string | null;
+  /** The biome it goes to (missing: the home biome). */
+  biome?: string;
 }
 
 export interface CityState {
@@ -87,8 +91,12 @@ export interface CityState {
   expedition: Expedition | null;
   /** The number of runs it took to grow the Sun Tree, once grown. */
   sunTree: number | null;
-  /** The highest Tempest level unlocked (missing: none yet). */
+  /** The highest Tempest level unlocked in the home biome (missing: none yet). */
   tempestUnlocked?: number;
+  /** The same for each other biome, by id. */
+  tempestUnlockedIn?: Record<string, number>;
+  /** Runs sent home from each biome other than the home one, by id: the first is guided. */
+  biomeRuns?: Record<string, number>;
   /** The Tempest level chosen for the next runs (missing: none). */
   tempest?: number;
   /** Every layer of the teaching ladder from the next run on, for experienced players. */
@@ -112,7 +120,7 @@ export type CityEvent =
   | { kind: 'landmark'; id: string }
   | { kind: 'sunTree' }
   | { kind: 'composted'; district: string; seeds: number }
-  | { kind: 'tempest'; level: number };
+  | { kind: 'tempest'; level: number; biome?: string };
 
 export type CityResult =
   { ok: true; city: CityState; events: CityEvent[] } | { ok: false; error: string };
@@ -253,10 +261,44 @@ export function teaching(content: Content, run: number): Teaching {
   };
 }
 
+// ---------------------------------------------------------------------- biomes
+
+/** Biomes expeditions can go to before the city's next run: the home one, then those open. */
+export function openBiomes(content: Content, city: CityState): string[] {
+  const run = city.runs + 1;
+  const others = (content.progression?.biomes ?? [])
+    .filter((b) => run >= b.fromRun && content.atlas?.[b.id] && b.id !== content.id)
+    .map((b) => b.id);
+  return [content.id, ...others];
+}
+
+/** A biome's content: the home one, or one from the atlas. */
+export function biomeOf(content: Content, biome: string | undefined): Content {
+  if (biome === undefined || biome === content.id) return content;
+  const other = content.atlas?.[biome];
+  if (!other) throw new Error(`unknown biome ${biome}`);
+  return other;
+}
+
+/** The biome the city's next run goes to. */
+export function nextRunBiome(content: Content, city: CityState): string {
+  return city.expedition?.biome ?? content.id;
+}
+
+/** The highest Tempest level unlocked in a biome. */
+export function tempestUnlockedIn(content: Content, city: CityState, biome: string): number {
+  return biome === content.id
+    ? (city.tempestUnlocked ?? 0)
+    : (city.tempestUnlockedIn?.[biome] ?? 0);
+}
+
 /** The options for the city's next run: its teaching, Root City's gifts and the expedition. */
 export function nextRunOptions(content: Content, city: CityState): RunOptions {
   const run = city.runs + 1;
   const t = teaching(content, run);
+  const biome = nextRunBiome(content, city);
+  // The first run in a new biome has a guided first year, for what is new there.
+  const firstThere = biome !== content.id && (city.biomeRuns?.[biome] ?? 0) === 0;
   const expedition: RunExpedition = city.expedition
     ? {
         twist: city.expedition.twist,
@@ -264,7 +306,7 @@ export function nextRunOptions(content: Content, city: CityState): RunOptions {
         region: city.expedition.region ?? null,
       }
     : { twist: null, request: null };
-  const tempest = Math.min(city.tempest ?? 0, city.tempestUnlocked ?? 0);
+  const tempest = Math.min(city.tempest ?? 0, tempestUnlockedIn(content, city, biome));
   if (tempest > 0) expedition.tempest = tempest;
   // Every layer from the start, if the player asked; Tempest always plays the full valley.
   const full = city.fullValley === true || tempest > 0;
@@ -275,7 +317,7 @@ export function nextRunOptions(content: Content, city: CityState): RunOptions {
   const localHeat = t.localHeat || (full && ladder?.localHeat !== undefined);
   return {
     seed: city.expedition?.seed ?? `${city.seed}-${run}`,
-    guided: t.guided,
+    guided: t.guided || firstThere,
     visions: t.visions,
     tunings: t.tunings,
     charters: t.charters,
@@ -287,8 +329,14 @@ export function nextRunOptions(content: Content, city: CityState): RunOptions {
   };
 }
 
-/** The expeditions on offer before the next run: distinct regions, twists and requests, at random. */
+/**
+ * The expeditions on offer before the next run: distinct regions, twists and requests, at
+ * random. Once another biome is open, the offers take turns between the biomes, each with a
+ * twist and region of its own.
+ */
 export function expeditionOffer(content: Content, city: CityState): Expedition[] {
+  const biomes = openBiomes(content, city);
+  if (biomes.length > 1) return mixedOffer(content, city, biomes);
   const count = content.progression?.expeditionChoices ?? 3;
   const rng = createRng(`${city.seed}:expeditions:${city.runs}`);
   const twists = shuffled(
@@ -311,6 +359,49 @@ export function expeditionOffer(content: Content, city: CityState): Expedition[]
     request: requests[i] ?? null,
     region: regions[i] ?? null,
   }));
+}
+
+function mixedOffer(content: Content, city: CityState, biomes: string[]): Expedition[] {
+  const count = content.progression?.expeditionChoices ?? 3;
+  const rng = createRng(`${city.seed}:expeditions:${city.runs}`);
+  const requests = shuffled(
+    rng,
+    content.requests.map((r) => r.id),
+  );
+  // Each biome's twists and regions, drawn in turn.
+  const draws = new Map(
+    biomes.map((id) => {
+      const c = biomeOf(content, id);
+      return [
+        id,
+        {
+          twists: shuffled(
+            rng,
+            c.twists.map((t) => t.id),
+          ),
+          regions: shuffled(
+            rng,
+            c.regions.map((r) => r.id),
+          ),
+          used: 0,
+        },
+      ];
+    }),
+  );
+  const run = city.runs + 1;
+  // Start from a different biome each time, so every biome comes up as the first offer.
+  return Array.from({ length: count }, (_, i) => {
+    const biome = biomes[(i + city.runs) % biomes.length]!;
+    const d = draws.get(biome)!;
+    const k = d.used++;
+    return {
+      seed: `${city.seed}-${run}-${String.fromCharCode(97 + i)}`,
+      twist: d.twists[k % Math.max(1, d.twists.length)] ?? 'none',
+      request: requests[i] ?? null,
+      region: d.regions[k] ?? null,
+      ...(biome !== content.id ? { biome } : {}),
+    };
+  });
 }
 
 /** Whether the city must choose an expedition before its next run (not before the first). */
@@ -346,14 +437,19 @@ export function applyCityCommand(
       next.seeds += earned - spent;
       next.runs += 1;
       next.expedition = null;
-      // A Heartwood Graft (planted or not) at a Tempest level unlocks the next.
+      const biome = command.result.biome ?? content.id;
+      const home = biome === content.id;
+      if (!home)
+        next.biomeRuns = { ...next.biomeRuns, [biome]: (next.biomeRuns?.[biome] ?? 0) + 1 };
+      // A Heartwood Graft (planted or not) at a Tempest level unlocks the next, in its biome.
       const top = content.rules.score.tiers.at(-1)?.id;
-      const levels = content.tempest.levels.length;
+      const levels = (content.atlas?.[biome] ?? content).tempest.levels.length;
       if (levels > 0 && command.result.tier === top) {
         const unlocked = Math.min(levels, (command.result.tempest ?? 0) + 1);
-        if (unlocked > (next.tempestUnlocked ?? 0)) {
-          next.tempestUnlocked = unlocked;
-          events.push({ kind: 'tempest', level: unlocked });
+        if (unlocked > tempestUnlockedIn(content, next, biome)) {
+          if (home) next.tempestUnlocked = unlocked;
+          else next.tempestUnlockedIn = { ...next.tempestUnlockedIn, [biome]: unlocked };
+          events.push({ kind: 'tempest', level: unlocked, ...(home ? {} : { biome }) });
         }
       }
       if (graft) {
@@ -409,7 +505,12 @@ export function applyCityCommand(
     case 'setTempest': {
       const level = command.level;
       if (!Number.isInteger(level) || level < 0) return fail('no such Tempest level');
-      if (level > (next.tempestUnlocked ?? 0)) return fail(`Tempest ${level} is not unlocked yet`);
+      // The level holds wherever it is unlocked; elsewhere a run plays the highest it may.
+      const highest = Math.max(
+        next.tempestUnlocked ?? 0,
+        ...Object.values(next.tempestUnlockedIn ?? {}),
+      );
+      if (level > highest) return fail(`Tempest ${level} is not unlocked yet`);
       if (level === 0) delete next.tempest;
       else next.tempest = level;
       break;

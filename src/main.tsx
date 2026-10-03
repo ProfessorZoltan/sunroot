@@ -40,7 +40,9 @@ import {
   createRun,
   makeSave,
   needsExpedition,
+  nextRunBiome,
   nextRunOptions,
+  biomeOf,
   readSave,
   runCity,
   teaching,
@@ -56,12 +58,14 @@ async function start() {
   // The type is served with the app; wait for it so nothing changes font after the first paint.
   await fontsReady();
   const params = new URLSearchParams(location.search);
-  // Root City and the run share the home biome's content until a second biome joins (B5); a run
-  // in another biome is a visit, which like a sandbox run never touches the saves.
+  // Root City works with the home biome's content (its districts and progression are shared);
+  // the run with its own biome's. A run in another biome asked for by URL is a visit, which
+  // like a sandbox run never touches the saves.
+  const home = biomeContent(HOME_BIOME);
   const asked = params.get('biome');
   const biome = asked && asked in BIOMES ? asked : HOME_BIOME;
   const visit = biome !== HOME_BIOME;
-  const content = biomeContent(biome);
+  let content = biomeContent(biome);
   let storage: Storage | null = null;
   try {
     storage = window.localStorage;
@@ -85,8 +89,8 @@ async function start() {
 
   // Root City, saved in its own slot (sandbox runs and visits never touch it).
   const loaded = passing
-    ? { city: createCity(content, 'sandbox'), problem: null }
-    : await loadCity(content, citySlot, storage, randomSeed('city'));
+    ? { city: createCity(home, 'sandbox'), problem: null }
+    : await loadCity(home, citySlot, storage, randomSeed('city'));
   let city: CityState = loaded.city;
   let citySaving: Promise<void> = Promise.resolve();
   const cityStatus = { runs: -1, savedAt: '' };
@@ -103,8 +107,7 @@ async function start() {
   };
   keepCity(city);
   /** Root City when it has something to do before a run, otherwise the city's next run. */
-  const nextUrl = () =>
-    needsExpedition(content, city) || city.pending.length > 0 ? '?city' : '?new';
+  const nextUrl = () => (needsExpedition(home, city) || city.pending.length > 0 ? '?city' : '?new');
   const go = (url: string) =>
     void citySaving.then(() => (location.href = `${location.pathname}${url}`));
 
@@ -116,6 +119,9 @@ async function start() {
   if (!params.has('seed') && !params.has('new') && !passing) {
     const data = await slot.load();
     if (data !== undefined) {
+      // The saved run is in its own biome.
+      const saved = (data as { contentId?: unknown } | null)?.contentId;
+      if (typeof saved === 'string' && saved in BIOMES) content = biomeContent(saved);
       const read = readSave(content, data);
       if (read.ok) {
         state = read.save.state;
@@ -136,7 +142,7 @@ async function start() {
     const readOnly = state !== null;
     render(
       <CityScreen
-        content={content}
+        content={home}
         initial={city}
         readOnly={readOnly}
         onSave={keepCity}
@@ -147,9 +153,7 @@ async function start() {
             ? undefined
             : (almanac) =>
                 void citySaving
-                  .then(() =>
-                    startOver(content, { run: slot, city: citySlot }, storage, { almanac }),
-                  )
+                  .then(() => startOver(home, { run: slot, city: citySlot }, storage, { almanac }))
                   .then(() => (location.href = location.pathname))
         }
         audio={audio}
@@ -158,7 +162,7 @@ async function start() {
     );
     (window as unknown as { sunroot: unknown }).sunroot = {
       city: () => city,
-      content,
+      content: home,
       savedCity: cityStatus,
       audio,
     };
@@ -176,15 +180,17 @@ async function start() {
       water: visit ? params.get('water') !== '0' : params.get('water') === '1',
       commute: params.get('commute') === '1',
       localHeat: params.get('heat') === '1',
-      city: passing ? undefined : runCity(content, city),
+      city: passing ? undefined : runCity(home, city),
     });
   } else if (!state) {
     // The city's next run: what it teaches, the city's gifts, and the chosen expedition.
+    // The chosen expedition's biome: the coast, from run 5, or the home valley.
     const run = city.runs + 1;
-    state = createRun(content, nextRunOptions(content, city));
-    const embarked = applyCityCommand(content, city, { type: 'embark' });
+    content = biomeOf(home, nextRunBiome(home, city));
+    state = createRun(content, nextRunOptions(home, city));
+    const embarked = applyCityCommand(home, city, { type: 'embark' });
     if (embarked.ok) keepCity(embarked.city);
-    if (run > 1) intro = [{ kind: 'start', run, joining: teaching(content, run).joining }];
+    if (run > 1) intro = [{ kind: 'start', run, joining: teaching(home, run).joining }];
   }
   const seed = state.options.seed;
   // A reload should resume this run, not start yet another.
@@ -206,8 +212,8 @@ async function start() {
     bankedSeeds: passing ? 0 : city.seeds,
     onRunEnd: (result) => {
       if (passing) return;
-      const home = applyCityCommand(content, city, { type: 'sendHome', result });
-      if (home.ok) keepCity(home.city);
+      const sent = applyCityCommand(home, city, { type: 'sendHome', result });
+      if (sent.ok) keepCity(sent.city);
       void slot.clear();
     },
     intro,

@@ -60,6 +60,7 @@ describe('the store at the edges of a run', () => {
         spent: content.progression!.graftCost,
         tier: offer.tier.id,
         tempest: 0,
+        biome: 'willowReach',
       },
     ]);
     expect(store.chooseGraft(offer.options[0]!.district.id)).toBe(false);
@@ -85,6 +86,7 @@ describe('the store at the edges of a run', () => {
         spent: 0,
         tier: graftOffer(content, store.state).tier.id,
         tempest: 0,
+        biome: 'willowReach',
       },
     ]);
   });

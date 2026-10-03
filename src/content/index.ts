@@ -34,6 +34,11 @@ export function biomeContent(id: string): Content {
     const raw = BIOMES[id];
     if (!raw) throw new Error(`unknown biome ${id}`);
     content = loadBiome(raw);
+    // Every biome Root City can reach, loaded when first asked for (not copied with the content).
+    Object.defineProperty(content, 'atlas', {
+      enumerable: false,
+      get: () => Object.fromEntries(Object.keys(BIOMES).map((b) => [b, biomeContent(b)])),
+    });
     loaded.set(id, content);
   }
   return content;

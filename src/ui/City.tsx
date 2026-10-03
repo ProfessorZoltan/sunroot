@@ -11,6 +11,9 @@ import {
   applyCityCommand,
   districtAt,
   expeditionOffer,
+  biomeOf,
+  openBiomes,
+  tempestUnlockedIn,
   generateMap,
   isFull,
   needsExpedition,
@@ -300,11 +303,11 @@ export function CityScreen({
             {progress.needed} at Heartwood
           </strong>
         </div>
-        {(city.tempestUnlocked ?? 0) > 0 && (
+        {highestTempest(city) > 0 && (
           <div class="stat" aria-label="Tempest">
             <span class="quiet small">Tempest</span>{' '}
             <strong>
-              {city.tempestUnlocked} of {content.tempest.levels.length} unlocked
+              {highestTempest(city)} of {content.tempest.levels.length} unlocked
             </strong>
           </div>
         )}
@@ -661,9 +664,11 @@ function ExpeditionPanel({
       {offer.length > 0 && (
         <div class="expeditions">
           {offer.map((o, i) => {
-            const twist = content.twists.find((t) => t.id === o.twist);
+            // Each expedition's biome has its own twists and regions.
+            const biome = biomeOf(content, o.biome);
+            const twist = biome.twists.find((t) => t.id === o.twist);
             const request = content.requests.find((r) => r.id === o.request);
-            const region = content.regions.find((r) => r.id === o.region);
+            const region = biome.regions.find((r) => r.id === o.region);
             return (
               <button
                 type="button"
@@ -672,14 +677,14 @@ function ExpeditionPanel({
                 onClick={() => onChoose(i)}
               >
                 <RegionThumb
-                  content={content}
+                  content={biome}
                   seed={o.seed}
                   region={o.region ?? null}
                   twist={o.twist}
                 />
                 <span class="card-body">
                   <span class="card-kind">
-                    {content.name}
+                    {biome.name}
                     {region ? ` · ${region.name}` : ''}
                   </span>
                   {region && region.modifiers.length > 0 && (
@@ -706,6 +711,11 @@ function ExpeditionPanel({
   );
 }
 
+/** The highest Tempest level unlocked in any biome. */
+function highestTempest(city: CityState): number {
+  return Math.max(city.tempestUnlocked ?? 0, ...Object.values(city.tempestUnlockedIn ?? {}));
+}
+
 /** The Tempest level for the next runs, once one is unlocked: each adds a hardship and Seeds. */
 function TempestPicker({
   content,
@@ -716,7 +726,11 @@ function TempestPicker({
   city: CityState;
   onTempest: (level: number) => void;
 }) {
-  const unlocked = city.tempestUnlocked ?? 0;
+  // Levels unlock per biome; a run plays the chosen level, up to what its biome has unlocked.
+  const byBiome = openBiomes(content, city)
+    .map((id) => ({ name: biomeOf(content, id).name, level: tempestUnlockedIn(content, city, id) }))
+    .filter((b) => b.level > 0);
+  const unlocked = Math.max(0, ...byBiome.map((b) => b.level));
   if (unlocked === 0) return null;
   const chosen = Math.min(city.tempest ?? 0, unlocked);
   const levels = content.tempest.levels;
@@ -736,6 +750,12 @@ function TempestPicker({
           </label>
         ))}
       </div>
+      {byBiome.length > 1 || openBiomes(content, city).length > 1 ? (
+        <p class="small quiet">
+          Unlocked: {byBiome.map((b) => `${b.name} ${b.level}`).join(', ')}. A run plays the chosen
+          level, up to what its biome has unlocked.
+        </p>
+      ) : null}
       {chosen > 0 ? (
         <>
           <p class="small">

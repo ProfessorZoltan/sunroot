@@ -15,6 +15,12 @@ export interface Content extends ContentData {
   comboById: Record<string, Combo>;
   tuningById: Record<string, Tuning>;
   charterById: Record<string, Charter>;
+  /**
+   * Every biome Root City can send expeditions to, by id, this one included: set by the
+   * game's content registry (src/content). Content loaded on its own has none, and its city
+   * goes only to its own biome.
+   */
+  atlas?: Record<string, Content>;
 }
 
 /**

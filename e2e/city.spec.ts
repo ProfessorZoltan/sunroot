@@ -71,6 +71,7 @@ type Win = {
       state: {
         status: string;
         turn: number;
+        contentId: string;
         options: Record<string, unknown>;
         draft: { offer: string[]; picked: string | null };
         visionOffer: string[];
@@ -240,6 +241,90 @@ test('5 runs in a row, with Root City kept between them', async ({ page }) => {
   expect(c.grafts.length).toBeGreaterThan(0);
   expect(c.districts.length + c.pending.length).toBe(c.grafts.length);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/city-after-5.png` });
+  expect(errors).toEqual([]);
+});
+
+test('runs 5 and 6: the coast opens, a coast run plays and resumes, then back to the Reach', async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  const contentId = () =>
+    page.evaluate(() => (window as unknown as Win).sunroot.store!.state.contentId);
+  // A city four runs in, its next expedition still to choose.
+  await seedCity(page, { ...city([]), runs: 4, seeds: 3 });
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Root City' })).toBeVisible();
+  const next = page.getByRole('region', { name: 'Next expedition' });
+  const coast = next.locator('.card.expedition', { hasText: 'Windswept Coast' });
+  await expect(coast.first()).toBeVisible();
+  await expect(next.locator('.card.expedition', { hasText: 'Willow Reach' }).first()).toBeVisible();
+  await coast.first().click();
+  expect((await cityNow(page)).expedition).toMatchObject({ biome: 'windsweptCoast' });
+  await next.getByRole('button', { name: 'Set out on run 5' }).click();
+
+  // Run 5 on the coast: guided, and told what is new there.
+  await expect(page.locator('#map-host canvas'), errors.join('\n')).toBeVisible({
+    timeout: 15_000,
+  });
+  const start = page.getByRole('dialog', { name: /Expedition: |A new Sprout/ });
+  await expect(start).toContainText('New: the Windswept Coast');
+  expect(await contentId()).toBe('windsweptCoast');
+  await page.keyboard.press('Enter');
+  // A reload resumes the coast run.
+  await page.evaluate(() => {
+    const store = (window as unknown as Win).sunroot.store!;
+    const s = store.state;
+    if (s.visionOffer.length > 0) store.dispatch({ type: 'pickVision', vision: s.visionOffer[0] });
+    if (s.charterOffer.length > 0)
+      store.dispatch({ type: 'pickCharter', charter: s.charterOffer[0] });
+    if (s.draft.offer.length > 0) store.dispatch({ type: 'pickCard', card: s.draft.offer[0] });
+    store.dispatch({ type: 'endSeason' });
+    store.finishResolution();
+  });
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as Win).sunroot.store!.state.turn))
+    .toBe(1);
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => (window as unknown as { sunroot: { saved: { turn: number } } }).sunroot.saved.turn,
+      ),
+    )
+    .toBe(1);
+  await page.reload();
+  await expect(page.locator('#map-host canvas')).toBeVisible({ timeout: 15_000 });
+  expect(await contentId()).toBe('windsweptCoast');
+  await playToEnd(page);
+  const dialog = page.getByRole('dialog', { name: 'The run has ended' });
+  await expect(dialog).toBeVisible();
+  const plant = dialog.locator('.card.graft').first();
+  if (await plant.isVisible()) await plant.click();
+  else await dialog.getByRole('button', { name: 'Bank the Seeds' }).click();
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as Win).sunroot.savedCity.runs))
+    .toBe(5);
+  await dialog.getByRole('button', { name: 'Go to Root City' }).click();
+
+  // Run 6 back in the Reach, with the coast run counted.
+  await expect(page.getByRole('heading', { name: 'Root City' })).toBeVisible();
+  const c = await cityNow(page);
+  expect(c.runs).toBe(5);
+  expect((c as CityState).biomeRuns).toEqual({ windsweptCoast: 1 });
+  const waiting = page.getByRole('region', { name: 'Place the Graft' });
+  if (await waiting.isVisible()) {
+    await page
+      .getByRole('button', { name: /\(place here\)/ })
+      .first()
+      .click();
+    const card = page.getByRole('dialog');
+    if (await card.isVisible()) await card.getByRole('button', { name: 'Continue' }).click();
+  }
+  await next.locator('.card.expedition', { hasText: 'Willow Reach' }).first().click();
+  await next.getByRole('button', { name: 'Set out on run 6' }).click();
+  await expect(page.locator('#map-host canvas')).toBeVisible({ timeout: 15_000 });
+  expect(await contentId()).toBe('willowReach');
   expect(errors).toEqual([]);
 });
 

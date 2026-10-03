@@ -2,6 +2,7 @@
   "id": "windsweptCoast",
   "name": "Windswept Coast",
   "land": "coast",
+  "intro": "New: the Windswept Coast. The tide turns tide turbines by day and by night alike. Each spring the king tide covers the mudflat and the saltmarsh beside it: crofts there are salted (half their food for 2 seasons), and sea walls keep it off. Fresh water is scarce: a small stream, wells, and desalinators that turn energy into water. Summer fog dims solar, and autumn gales reach anything on a headland or at sea.",
   "rules": {
     "yearsPerRun": 12,
     "yearsPerEra": 3,

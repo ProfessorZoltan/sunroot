@@ -345,6 +345,12 @@
     "compostShare": 0.5,
     "graftCost": 35,
     "expeditionChoices": 3,
+    "biomes": [
+      {
+        "id": "windsweptCoast",
+        "fromRun": 5
+      }
+    ],
     "teaching": {
       "guidedUntil": 2,
       "tunings": 2,

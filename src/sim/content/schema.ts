@@ -1178,6 +1178,11 @@ export const ProgressionSchema = z
     /** Expeditions offered between runs. */
     expeditionChoices: int.min(1).default(3),
     /**
+     * Biomes beyond the home one (the first biome's content), and the run from which
+     * expeditions may go there (proposals/windswept-coast.md, Root City).
+     */
+    biomes: z.array(z.object({ id: z.string(), fromRun: int.min(1) }).strict()).default([]),
+    /**
      * Teaching across runs: the run (1 = the first) from which each system
      * joins. The guided first year is for runs before `guidedUntil`.
      */
@@ -1301,6 +1306,8 @@ export const ContentSchema = z
     name: z.string(),
     /** What the interface calls the land a run settles: "the valley", "the coast". */
     land: z.string().min(1).default('valley'),
+    /** What the first run in this biome is told as it sets out (missing for the home biome). */
+    intro: z.string().optional(),
     rules: RulesSchema,
     map: MapGenSchema,
     /** The event at the end of each season, spring to winter. */

@@ -439,6 +439,7 @@ export class GameStore {
       spent: this.content.progression?.graftCost ?? 0,
       tier: offer.tier.id,
       tempest: this.tempest,
+      biome: this.content.id,
     });
   }
 
@@ -451,6 +452,7 @@ export class GameStore {
       spent: 0,
       tier: graftOffer(this.content, this.state).tier.id,
       tempest: this.tempest,
+      biome: this.content.id,
     });
   }
 
