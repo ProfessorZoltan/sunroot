@@ -6,6 +6,7 @@
  *   ~ river   o reservoir   f floodplain   ^ hill   R ruin
  *   . barren  , scrub       m meadow       W woodland   C camp (on scrub)
  *   L lake (a reservoir off the river: still water, no river position)
+ *   The Windswept Coast: = sea   _ mudflat   " saltmarsh   : dune
  */
 import { expect } from 'vitest';
 import {
@@ -67,6 +68,10 @@ const TOKENS: Record<string, TileType> = {
   W: 'woodland',
   C: 'scrub',
   L: 'reservoir',
+  '=': 'sea',
+  _: 'mudflat',
+  '"': 'saltmarsh',
+  ':': 'dune',
 };
 
 export function mapFromAscii(rows: string[]): { map: MapState; camp: Hex } {
@@ -93,9 +98,10 @@ export function mapFromAscii(rows: string[]): { map: MapState; camp: Hex } {
   water.sort((a, b) => a.r - b.r || a.q - b.q);
   water.forEach((t, i) => (t.riverIndex = i));
   const riverDistance = (t: Tile) => Math.min(...water.map((w) => hexDistance(w, t)));
+  // The Reach's flood reaches the floodplain; the coast's king tide the mudflat and saltmarsh.
   const floodOrder = Object.values(tiles)
-    .filter((t) => t.type === 'floodplain')
-    .sort((a, b) => riverDistance(a) - riverDistance(b))
+    .filter((t) => t.type === 'floodplain' || t.type === 'mudflat' || t.type === 'saltmarsh')
+    .sort((a, b) => riverDistance(a) - riverDistance(b) || a.r - b.r || a.q - b.q)
     .map(hexKey);
   const width = Math.max(...rows.map((r) => r.trim().split(/\s+/).length));
   return {

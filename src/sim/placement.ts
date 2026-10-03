@@ -55,7 +55,9 @@ export function canPlace(
     const problem = channelSiteProblem(content, state, at);
     if (problem) return { ok: false, reason: problem };
   }
-  const { adjacentTo, adjacentToBuildings = [] } = def.placement;
+  const { adjacentTo, adjacentToBuildings = [], awayFrom } = def.placement;
+  if (awayFrom && neighborTiles(state, at).some((n) => awayFrom.includes(n.type)))
+    return { ok: false, reason: `${def.name} must be away from ${awayFrom.join(', ')}` };
   if (adjacentTo) {
     const touchesTile = neighborTiles(state, at).some((n) => adjacentTo.includes(n.type));
     const touchesBuilding = buildingsTouching(state, at).some((n) =>

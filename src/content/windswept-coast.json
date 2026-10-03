@@ -291,10 +291,11 @@
       "floodTolerant": true,
       "farmland": true,
       "placement": {
-        "tiles": ["meadow", "saltmarsh", "mudflat"]
+        "tiles": ["meadow", "saltmarsh", "mudflat", "scrub"]
       },
       "tileFoodModifier": {
-        "mudflat": -1
+        "mudflat": -1,
+        "scrub": -1
       },
       "yields": {
         "food": [2, 3, 4, 0],
@@ -829,7 +830,8 @@
       },
       "shading": {
         "penaltyPerSlot": 1
-      }
+      },
+      "fogged": true
     },
     {
       "id": "riverWheel",
@@ -882,6 +884,10 @@
       "harmonyPenalty": {
         "amount": 2,
         "cancelledByNeighbor": ["pollinatorMeadow"]
+      },
+      "generationOnTiles": {
+        "tiles": ["hill"],
+        "add": 1
       }
     },
     {
@@ -985,7 +991,8 @@
       },
       "shading": {
         "penaltyPerSlot": 1
-      }
+      },
+      "fogged": true
     },
     {
       "id": "cellBank",
@@ -1076,7 +1083,8 @@
         "nutrientBonus": {
           "food": 1
         }
-      }
+      },
+      "fogged": true
     },
     {
       "id": "treehouseCommons",
@@ -1130,7 +1138,8 @@
       "generation": {
         "day": [2, 1, 2, 1],
         "night": [2, 1, 2, 1]
-      }
+      },
+      "stormProof": true
     },
     {
       "id": "waveBuoy",
@@ -1206,7 +1215,8 @@
       },
       "yields": {
         "salvage": [2, 2, 2, 2]
-      }
+      },
+      "strandline": 3
     },
     {
       "id": "duneGrass",
@@ -1256,6 +1266,9 @@
       },
       "wellbeing": {
         "whenPowered": 3
+      },
+      "shelters": {
+        "radius": 2
       }
     },
     {
@@ -1271,6 +1284,31 @@
       "demand": {
         "heat": {
           "night": [1, 1, 1, 1]
+        }
+      },
+      "stopsRot": true
+    },
+    {
+      "id": "desalinator",
+      "name": "Desalinator",
+      "cost": 7,
+      "workers": 1,
+      "kind": "water",
+      "requiresWater": true,
+      "placement": {
+        "tiles": ["saltmarsh", "dune", "barren", "scrub", "meadow", "hill"],
+        "adjacentTo": ["sea"]
+      },
+      "demand": {
+        "energy": {
+          "day": [2, 2, 2, 2]
+        }
+      },
+      "requiresPower": true,
+      "water": {
+        "feeds": {
+          "quality": "clean",
+          "amount": 2
         }
       }
     }

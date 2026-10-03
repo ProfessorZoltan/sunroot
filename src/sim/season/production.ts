@@ -72,6 +72,17 @@ export function generate(ctx: SeasonContext): void {
         notes.push(`shaded by a tall neighbour -${def.shading.penaltyPerSlot}`);
       }
     }
+    const on = def.generationOnTiles;
+    if (on && on.tiles.includes(tileAt(state, b.at)?.type as never)) {
+      adjust += on.add;
+      notes.push(`on ${tileAt(state, b.at)!.type} +${on.add}`);
+    }
+    // Sea fog dims the sun.
+    const fog = ctx.fog ? (content.events.fog?.solarPenalty ?? 0) : 0;
+    if (def.fogged && fog > 0) {
+      adjust -= fog;
+      notes.push(`sea fog -${fog}`);
+    }
     if (def.weirBonus && neighbors.some((n) => defOf(content, n).weir)) {
       adjust += def.weirBonus.perSlot;
       notes.push(`next to a weir +${def.weirBonus.perSlot}`);
@@ -135,6 +146,22 @@ function downstreamPenalty(ctx: SeasonContext, def: BuildingDef): number {
 }
 
 /**
+ * The coast's king tide: once a farm's salt has cleared, up to and including the next spring's
+ * harvest (which grows before the next tide), a farm on the tiles it names makes this much more
+ * food (DECISIONS.md, The Windswept Coast).
+ */
+function saltAfter(ctx: SeasonContext, b: BuildingState): number {
+  const salt = ctx.content.events.flood?.salt;
+  if (!salt || !defOf(ctx.content, b).farmland) return 0;
+  // This season's harvest grew before this season's tide: it counts the salt before it.
+  const last = b.saltTurn === ctx.state.turn ? b.saltBefore : b.saltTurn;
+  if (last === undefined) return 0;
+  const since = ctx.state.turn - last;
+  if (since <= salt.seasons || since > 4) return 0;
+  return salt.bonusOn.includes(tileAt(ctx.state, b.at)!.type) ? salt.bonus : 0;
+}
+
+/**
  * A building's yield of one resource before flat neighbour bonuses:
  * base (with tile modifier) x multipliers, rounded down, then flat penalties.
  */
@@ -144,7 +171,12 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
   const perSeason = def.yields[res];
   if (!perSeason) return 0;
   let base = perSeason[si]!;
-  if (base === 0) return 0;
+  // Once the king tide's salt clears, a croft on saltmarsh makes more, even in winter.
+  const after = res === 'food' ? saltAfter(ctx, b) : 0;
+  if (base === 0) {
+    if (after > 0) explain(ctx, b, `${cap(res)}: +${after} on saltmarsh the salt has left`);
+    return after;
+  }
   const age = state.turn - b.builtTurn;
   if (age < def.maturesAfterSeasons) {
     explain(ctx, b, `${res}: still growing (${age}/${def.maturesAfterSeasons} seasons)`);
@@ -166,6 +198,12 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
       const silt = 1 + flood.siltBonus * (b.siltShare ?? 1);
       multiplier *= silt;
       lines.push(`× ${silt} silt`);
+    }
+    const salt = flood?.salt;
+    const since = b.saltTurn === undefined ? -1 : state.turn - b.saltTurn;
+    if (salt && since >= 1 && since <= salt.seasons) {
+      multiplier *= salt.factor;
+      lines.push(`× ${salt.factor} salted by the ${flood!.name.toLowerCase()}`);
     }
     const low = content.events.lowRiver;
     // With the water system on, water replaces the low river's "far from water" rule.
@@ -192,6 +230,10 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
     if (h !== 1) lines.push(`× ${h} Harmony`);
   }
   let value = Math.floor(base * multiplier + EPSILON);
+  if (after > 0) {
+    value += after;
+    lines.push(`+${after} on saltmarsh the salt has left`);
+  }
   if (res === 'food') {
     const penalty = downstreamPenalty(ctx, def);
     if (penalty > 0 && isDownstreamOfWeir(ctx, b)) {

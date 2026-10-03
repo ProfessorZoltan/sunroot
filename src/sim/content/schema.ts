@@ -187,6 +187,19 @@ export const BuildingSchema = z
     }),
     housing: nonNeg.default(0),
     foodStorage: nonNeg.default(0),
+    /** Sea fog dims it (the coast's solar). */
+    fogged: z.boolean().default(false),
+    /** More energy on these tiles, in every slot it runs (a wind spire on a headland). */
+    generationOnTiles: z
+      .object({ tiles: z.array(TileTypeSchema).min(1), add: int.min(1) })
+      .strict()
+      .optional(),
+    /** Buildings within this many tiles can't be damaged by a storm (a lighthouse). */
+    shelters: z.object({ radius: int.min(1) }).strict().optional(),
+    /** Salvage the storm washes up for it (a beachcombing yard after a gale). */
+    strandline: nonNeg.default(0),
+    /** While it is powered, food beyond storage doesn't rot (a smokehouse). */
+    stopsRot: z.boolean().default(false),
     /**
      * A biome wonder (EXPANSION.md, E5): built over a flower of 7 tiles (its own
      * and the 6 around it), once a run, from its `minEra`. It is started once the

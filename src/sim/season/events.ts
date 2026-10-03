@@ -2,7 +2,7 @@
 import { hexDistance, hexKey } from '../hex';
 import { nextInt } from '../rng';
 import { defOf, eventOf, occupancy, stormExposed } from '../queries';
-import type { SeasonContext } from './context';
+import { addYield, type SeasonContext } from './context';
 import { festivalThisSeason, siltBeyond } from '../wildlife';
 
 /**
@@ -75,11 +75,17 @@ export function applyEvent(ctx: SeasonContext): void {
           report.silted.push(b.uid);
         }
       }
+      const salt = eventOf(content, 'flood').salt;
       for (const key of flooded) {
         const b = occ.get(key);
         if (!b) continue;
         const def = defOf(content, b);
-        if (def.farmland) {
+        // The king tide's salt water, where the Reach's flood leaves silt.
+        if (def.farmland && salt) {
+          if (b.saltTurn !== undefined) b.saltBefore = b.saltTurn;
+          b.saltTurn = state.turn;
+          report.salted.push(b.uid);
+        } else if (def.farmland) {
           b.siltYear = state.year;
           b.siltShare = 1;
           report.silted.push(b.uid);
@@ -103,10 +109,26 @@ export function applyEvent(ctx: SeasonContext): void {
     case 'lowRiver':
       ctx.lowRiver = true;
       break;
+    case 'fog': {
+      // Sea fog: fogged sources make less (see generate), and cisterns catch the drip.
+      ctx.fog = true;
+      const fog = eventOf(content, 'fog');
+      for (const b of Object.values(state.buildings)) {
+        const store = defOf(content, b).water?.stores;
+        if (store && fog.cisternCatch > 0)
+          b.stored = Math.min(store, (b.stored ?? 0) + fog.cisternCatch);
+      }
+      break;
+    }
     case 'storm': {
       report.exposed = state.priority.filter((uid) =>
         stormExposed(content, state, state.buildings[uid]!),
       );
+      // The strandline: what the storm washes up (a beachcombing yard after a gale).
+      for (const b of Object.values(state.buildings)) {
+        const washed = defOf(content, b).strandline;
+        if (washed > 0 && !b.damage) addYield(ctx, b, 'salvage', washed, 'Strandline after the storm');
+      }
       const storm = eventOf(content, 'storm');
       if (report.mixedGrid && storm.mixedGridShelters) break;
       const count = storm.disableCount;

@@ -35,6 +35,9 @@ export interface BuildingState {
   siltYear?: number;
   /** Share of the silt boost it got (a levee with Silt Traps lets half through). */
   siltShare?: number;
+  /** The turn the king tide salted this farm (the coast), and the time before. */
+  saltTurn?: number;
+  saltBefore?: number;
   /** The building type it evolved from, and when (Milestone 6). */
   evolvedFrom?: string;
   evolvedTurn?: number;
@@ -478,6 +481,8 @@ export interface SeasonReport {
   flooded: string[];
   /** Floodplain tiles the flood would have reached, kept dry by a levee. */
   sheltered: string[];
+  /** Farms the king tide salted (the coast). */
+  salted: string[];
   /** Buildings that lost food to the low river (far from water), or got too little water. */
   dried: string[];
   /** The water system's season, while it is on. */

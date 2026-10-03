@@ -71,7 +71,11 @@ export function feedAndGrow(ctx: SeasonContext): void {
 
   // Food beyond storage rots into scraps.
   const storage = foodStorage(content, state);
-  const rotted = Math.max(0, state.stores.food - storage);
+  // A powered smokehouse keeps what the larders can't hold (the coast).
+  const kept = Object.values(state.buildings).some(
+    (b) => defOf(content, b).stopsRot && ctx.powered.has(b.uid),
+  );
+  const rotted = kept ? 0 : Math.max(0, state.stores.food - storage);
   state.stores.food -= rotted;
   flow(report.flows, 'food', 'used', 'Rotted (beyond storage)', rotted);
   if (rules.rotsInto === 'biomass') {

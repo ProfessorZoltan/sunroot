@@ -23,6 +23,8 @@ export interface SeasonContext {
   /** Active buildings whose every demand was met (set after the energy step). */
   powered: Set<string>;
   lowRiver: boolean;
+  /** Sea fog this season (the coast): fogged sources make less. */
+  fog: boolean;
   /** River wheels' flow this season, by uid, while the water system is on. */
   wheelFlow: Map<string, number>;
   /** Food yielded this season, for the spare-food growth rule. */
@@ -87,6 +89,7 @@ export function emptyReport(state: RunState): SeasonReport {
     mixedGrid: false,
     flooded: [],
     sheltered: [],
+    salted: [],
     dried: [],
     water: null,
     commute: null,

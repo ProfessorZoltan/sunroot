@@ -120,6 +120,12 @@ export function stormExposed(content: Content, state: RunState, b: BuildingState
   const storm = content.events.storm;
   const type = tileAt(state, b.at)?.type;
   if (!storm || !type) return false;
+  // A lighthouse shelters what is near it, offshore too.
+  const sheltered = Object.values(state.buildings).some((o) => {
+    const radius = defOf(content, o).shelters?.radius;
+    return radius !== undefined && !o.damage && o !== b && hexDistance(o.at, b.at) <= radius;
+  });
+  if (sheltered) return false;
   // Offshore (the coast's sea buildings): nothing on land breaks the wind there.
   if (storm.exposedAnywhereOn.includes(type)) return true;
   if (!storm.exposedOn.includes(type)) return false;

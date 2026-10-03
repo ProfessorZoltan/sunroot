@@ -71,6 +71,7 @@ export function resolveSeason(
     active: new Set(),
     powered: new Set(),
     lowRiver: false,
+    fog: false,
     wheelFlow: new Map(),
     foodProduced: 0,
     bonusGiven: new Set(),
