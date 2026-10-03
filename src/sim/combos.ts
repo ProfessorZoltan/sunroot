@@ -325,8 +325,9 @@ function runningLoops(ctx: SeasonContext): ComboHit[] {
       if (link.cleaned && (ctx.report.water?.cleaned[b.uid] ?? 0) <= 0) return false;
       if (link.gotWater && (ctx.report.water?.uses[b.uid]?.got[link.gotWater] ?? 0) <= 0)
         return false;
-      // A bathhouse or reed bed makes nothing a chain counts; its condition is its work.
-      return worked(ctx, b) || link.heatFrom || link.cleaned;
+      if (link.powered && !ctx.powered.has(b.uid)) return false;
+      // A bathhouse, reed bed or desalinator makes nothing a chain counts; its condition is its work.
+      return worked(ctx, b) || link.heatFrom || link.cleaned || link.powered;
     };
     for (const anchor of Object.values(state.buildings)) {
       if (!fits(anchor, 0)) continue;

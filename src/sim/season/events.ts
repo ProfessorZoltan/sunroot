@@ -81,7 +81,9 @@ export function applyEvent(ctx: SeasonContext): void {
         if (!b) continue;
         const def = defOf(content, b);
         // The king tide's salt water, where the Reach's flood leaves silt.
-        if (def.farmland && salt) {
+        if (def.farmland && salt && def.saltProof) {
+          // Sheltered by its dunes: no salt, and no silt either.
+        } else if (def.farmland && salt) {
           if (b.saltTurn !== undefined) b.saltBefore = b.saltTurn;
           b.saltTurn = state.turn;
           report.salted.push(b.uid);

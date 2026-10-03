@@ -86,13 +86,13 @@ describe('the Windswept Coast, Year 1 (proposed walkthrough)', () => {
       citizens: s.citizens,
       night: s.lastReport!.energy.night.shortfall,
     }));
-    // Proposed: food runs down while the crofts (on scrub by the channel) are young and the camp
-    // stays at 6; the winter night falls 1 short, which the wave buoy drafted that winter answers.
+    // Tuned (B3) to grow as the Reach's first year does; the winter night falls 1 short, which
+    // the wave buoy drafted that winter answers. Proposed, for review.
     expect(rows).toEqual([
-      { season: 'spring', materials: 9, food: 7, citizens: 6, night: 0 },
-      { season: 'summer', materials: 7, food: 5, citizens: 6, night: 0 },
-      { season: 'autumn', materials: 8, food: 5, citizens: 6, night: 0 },
-      { season: 'winter', materials: 9, food: 0, citizens: 6, night: 1 },
+      { season: 'spring', materials: 9, food: 8, citizens: 6, night: 0 },
+      { season: 'summer', materials: 7, food: 11, citizens: 7, night: 0 },
+      { season: 'autumn', materials: 8, food: 13, citizens: 8, night: 0 },
+      { season: 'winter', materials: 9, food: 8, citizens: 8, night: 1 },
     ]);
   });
 });

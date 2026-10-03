@@ -187,6 +187,8 @@ export const BuildingSchema = z
     }),
     housing: nonNeg.default(0),
     foodStorage: nonNeg.default(0),
+    /** The king tide's salt doesn't touch it (the Machair Croft). */
+    saltProof: z.boolean().default(false),
     /** Sea fog dims it (the coast's solar). */
     fogged: z.boolean().default(false),
     /** More energy on these tiles, in every slot it runs (a wind spire on a headland). */
@@ -860,6 +862,8 @@ export const ComboSchema = z.discriminatedUnion('layer', [
               cleaned: z.boolean().default(false),
               /** It got water of this quality this season (a farm below a paddy). */
               gotWater: WaterQualitySchema.optional(),
+              /** It ran powered this season: its work is what it does with the energy (a desalinator). */
+              powered: z.boolean().default(false),
             })
             .strict(),
         )

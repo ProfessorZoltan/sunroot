@@ -279,6 +279,9 @@
         "heat": {
           "night": [0, 0, 0, 2]
         }
+      },
+      "yields": {
+        "food": [1, 1, 1, 1]
       }
     },
     {
@@ -298,7 +301,7 @@
         "scrub": -1
       },
       "yields": {
-        "food": [2, 3, 4, 0],
+        "food": [2, 5, 5, 0],
         "biomass": [1, 1, 1, 0]
       },
       "water": {
@@ -1180,8 +1183,13 @@
         "adjacentTo": ["mudflat", "dune", "saltmarsh", "hill"]
       },
       "yields": {
-        "food": [1, 2, 2, 1],
+        "food": [1, 2, 2, 2],
         "biomass": [1, 2, 2, 0]
+      },
+      "neighborFoodBonus": {
+        "amount": 1,
+        "targets": ["oysterReef"],
+        "maxTargets": 3
       }
     },
     {
@@ -1200,6 +1208,11 @@
       "harmony": 1,
       "water": {
         "cleans": 2
+      },
+      "neighborFoodBonus": {
+        "amount": 1,
+        "targets": ["kelpFarm", "kelpForest"],
+        "maxTargets": 3
       }
     },
     {
@@ -1230,7 +1243,10 @@
       },
       "harmony": 1,
       "maturesAfterSeasons": 2,
-      "matureTileBecomes": "scrub"
+      "matureTileBecomes": "scrub",
+      "shelters": {
+        "radius": 1
+      }
     },
     {
       "id": "seaWall",
@@ -1310,6 +1326,78 @@
           "quality": "clean",
           "amount": 2
         }
+      }
+    },
+    {
+      "id": "machairCroft",
+      "name": "Machair Croft",
+      "cost": 3,
+      "workers": 1,
+      "kind": "food",
+      "starter": false,
+      "floodTolerant": true,
+      "farmland": true,
+      "placement": {
+        "tiles": ["meadow", "saltmarsh", "mudflat", "scrub"]
+      },
+      "tileFoodModifier": {
+        "mudflat": -1,
+        "scrub": -1
+      },
+      "yields": {
+        "food": [3, 6, 6, 0],
+        "biomass": [1, 1, 1, 0]
+      },
+      "water": {
+        "needs": [1, 1, 1, 0],
+        "accepts": ["nutrient", "clean"],
+        "nutrientBonus": {
+          "food": 1
+        }
+      },
+      "draftable": false,
+      "placeable": false,
+      "saltProof": true
+    },
+    {
+      "id": "kelpForest",
+      "name": "Kelp Forest",
+      "cost": 4,
+      "workers": 1,
+      "kind": "food",
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["sea"],
+        "adjacentTo": ["mudflat", "dune", "saltmarsh", "hill"]
+      },
+      "yields": {
+        "food": [2, 3, 3, 3],
+        "biomass": [1, 2, 2, 0]
+      },
+      "draftable": false,
+      "placeable": false,
+      "stormProof": true,
+      "harmony": 1,
+      "neighborFoodBonus": {
+        "amount": 1,
+        "targets": ["oysterReef"],
+        "maxTargets": 3
+      }
+    },
+    {
+      "id": "rockPool",
+      "name": "Rock Pool",
+      "cost": 2,
+      "workers": 0,
+      "kind": "nature",
+      "draftable": false,
+      "placeable": false,
+      "placement": {
+        "tiles": ["ruin"]
+      },
+      "harmony": 2,
+      "yields": {
+        "food": [1, 1, 1, 1]
       }
     }
   ],
@@ -1465,6 +1553,221 @@
       },
       "text": "A cottage next to 2 woodland tiles becomes a Treehouse Commons: +2 wellbeing each season instead of +1.",
       "hint": "A home among the trees."
+    },
+    {
+      "id": "kitchenLoop",
+      "layer": "chain",
+      "name": "Kitchen Loop",
+      "links": [
+        {
+          "buildings": ["composter"]
+        },
+        {
+          "buildings": ["croft", "machairCroft", "agrivoltaicField"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "compost"],
+      "text": "Croft → scraps and biomass → composter → compost → croft. Once it runs, every building in the loop makes +1 (crofts food, the composter compost) for as long as it stands.",
+      "hint": "Put a composter among working crofts."
+    },
+    {
+      "id": "gasLoop",
+      "layer": "chain",
+      "name": "Gas Loop",
+      "links": [
+        {
+          "buildings": ["biogasDigester"],
+          "slot": "night"
+        },
+        {
+          "buildings": ["croft", "machairCroft", "agrivoltaicField"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "compost"],
+      "text": "Croft biomass → digester → night power, digestate back to the crofts. Once it runs, every building in the loop makes +1 (crofts food, the digester compost) for as long as it stands.",
+      "hint": "A digester fed by the crofts beside it."
+    },
+    {
+      "id": "shellfishBeds",
+      "layer": "adjacency",
+      "name": "Shellfish Beds",
+      "building": "oysterReef",
+      "nextTo": {
+        "buildings": ["kelpFarm", "kelpForest"]
+      },
+      "text": "An oyster reef next to a kelp farm: +1 food each.",
+      "hint": "Shellfish and weed grow best together."
+    },
+    {
+      "id": "leeOfTheDunes",
+      "layer": "adjacency",
+      "name": "Lee of the Dunes",
+      "building": "duneGrass",
+      "nextTo": {
+        "buildings": ["kelpFarm", "waveBuoy", "windSpire", "lighthouse", "croft", "cottage"]
+      },
+      "text": "Dune grass shelters the buildings beside it: gales can't damage them.",
+      "hint": "Marram grass holds the sand, and the wind."
+    },
+    {
+      "id": "kelpLoop",
+      "layer": "chain",
+      "name": "Kelp Loop",
+      "links": [
+        {
+          "buildings": ["kelpFarm", "kelpForest"]
+        },
+        {
+          "buildings": ["composter"]
+        },
+        {
+          "buildings": ["croft", "machairCroft", "agrivoltaicField"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "compost"],
+      "text": "Kelp farm → kelp → composter → compost → croft, in a chain of neighbours. Once it runs, every building in the loop makes +1 (food, or compost) for as long as it stands.",
+      "hint": "The sea can feed the land, if the heap stands between them."
+    },
+    {
+      "id": "sweetwaterLoop",
+      "layer": "chain",
+      "name": "Sweetwater Loop",
+      "requiresWater": true,
+      "links": [
+        {
+          "buildings": ["tideTurbine"]
+        },
+        {
+          "buildings": ["desalinator"],
+          "powered": true
+        },
+        {
+          "buildings": ["greenhouse"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food"],
+      "text": "Tide turbine → energy → desalinator → fresh water → greenhouse, in a chain of neighbours. Once it runs, the greenhouse makes +1 food for as long as it stands.",
+      "hint": "Turn the tide into water a greenhouse can drink."
+    },
+    {
+      "id": "shoreLoop",
+      "layer": "chain",
+      "name": "Shore Loop",
+      "requiresWater": true,
+      "links": [
+        {
+          "buildings": ["bathhouse"],
+          "powered": true
+        },
+        {
+          "buildings": ["oysterReef"],
+          "cleaned": true
+        },
+        {
+          "buildings": ["kelpFarm", "kelpForest"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "biomass"],
+      "text": "Bathhouse → grey water → oyster reef → clean water → kelp farm, in a chain of neighbours. It closes when the reef cleans the bath's water. Once it runs, the reef and the kelp make +1 food.",
+      "hint": "Oysters clean what the bath lets out."
+    },
+    {
+      "id": "breakwater",
+      "layer": "formation",
+      "name": "Breakwater",
+      "shape": {
+        "kind": "line",
+        "sequence": ["seaWall", "seaWall", "seaWall"]
+      },
+      "effect": {
+        "harmony": 2,
+        "shelterRadius": 1
+      },
+      "text": "3 sea walls in a straight line: +2 Harmony, and gales can't damage anything within 1 tile of them.",
+      "hint": "Walls along the shore, end to end."
+    },
+    {
+      "id": "duneLine",
+      "layer": "formation",
+      "name": "Dune Line",
+      "shape": {
+        "kind": "line",
+        "sequence": ["duneGrass", "duneGrass", "duneGrass", "duneGrass"]
+      },
+      "effect": {
+        "harmony": 1,
+        "shelterRadius": 2
+      },
+      "text": "4 dune grass in a straight line: +1 Harmony, and gales can't damage anything within 2 tiles of them.",
+      "hint": "A long ridge of marram against the sea wind."
+    },
+    {
+      "id": "windRidge",
+      "layer": "formation",
+      "name": "Wind Ridge",
+      "shape": {
+        "kind": "line",
+        "sequence": ["windSpire", "windSpire", "windSpire"],
+        "tiles": ["hill"]
+      },
+      "effect": {
+        "generation": 1,
+        "appliesTo": "windSpire"
+      },
+      "text": "3 wind spires in a row on headlands: each makes +1 energy in every slot.",
+      "hint": "Blades along the high ground over the sea."
+    },
+    {
+      "id": "machairCroft",
+      "layer": "evolution",
+      "name": "Machair Croft",
+      "from": "croft",
+      "into": "machairCroft",
+      "when": {
+        "kind": "nextTo",
+        "nextTo": {
+          "buildings": ["duneGrass"],
+          "count": 2
+        }
+      },
+      "text": "A croft next to 2 dune grass becomes a Machair Croft: +1 food, and the king tide doesn't salt it.",
+      "hint": "Sand and grass make the best of the shore's soil."
+    },
+    {
+      "id": "kelpForest",
+      "layer": "evolution",
+      "name": "Kelp Forest",
+      "from": "kelpFarm",
+      "into": "kelpForest",
+      "when": {
+        "kind": "nextTo",
+        "nextTo": {
+          "buildings": ["oysterReef"],
+          "count": 2
+        }
+      },
+      "text": "A kelp farm next to 2 oyster reefs becomes a Kelp Forest: +1 food, +1 Harmony, and gales can't damage it.",
+      "hint": "Weed among the reefs grows tall."
+    },
+    {
+      "id": "rockPool",
+      "layer": "evolution",
+      "name": "Rock Pool",
+      "from": "salvageYard",
+      "into": "rockPool",
+      "when": {
+        "kind": "ruinExhausted",
+        "nextTo": {
+          "tiles": ["sea", "mudflat", "dune"]
+        }
+      },
+      "text": "A salvage yard by the shore whose ruin is empty becomes a Rock Pool: +2 Harmony, 1 food a season, and its worker is free.",
+      "hint": "Where the old harbour was, the sea moves back in."
     }
   ],
   "tunings": [
@@ -1773,6 +2076,122 @@
           "add": 1
         }
       ]
+    },
+    {
+      "id": "deeperFins",
+      "name": "Deeper Fins",
+      "text": "Tide turbines make +1 energy in summer, day and night.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "tideTurbine",
+          "path": "generation.day.1",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "tideTurbine",
+          "path": "generation.night.1",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "saltCure",
+      "name": "Salt Cure",
+      "text": "Salted crofts lose a third of their food, not half.",
+      "modifiers": [
+        {
+          "target": "event",
+          "id": "flood",
+          "path": "salt.factor",
+          "set": 0.67
+        }
+      ]
+    },
+    {
+      "id": "stormLashing",
+      "name": "Storm Lashing",
+      "text": "Wave buoys can't be damaged by gales.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "waveBuoy",
+          "path": "stormProof",
+          "set": true
+        }
+      ]
+    },
+    {
+      "id": "kelpRopes",
+      "name": "Kelp Ropes",
+      "text": "Kelp farms make +1 food in summer and autumn.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "kelpFarm",
+          "path": "yields.food.1",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "kelpFarm",
+          "path": "yields.food.2",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "dryStone",
+      "name": "Dry Stone",
+      "text": "Sea walls keep the king tide off tiles within 3, not 2.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "seaWall",
+          "path": "levee.radius",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "brightLamp",
+      "name": "Bright Lamp",
+      "text": "Lighthouses shelter everything within 3 tiles from gales, not 2.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "lighthouse",
+          "path": "shelters.radius",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "tidePools",
+      "name": "Tide Pools",
+      "text": "Oyster reefs make +1 food in winter.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "oysterReef",
+          "path": "yields.food.3",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "driftwood",
+      "name": "Driftwood",
+      "text": "Beachcombing yards make +1 salvage every season.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "beachcombingYard",
+          "path": "yields.salvage",
+          "add": 1
+        }
+      ]
     }
   ],
   "charters": [
@@ -1848,13 +2267,45 @@
           "add": 1
         }
       ]
+    },
+    {
+      "id": "shoreKeepers",
+      "name": "Shore Keepers",
+      "text": "The king tide does no damage; oyster reefs make +1 food.",
+      "modifiers": [
+        {
+          "target": "event",
+          "id": "flood",
+          "path": "damages",
+          "set": false
+        },
+        {
+          "target": "building",
+          "id": "oysterReef",
+          "path": "yields.food",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "stormWardens",
+      "name": "Storm Wardens",
+      "text": "Gales damage one building, not two.",
+      "modifiers": [
+        {
+          "target": "event",
+          "id": "storm",
+          "path": "disableCount",
+          "add": -1
+        }
+      ]
     }
   ],
   "visions": [
     {
       "id": "restoreTheReach",
-      "name": "Restore the Reach",
-      "text": "Make 60% of the valley's healable land meadow or woodland.",
+      "name": "Restore the Shore",
+      "text": "Make 60% of the coast's healable land meadow or woodland.",
       "goal": {
         "kind": "greenLand",
         "share": 0.6
