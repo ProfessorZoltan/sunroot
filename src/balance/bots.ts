@@ -108,7 +108,7 @@ const foodGap = (t: Turn) =>
   );
 
 /** The biome's farms (fields that want water) and orchards: those of these it has. */
-const FARMS = ['floodplainFarm', 'croft'];
+const FARMS = ['floodplainFarm', 'croft', 'glenFarm', 'terraceFarm'];
 const ORCHARDS = ['orchard'];
 const tilesFor = (turn: Turn, ids: readonly string[]) =>
   ids.flatMap((id) => turn.content.byId[id]?.placement.tiles ?? []);
@@ -570,6 +570,7 @@ const growHousing = (turn: Turn) =>
 const NIGHT = [
   'airSourceHeatPump',
   'riverWheel',
+  'hillTurbine',
   'tideTurbine',
   'waveBuoy',
   'windSpire',
@@ -578,7 +579,7 @@ const NIGHT = [
   'cellBank',
   'biogasDigester',
 ];
-const DAY = ['solarCanopy', 'tideTurbine', 'airSourceHeatPump'];
+const DAY = ['solarCanopy', 'tideTurbine', 'hillTurbine', 'airSourceHeatPump'];
 
 const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
   greedyFood: {
@@ -596,12 +597,18 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'oysterReef',
       'smokehouse',
       'tideTurbine',
+      'hillTurbine',
+      'shieling',
+      'biocharKiln',
     ],
     nightPower: NIGHT,
     dayPower: DAY,
     food: [
       'floodplainFarm',
       'croft',
+      'glenFarm',
+      'terraceFarm',
+      'shieling',
       'riceFishPaddy',
       'fishPond',
       'kelpFarm',
@@ -614,6 +621,9 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       const options = [
         'floodplainFarm',
         'croft',
+        'glenFarm',
+        'terraceFarm',
+        'shieling',
         'fishPond',
         'kelpFarm',
         'oysterReef',
@@ -648,10 +658,14 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'waveBuoy',
       'lighthouse',
       'duneGrass',
+      'hillTurbine',
+      'snowFence',
+      'lookout',
     ],
     nightPower: [
       'windSpire',
       'riverWheel',
+      'hillTurbine',
       'tideTurbine',
       'waveBuoy',
       'heatPump',
@@ -660,15 +674,24 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'cellBank',
       'heatWell',
     ],
-    dayPower: ['solarCanopy', 'riverWheel', 'tideTurbine', 'airSourceHeatPump'],
-    food: ['floodplainFarm', 'croft', 'fishPond', 'kelpFarm', 'greenhouse', 'orchard'],
+    dayPower: ['solarCanopy', 'riverWheel', 'tideTurbine', 'hillTurbine', 'airSourceHeatPump'],
+    food: [
+      'floodplainFarm',
+      'croft',
+      'glenFarm',
+      'terraceFarm',
+      'fishPond',
+      'kelpFarm',
+      'greenhouse',
+      'orchard',
+    ],
     reserve: 3,
     extras(turn, profile) {
       const spare = turn.peek()?.report.energy.day.unused ?? 0;
       const options =
         spare >= 2
           ? ['workshop', 'kiln']
-          : ['riverWheel', 'tideTurbine', 'windSpire', 'waveBuoy', 'solarCanopy'];
+          : ['riverWheel', 'tideTurbine', 'hillTurbine', 'windSpire', 'waveBuoy', 'solarCanopy'];
       if (growHousing(turn)) options.unshift('cottage');
       spend(turn, profile, options, 2);
       // Hedges by the hill generators storms can reach.
@@ -696,12 +719,19 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'oysterReef',
       'smokehouse',
       'lighthouse',
+      'hillTurbine',
+      'snowFence',
+      'rewettedBog',
+      'shieling',
     ],
     nightPower: NIGHT,
     dayPower: DAY,
     food: [
       'floodplainFarm',
       'croft',
+      'glenFarm',
+      'terraceFarm',
+      'shieling',
       'fishPond',
       'kelpFarm',
       'oysterReef',
