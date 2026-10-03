@@ -1708,3 +1708,180 @@ ul.projects {
 .modal.glass.end {
   padding-top: 52px;
 }
+
+/* The Energy mix: the year's energy by kind of source, day and night (src/ui/EnergyMix.tsx). */
+.mix-open {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--quiet);
+  cursor: pointer;
+  font: inherit;
+}
+.mix-open:hover,
+.mix-open:focus-visible {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+.modal.energy-mix {
+  width: min(760px, calc(100% - 32px));
+}
+.modal.energy-mix .panel-head {
+  align-items: flex-start;
+  gap: 16px;
+}
+.modal.energy-mix .panel-head p {
+  margin: 4px 0 0;
+  max-width: 52ch;
+}
+.mix-actions {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+.mix-chart {
+  position: relative;
+  margin-top: 8px;
+}
+.mix-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.mix-chart svg:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.mix-night {
+  fill: var(--ink);
+  opacity: 0.05;
+}
+.mix-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.mix-axis {
+  fill: var(--quiet);
+  font-size: 11px;
+}
+.mix-season {
+  fill: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+}
+.mix-area {
+  opacity: 0.9;
+}
+.mix-gap {
+  fill: none;
+  stroke: var(--card);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.mix-divider {
+  stroke: var(--quiet);
+  stroke-width: 1;
+}
+.mix-demand {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.mix-short {
+  fill: var(--bad);
+  stroke: var(--card);
+  stroke-width: 2;
+}
+.mix-cross {
+  stroke: var(--ink);
+  stroke-width: 1;
+  opacity: 0.5;
+}
+.mix-tip {
+  position: absolute;
+  top: 12px;
+  min-width: 150px;
+  padding: 8px 10px;
+  background: var(--card);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(47, 59, 46, 0.18);
+  pointer-events: none;
+  font-size: 13px;
+}
+.mix-tip[data-side='left'] {
+  transform: translateX(-100%);
+}
+.mix-tip-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+.mix-tip-row.bad {
+  color: var(--bad);
+}
+.mix-key {
+  display: inline-block;
+  width: 12px;
+  height: 3px;
+  border-radius: 2px;
+}
+.mix-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--ink);
+}
+.mix-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mix-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+.mix-line {
+  width: 16px;
+  height: 2px;
+  background: var(--ink);
+}
+.mix-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 8px;
+}
+.mix-table th,
+.mix-table td {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+}
+.mix-table th[scope='row'],
+.mix-table thead th:first-child {
+  text-align: left;
+}
+.mix-table tr.forecast {
+  color: var(--quiet);
+}
+.mix-table .bad {
+  color: var(--bad);
+  font-weight: 700;
+}

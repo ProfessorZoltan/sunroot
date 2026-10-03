@@ -24,6 +24,9 @@ export interface SlotView {
   supply: number;
   demand: number;
   shortfall: number;
+  /** Energy made by source type, and given back by storage: the slot's energy mix. */
+  bySource: Record<string, number>;
+  discharged: number;
   /** The full report for this slot, when there is one (now and forecast). */
   report: SeasonReport | null;
 }
@@ -66,6 +69,8 @@ export function computeInsight(base: Content, state: RunState, asIs: RunState): 
         supply: past?.energy[s].supply ?? 0,
         demand: past?.energy[s].demand ?? 0,
         shortfall: past?.energy[s].shortfall ?? 0,
+        bySource: past?.energy[s].bySource ?? {},
+        discharged: past?.energy[s].discharged ?? 0,
         report: null,
       });
       return { season, status: 'done', day: slot('day'), night: slot('night') };
@@ -77,6 +82,8 @@ export function computeInsight(base: Content, state: RunState, asIs: RunState): 
       supply: report.energy[s].supply + report.energy[s].storageDischarged,
       demand: report.energy[s].demand,
       shortfall: report.energy[s].shortfall,
+      bySource: report.energy[s].bySource,
+      discharged: report.energy[s].storageDischarged,
       report,
     });
     return {

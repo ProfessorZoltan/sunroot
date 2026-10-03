@@ -1,5 +1,12 @@
 # Changelog
 
+## The energy mix
+
+- A **Mix** button at the end of the year strip opens a chart of the year's energy, by day and
+  by night through the four seasons, stacked by kind of source (the camp, water, tide, sun,
+  storage, biogas, wind), with a line for what the settlement needs. Hover a slot for its
+  numbers, or show them as a table.
+
 ## The Highland in Root City
 
 - Once **4 districts** stand in Root City, expeditions go to the **Highland** too, taking turns

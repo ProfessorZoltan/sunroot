@@ -152,11 +152,15 @@ function advance(content: Content, ctx: SeasonContext): RunState {
         supply: report.energy.day.supply,
         demand: report.energy.day.demand,
         shortfall: report.energy.day.shortfall,
+        bySource: { ...report.energy.day.bySource },
+        discharged: report.energy.day.storageDischarged,
       },
       night: {
         supply: report.energy.night.supply,
         demand: report.energy.night.demand,
         shortfall: report.energy.night.shortfall,
+        bySource: { ...report.energy.night.bySource },
+        discharged: report.energy.night.storageDischarged,
       },
     },
   };

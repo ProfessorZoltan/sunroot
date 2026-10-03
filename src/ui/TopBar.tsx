@@ -16,10 +16,13 @@ export const SEASON_NAMES = {
 export function TopBar({
   store,
   onReport,
+  onEnergyMix,
 }: {
   store: GameStore;
   /** Opens the season report on the last report of a season. */
   onReport?: (season: Season) => void;
+  /** Opens the year's energy mix chart. */
+  onEnergyMix?: () => void;
 }) {
   const { content, state } = store;
   const insight = store.insight;
@@ -48,6 +51,21 @@ export function TopBar({
             filling={r && sv.status === 'now' ? r.phase : null}
           />
         ))}
+        {onEnergyMix && (
+          <button
+            type="button"
+            class="mix-open"
+            title="Energy mix this year"
+            aria-label="Energy mix this year"
+            onClick={onEnergyMix}
+          >
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+              <path d="M3 20 L3 13 L9 9 L15 12 L21 6 L21 20 Z" fill="#2a78d6" opacity="0.85" />
+              <path d="M3 20 L3 16 L9 13 L15 15 L21 11 L21 20 Z" fill="#eb6834" />
+            </svg>
+            <span class="small">Mix</span>
+          </button>
+        )}
       </div>
       <div class="stats">
         <HarmonyStat store={store} />
@@ -64,6 +82,8 @@ function actual(sv: SeasonView, report: SeasonReport): SeasonView {
     supply: report.energy[s].supply + report.energy[s].storageDischarged,
     demand: report.energy[s].demand,
     shortfall: report.energy[s].shortfall,
+    bySource: report.energy[s].bySource,
+    discharged: report.energy[s].storageDischarged,
     report,
   });
   return { ...sv, day: slot('day'), night: slot('night') };

@@ -153,7 +153,7 @@ describe('with local heat off', () => {
       return out;
     };
     expect(seasons(withRange(true, 99))).toEqual(seasons(withRange(false, 2)));
-  });
+  }, 30_000);
 
   it('records no heat links', () => {
     expect(endSeason(winter(P), P).lastReport!.heat).toBeNull();

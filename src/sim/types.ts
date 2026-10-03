@@ -572,5 +572,16 @@ export interface SeasonSummary {
   shortfall: number;
   blackouts: number;
   /** Energy per slot, for the year strip. */
-  energy: Record<Slot, { supply: number; demand: number; shortfall: number }>;
+  energy: Record<
+    Slot,
+    {
+      supply: number;
+      demand: number;
+      shortfall: number;
+      /** Energy made by source type (the energy mix; missing in older saves). */
+      bySource?: Record<string, number>;
+      /** Energy given back by storage (missing in older saves). */
+      discharged?: number;
+    }
+  >;
 }

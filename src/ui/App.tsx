@@ -16,6 +16,7 @@ import { Help, MapTip, ResolutionBanner } from './Overlays';
 import { ActionDock, ForecastBanner, RunOverview } from './Hud';
 import { TerrainPicker } from './MapControls';
 import { PrioritiesPanel } from './Priorities';
+import { EnergyMixDialog } from './EnergyMix';
 import { EndScreen, NewRunDialog, NoteDialog } from './RunUi';
 import type { PlayLog } from '../game/playlog';
 import type { AudioEngine } from '../audio/engine';
@@ -75,6 +76,12 @@ export function App({
     overviewOpen.current = open;
     setOverviewState(open);
   };
+  const [energyMix, setEnergyMixState] = useState(false);
+  const energyMixOpen = useRef(false);
+  const setEnergyMix = (open: boolean) => {
+    energyMixOpen.current = open;
+    setEnergyMixState(open);
+  };
   const [priorities, setPrioritiesState] = useState(false);
   const prioritiesOpen = useRef(false);
   const setPriorities = (open: boolean) => {
@@ -114,6 +121,10 @@ export function App({
       }
       if (overviewOpen.current) {
         if (key === 'Escape') return (handled(), setOverview(false));
+        return;
+      }
+      if (energyMixOpen.current) {
+        if (key === 'Escape') return (handled(), setEnergyMix(false));
         return;
       }
       const help = helpOpen.current;
@@ -254,7 +265,11 @@ export function App({
   return (
     <TipProvider>
       <div class="screen">
-        <TopBar store={store} onReport={(season) => setReport(season)} />
+        <TopBar
+          store={store}
+          onReport={(season) => setReport(season)}
+          onEnergyMix={() => setEnergyMix(true)}
+        />
         <div class="middle">
           <LeftPanel store={store} onOverview={() => setOverview(true)} />
           <main class="map-wrap" aria-label="Map of the valley">
@@ -286,6 +301,7 @@ export function App({
         </div>
         {help && <Help onClose={() => setHelp(false)} log={log} audio={audio} />}
         {overview && <RunOverview store={store} onClose={() => setOverview(false)} />}
+        {energyMix && <EnergyMixDialog store={store} onClose={() => setEnergyMix(false)} />}
         {noting && log && (
           <NoteDialog
             season={`${store.state.season}, year ${store.state.year}`}
