@@ -22,6 +22,7 @@ The wildlife and festival art is in the game (E4): the importer brings the anima
 | E3. Willow Reach v2 content | Yes        | 6 new buildings and 7 evolutions              | EXPANSION.md, New buildings; New evolutions |
 | E4. Wildlife and festivals  | Yes        | 4 animals, 3 festival cards, 2 props          | EXPANSION.md, Bigger systems                |
 | E5. Great Water Garden      | Yes        | The 7-hex wonder and its build stages         | EXPANSION.md, Bigger systems                |
+| B4. The coast on screen     | Yes        | Its 4 tiles, then the Croft and Tide Turbine  | proposals/windswept-coast.md, Build plan    |
 
 ## The standard frame (reminder)
 
@@ -161,6 +162,49 @@ seasons, so it also needs 3 stages of construction.
 | ------------------ | ------------------ | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
 | Great Water Garden | `greatWaterGarden` | `greatWaterGarden.png`, `.winter`, `greatWaterGarden.stage1.png` … `.stage3.png` | Carries its own ground over all 7 tiles: pools, reed margins, stepping stones, a pavilion at the centre. Stages: dug and staked; pools filling; planted but bare. | EXPANSION.md, Biome wonder |
 
+## The Windswept Coast (B4)
+
+The second biome ([proposals/windswept-coast.md](proposals/windswept-coast.md)). It is drawn
+procedurally until hand-made art comes; the game draws the tide (the sea's edge rising over the
+mudflat by night and falling back by day), fog, salt marks and the beam of the lighthouse in code,
+so don't paint them. Same frame, light and seasons as everything else: a summer `id.png` and a
+winter `id.winter.png`. A coast winter is grey and wet more than white: frost on the dunes, ice
+only in the saltmarsh pools.
+
+### Tiles
+
+| Tile      | Id          | What it is                                       | Notes                                                                                                                        | Source        |
+| --------- | ----------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| Sea       | `sea`       | Open water off the shore                         | Groundless top face of deep blue-green water with a soft swell; the side band dark water, not paper earth. Several variants. | Proposal, Map |
+| Mudflat   | `mudflat`   | Wet sand and mud the tide covers and uncovers    | Glistening grey-brown with ripple marks and a few shells and worm casts. The game floods it with code-drawn water at night.  | Proposal, Map |
+| Saltmarsh | `saltmarsh` | Low marsh of samphire and sea lavender, in pools | Green-grey turf cut by small creeks and pans of standing water; purple flecks of sea lavender in summer.                     | Proposal, Map |
+| Dune      | `dune`      | Sand hills with marram grass                     | Pale sand in two or three soft ridges, sparse marram tufts; the healing ladder's lowest step, below barren.                  | Proposal, Map |
+| Headland  | `hill`      | The coast's hills: rocky headlands over the sea  | Optional: the Reach's hill tile serves until then. Grass over grey rock, short cliffs on the seaward side.                   | Proposal, Map |
+
+### Buildings
+
+| Name              | Id                 | What it is                                        | Files                                                          | Notes                                                                                                                      | Source              |
+| ----------------- | ------------------ | ------------------------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| Croft             | `croft`            | A small field strip with a stone dyke             | `croft.png`, `.winter`                                         | Carries its own ground, like the Floodplain Farm: lazy-beds of potatoes and oats, a drystone wall. Winter: bare ridges.    | Proposal, Buildings |
+| Tide Turbine      | `tideTurbine`      | An underwater turbine moored in the tidal race    | `tideTurbine.png`, `.winter`, optional `tideTurbine.rotor.png` | On the sea tile: a float or tower above the water, the blades just under it. Give the rotor's pivot if it has one.         | Proposal, Buildings |
+| Wave Buoy         | `waveBuoy`         | A bobbing wave-energy float                       | `waveBuoy.png`, `.winter`                                      | Small, bright, on open sea; the game rocks it.                                                                             | Proposal, Buildings |
+| Kelp Farm         | `kelpFarm`         | Kelp grown on long lines from floats              | `kelpFarm.png`, `.winter`                                      | On the sea tile: rows of floats with brown fronds under the surface, a small boat.                                         | Proposal, Buildings |
+| Oyster Reef       | `oysterReef`       | Oysters on stakes and racks on the mudflat        | `oysterReef.png`, `.winter`                                    | Low trestles and shell heaps; reads under a shallow film of water too.                                                     | Proposal, Buildings |
+| Beachcombing Yard | `beachcombingYard` | Sorted driftwood, rope and wreckage on the dune   | `beachcombingYard.png`, `.winter`                              | A lean-to, a cart, piles of timber and floats, nets drying.                                                                | Proposal, Buildings |
+| Dune Grass        | `duneGrass`        | Planted marram grass that holds the sand          | `duneGrass.png`, `.winter`                                     | Groundless: dense marram in rows with fencing; the dune tile shows around it.                                              | Proposal, Buildings |
+| Sea Wall          | `seaWall`          | A stone and timber sea wall                       | `seaWall.png`, `.winter`                                       | Faces the sea along the tile's seaward half; low enough to see the tile behind. Three in a row make a Breakwater.          | Proposal, Buildings |
+| Lighthouse        | `lighthouse`       | A white lighthouse on a headland                  | `lighthouse.png`, `.winter`, `lighthouse.lit.png`              | Carries its own hill tile, like the Wind Spire. Tall. The game sweeps the beam; the lit file only lights the lantern room. | Proposal, Buildings |
+| Smokehouse        | `smokehouse`       | A tarred hut for smoking fish                     | `smokehouse.png`, `.winter`                                    | Racks of fish inside, a vent at the ridge: smoke is drawn by code, so show where it rises.                                 | Proposal, Buildings |
+| Desalinator       | `desalinator`      | A small plant that makes fresh water from the sea | `desalinator.png`, `.winter`                                   | Tanks and a pipe running seaward; solar-era, clean lines, not industrial.                                                  | Proposal, Buildings |
+
+### Evolutions
+
+| Name          | Id             | Grows from   | What it is                                      | Files                         | Notes                                                | Source           |
+| ------------- | -------------- | ------------ | ----------------------------------------------- | ----------------------------- | ---------------------------------------------------- | ---------------- |
+| Machair Croft | `machairCroft` | Croft        | The croft on flower-rich machair grassland      | `machairCroft.png`, `.winter` | As the Croft, with wildflowers through the strips.   | Proposal, Combos |
+| Kelp Forest   | `kelpForest`   | Kelp Farm    | The kelp grown wild among the reefs             | `kelpForest.png`, `.winter`   | Fronds reaching the surface, a seal's head.          | Proposal, Combos |
+| Rock Pool     | `rockPool`     | Salvage Yard | An old harbour ruin the sea has moved back into | `rockPool.png`, `.winter`     | Carries its own ruin tile: broken quay, pools, weed. | Proposal, Combos |
+
 ## Optional: interface marks
 
 The game draws these in code. Paint them only if you want them in the art style; 128 × 128 px,
@@ -186,4 +230,3 @@ Reserved for Root City districts and later biomes. Numbers and art notes come wh
 | Biochar Kiln             | `biocharKiln`       | Highland                                                        | EXPANSION.md, Reserved for later biomes |
 | Concentrated Solar Plant | `concentratedSolar` | Sun Desert: mirrors focus the sun for both electricity and heat | DECISIONS.md, Water expansion           |
 | Fog Net                  | `fogNet`            | Sun Desert                                                      | EXPANSION.md, Reserved for later biomes |
-| Desalinator              | `desalinator`       | Windswept Coast                                                 | EXPANSION.md, Reserved for later biomes |
