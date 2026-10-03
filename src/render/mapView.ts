@@ -759,9 +759,26 @@ export class MapView {
     for (const [key, tile] of tiles) {
       const c = hexToPixel(tile);
       if (wonderAt.has(key)) {
+        // Its tiles stand beneath it at their own heights, so on a slope (the Cloud Terraces)
+        // its lower edge sits on land; on level ground the art covers them.
+        const lift = liftOf(tile);
+        if (lift > 0) {
+          if (!procedural) this.tileLayer.addChild((procedural = new Graphics()));
+          drawCliff(procedural, c, lift);
+        }
+        const under = tileTexture(tile.type, key, state.season, this.content.land);
+        if (under) {
+          this.tileLayer.addChild(artSprite(under, c));
+          procedural = null;
+        } else {
+          if (!procedural) this.tileLayer.addChild((procedural = new Graphics()));
+          drawTile(procedural, tile, c, key);
+        }
         const sprite = wonderAt.get(key);
-        if (sprite) this.tileLayer.addChild(sprite);
-        procedural = null;
+        if (sprite) {
+          this.tileLayer.addChild(sprite);
+          procedural = null;
+        }
         continue;
       }
       // A raised tile stands on its cliff, drawn first so the tile covers its top.

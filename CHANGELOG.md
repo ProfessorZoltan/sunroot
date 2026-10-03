@@ -1,5 +1,11 @@
 # Changelog
 
+## The Highland's art
+
+- The Highland is **hand-painted** now: its crags and bogs, the glen's own meadow and scrub,
+  every Highland building in summer and winter (turning wheels, lit bothy windows), the Cloud
+  Terraces as they are built, the hares, dippers, eagles and martens, and the festival cards.
+
 ## The Highland's wonder, animals and festivals
 
 - **The Cloud Terraces**, the Highland's wonder: terraced gardens over 7 tiles climbing the

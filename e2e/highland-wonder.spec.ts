@@ -103,10 +103,9 @@ test('the Cloud Terraces: drawn over their 7 tiles, and what they will give', as
   expect(await page.evaluate(() => (window as unknown as Win).sunroot.store.state.contentId)).toBe(
     'highland',
   );
-  // Drawn in code until its art comes (the view counts only wonders with art).
   await expect
     .poll(() => page.evaluate(() => (window as unknown as Win).sunroot.view?.scenery.wonders))
-    .toBe(0);
+    .toBe(1);
   const uid = await page.evaluate(
     () =>
       Object.values((window as unknown as Win).sunroot.store.state.buildings).find(

@@ -249,7 +249,8 @@ festivals the Reach's bunting and lanterns.
 
 The third biome ([proposals/highland.md](proposals/highland.md)): a glen with a stream falling
 down it, slopes climbing to crags, bogs and old mines on the shoulders. Everything here is drawn
-in code until hand-made art comes, so any piece can arrive on its own. Same frame, light and
+in code until hand-made art comes, so any piece can arrive on its own. **Delivered and imported
+(all of it, HL6 included);** the guide stays as the reference for changes. Same frame, light and
 seasons as everything else: a summer `id.png` and a winter `id.winter.png`, delivered to the
 usual folders of `art/incoming/` (`tiles/`, `buildings/`, `wildlife/`, `festivals/`,
 `wonders/`). A Highland winter is white: snow lies on everything at height 2 and above, and the

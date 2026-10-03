@@ -83,6 +83,8 @@ test('the menu, banner, season cards, collapsing panels and the overview', async
 test('building details over the map, the priority list and the terrain highlight', async ({
   page,
 }) => {
+  // Long: it works through the details, the priority list and every terrain highlight.
+  test.setTimeout(60_000);
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/?seed=willow-reach-golden&visions=0');

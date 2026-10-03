@@ -9,7 +9,8 @@
  *   light up (`id.windows.png`), so the game can draw them glowing over the night;
  * - connecting pieces (channels, hedgerows) as a hub, `id.png`, and an arm
  *   towards each neighbour, `id.e.png` to `id.se.png`, each with a winter dress;
- * - an icon per building for the interface: the building cropped to a square;
+ * - an icon per building for the interface: the building cropped to a square (a building
+ *   delivered only as edge pieces, from its east piece);
  * - `art.json`: the frame's geometry, the rotors' pivots, and which buildings
  *   are drawn with their own tile (their side band is filled in);
  * - a biome's own look for a shared tile type, `id.land.png` (the coast's
@@ -210,7 +211,12 @@ try {
         band: g.band_bottom,
         icon: ICON,
         wantGround: !isTile && file === `${id}.png`,
-        wantIcon: !isTile && file === `${id}.png` && !DECORATIONS.includes(id),
+        // An edge piece only (the snow fence): its icon from the east piece.
+        wantIcon:
+          !isTile &&
+          !DECORATIONS.includes(id) &&
+          (file === `${id}.png` ||
+            (file === `${id}.edge.e.png` && !files.some((f) => f.file === `${id}.png`))),
         wantCentre: file === `${id}.rotor.png`,
       },
     );

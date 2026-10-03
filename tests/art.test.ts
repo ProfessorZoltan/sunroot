@@ -18,9 +18,14 @@ import { biomeContent } from '../src/content';
 import { content } from './helpers';
 
 const COAST = biomeContent('windsweptCoast');
-/** Buildings of the Reach and the coast; the Highland's are drawn in code until its art comes. */
-const drawn = [...content.buildings, ...COAST.buildings.filter((b) => !content.byId[b.id])];
-const byId = { ...COAST.byId, ...content.byId };
+const HIGH = biomeContent('highland');
+/** Buildings of every biome, each once. */
+const drawn = [
+  ...content.buildings,
+  ...COAST.buildings.filter((b) => !content.byId[b.id]),
+  ...HIGH.buildings.filter((b) => !content.byId[b.id] && !COAST.byId[b.id]),
+];
+const byId = { ...HIGH.byId, ...COAST.byId, ...content.byId };
 
 const art = (path: string) => existsSync(new URL(`../src/art/${path}`, import.meta.url));
 const info = JSON.parse(readFileSync(new URL('../src/art/art.json', import.meta.url), 'utf8')) as {
@@ -88,9 +93,17 @@ describe('hand-made art', () => {
 
   it('covers every building in summer and winter, with an icon', () => {
     for (const b of drawn) {
-      // Wonders have their own frame (above); the Bothy, the Ridge Quarter's card, waits for the
-      // Highland's art.
-      if (b.wonder || b.id === 'bothy') continue;
+      // Wonders have their own frame (above).
+      if (b.wonder) continue;
+      // A building only on edges (the snow fence) comes as its 3 edge pieces.
+      const pieces = ['e', 'ne', 'nw'].flatMap((d) => [
+        `buildings/${b.id}.edge.${d}.png`,
+        `buildings/${b.id}.edge.${d}.winter.png`,
+      ]);
+      if (b.edge && !art(`buildings/${b.id}.png`)) {
+        for (const f of [...pieces, `icons/${b.id}.png`]) expect(art(f), f).toBe(true);
+        continue;
+      }
       for (const f of [
         `buildings/${b.id}.png`,
         `buildings/${b.id}.winter.png`,
@@ -100,7 +113,7 @@ describe('hand-made art', () => {
     }
   });
 
-  it('lights homes and some others at night, and turns the spires, the river wheel and the tide turbine', () => {
+  it('lights homes and some others at night, and turns the spires, the wheels and the turbines', () => {
     for (const lit of [
       'foundersCamp',
       'cottage',
@@ -110,9 +123,18 @@ describe('hand-made art', () => {
       'mushroomCellar',
       'oldWorldArchive',
       'lighthouse',
+      'bothy',
+      'lookout',
     ])
       expect(art(`buildings/${lit}.windows.png`), lit).toBe(true);
-    for (const id of ['windSpire', 'riverWheel', 'singingSpire', 'tideTurbine']) {
+    for (const id of [
+      'windSpire',
+      'riverWheel',
+      'singingSpire',
+      'tideTurbine',
+      'hillTurbine',
+      'cascade',
+    ]) {
       expect(art(`buildings/${id}.rotor.png`), id).toBe(true);
       expect(info.pivots[id], id).toHaveLength(2);
     }
@@ -135,20 +157,26 @@ describe('hand-made art', () => {
 
   it('marks only buildings that stand on one kind of tile, or fields, as carrying their own', () => {
     expect(info.ground).toEqual([
+      'batRoost',
       'beaverDam',
       'coppiceRegrowth',
       'coppiceWood',
       'croft',
       'estuaryTurbine',
+      'glenFarm',
+      'hangingGarden',
       'lighthouse',
+      'lookout',
       'machairCroft',
       'oldWorldArchive',
       'pumpedReservoir',
+      'rewettedBog',
       'rewildedRuin',
       'riceFishPaddy',
       'rockPool',
       'salvageYard',
       'singingSpire',
+      'terraceFarm',
       'weir',
       'windSpire',
     ]);
