@@ -422,6 +422,40 @@ export const BUILDING_ART: Record<string, Art> = {
     g.circle(c.x + 14, c.y + 6, 3).fill({ color: 0x4f8196 });
     g.circle(c.x - 14, c.y + 6, 3).fill({ color: 0x4f8196 });
   },
+  /** Drawn when its art is missing: garden terraces stepping up over 7 tiles, a glasshouse at the centre. */
+  cloudTerraces(g, c) {
+    // Three curved walls, lowest in front, each holding a band of garden.
+    for (const [dy, rx, ry, green] of [
+      [42, 74, 22, 0x7da35e],
+      [8, 70, 20, 0x6d9a55],
+      [-26, 60, 17, 0x5e8a4c],
+    ] as const) {
+      g.ellipse(c.x, c.y + dy, rx, ry).fill({ color: green });
+      g.moveTo(c.x - rx, c.y + dy)
+        .quadraticCurveTo(c.x, c.y + dy + ry * 2, c.x + rx, c.y + dy)
+        .stroke({ width: 3, color: COLORS.stone, cap: 'round' });
+      for (let i = -3; i <= 3; i++)
+        g.circle(c.x + i * rx * 0.26, c.y + dy + ry * 0.55 - Math.abs(i), 2).fill({
+          color: i % 2 === 0 ? COLORS.flowerPink : COLORS.sunGold,
+        });
+    }
+    // The glasshouse.
+    g.roundRect(c.x - 10, c.y - 8, 20, 12, 3).fill({ color: 0xd4e6e4, alpha: 0.9 });
+    g.poly([c.x - 11, c.y - 7, c.x, c.y - 16, c.x + 11, c.y - 7]).fill({ color: 0xbcd8d6 });
+    g.moveTo(c.x - 4, c.y - 8)
+      .lineTo(c.x - 4, c.y + 4)
+      .moveTo(c.x + 4, c.y - 8)
+      .lineTo(c.x + 4, c.y + 4)
+      .stroke({ width: 1, color: 0x7f9a98 });
+    // Mist below.
+    for (const [dx, dy, r] of [
+      [-50, 62, 13],
+      [-28, 67, 10],
+      [36, 65, 12],
+      [56, 60, 9],
+    ] as const)
+      g.ellipse(c.x + dx, c.y + dy, r, r * 0.45).fill({ color: 0xffffff, alpha: 0.55 });
+  },
   singingSpire(g, c) {
     BUILDING_ART.windSpire!(g, c);
     for (const [dx, dy] of [

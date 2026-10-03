@@ -44,8 +44,27 @@ export function heatDemand(
   if (cold && slot === 'night' && cold.seasons.includes(SEASONS[si]!))
     if (heightAt(state, b.at) >= cold.from) need += cold.add;
   // The Ridge Quarter's perk: homes need less heat at night.
-  const relief = slot === 'night' && def.housing > 0 ? content.rules.localHeat.homeRelief[si]! : 0;
+  let relief = slot === 'night' && def.housing > 0 ? content.rules.localHeat.homeRelief[si]! : 0;
+  if (slot === 'night' && def.housing > 0) relief += wonderWarmth(content, state, b.at);
   return Math.max(0, need - relief);
+}
+
+/** The heat a finished wonder spares a home here each night (the Cloud Terraces). */
+const warmingWonders = new WeakMap<Content, boolean>();
+
+export function wonderWarmth(content: Content, state: RunState, at: Hex): number {
+  let any = warmingWonders.get(content);
+  if (any === undefined) {
+    any = content.buildings.some((d) => d.wonder?.warms);
+    warmingWonders.set(content, any);
+  }
+  if (!any) return 0;
+  let warmth = 0;
+  for (const w of Object.values(state.buildings)) {
+    const warms = w.finished !== undefined ? content.byId[w.type]?.wonder?.warms : undefined;
+    if (warms && hexDistance(w.at, at) <= warms.range) warmth += warms.heat;
+  }
+  return warmth;
 }
 
 const occupancyCache = new WeakMap<object, { size: number; map: Map<string, BuildingState> }>();

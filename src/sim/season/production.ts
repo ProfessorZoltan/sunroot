@@ -66,7 +66,7 @@ export function generate(ctx: SeasonContext): void {
       notes.push(`in a formation +${effect.generation}`);
     }
     const boost = festivalThisSeason(content, state)?.boosts;
-    if (boost?.buildings.includes(b.type)) {
+    if (boost && boost.generation > 0 && boost.buildings.includes(b.type)) {
       adjust += boost.generation;
       notes.push(`${festivalThisSeason(content, state)!.name} +${boost.generation}`);
     }
@@ -247,6 +247,13 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
         base += pasture.amount;
         lines.push(`+${pasture.amount} next to ${n} ${pasture.tiles.join(' or ')}`);
       }
+    }
+    // A festival for these farms (Shieling Day).
+    const festival = festivalThisSeason(content, state);
+    const boost = festival?.boosts;
+    if (boost && boost.food > 0 && boost.buildings.includes(b.type)) {
+      base += boost.food;
+      lines.push(`+${boost.food} ${festival!.name}`);
     }
   }
   let multiplier = 1;

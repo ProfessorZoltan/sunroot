@@ -1,5 +1,15 @@
 # Changelog
 
+## The Highland's wonder, animals and festivals
+
+- **The Cloud Terraces**, the Highland's wonder: terraced gardens over 7 tiles climbing the
+  slope, from era 3, once a Carbon Loop is closed and 2 pump stations stand. Finished, homes
+  within 3 tiles need 2 less heat each night, +60 to the score, the Graft a tier higher, and
+  the Bloom era's goal (the Highland now has one).
+- **Mountain hares**, **dippers**, **golden eagles** and **pine martens** come to the glen.
+- The **Snowmelt Fair** fills every cistern and bog; **Shieling Day** brings the shielings
+  more food; **Lantern Night** as in the Reach.
+
 ## The energy mix
 
 - A **Mix** button at the end of the year strip opens a chart of the year's energy, by day and

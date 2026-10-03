@@ -20,11 +20,16 @@ export type ActorKind =
   | 'otter'
   | 'beaver'
   | 'deer'
-  // The coast's, drawn in code until their art comes (drawCoastAnimal).
+  // The coast's, drawn in code until their art comes (drawAnimal).
   | 'tern'
   | 'seal'
   | 'puffin'
-  | 'dolphin';
+  | 'dolphin'
+  // The Highland's, drawn in code until their art comes (drawAnimal).
+  | 'hare'
+  | 'dipper'
+  | 'eagle'
+  | 'marten';
 
 export interface Actor {
   kind: ActorKind;
@@ -44,6 +49,10 @@ const KIND: Record<string, ActorKind> = {
   seals: 'seal',
   puffins: 'puffin',
   dolphins: 'dolphin',
+  hares: 'hare',
+  dippers: 'dipper',
+  eagles: 'eagle',
+  martens: 'marten',
 };
 
 /** How many of each animal show at most, and over how many tiles each moves. */
@@ -56,6 +65,10 @@ const SHOWN: Record<ActorKind, { count: number; steps: number }> = {
   seal: { count: 2, steps: 2 },
   puffin: { count: 2, steps: 1 },
   dolphin: { count: 2, steps: 4 },
+  hare: { count: 2, steps: 3 },
+  dipper: { count: 2, steps: 2 },
+  eagle: { count: 1, steps: 1 },
+  marten: { count: 1, steps: 3 },
 };
 
 /** Whether the animals are shown at all this season (bees keep in over winter, but come out on Lantern Night). */
@@ -112,6 +125,10 @@ const PACE: Record<ActorKind, { move: number; rest: number }> = {
   seal: { move: 8000, rest: 6000 },
   puffin: { move: 4000, rest: 4000 },
   dolphin: { move: 5000, rest: 1500 },
+  hare: { move: 2500, rest: 5000 },
+  dipper: { move: 2000, rest: 4000 },
+  eagle: { move: 9000, rest: 6000 },
+  marten: { move: 4000, rest: 4000 },
 };
 
 /** Where an animal is at a moment, and which frame it shows. With `still`, it keeps to its first tile. */
@@ -166,16 +183,29 @@ export function poseAt(actor: Actor, clock: number, still: boolean): Pose {
     case 'dolphin':
       frame = moving ? `dolphin.${(Math.floor(step / 2) % 3) + 1}` : 'dolphin.1';
       break;
+    // The Highland's (ART-EXPANSION.md), drawn in code from the same frame names until art comes.
+    case 'hare':
+      frame = moving ? `hare.run.${(step % 2) + 1}` : 'hare.sit';
+      break;
+    case 'dipper':
+      frame = `dipper.${(Math.floor(step / 3) % 2) + 1}`;
+      break;
+    case 'eagle':
+      frame = moving ? `eagle.soar.${(Math.floor(step / 4) % 2) + 1}` : 'eagle.perch';
+      break;
+    case 'marten':
+      frame = `marten.${(Math.floor(step / (moving ? 2 : 8)) % 2) + 1}`;
+      break;
   }
   return { x, y, frame, flip };
 }
 
-/** The coast's animals, drawn in code at tile scale until their art comes. */
-export function drawCoastAnimal(g: Graphics, kind: ActorKind, pose: Pose): void {
+/** The coast's and the Highland's animals, drawn in code at tile scale until their art comes. */
+export function drawAnimal(g: Graphics, kind: ActorKind, pose: Pose, season = 'summer'): void {
   const { x, y } = pose;
   const dir = pose.flip ? -1 : 1;
   const flap = pose.frame.endsWith('.2') ? 1 : 0;
-  const moving = /\.(fly|swim)\./.test(pose.frame) || /dolphin\.[23]$/.test(pose.frame);
+  const moving = /\.(fly|swim|run|soar)\./.test(pose.frame) || /dolphin\.[23]$/.test(pose.frame);
   switch (kind) {
     case 'tern': {
       // A white bird with a black cap, wings up or down, a little above the dunes.
@@ -211,6 +241,58 @@ export function drawCoastAnimal(g: Graphics, kind: ActorKind, pose: Pose): void 
       g.moveTo(x - 10 * dir, y + 1)
         .lineTo(x - 7 * dir, y + 1)
         .stroke({ width: 1, color: 0xe4f2f5 });
+      break;
+    }
+    case 'hare': {
+      // Brown in summer, white in winter; long ears, stretched out when it runs.
+      const coat = season === 'winter' ? 0xf4f4f0 : 0x9a7653;
+      const stretch = moving ? 1.5 + flap : 0;
+      g.ellipse(x - dir * stretch * 0.5, y - 2.5, 3.6 + stretch, 2.6).fill({ color: coat });
+      g.circle(x + dir * (3 + stretch), y - 4.5, 1.9).fill({ color: coat });
+      g.moveTo(x + dir * (2.6 + stretch), y - 6)
+        .lineTo(x + dir * (1.4 + stretch + (moving ? -1.5 : 0)), y - 10)
+        .stroke({ width: 1.1, color: coat, cap: 'round' });
+      g.circle(x + dir * (3.8 + stretch), y - 4.8, 0.5).fill({ color: 0x1e1e1e });
+      break;
+    }
+    case 'dipper': {
+      // A small dark bird with a white bib, bobbing on a stone in the stream.
+      const bob = flap;
+      g.ellipse(x, y + 1, 4, 1.6).fill({ color: 0x8c8574 });
+      g.ellipse(x, y - 2 + bob, 2.8, 2.2).fill({ color: 0x3b2f2a });
+      g.circle(x + dir * 2.2, y - 3.6 + bob, 1.4).fill({ color: 0x3b2f2a });
+      g.ellipse(x + dir * 1.3, y - 2.2 + bob, 1, 1.3).fill({ color: 0xffffff });
+      break;
+    }
+    case 'eagle': {
+      if (moving) {
+        // Soaring high over the crags: broad wings, fingered tips.
+        const yy = y - 26 - flap;
+        g.moveTo(x - 9, yy - 1 - flap)
+          .quadraticCurveTo(x - 4, yy - 3, x, yy)
+          .quadraticCurveTo(x + 4, yy - 3, x + 9, yy - 1 - flap)
+          .stroke({ width: 2.2, color: 0x5a4030, cap: 'round', join: 'round' });
+        g.circle(x + dir * 1, yy - 0.5, 1).fill({ color: 0xc89a4a });
+      } else {
+        // Perched on the lookout's top.
+        const yy = y - 18;
+        g.ellipse(x, yy, 2.4, 3.6).fill({ color: 0x5a4030 });
+        g.circle(x + dir * 1.2, yy - 3.8, 1.5).fill({ color: 0xc89a4a });
+        g.poly([x + dir * 2.4, yy - 4.2, x + dir * 3.8, yy - 3.4, x + dir * 2.4, yy - 3]).fill({
+          color: 0xe0b23a,
+        });
+      }
+      break;
+    }
+    case 'marten': {
+      // A long dark-brown body, a cream throat and a bushy tail, among the pines.
+      const arch = moving ? flap * 1.2 : 0;
+      g.ellipse(x, y - 2 - arch, 4.2, 1.8).fill({ color: 0x5b3a22 });
+      g.circle(x + dir * 4.2, y - 3, 1.7).fill({ color: 0x5b3a22 });
+      g.circle(x + dir * 4.4, y - 2.1, 0.9).fill({ color: 0xf0d9a8 });
+      g.moveTo(x - dir * 3.8, y - 2)
+        .quadraticCurveTo(x - dir * 7, y - 1 - arch, x - dir * 8, y - 4)
+        .stroke({ width: 1.8, color: 0x5b3a22, cap: 'round' });
       break;
     }
     default:

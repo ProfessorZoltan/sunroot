@@ -1,5 +1,6 @@
 /**
- * Biome wonders (EXPANSION.md, E5): Willow Reach's is the Great Water Garden.
+ * Biome wonders (EXPANSION.md, E5): Willow Reach's is the Great Water Garden,
+ * the coast's the Tidal Lagoon, the Highland's the Cloud Terraces.
  *
  * A wonder is one building over a flower of 7 tiles: its own (the centre) and
  * the 6 around it. It can be started once a run, from its era, once the run
@@ -95,7 +96,7 @@ export function wonderSiteProblem(
   const tiles = flower(at);
   for (const h of tiles) {
     const t = tileAt(state, h);
-    if (!t) return `the ${def.name} needs all 7 of its tiles inside the valley`;
+    if (!t) return `the ${def.name} needs all 7 of its tiles inside the ${content.land}`;
     if (occ.has(hexKey(h))) return `the ${def.name} needs 7 free tiles`;
     if (!def.placement.tiles.includes(t.type))
       return `the ${def.name} can't be built over ${t.type}`;
@@ -103,6 +104,9 @@ export function wonderSiteProblem(
   for (const type of def.wonder?.mustInclude ?? [])
     if (!tiles.some((h) => tileAt(state, h)?.type === type))
       return `the ${def.name} needs ${type} among its 7 tiles`;
+  const minHeights = def.wonder?.minHeights ?? 1;
+  if (new Set(tiles.map((h) => tileAt(state, h)!.height ?? 0)).size < minHeights)
+    return `the ${def.name} must climb the slope: its 7 tiles at ${minHeights} heights or more`;
   // A hedge running between two of its tiles is in the way.
   const keys = new Set(tiles.map(hexKey));
   for (const h of tiles)
@@ -143,6 +147,12 @@ export function unlockWonders(content: Content, state: RunState): string[] {
   return added;
 }
 
+/** What a finished wonder does beyond its score (the Cloud Terraces' warmth), or ''. */
+export function wonderWarmthText(def: BuildingDef): string {
+  const warms = def.wonder?.warms;
+  return warms ? `homes within ${warms.range} tiles need ${warms.heat} less heat each night, ` : '';
+}
+
 /** One line on what a wonder needs, costs and gives, for notices and the interface. */
 export function wonderBrief(content: Content, id: string): string {
   const def = content.byId[id]!;
@@ -161,5 +171,5 @@ export function wonderBrief(content: Content, id: string): string {
     w.graftTiers > 0
       ? ` and the Graft ${w.graftTiers > 1 ? `${w.graftTiers} tiers` : 'a tier'} higher`
       : '';
-  return `7 tiles, ${w.seasons} seasons to build, ${cost}${needs.length ? `; it needs ${needs.join(' and ')}` : ''}. Finished: +${w.score} to the score${lift}.`;
+  return `7 tiles, ${w.seasons} seasons to build, ${cost}${needs.length ? `; it needs ${needs.join(' and ')}` : ''}. Finished: ${wonderWarmthText(def)}+${w.score} to the score${lift}.`;
 }

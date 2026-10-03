@@ -152,3 +152,18 @@ test('a whole Highland run, keyboard only, to the end screen', async ({ page }) 
   expect((await win(page)).saved).toBe(-1);
   expect(errors).toEqual([]);
 });
+
+test("the Highland's wonder on the palette, and the Snowmelt Fair held from its card", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/?biome=highland&sandbox');
+  await expect(page.locator('#map-host canvas')).toBeVisible();
+  await expect(page.locator('#palette .tool-name', { hasText: /^Cloud Terraces$/ })).toHaveCount(1);
+  const card = page.getByRole('region', { name: 'Festival' });
+  await expect(card.getByRole('heading', { name: 'Snowmelt Fair' })).toBeVisible();
+  await card.getByRole('button', { name: /^Hold it/ }).click();
+  await expect(card.getByRole('button', { name: 'Call off' })).toBeVisible();
+  expect(errors).toEqual([]);
+});

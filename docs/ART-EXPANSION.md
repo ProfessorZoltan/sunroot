@@ -34,7 +34,7 @@ Highland's tiles and buildings (their request comes with HL4).
 | B5. The coast in Root City  | Yes        | The Tide Mill and the Estuary Turbine                                 | proposals/windswept-coast.md, Build plan    |
 | B6. The coast's wonder      | Yes        | The Tidal Lagoon, 4 animals, 2 festival cards                         | proposals/windswept-coast.md, Build plan    |
 | HL4. The Highland on screen | Yes        | Its 2 tiles, then the Terrace Farm, Glen Farm, Hill Turbine and Bothy | proposals/highland.md, Build plan           |
-| HL6. The Highland's wonder  | Yes        | The Cloud Terraces, 4 animals, 2 festival cards                       | proposals/highland.md, Build plan           |
+| HL6. The Highland's wonder  | Yes (done) | The Cloud Terraces, 4 animals, 2 festival cards                       | proposals/highland.md, Build plan           |
 
 ## The standard frame (reminder)
 
@@ -299,15 +299,14 @@ lying on a building that is snowed under (a solar canopy high up in winter), lit
 
 ### With HL6: the wonder, animals and festivals
 
-Not in the game yet; listed so one commission can cover the Highland. Their behaviour may still
-change before HL6, so check this guide again before painting them. The importer takes them once
-HL6 adds them to the game (it refuses animals, festivals and wonders the game doesn't have); until
-then, keep them aside in their own folder.
+In the game since HL6, drawn in code until their art comes; the importer takes them now. The
+Cloud Terraces climb the slope (their tiles stand at 2 heights or more), so paint them as on
+level ground, as the other Highland art: the game raises each tile.
 
 | Name           | Id              | Files                                                                      | Notes                                                                                                                                                                                           | Source                           |
 | -------------- | --------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
 | Cloud Terraces | `cloudTerraces` | `cloudTerraces.png`, `.winter`, `cloudTerraces.stage1.png` … `.stage3.png` | On the Great Water Garden's frame (1536 × 1280): terraced gardens over 7 tiles on a slope, mist below, a glasshouse at the centre. Stages: walls staked out; walls built; the terraces planted. | proposals/highland.md, Wonder    |
-| Mountain hares | `hares`         | `hare.run.1.png`, `hare.run.2.png`, `hare.sit.png`, and each `.winter`     | Brown in summer, white in winter.                                                                                                                                                               | proposals/highland.md, Wildlife  |
+| Mountain hares | `hares`         | `hare.run.1.png`, `hare.run.2.png`, `hare.sit.png`, and each `.winter`     | Brown in summer, white in winter. On open meadow high up.                                                                                                                                       | proposals/highland.md, Wildlife  |
 | Dippers        | `dippers`       | `dipper.1.png`, `dipper.2.png`                                             | A small dark bird with a white bib, bobbing on a stone in the stream.                                                                                                                           | proposals/highland.md, Wildlife  |
 | Golden eagles  | `eagles`        | `eagle.soar.1.png`, `eagle.soar.2.png`, `eagle.perch.png`                  | Soaring over the crags; perched on a lookout.                                                                                                                                                   | proposals/highland.md, Wildlife  |
 | Pine martens   | `martens`       | `marten.1.png`, `marten.2.png`                                             | Among the pines.                                                                                                                                                                                | proposals/highland.md, Wildlife  |

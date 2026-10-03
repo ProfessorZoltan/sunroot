@@ -54,7 +54,7 @@ import {
 } from './sprites';
 import { wonderStage } from '../sim/wonder';
 import {
-  drawCoastAnimal,
+  drawAnimal,
   festivalProps,
   poseAt,
   wildlifeActors,
@@ -437,7 +437,7 @@ export class MapView {
     birds: boolean;
     deer: number;
     otters: number;
-    /** The valley's own animals on screen (E4), by kind, and a festival's props. */
+    /** The valley's own animals on screen (E4), by kind (with art or drawn in code), and a festival's props. */
     animals: Record<string, number>;
     props: Record<string, number>;
     wonders: number;
@@ -454,7 +454,7 @@ export class MapView {
       birds: this.animals.birds,
       deer: this.animals.deer.length,
       otters: this.animals.otters.length,
-      animals: count(this.actors.map((a) => a.actor.kind)),
+      animals: count([...this.actors.map((a) => a.actor), ...this.drawnActors].map((a) => a.kind)),
       props: count(this.props.map((p) => p.kind)),
       wonders: this.wondersDrawn,
       butterflies: a?.butterflies.length ?? 0,
@@ -529,7 +529,7 @@ export class MapView {
     if (this.ambient && this.bounds) drawAmbient(g, this.ambient, this.bounds, this.clock, still);
     for (const d of deer) drawDeer(g, d);
     for (const actor of this.drawnActors)
-      drawCoastAnimal(g, actor.kind, poseAt(actor, this.clock, still));
+      drawAnimal(g, actor.kind, poseAt(actor, this.clock, still), this.state?.season);
     otters.forEach((o, i) => drawOtter(g, o, still ? 0 : Math.sin(this.clock / 400 + i) * 1.2));
     if (birds && this.bounds) {
       const { minX, maxX, minY } = this.bounds;

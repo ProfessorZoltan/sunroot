@@ -1324,6 +1324,39 @@
       },
       "harmonyAsTile": "meadow",
       "revertsAfterSeasons": 2
+    },
+    {
+      "id": "cloudTerraces",
+      "name": "Cloud Terraces",
+      "cost": 60,
+      "workers": 0,
+      "kind": "nature",
+      "draftable": false,
+      "minEra": 3,
+      "requiresWater": true,
+      "floodTolerant": true,
+      "stormProof": true,
+      "placement": {
+        "tiles": ["barren", "scrub", "meadow", "woodland"]
+      },
+      "wonder": {
+        "seasons": 4,
+        "alsoCosts": {
+          "biomass": 20
+        },
+        "needsLoops": ["carbonLoop"],
+        "needsBuildings": {
+          "pumpStation": 2
+        },
+        "nearWater": false,
+        "minHeights": 2,
+        "warms": {
+          "range": 3,
+          "heat": 2
+        },
+        "score": 60,
+        "graftTiers": 1
+      }
     }
   ],
   "combos": [
@@ -2532,8 +2565,103 @@
       }
     }
   ],
-  "wildlife": [],
+  "wildlife": [
+    {
+      "id": "hares",
+      "name": "Mountain Hares",
+      "text": "Mountain hares come at Harmony 20 to open meadow at height 2 or higher. In summer, shielings within 2 tiles of them make 1 more food.",
+      "harmony": 20,
+      "habitat": {
+        "kind": "tiles",
+        "tiles": ["meadow"],
+        "wild": true,
+        "minHeight": 2
+      },
+      "effect": {
+        "kind": "nearHabitat",
+        "buildings": ["shieling"],
+        "range": 2,
+        "food": 1,
+        "seasons": ["summer"]
+      }
+    },
+    {
+      "id": "dippers",
+      "name": "Dippers",
+      "text": "Dippers come at Harmony 40 to the stream beside a hill turbine. Fish ponds within 2 tiles of them make 1 more food.",
+      "harmony": 40,
+      "habitat": {
+        "kind": "tiles",
+        "tiles": ["river"],
+        "nextToBuildings": ["hillTurbine", "cascade"]
+      },
+      "effect": {
+        "kind": "nearHabitat",
+        "buildings": ["fishPond"],
+        "range": 2,
+        "food": 1
+      }
+    },
+    {
+      "id": "eagles",
+      "name": "Golden Eagles",
+      "text": "Golden eagles come at Harmony 50 to a lookout with another crag beside it. Each lookout they nest by gives 1 wellbeing every season.",
+      "harmony": 50,
+      "habitat": {
+        "kind": "building",
+        "buildings": ["lookout"],
+        "nextToTiles": ["crag"]
+      },
+      "effect": {
+        "kind": "wellbeing",
+        "perHerd": 1,
+        "group": "pair"
+      }
+    },
+    {
+      "id": "martens",
+      "name": "Pine Martens",
+      "text": "Pine martens come at Harmony 70 to pine woods of 4 or more tiles with nothing built on them. Each such wood gives 1 wellbeing every season.",
+      "harmony": 70,
+      "habitat": {
+        "kind": "tiles",
+        "tiles": ["woodland"],
+        "wild": true,
+        "minGroup": 4
+      },
+      "effect": {
+        "kind": "wellbeing",
+        "perHerd": 1,
+        "group": "family"
+      }
+    }
+  ],
   "festivals": [
+    {
+      "id": "snowmeltFair",
+      "name": "Snowmelt Fair",
+      "text": "A spring fair as the snow goes. +3 wellbeing, and the melt fills every cistern and bog to the brim.",
+      "season": "spring",
+      "cost": {
+        "materials": 5
+      },
+      "wellbeing": 3,
+      "fillsCisterns": true
+    },
+    {
+      "id": "shielingDay",
+      "name": "Shieling Day",
+      "text": "A summer day driving the flocks up to the high pastures. +3 wellbeing, and every shieling makes 1 more food this summer.",
+      "season": "summer",
+      "cost": {
+        "food": 5
+      },
+      "wellbeing": 3,
+      "boosts": {
+        "buildings": ["shieling"],
+        "food": 1
+      }
+    },
     {
       "id": "lanternNight",
       "name": "Lantern Night",
@@ -2819,6 +2947,23 @@
       },
       "reward": {
         "knowledge": 3
+      }
+    },
+    {
+      "era": 4,
+      "text": "Go a full year, spring to winter, with no energy shortfall.",
+      "goal": {
+        "kind": "noShortfallYear"
+      },
+      "reward": {
+        "knowledge": 3
+      },
+      "or": {
+        "text": "Or finish the Cloud Terraces.",
+        "goal": {
+          "kind": "wonder",
+          "building": "cloudTerraces"
+        }
       }
     }
   ],

@@ -26,6 +26,7 @@ import { edgeBuilding } from '../sim/edges';
 import { stormExposed } from '../sim/queries';
 import { wonderSiteProblem } from '../sim/wonder';
 import type { BuildingDef } from '../sim/content/schema';
+import { coppiceProblem } from '../sim/combos';
 
 /**
  * How a bot handles water (EXPANSION.md), when the water system is on. The
@@ -422,6 +423,8 @@ function pursueWonder(turn: Turn, profile: Profile): boolean {
       if (loop === 'bathLoop') closeBathLoop(turn, profile);
       // The coast's materials run short: save for the Kelp Loop while there is a place for it.
       if (loop === 'kelpLoop') return closeKelpLoop(turn, profile);
+      // The Highland's: save for the Carbon Loop while there is a place for it.
+      if (loop === 'carbonLoop') return closeCarbonLoop(turn, profile);
       return false;
     }
     for (const [id, n] of Object.entries(w.needsBuildings) as [string, number][]) {
@@ -564,6 +567,94 @@ function closeKelpLoop(turn: Turn, profile: Profile): boolean {
   }
   // Not closed yet: save up for it while there is a place.
   return sites.length > 0;
+}
+
+/**
+ * A Carbon Loop (the Highland's, for the Cloud Terraces): a biochar kiln between a coppiced
+ * wood (woodland beside a workshop) and a glen or terrace farm. Tries the kilns standing first,
+ * then new ones beside woodland a workshop reaches, keeping the first that the season ahead
+ * shows closing the loop (a free undo otherwise).
+ */
+function closeCarbonLoop(turn: Turn, profile: Profile): boolean {
+  const closes = () =>
+    peekOr(turn, (p) => p.report.combos.some((h) => h.combo === 'carbonLoop'), false);
+  const FARMS = ['glenFarm', 'terraceFarm'];
+  const nextTo = (ids: readonly string[], at: Hex) =>
+    Object.values(turn.state.buildings).some(
+      (b) => ids.includes(b.type) && hexDistance(b.at, at) === 1,
+    );
+  /** Woodland beside here that can be coppiced now. */
+  const woods = (at: Hex) =>
+    hexNeighbors(at).filter(
+      (h) => !coppiceProblem(turn.rules, turn.state, h) && !turn.reserved.has(hexKey(h)),
+    );
+  const coppice = (at: Hex): boolean =>
+    nextTo(['coppiceWood'], at) || woods(at).some((h) => turn.apply({ type: 'coppice', at: h }));
+  const farm = (at: Hex): boolean => {
+    if (nextTo(FARMS, at)) return true;
+    for (const id of FARMS) {
+      if (!turn.canBuild(id, profile.reserve)) continue;
+      const site = turn
+        .sites(id)
+        .filter((t) => hexDistance(t, at) === 1)
+        .sort((a, b) => siteScore(turn, id, b) - siteScore(turn, id, a))[0];
+      if (site && turn.apply({ type: 'place', building: id, at: { q: site.q, r: site.r } }))
+        return true;
+    }
+    return false;
+  };
+  const tryAt = (kiln: Hex): boolean => {
+    const saved = turn.save();
+    if (coppice(kiln) && farm(kiln) && closes()) return true;
+    turn.restore(saved);
+    return false;
+  };
+  for (const b of Object.values(turn.state.buildings).filter((x) => x.type === 'biocharKiln'))
+    if (tryAt(b.at)) return false;
+  if (!turn.unlocked('biocharKiln')) return false;
+  /** Kiln sites with a wood to coppice beside them. */
+  const kilnSites = () =>
+    turn
+      .sites('biocharKiln')
+      .filter((t) => woods(t).length > 0 || nextTo(['coppiceWood'], t))
+      .slice(0, 4);
+  const withKiln = (): boolean => {
+    for (const site of kilnSites()) {
+      const saved = turn.save();
+      if (!turn.apply({ type: 'place', building: 'biocharKiln', at: { q: site.q, r: site.r } }))
+        continue;
+      if (tryAt(site)) return true;
+      turn.restore(saved);
+    }
+    return false;
+  };
+  const kiln = turn.content.byId.biocharKiln!.cost;
+  const farmCost = turn.content.byId.glenFarm?.cost ?? 0;
+  const short = (n: number) => turn.state.stores.materials < n + profile.reserve;
+  if (kilnSites().length > 0) {
+    // Save up while there is a place for it.
+    if (short(kiln + farmCost)) return true;
+    if (withKiln()) return false;
+  }
+  // No wood a workshop reaches: a workshop beside woodland, then the kiln.
+  const free = (h: Hex) =>
+    turn.state.map.tiles[hexKey(h)]?.type === 'woodland' &&
+    !isTaken(turn, hexKey(h)) &&
+    !turn.reserved.has(hexKey(h));
+  const workshops = turn
+    .sites('workshop')
+    .filter((t) => hexNeighbors(t).some(free))
+    .slice(0, 4);
+  if (workshops.length === 0) return false;
+  if (short(turn.content.byId.workshop!.cost + kiln + farmCost)) return true;
+  for (const site of workshops) {
+    const saved = turn.save();
+    if (!turn.apply({ type: 'place', building: 'workshop', at: { q: site.q, r: site.r } }))
+      continue;
+    if (withKiln()) return false;
+    turn.restore(saved);
+  }
+  return false;
 }
 
 const isTaken = (turn: Turn, key: string) =>
@@ -741,6 +832,9 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'snowFence',
       'rewettedBog',
       'shieling',
+      // For the Cloud Terraces: a Carbon Loop and 2 pump stations.
+      'biocharKiln',
+      'pumpStation',
     ],
     nightPower: NIGHT,
     dayPower: DAY,

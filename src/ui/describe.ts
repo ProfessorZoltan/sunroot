@@ -17,7 +17,7 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
   // A wonder (E5) takes a flower of 7 tiles.
   if (def.wonder) {
     return [
-      `Built over 7 tiles (one and the 6 around it) of ${def.placement.tiles.join(', ')}${def.wonder.nearWater ? ', one of them touching the river, a reservoir or a channel' : ''}.`,
+      `Built over 7 tiles (one and the 6 around it) of ${def.placement.tiles.join(', ')}${def.wonder.nearWater ? ', one of them touching the river, a reservoir or a channel' : ''}${def.wonder.minHeights > 1 ? `, climbing the slope over ${def.wonder.minHeights} heights or more` : ''}.`,
       wonderBrief(content, def.id),
       'Once a run, and it can’t be demolished.',
     ];

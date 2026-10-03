@@ -51,6 +51,7 @@ export function habitatOf(
     Object.keys(state.map.tiles).filter((key) => {
       const t = state.map.tiles[key]!;
       if (!h.tiles.includes(t.type)) return false;
+      if ((t.height ?? 0) < h.minHeight) return false;
       if (h.wild && occ.has(key)) return false;
       const near = h.nextToBuildings;
       return !near || hexNeighbors(t).some((n) => near.includes(occ.get(hexKey(n))?.type ?? ''));
@@ -127,6 +128,7 @@ export function wildlifeYields(ctx: SeasonContext): void {
     const e = a.effect;
     if (e.kind !== 'nextToTiles' && e.kind !== 'nearHabitat') continue;
     if (e.kind === 'nextToTiles' && !e.seasons.includes(season)) continue;
+    if (e.kind === 'nearHabitat' && e.seasons && !e.seasons.includes(season)) continue;
     const near = habitat.tiles.map((k) => state.map.tiles[k]!);
     for (const uid of state.priority) {
       const b = state.buildings[uid]!;

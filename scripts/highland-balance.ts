@@ -1,13 +1,15 @@
 /**
  * The Highland against the Reach (HL3): each bot's median score, Heartwood
  * share and collapses over the same seeds, with water on as their runs have
- * it. Until the Highland has its wonder (HL6), the like-for-like row is the
- * Reach without the Great Water Garden, as the coast's was in B3.
+ * it. Until the Highland had its wonder (HL6), the like-for-like row was the
+ * Reach without the Great Water Garden, as the coast's was in B3; with the
+ * Cloud Terraces, the Reach plays with its own, and wonders finished are counted.
  *
  *   npx tsx scripts/highland-balance.ts [runs, default 20] [bots, comma-separated]
  */
 import { BIOMES, biomeContent, loadBiome } from '../src/content';
 import { scoreRun, type Content, type RunState } from '../src/sim';
+import { finishedWonders } from '../src/sim/wonder';
 import { BOTS } from '../src/balance/bots';
 import { playRun } from '../src/balance/runner';
 
@@ -31,6 +33,7 @@ function play(content: Content, bot: string) {
   let heart = 0;
   let collapsed = 0;
   let year = 0;
+  let wonders = 0;
   for (let i = 0; i < N; i++) {
     let last: RunState | null = null;
     playRun(content, BOTS[bot]!, `biome-${i}`, {
@@ -43,25 +46,31 @@ function play(content: Content, bot: string) {
     if (score.tier.id === 'heartwood') heart++;
     if (s.status === 'collapsed') collapsed++;
     year += s.year;
+    if (finishedWonders(content, s).length > 0) wonders++;
   }
   return {
     median: med(scores),
     heartwood: Math.round((heart / N) * 100),
     collapsed,
     years: (year / N).toFixed(1),
+    wonders,
   };
 }
 
 const cases: [string, Content][] = [
-  ['Willow Reach, no wonder', reachWithoutWonder()],
+  ...(process.argv[4] === 'noWonder'
+    ? ([['Willow Reach, no wonder', reachWithoutWonder()]] as [string, Content][])
+    : ([['Willow Reach', biomeContent('willowReach')]] as [string, Content][])),
   ['Highland', biomeContent('highland')],
 ];
-console.log('| Bot | Biome | Median score | Heartwood | Collapsed | Mean last year |');
-console.log('| --- | --- | --- | --- | --- | --- |');
+console.log(
+  '| Bot | Biome | Median score | Heartwood | Collapsed | Mean last year | Wonder finished |',
+);
+console.log('| --- | --- | --- | --- | --- | --- | --- |');
 for (const bot of BOT_NAMES)
   for (const [name, content] of cases) {
     const r = play(content, bot);
     console.log(
-      `| ${bot} | ${name} | ${r.median} | ${r.heartwood}% | ${r.collapsed} of ${N} | ${r.years} |`,
+      `| ${bot} | ${name} | ${r.median} | ${r.heartwood}% | ${r.collapsed} of ${N} | ${r.years} | ${r.wonders} of ${N} |`,
     );
   }

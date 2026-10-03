@@ -241,7 +241,7 @@ describe("the coast's festivals", () => {
 
 describe("the coast's animals on screen", () => {
   it('each moves about its habitat, drawn in code until its art comes', async () => {
-    const { wildlifeActors, poseAt, drawCoastAnimal } = await import('../src/render/wildlifeArt');
+    const { wildlifeActors, poseAt, drawAnimal } = await import('../src/render/wildlifeArt');
     const { Graphics } = await import('pixi.js');
     const rows = [', , : _ = = = =', ', , : ^ = = = =', ', C : _ = = = =', ', , : _ = = = ='];
     let s = scenario(rows, { content: COAST, run: { water: true } });
@@ -258,7 +258,7 @@ describe("the coast's animals on screen", () => {
     ]);
     const g = new Graphics();
     for (const a of actors)
-      for (const t of [0, 4000, 9000]) drawCoastAnimal(g, a.kind, poseAt(a, t, false));
+      for (const t of [0, 4000, 9000]) drawAnimal(g, a.kind, poseAt(a, t, false));
     expect(g.bounds.width).toBeGreaterThan(0);
   });
 });

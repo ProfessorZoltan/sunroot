@@ -128,6 +128,7 @@ export {
   wonderProgress,
   wonders,
   wonderStage,
+  wonderWarmthText,
 } from './wonder';
 export {
   animals,

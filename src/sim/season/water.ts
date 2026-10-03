@@ -38,6 +38,7 @@ import {
   type Channel,
 } from '../water';
 import { explain, type SeasonContext } from './context';
+import { festivalThisSeason } from '../wildlife';
 import { loopLift } from '../combos';
 
 const units = (): WaterUnits => ({ clean: 0, nutrient: 0, grey: 0 });
@@ -120,6 +121,17 @@ export function resolveWater(ctx: SeasonContext): void {
       c.stored = cap;
     }
     add(report.in, 'flood', filled);
+  }
+  // The Snowmelt Fair: the melt fills every cistern.
+  const fair = festivalThisSeason(content, state);
+  if (fair?.fillsCisterns) {
+    let filled = 0;
+    for (const c of cisterns) {
+      const cap = defOf(content, c).water!.stores;
+      filled += cap - (c.stored ?? 0);
+      c.stored = cap;
+    }
+    add(report.in, fair.name, filled);
   }
 
   const chans = findChannels(content, state, works);

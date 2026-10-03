@@ -259,6 +259,13 @@ export const BuildingSchema = z
         nearWater: z.boolean().default(true),
         /** Its 7 tiles must include one of each of these (the Tidal Lagoon: mudflat and sea). */
         mustInclude: z.array(TileTypeSchema).default([]),
+        /** Its 7 tiles must stand at this many different heights (the Cloud Terraces: 2). */
+        minHeights: int.min(1).default(1),
+        /** Finished, homes within `range` of its centre need `heat` less each night. */
+        warms: z
+          .object({ range: int.min(1), heat: int.min(1) })
+          .strict()
+          .optional(),
         score: nonNeg,
         graftTiers: nonNeg.default(0),
       })
@@ -1355,6 +1362,8 @@ const HabitatSchema = z.discriminatedUnion('kind', [
       wild: z.boolean().default(false),
       nextToBuildings: z.array(z.string()).optional(),
       minGroup: int.min(1).default(1),
+      /** Only tiles at this height or higher (the mountain hares' high meadow). */
+      minHeight: nonNeg.default(0),
     })
     .strict(),
   /** One of these buildings, beside one of these tiles (the beavers' weir by woodland). */
@@ -1387,6 +1396,8 @@ const WildlifeEffectSchema = z.discriminatedUnion('kind', [
       buildings: z.array(z.string()).min(1),
       range: int.min(1),
       food: int.min(1),
+      /** Only in these seasons (missing: every season). */
+      seasons: z.array(z.enum(SEASONS)).min(1).optional(),
     })
     .strict(),
   /** Their arrival is what an evolution waits for (beavers and the Beaver Dam). */
@@ -1435,11 +1446,21 @@ export const FestivalSchema = z
     freeRerolls: nonNeg.default(0),
     /** The valley's animals come out on screen (Lantern Night). */
     showsWildlife: z.boolean().default(false),
-    /** These generators make this much more in each slot that season (Kite Day: the wind). */
+    /**
+     * These buildings make more that season: generators this much more energy in
+     * each slot (Kite Day: the wind), farms this much more food (Shieling Day).
+     */
     boosts: z
-      .object({ buildings: z.array(z.string()).min(1), generation: int.min(1) })
+      .object({
+        buildings: z.array(z.string()).min(1),
+        generation: nonNeg.default(0),
+        food: nonNeg.default(0),
+      })
       .strict()
+      .refine((b) => b.generation > 0 || b.food > 0, 'a boost gives energy or food')
       .optional(),
+    /** Every cistern (and anything that stores water) fills at the start of the season (Snowmelt Fair). */
+    fillsCisterns: z.boolean().default(false),
     requiresWater: z.boolean().default(true),
   })
   .strict();

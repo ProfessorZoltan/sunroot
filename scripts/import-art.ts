@@ -255,6 +255,10 @@ try {
     'seal',
     'puffin',
     'dolphin',
+    'hare',
+    'dipper',
+    'eagle',
+    'marten',
   ]);
   const festivals = new Set([
     ...biomes.flatMap((c) => c.festivals.map((f) => f.id)),
