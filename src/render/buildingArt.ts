@@ -767,6 +767,33 @@ export const BUILDING_ART: Record<string, Art> = {
       .stroke({ width: 2, color: 0x6c9fae });
     panel(g, { x: c.x + 2, y: c.y - 12 }, COLORS.solarTeal, 0x9fc6c8);
   },
+  tideMill(g, c) {
+    // A mill house on the mudflat with its pond walled off from the sea, and its wheel.
+    shadow(g, c, 14);
+    g.ellipse(c.x + 4, c.y + 5, 10, 5)
+      .fill({ color: COLORS.water })
+      .stroke({ width: 1.8, color: COLORS.stone });
+    house(g, c.x - 6, c.y - 1, 0.9, 0x6c7f86);
+    g.circle(c.x + 5, c.y - 3, 6).stroke({ width: 1.6, color: COLORS.wood });
+    for (let i = 0; i < 4; i++) {
+      const a = (i * Math.PI) / 4;
+      g.moveTo(c.x + 5 - Math.cos(a) * 6, c.y - 3 - Math.sin(a) * 6).lineTo(
+        c.x + 5 + Math.cos(a) * 6,
+        c.y - 3 + Math.sin(a) * 6,
+      );
+    }
+    g.stroke({ width: 1, color: COLORS.wood });
+  },
+  estuaryTurbine(g, c) {
+    // A low weir across the stream's mouth with turbines under a walkway, a flag on its tower.
+    shadow(g, c, 14, 4, 8);
+    g.rect(c.x - 14, c.y, 28, 5).fill({ color: COLORS.stone });
+    for (let i = -1; i <= 1; i++) g.circle(c.x + i * 8, c.y + 7, 3).fill({ color: 0x4f8196 });
+    g.rect(c.x - 2.5, c.y - 12, 5, 12).fill({ color: 0xf6eedb });
+    g.poly([c.x + 2.5, c.y - 12, c.x + 9, c.y - 10, c.x + 2.5, c.y - 8]).fill({
+      color: COLORS.leadingGold,
+    });
+  },
   rockPool(g, c) {
     shadow(g, c, 13);
     g.rect(c.x - 12, c.y - 2, 7, 9).fill({ color: COLORS.stone });

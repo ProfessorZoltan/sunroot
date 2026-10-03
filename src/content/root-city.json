@@ -180,6 +180,50 @@
         }
       ],
       "adds": "kilnLoop"
+    },
+    {
+      "id": "tidalQuarter",
+      "name": "Tidal Quarter",
+      "earnedBy": "Tide-powered runs",
+      "signature": {
+        "metric": "energyShare",
+        "full": 0.5,
+        "sources": ["tideTurbine", "waveBuoy", "tideMill", "estuaryTurbine"]
+      },
+      "green": false,
+      "perks": [
+        {
+          "text": "4 draft cards in the first season of each era",
+          "modifiers": [
+            {
+              "target": "rules",
+              "path": "eraStartDraftCards",
+              "add": 1
+            }
+          ]
+        },
+        {
+          "text": "4 draft cards in the first season of each era",
+          "modifiers": [
+            {
+              "target": "rules",
+              "path": "eraStartDraftCards",
+              "add": 1
+            }
+          ]
+        },
+        {
+          "text": "4 draft cards in the first season of each era",
+          "modifiers": [
+            {
+              "target": "rules",
+              "path": "eraStartDraftCards",
+              "add": 1
+            }
+          ]
+        }
+      ],
+      "adds": "tideMill"
     }
   ],
   "landmarks": [
@@ -218,6 +262,25 @@
           "id": "wildway",
           "path": "shape.gaps",
           "set": 1
+        }
+      ]
+    },
+    {
+      "id": "estuaryWorks",
+      "name": "Estuary Works",
+      "district": "tidalQuarter",
+      "nextTo": {
+        "districts": ["millraceQuarter"],
+        "count": 1
+      },
+      "text": "The Tidal Quarter next to the Millrace Quarter: every coast run starts with the Estuary Turbine, which turns on the tide and the stream at its mouth.",
+      "hint": "Where the mill race meets the tide.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "estuaryTurbine",
+          "path": "starter",
+          "set": true
         }
       ]
     }

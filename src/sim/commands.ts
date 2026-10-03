@@ -6,7 +6,7 @@ import type { Content } from './content/load';
 import { AUTO_RECIPE, type Resource } from './content/schema';
 import { demolish, demolishCheck } from './demolish';
 import { projectBlocked } from './projects';
-import { drawCards, isTuning } from './draft';
+import { drawCards, draftSize, isTuning } from './draft';
 import { hexKey } from './hex';
 import { canPlace } from './placement';
 import { edgeBuilding, edgeKey, hedgeProblem } from './edges';
@@ -151,7 +151,7 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
         s.stores.knowledge -= k.reroll;
         flow(s.spent, 'knowledge', 'used', 'Rerolling the draft', k.reroll);
       }
-      const count = content.rules.draftCards + (s.draft.extraBought ? 1 : 0);
+      const count = draftSize(content, s) + (s.draft.extraBought ? 1 : 0);
       s.draft.offer = drawCards(content, s, count);
       return null;
     }

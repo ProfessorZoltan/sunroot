@@ -341,6 +341,11 @@ export function resolveEnergy(ctx: SeasonContext): void {
   const storages = active.filter((b) => defOf(content, b).storage);
   const storageDef = (b: BuildingState) => defOf(content, b).storage!;
   const room = (b: BuildingState) => storageDef(b).capacity - (b.stored ?? 0);
+  // The tide fills a tide mill before anything is paid, to give in either slot.
+  for (const b of storages) {
+    const fill = Math.min(storageDef(b).tideFill, room(b));
+    if (fill > 0) setStored(b, (b.stored ?? 0) + fill);
+  }
   const discharge = (slot: Slot, amount: number) => {
     short[slot] -= amount;
     report.energy[slot].storageDischarged += amount;

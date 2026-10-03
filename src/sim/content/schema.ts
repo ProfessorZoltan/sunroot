@@ -404,6 +404,11 @@ export const BuildingSchema = z
         decayPerSeason: nonNeg.default(0),
         /** Keeps its charge between seasons; otherwise empties at season end. */
         carriesOver: z.boolean(),
+        /**
+         * Filled by the tide each season before anything is paid (the Tide Mill): this much,
+         * up to its capacity, to give in either slot.
+         */
+        tideFill: nonNeg.default(0),
       })
       .optional(),
   })
@@ -609,6 +614,8 @@ export const RulesSchema = z
     compostPerTileStep: int.min(1),
     knowledge: z.object({ reroll: nonNeg, extraCard: nonNeg, hint: nonNeg }),
     draftCards: int.min(1),
+    /** More cards in the first season of each era (the Tidal Quarter's perk). */
+    eraStartDraftCards: nonNeg.default(0),
     /** Tunings and refinements a run can take in all; past this, drafts deal blueprints only. */
     maxTunings: int.min(0).default(12),
     /** Salvage gained per unit drawn from a ruin (Repair Culture doubles it). */
@@ -767,6 +774,8 @@ const CoastMapSchema = z
     seaColumns: int.min(2),
     headlands: nonNeg,
     headlandLength: int.min(1),
+    /** Rows between headlands, at least (Sea Cliffs packs them closer). */
+    headlandSpacing: int.min(1).default(3),
     /** A shore tile is mudflat by this chance (else dune). */
     mudflatChance: z.number().min(0).max(1),
     /** A tile behind the mudflat is saltmarsh by this chance. */
@@ -782,6 +791,11 @@ const CoastMapSchema = z
     startingHarmony: nonNeg,
     /** Tiles from the sea where the camp may stand. */
     campSeaDistance: z.tuple([int.min(1), int.min(1)]),
+    /**
+     * How far beyond the mudflat the king tide reaches: 1, the saltmarsh beside it; each more
+     * ring takes in the low land (saltmarsh, dune, scrub, barren, meadow) a tile further (Big Tides).
+     */
+    kingTideReach: int.min(1).default(1),
   })
   .strict();
 

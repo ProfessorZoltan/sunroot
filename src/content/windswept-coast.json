@@ -1334,6 +1334,43 @@
       }
     },
     {
+      "id": "tideMill",
+      "name": "Tide Mill",
+      "cost": 8,
+      "workers": 0,
+      "kind": "storage",
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["mudflat"],
+        "adjacentTo": ["sea"]
+      },
+      "storage": {
+        "holds": "energy",
+        "capacity": 3,
+        "chargesFrom": ["day"],
+        "carriesOver": false,
+        "tideFill": 3
+      }
+    },
+    {
+      "id": "estuaryTurbine",
+      "name": "Estuary Turbine",
+      "cost": 9,
+      "workers": 0,
+      "kind": "energy",
+      "draftable": false,
+      "floodTolerant": true,
+      "stormProof": true,
+      "placement": {
+        "tiles": ["river"],
+        "adjacentTo": ["sea"]
+      },
+      "generation": {
+        "day": [4, 2, 3, 2],
+        "night": [4, 2, 3, 2]
+      }
+    },
+    {
       "id": "machairCroft",
       "name": "Machair Croft",
       "cost": 3,
@@ -2680,7 +2717,7 @@
     },
     {
       "id": "scavengers",
-      "name": "Scavengers' Valley",
+      "name": "Scavengers' Shore",
       "text": "Ruins hold 12 more salvage each (36 instead of 24), but every clutter costs 2 Harmony.",
       "modifiers": [
         {
@@ -2694,9 +2731,156 @@
           "set": -2
         }
       ]
+    },
+    {
+      "id": "bigTides",
+      "name": "Big Tides",
+      "text": "The king tide reaches a ring further inland, but tide turbines make 1 more energy by day and night.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "kingTideReach",
+          "set": 2
+        },
+        {
+          "target": "building",
+          "id": "tideTurbine",
+          "path": "generation.day",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "tideTurbine",
+          "path": "generation.night",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "becalmed",
+      "name": "Becalmed",
+      "text": "A still year: wind spires make 1 less energy by day and night. The Graft is one tier higher.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "windSpire",
+          "path": "generation.day",
+          "add": -1
+        },
+        {
+          "target": "building",
+          "id": "windSpire",
+          "path": "generation.night",
+          "add": -1
+        }
+      ],
+      "graftTierBonus": 1
+    },
+    {
+      "id": "fogbound",
+      "name": "Fogbound",
+      "text": "Sea fog all year: solar canopies make 1 less energy by day in every season.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "solarCanopy",
+          "path": "generation.day",
+          "add": -1
+        }
+      ]
     }
   ],
-  "regions": [],
+  "regions": [
+    {
+      "id": "theCoast",
+      "name": "The Coast",
+      "text": "The shore as it is: the sea to the east, mudflat and dunes along it, two headlands and a stream."
+    },
+    {
+      "id": "shingleSpit",
+      "name": "Shingle Spit",
+      "text": "A narrow strip of land with the sea close on one side: more sea for turbines, buoys and kelp, and less land to build on.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "seaColumns",
+          "set": 5
+        },
+        {
+          "target": "map",
+          "path": "campSeaDistance.0",
+          "set": 2
+        },
+        {
+          "target": "map",
+          "path": "campSeaDistance.1",
+          "set": 3
+        }
+      ]
+    },
+    {
+      "id": "saltmarshEstuary",
+      "name": "Saltmarsh Estuary",
+      "text": "A wide stream mouth: mudflat all along the shore and saltmarsh behind it. Rich ground for crofts and oysters, and more of it under the king tide.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "mudflatChance",
+          "set": 0.95
+        },
+        {
+          "target": "map",
+          "path": "saltmarshChance",
+          "set": 0.95
+        }
+      ]
+    },
+    {
+      "id": "seaCliffs",
+      "name": "Sea Cliffs",
+      "text": "Rocky headlands all along the shore and little mudflat: wind everywhere and gales with it. The Graft is one tier higher.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "headlands",
+          "set": 4
+        },
+        {
+          "target": "map",
+          "path": "headlandLength",
+          "set": 3
+        },
+        {
+          "target": "map",
+          "path": "mudflatChance",
+          "set": 0.25
+        },
+        {
+          "target": "map",
+          "path": "headlandSpacing",
+          "set": 2
+        }
+      ],
+      "graftTierBonus": 1
+    },
+    {
+      "id": "drownedHarbour",
+      "name": "Drowned Harbour",
+      "text": "The old harbour town: ruins all along the shore, more of them and fuller (30 salvage each).",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "ruins",
+          "set": 7
+        },
+        {
+          "target": "map",
+          "path": "ruinSalvage",
+          "set": 30
+        }
+      ]
+    }
+  ],
   "eraGoals": [
     {
       "era": 1,

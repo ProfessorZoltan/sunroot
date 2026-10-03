@@ -214,7 +214,7 @@ function generateCoast(content: Content, gen: CoastMapGen, seed: string): Genera
   const rows = shuffled(
     rng,
     Array.from({ length: Math.max(0, gen.height - 4) }, (_, i) => i + 2),
-  ).filter((r, i, all) => all.slice(0, i).every((o) => Math.abs(o - r) > 2));
+  ).filter((r, i, all) => all.slice(0, i).every((o) => Math.abs(o - r) >= gen.headlandSpacing));
   for (const row of rows.slice(0, gen.headlands)) {
     const from = shoreCol[row]! - 1;
     for (let col = from; col < Math.min(gen.width - 1, from + 1 + gen.headlandLength); col++)
@@ -316,14 +316,19 @@ function generateCoast(content: Content, gen: CoastMapGen, seed: string): Genera
 
   placeGreenLand(content, rng, tiles, order, campKey);
 
-  // The king tide reaches the mudflat, then the saltmarsh beside it, nearest the sea first.
+  // The king tide reaches the mudflat, then the saltmarsh beside it, nearest the sea first; with
+  // a longer reach (Big Tides), the low land a ring or more further, never the camp.
+  const mudflats = order.filter((k) => tiles[k]!.type === 'mudflat').map((k) => tiles[k]!);
+  const fromMudflat = (t: Tile) => Math.min(...mudflats.map((m) => hexDistance(m, t)));
+  const low = ['saltmarsh', 'dune', 'scrub', 'barren', 'meadow'];
   const floodOrder = order
     .filter((k) => {
       const t = tiles[k]!;
-      return (
-        t.type === 'mudflat' ||
-        (t.type === 'saltmarsh' && hexNeighbors(t).some((n) => tile(n)?.type === 'mudflat'))
-      );
+      if (t.type === 'mudflat') return true;
+      if (k === campKey) return false;
+      const d = fromMudflat(t);
+      if (gen.kingTideReach === 1) return d === 1 && t.type === 'saltmarsh';
+      return d <= gen.kingTideReach && low.includes(t.type);
     })
     .sort((a, b) => fromSea(tiles[a]!) - fromSea(tiles[b]!) || order.indexOf(a) - order.indexOf(b));
 

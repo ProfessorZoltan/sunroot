@@ -103,6 +103,12 @@ export function drawCards(
   return [...cards, ...shuffled(state.rng, more).slice(0, count - cards.length)];
 }
 
+/** Cards a season's draft deals: more in the first season of an era, with the Tidal Quarter. */
+export function draftSize(content: Content, state: RunState): number {
+  const startsEra = state.turn % (content.rules.yearsPerEra * 4) === 0;
+  return content.rules.draftCards + (startsEra ? content.rules.eraStartDraftCards : 0);
+}
+
 /** Deals the season's offer: fixed cards in the guided first year, otherwise random. */
 export function dealOffer(content: Content, state: RunState): string[] {
   if (state.options.guided && state.year === 1) {
@@ -110,5 +116,5 @@ export function dealOffer(content: Content, state: RunState): string[] {
       (id) => !state.unlocked.includes(id),
     );
   }
-  return drawCards(content, state, content.rules.draftCards);
+  return drawCards(content, state, draftSize(content, state));
 }
