@@ -58,6 +58,7 @@ export function resolveWater(ctx: SeasonContext): void {
     channels: [],
     uses: {},
     cleaned: {},
+    lifted: {},
     greyToRiver: 0,
     in: {},
     out: {},
@@ -452,8 +453,10 @@ export function resolveWater(ctx: SeasonContext): void {
     for (const q of WATER_QUALITIES) pool[q] += stranded[q];
     for (const [p, n] of lifted)
       for (const [uid, at] of pumpOf)
-        if (at.channel === c && at.position === p)
+        if (at.channel === c && at.position === p) {
           explain(ctx, state.buildings[uid]!, `water: lifted ${n} up a step`);
+          report.lifted![uid] = (report.lifted![uid] ?? 0) + n;
+        }
     let running = 0;
     r.carried = ch.keys.map((_, p) => (running += inAt[p]! - outAt[p]!));
     r.carriedBy = r.carried.map((n, p) => ({

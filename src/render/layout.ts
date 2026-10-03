@@ -7,6 +7,9 @@
  * art (docs/ART.md): the slanted edges keep their 30° slope, and the vertical
  * sides are SIDE_FACTOR of a regular hexagon's. The tiles still fit together
  * edge to edge.
+ *
+ * Tiles with a height (the Highland) are raised LIFT px a step: everything drawn
+ * at a tile's centre rises with it, and the map view fills the cliff beneath.
  */
 import { hexKey, hexNeighbors, hexesWithin, type Hex } from '../sim/hex';
 import type { MapState } from '../sim/types';
@@ -30,12 +33,51 @@ export interface Point {
   y: number;
 }
 
-export function hexToPixel(h: Hex): Point {
+/** How far a tile is raised for each step of height. */
+export const LIFT = 7;
+
+/** The heights of the land on show, by tile key (empty for level land). */
+let heights = new Map<string, number>();
+
+/** Sets the land's heights (the map view, whenever the map it shows changes). */
+export function setHeights(map: MapState | null): void {
+  heights = new Map();
+  if (!map) return;
+  for (const [key, t] of Object.entries(map.tiles)) if (t.height) heights.set(key, t.height);
+}
+
+/** How far a tile is raised, in px. */
+export function liftOf(h: Hex): number {
+  return heights.size === 0 ? 0 : (heights.get(hexKey(h)) ?? 0) * LIFT;
+}
+
+/** A tile's centre on level ground, before it is raised. */
+export function groundPixel(h: Hex): Point {
   return { x: HEX_SPACING * SQRT3 * (h.q + h.r / 2), y: HEX_SPACING * ROW_STEP * h.r };
 }
 
-/** The hex under a point: the nearest centre's, checked against its neighbours' outlines. */
+/** A tile's centre as drawn: raised by its height. */
+export function hexToPixel(h: Hex): Point {
+  const p = groundPixel(h);
+  return heights.size === 0 ? p : { x: p.x, y: p.y - liftOf(h) };
+}
+
+/**
+ * The hex under a point. On raised land, the front-most tile whose raised outline holds the
+ * point (tiles are drawn row by row, so a raised tile in front covers the one behind it).
+ */
 export function pixelToHex(p: Point): Hex {
+  const level = levelHex(p);
+  if (heights.size === 0) return level;
+  // Raised tiles move up the screen, never by more than a row: look in front of the guess too.
+  const near = hexesWithin(level, 2)
+    .filter((h) => inside(p, h))
+    .sort((a, b) => b.r - a.r || a.q - b.q);
+  return near[0] ?? level;
+}
+
+/** The hex under a point on level land: the nearest centre's, checked against its neighbours'. */
+function levelHex(p: Point): Hex {
   const r = p.y / (HEX_SPACING * ROW_STEP);
   const q = p.x / (HEX_SPACING * SQRT3) - r / 2;
   const s = -q - r;
@@ -49,12 +91,13 @@ export function pixelToHex(p: Point): Hex {
   else if (dr > ds) rr = -rq - rs;
   const guess = { q: rq + 0, r: rr + 0 };
   // Rounding is exact for regular hexes; near a flattened hex's corners, a neighbour may hold the point.
-  if (inside(p, guess)) return guess;
-  return hexNeighbors(guess).find((n) => inside(p, n)) ?? guess;
+  if (inside(p, guess, groundPixel)) return guess;
+  return hexNeighbors(guess).find((n) => inside(p, n, groundPixel)) ?? guess;
 }
 
-function inside(p: Point, h: Hex): boolean {
-  const c = hexToPixel(h);
+/** Whether the point is in the hex's outline, centred where `at` puts it (raised, by default). */
+function inside(p: Point, h: Hex, at: (h: Hex) => Point = hexToPixel): boolean {
+  const c = at(h);
   const dx = Math.abs(p.x - c.x) / HEX_SPACING;
   const dy = Math.abs(p.y - c.y) / HEX_SPACING;
   const w = SQRT3 / 2;

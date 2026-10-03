@@ -85,6 +85,7 @@ describe('water flows only downhill', () => {
     const got = [3, 4, 5].map((c) => watered(s, c, 0));
     expect(got.reduce((a, b) => a + b, 0)).toBe(2);
     expect(s.lastReport!.math[uidAt(s, 3, 2)]).toContain('water: lifted 2 up a step');
+    expect(s.lastReport!.water!.lifted![uidAt(s, 3, 2)]).toBe(2);
   });
 
   it('a rise of two steps carries nothing, even with a pump', () => {

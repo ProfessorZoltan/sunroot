@@ -23,17 +23,19 @@ import {
   fogHexes,
   hexCorners,
   hexToPixel,
+  liftOf,
   pixelToHex,
+  setHeights,
   type Bounds,
   type Point,
 } from './layout';
 import { COLORS } from './palette';
 import { ResolutionPlayer } from './resolution';
 import type { Mark } from '../game/marks';
-import { drawMarkBadges, drawMarkTiles } from './markArt';
+import { drawLift, drawMarkBadges, drawMarkTiles, drawSnowCap } from './markArt';
 import { ambientFor, drawAmbient, type Ambient } from './ambient';
 import { drawBird, drawDeer, drawOtter, drawSeason, wildlifeFor, type Wildlife } from './seasonArt';
-import { dashedLine, drawFogTile, drawTile } from './tileArt';
+import { dashedLine, drawCliff, drawFogTile, drawTile } from './tileArt';
 import {
   artScale,
   artSprite,
@@ -258,6 +260,8 @@ export class MapView {
 
   /** Redraws whatever changed in the run state. */
   setState(state: RunState): void {
+    // Raised land (the Highland): everything drawn at a tile rises with it.
+    setHeights(state.map);
     const signature = Object.values(state.map.tiles)
       .map((t) => t.type)
       .join(',');
@@ -760,6 +764,12 @@ export class MapView {
         procedural = null;
         continue;
       }
+      // A raised tile stands on its cliff, drawn first so the tile covers its top.
+      const lift = liftOf(tile);
+      if (lift > 0) {
+        if (!procedural) this.tileLayer.addChild((procedural = new Graphics()));
+        drawCliff(procedural, c, lift);
+      }
       const own = grounded.get(key);
       const texture = own
         ? buildingTexture(own, state.season)
@@ -937,6 +947,17 @@ export class MapView {
       if (b.damage) drawCondition(g, c, 'damaged');
       // While the season resolves, blackouts show when night falls.
       else if (report?.blackouts.includes(b.uid) && !this.player) drawCondition(g, c, 'dark');
+      // The Highland: a pump station that lifted water last season shows it going up its step;
+      // panels high up are snowed under in the seasons they make nothing.
+      const lifted = report?.water?.lifted?.[b.uid] ?? 0;
+      if (lifted > 0) drawLift(g, c, lifted);
+      const snow = this.content.byId[b.type]?.idleAtHeight;
+      if (
+        snow &&
+        snow.seasons.includes(state.season) &&
+        (state.map.tiles[hexKey(b.at)]?.height ?? 0) >= snow.from
+      )
+        drawSnowCap(g, c);
     }
     drawHedgesUpTo(null);
     this.built.updateCacheTexture();

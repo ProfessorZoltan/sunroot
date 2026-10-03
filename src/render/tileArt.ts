@@ -1,7 +1,7 @@
 /** Procedural papercraft tiles: a darker side for depth, a flat top, and a few details. */
 import type { Graphics } from 'pixi.js';
 import type { Tile } from '../sim/types';
-import { HEX_RADIUS, TILE_DEPTH, hexCorners, tileRandom, type Point } from './layout';
+import { HEX_RADIUS, LIFT, TILE_DEPTH, hexCorners, tileRandom, type Point } from './layout';
 import { COLORS, TILE_COLORS } from './palette';
 
 export function drawFogTile(g: Graphics, center: Point): void {
@@ -16,6 +16,38 @@ export function drawTile(g: Graphics, tile: Tile, center: Point, key: string): v
   g.poly(hexCorners(center)).fill({ color: colors.top }).stroke({ width: 1.6, color: COLORS.gap });
   drawDetails(g, tile, center, tileRandom(key));
 }
+
+/**
+ * The cliff under a raised tile (the Highland): from its raised outline down to the ground it
+ * stands on, banded a step at a time. Drawn before the tile, so the tile covers its top.
+ */
+export function drawCliff(g: Graphics, center: Point, lift: number): void {
+  if (lift <= 0) return;
+  const top = hexCorners(center);
+  const ground = hexCorners({ x: center.x, y: center.y + lift + TILE_DEPTH });
+  // Its silhouette: the raised hex's upper corners, the ground hex's lower ones.
+  const at = (c: number[], i: number) => [c[i * 2]!, c[i * 2 + 1]!];
+  g.poly([
+    ...at(top, 4),
+    ...at(top, 5),
+    ...at(top, 0),
+    ...at(ground, 1),
+    ...at(ground, 2),
+    ...at(ground, 3),
+  ])
+    .fill({ color: CLIFF.face })
+    .stroke({ width: 1, color: CLIFF.line, alpha: 0.6 });
+  // A band of rock for each step of height, along the face we see.
+  for (let y = LIFT; y < lift + TILE_DEPTH; y += LIFT) {
+    const band = hexCorners({ x: center.x, y: center.y + y });
+    g.moveTo(...(at(band, 3) as [number, number]))
+      .lineTo(...(at(band, 2) as [number, number]))
+      .lineTo(...(at(band, 1) as [number, number]))
+      .stroke({ width: 1, color: CLIFF.line, alpha: 0.5 });
+  }
+}
+
+const CLIFF = { face: 0x9a9483, line: 0x6f6a5d };
 
 /** A point inside the hex top, away from the edge. */
 function spot(rand: () => number, center: Point, spread = HEX_RADIUS * 0.55): Point {

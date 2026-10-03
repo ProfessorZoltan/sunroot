@@ -3,6 +3,9 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: 'e2e',
   timeout: 30_000,
+  // The map shows once every texture of the hand-made art has loaded: on a cold start with
+  // several browsers at once (software WebGL), that can take longer than the default 5 s.
+  expect: { timeout: 15_000 },
   use: {
     baseURL: 'http://localhost:4174',
     viewport: { width: 1440, height: 900 },

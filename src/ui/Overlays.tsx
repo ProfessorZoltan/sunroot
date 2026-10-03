@@ -82,6 +82,12 @@ export function MapTip({ store, view }: { store: GameStore; view: MapView | null
     >
       <div class="strong">{title}</div>
       {b && <div class="quiet small">on {tile.type} · click for details</div>}
+      {tile.height !== undefined && tile.height > 0 && (
+        <div class="small">
+          Height {tile.height}
+          {tile.charred ? ' · charred: +1 food for a farm' : ''}
+        </div>
+      )}
       {tile.salvage !== undefined && <div class="small">{tile.salvage} salvage left</div>}
       {marks.map((m) => (
         <div class={`small mark-line${m.coming ? ' coming' : ''}`}>{m.text}</div>

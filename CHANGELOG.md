@@ -1,5 +1,15 @@
 # Changelog
 
+## The Highland on screen
+
+- A Highland run can be played with **`?biome=highland`**, a visit like the coast's was, until
+  Root City sends expeditions there.
+- **The land has height**: tiles stand higher a step at a time, on cliffs, and the pointer
+  finds the raised tile it is over. Hovering a tile names its height.
+- A pump station shows the water it lifted up its step; panels snowed under up high wear snow.
+- An art guide for the Highland: its tiles, buildings and evolutions, with its wonder, animals
+  and festivals to come.
+
 ## The Highland: combos, cards and balance
 
 - The Highland's own **combos**: the Carbon Loop (coppice, biochar kiln, farm), the Meltwater

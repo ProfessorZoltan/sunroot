@@ -23,16 +23,18 @@ Highland's tiles and buildings (their request comes with HL4).
 
 ## Order
 
-| Milestone                   | Needs art? | What to draw first                            | Source                                      |
-| --------------------------- | ---------- | --------------------------------------------- | ------------------------------------------- |
-| E1. Water in the simulation | No         | —                                             | EXPANSION.md, Build plan                    |
-| E2. Water on screen         | Yes        | Irrigation Channel pieces and the Sluice Gate | EXPANSION.md, Build plan                    |
-| E3. Willow Reach v2 content | Yes        | 6 new buildings and 7 evolutions              | EXPANSION.md, New buildings; New evolutions |
-| E4. Wildlife and festivals  | Yes        | 4 animals, 3 festival cards, 2 props          | EXPANSION.md, Bigger systems                |
-| E5. Great Water Garden      | Yes        | The 7-hex wonder and its build stages         | EXPANSION.md, Bigger systems                |
-| B4. The coast on screen     | Yes        | Its 4 tiles, then the Croft and Tide Turbine  | proposals/windswept-coast.md, Build plan    |
-| B5. The coast in Root City  | Yes        | The Tide Mill and the Estuary Turbine         | proposals/windswept-coast.md, Build plan    |
-| B6. The coast's wonder      | Yes        | The Tidal Lagoon, 4 animals, 2 festival cards | proposals/windswept-coast.md, Build plan    |
+| Milestone                   | Needs art? | What to draw first                                                    | Source                                      |
+| --------------------------- | ---------- | --------------------------------------------------------------------- | ------------------------------------------- |
+| E1. Water in the simulation | No         | —                                                                     | EXPANSION.md, Build plan                    |
+| E2. Water on screen         | Yes        | Irrigation Channel pieces and the Sluice Gate                         | EXPANSION.md, Build plan                    |
+| E3. Willow Reach v2 content | Yes        | 6 new buildings and 7 evolutions                                      | EXPANSION.md, New buildings; New evolutions |
+| E4. Wildlife and festivals  | Yes        | 4 animals, 3 festival cards, 2 props                                  | EXPANSION.md, Bigger systems                |
+| E5. Great Water Garden      | Yes        | The 7-hex wonder and its build stages                                 | EXPANSION.md, Bigger systems                |
+| B4. The coast on screen     | Yes        | Its 4 tiles, then the Croft and Tide Turbine                          | proposals/windswept-coast.md, Build plan    |
+| B5. The coast in Root City  | Yes        | The Tide Mill and the Estuary Turbine                                 | proposals/windswept-coast.md, Build plan    |
+| B6. The coast's wonder      | Yes        | The Tidal Lagoon, 4 animals, 2 festival cards                         | proposals/windswept-coast.md, Build plan    |
+| HL4. The Highland on screen | Yes        | Its 2 tiles, then the Terrace Farm, Glen Farm, Hill Turbine and Bothy | proposals/highland.md, Build plan           |
+| HL6. The Highland's wonder  | Yes        | The Cloud Terraces, 4 animals, 2 festival cards                       | proposals/highland.md, Build plan           |
 
 ## The standard frame (reminder)
 
@@ -242,6 +244,78 @@ rest on `tern.rest`; seals swim on frames 1 and 2 and rest hauled out; puffins a
 dolphins rise and leap through 1 to 3 and show 1 when still. The Tidal Lagoon gives its icon from
 the finished frame, as the Garden does. The coast's Lantern Night uses the Reach's card, and its
 festivals the Reach's bunting and lanterns.
+
+## The Highland (HL4 and HL6)
+
+The third biome ([proposals/highland.md](proposals/highland.md)): a glen with a stream falling
+down it, slopes climbing to crags, bogs and old mines on the shoulders. Everything here is drawn
+in code until hand-made art comes, so any piece can arrive on its own. Same frame, light and
+seasons as everything else: a summer `id.png` and a winter `id.winter.png`, delivered to the
+usual folders of `art/incoming/` (`tiles/`, `buildings/`, `wildlife/`, `festivals/`,
+`wonders/`). A Highland winter is white: snow lies on everything at height 2 and above, and the
+stream runs thin between icy edges.
+
+**Height.** Tiles stand at heights 0 to 3, and the game raises each tile 7 px a step at map
+scale (56 px on the 512 × 640 frame) and draws the cliff beneath it, banded a step at a time. So
+draw every tile and building as on level ground, on the standard frame: **don't paint height,
+cliffs or a deeper side band.** Tiles shared with the Reach (barren, scrub, meadow, woodland,
+ruin) use the Reach's art unless you give the glen its own look (below).
+
+The game also draws these in code, so don't paint them: the cliffs, the snowmelt's flood on the
+glen floor, the pump's lift (a blue chevron and drops at a pump station that lifted water), snow
+lying on a building that is snowed under (a solar canopy high up in winter), lit windows from a
+`.lit.png` (as before), and a rotor's turn from a `.rotor.png` (as the Wind Spire's).
+
+### Tiles
+
+| Tile             | Id                                  | What it is                                    | Notes                                                                                                                                          | Source                        |
+| ---------------- | ----------------------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| Crag             | `crag`                              | Bare rock on the tops (height 3)              | Grey rock in broken slabs, lichen, a few tufts in the cracks. Two summer looks, `crag.png` and `crag-2.png`; winter: snow in every hollow.     | proposals/highland.md         |
+| Bog              | `bog`                               | Blanket bog on the shoulders (heights 1 to 2) | Olive-brown peat with dark pools, white cotton grass and red sphagnum. Two summer looks; winter: the pools frozen, the cotton grass gone.      | proposals/highland.md         |
+| The glen's looks | `meadow.glen.png`, `scrub.glen.png` | Optional: the glen's own look for these types | As the coast's headlands (`hill.coast.png`): the game uses them in the Highland in place of the Reach's. Hill pasture, heather, bracken, rock. | DECISIONS.md, The coast's art |
+
+### Buildings
+
+| Name         | Id            | What it is                                      | Files                                                                      | Notes                                                                                                                                                                       | Source                           |
+| ------------ | ------------- | ----------------------------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| Terrace Farm | `terraceFarm` | Stepped fields held up the slope by stone walls | `terraceFarm.png`, `.winter`                                               | Carries its own ground, as the Croft: 3 narrow strips of oats and potatoes, each held by a drystone wall, stepping across the tile. Winter: bare strips, snow on the walls. | proposals/highland.md, Buildings |
+| Glen Farm    | `glenFarm`    | A field on the flat floor by the stream         | `glenFarm.png`, `.winter`                                                  | Carries its own ground: a broad field of barley in rows, a fence. The snowmelt floods it each spring; it takes no harm.                                                     | proposals/highland.md, Buildings |
+| Shieling     | `shieling`    | A summer hut on the high pasture                | `shieling.png`, `.winter`                                                  | Groundless: a low stone hut with a turf roof, a pen, 2 or 3 sheep. Winter: empty, the door shut, snow on the turf.                                                          | proposals/highland.md, Buildings |
+| Hill Turbine | `hillTurbine` | A small hydro wheel where the stream drops      | `hillTurbine.png`, `.winter`, `hillTurbine.rotor.png`                      | Beside the stream: a stone wheel-house, a wooden wheel or a little turbine on its side. The rotor turns slowly; give it an orange hub (the importer finds its pivot there). | proposals/highland.md, Energy    |
+| Bothy        | `bothy`       | A stone home with its own stove                 | `bothy.png`, `.winter`, `bothy.lit.png`                                    | Groundless: thick stone walls, a slate roof, a chimney with a cowl, a log pile. The lit file lights its 2 small windows.                                                    | proposals/highland.md, Buildings |
+| Pump Station | `pumpStation` | A pump that lifts water up a step               | `pumpStation.png`, `.winter`                                               | A small pump house beside a channel, a pipe climbing out of it. The game draws the lift.                                                                                    | EXPANSION.md, Pump Station       |
+| Biochar Kiln | `biocharKiln` | A kiln that chars wood for the fields           | `biocharKiln.png`, `.winter`                                               | A domed earth-and-iron kiln, a stack of cut wood, a sack of black char. No smoke: just the vent.                                                                            | EXPANSION.md, Biochar Kiln       |
+| Snow Fence   | `snowFence`   | A slatted fence along an edge, against drifts   | `snowFence.edge.e.png`, `.edge.ne.png`, `.edge.nw.png`, and each `.winter` | Along tile edges, exactly as the Hedgerow's pieces (above): wooden slats on posts, about 50 px high. Winter: a drift piled against one side.                                | proposals/highland.md, Buildings |
+| Rewetted Bog | `rewettedBog` | A bog with its drains blocked, wet again        | `rewettedBog.png`, `.winter`                                               | Carries its own bog tile: bright pools behind small peat dams, sphagnum, a dragonfly.                                                                                       | proposals/highland.md, Buildings |
+| Lookout      | `lookout`     | A stone tower on a crag, watching the weather   | `lookout.png`, `.winter`, `lookout.lit.png`                                | Carries its own crag tile. A short round tower with a flag and a horn; the lit file lights its top window.                                                                  | proposals/highland.md, Buildings |
+
+### Evolutions
+
+| Name           | Id              | Grows from   | What it is                                            | Files                                         | Notes                                                                                   | Source                        |
+| -------------- | --------------- | ------------ | ----------------------------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------- |
+| Hanging Garden | `hangingGarden` | Terrace Farm | The terraces in flower among other terraces           | `hangingGarden.png`, `.winter`                | As the Terrace Farm, with flowers along the walls and a hive.                           | proposals/highland.md, Combos |
+| Cascade        | `cascade`       | Hill Turbine | Two wheels where the water falls from one to the next | `cascade.png`, `.winter`, `cascade.rotor.png` | As the Hill Turbine, with white water spilling down past it.                            | proposals/highland.md, Combos |
+| Bat Roost      | `batRoost`      | Salvage Yard | An old mine left to the bats                          | `batRoost.png`, `.winter`                     | Carries its own ruin tile: a timbered mine mouth grown over with heather, bats at dusk. | proposals/highland.md, Combos |
+
+### With HL6: the wonder, animals and festivals
+
+Not in the game yet; listed so one commission can cover the Highland. Their behaviour may still
+change before HL6, so check this guide again before painting them. The importer takes them once
+HL6 adds them to the game (it refuses animals, festivals and wonders the game doesn't have); until
+then, keep them aside in their own folder.
+
+| Name           | Id              | Files                                                                      | Notes                                                                                                                                                                                           | Source                           |
+| -------------- | --------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| Cloud Terraces | `cloudTerraces` | `cloudTerraces.png`, `.winter`, `cloudTerraces.stage1.png` … `.stage3.png` | On the Great Water Garden's frame (1536 × 1280): terraced gardens over 7 tiles on a slope, mist below, a glasshouse at the centre. Stages: walls staked out; walls built; the terraces planted. | proposals/highland.md, Wonder    |
+| Mountain hares | `hares`         | `hare.run.1.png`, `hare.run.2.png`, `hare.sit.png`, and each `.winter`     | Brown in summer, white in winter.                                                                                                                                                               | proposals/highland.md, Wildlife  |
+| Dippers        | `dippers`       | `dipper.1.png`, `dipper.2.png`                                             | A small dark bird with a white bib, bobbing on a stone in the stream.                                                                                                                           | proposals/highland.md, Wildlife  |
+| Golden eagles  | `eagles`        | `eagle.soar.1.png`, `eagle.soar.2.png`, `eagle.perch.png`                  | Soaring over the crags; perched on a lookout.                                                                                                                                                   | proposals/highland.md, Wildlife  |
+| Pine martens   | `martens`       | `marten.1.png`, `marten.2.png`                                             | Among the pines.                                                                                                                                                                                | proposals/highland.md, Wildlife  |
+| Snowmelt Fair  | `snowmeltFair`  | `snowmeltFair.card.png`                                                    | Spring: stalls on the glen floor, the stream running high.                                                                                                                                      | proposals/highland.md, Festivals |
+| Shieling Day   | `shielingDay`   | `shielingDay.card.png`                                                     | Summer: people walking the flocks up to the high pasture.                                                                                                                                       | proposals/highland.md, Festivals |
+
+Animals follow the wildlife frame above (128 × 128, bottom-centre anchor, facing right). The
+Highland's Lantern Night uses the Reach's card, and its festivals the Reach's bunting and lanterns.
 
 ## Optional: interface marks
 

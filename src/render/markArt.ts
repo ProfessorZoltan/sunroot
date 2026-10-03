@@ -222,3 +222,23 @@ function icon(g: Graphics, kind: MarkKind, p: Point, ink: number): void {
       break;
   }
 }
+
+/** Water going up a step at a pump station (the Highland): a chevron and a drop per unit. */
+export function drawLift(g: Graphics, c: Point, units: number): void {
+  const x = c.x + HEX_RADIUS * 0.45;
+  const y = c.y - HEX_RADIUS * 0.15;
+  g.moveTo(x - 4, y + 2)
+    .lineTo(x, y - 3)
+    .lineTo(x + 4, y + 2)
+    .stroke({ width: 2, color: LIFT_BLUE, cap: 'round', join: 'round' });
+  for (let i = 0; i < Math.min(units, 3); i++)
+    g.circle(x - 3 + i * 3, y + 6, 1.3).fill({ color: LIFT_BLUE });
+}
+
+/** Snow lying on a building that makes nothing under it (high panels in winter). */
+export function drawSnowCap(g: Graphics, c: Point): void {
+  g.ellipse(c.x, c.y - 8, HEX_RADIUS * 0.42, 4).fill({ color: 0xf7f9fb, alpha: 0.95 });
+  g.ellipse(c.x - 4, c.y - 10, HEX_RADIUS * 0.22, 2.5).fill({ color: 0xffffff });
+}
+
+const LIFT_BLUE = 0x3f8fb4;
