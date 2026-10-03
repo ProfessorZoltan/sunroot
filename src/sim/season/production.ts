@@ -6,6 +6,7 @@ import {
   byPriority,
   defOf,
   harmonyMultiplier,
+  heightAt,
   improveTile,
   neighborBuildings,
   neighborTiles,
@@ -86,6 +87,16 @@ export function generate(ctx: SeasonContext): void {
       adjust += on.add;
       notes.push(`on ${tileAt(state, b.at)!.type} +${on.add}`);
     }
+    // The Highland: more wind up high; snow on the panels up high.
+    const high = heightAt(state, b.at);
+    const up = def.generationAtHeight;
+    if (up && high >= up.from) {
+      adjust += up.add;
+      notes.push(`at height ${high} +${up.add}`);
+    }
+    const snow = def.idleAtHeight;
+    const snowed = snow !== undefined && high >= snow.from && snow.seasons.includes(state.season);
+    if (snowed) notes.push(`under snow at height ${high}: nothing this ${state.season}`);
     // Sea fog dims the sun.
     const fog = ctx.fog ? (content.events.fog?.solarPenalty ?? 0) : 0;
     if (def.fogged && fog > 0) {
@@ -118,7 +129,7 @@ export function generate(ctx: SeasonContext): void {
           ? Math.ceil(flow / content.rules.water.wheelFlowPerEnergy)
           : output[slot][si]!;
       // Adjustments apply only to slots where the source runs at all.
-      const amount = base > 0 ? Math.max(0, base + adjust) : 0;
+      const amount = base > 0 && !snowed ? Math.max(0, base + adjust) : 0;
       if (makesHeat) addHeat(ctx, slot, b, amount);
       else addSupply(ctx, slot, b, amount);
       const what = makesHeat ? 'heat' : 'energy';

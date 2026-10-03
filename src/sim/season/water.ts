@@ -25,7 +25,7 @@
 import type { BuildingDef, WaterQuality } from '../content/schema';
 import { SEASONS, WATER_QUALITIES } from '../content/schema';
 import { hexKey, hexNeighbors } from '../hex';
-import { byPriority, defOf, neighborBuildings, tileAt } from '../queries';
+import { byPriority, defOf, heightAt, neighborBuildings, tileAt } from '../queries';
 import type { BuildingState, ChannelReport, WaterReport, WaterUnits, WaterUse } from '../types';
 import {
   channels as findChannels,
@@ -121,14 +121,32 @@ export function resolveWater(ctx: SeasonContext): void {
   }
 
   const chans = findChannels(content, state, works);
+  // Pump stations at work, and the rise each serves.
+  const pumps = order.filter((b) => works(b) && defOf(content, b).pump);
+  const pumpOf = new Map<string, Attachment>();
+  const tiles = (key: string) => state.map.tiles[key]!;
+  /** The water level a channel starts from: the river or lake beside its intake. */
+  const intakeHeightOf = (ch: Channel): number => {
+    if (!ch.intake) return Infinity;
+    const first = tiles(ch.keys[0]!);
+    const water = hexNeighbors(first)
+      .map((n) => state.map.tiles[hexKey(n)])
+      .filter((t) => t && (t.type === 'river' || t.type === 'reservoir'));
+    return water.length > 0 ? Math.min(...water.map((t) => t!.height ?? 0)) : 0;
+  };
   const channelAt = new Map<string, Attachment>();
   chans.forEach((ch, c) =>
     ch.keys.forEach((key, position) => channelAt.set(key, { channel: c, position })),
   );
-  /** The channel a building touches first: lowest channel, then nearest its intake. */
+  /**
+   * The channel a building touches first: lowest channel, then nearest its intake. Water runs
+   * only downhill, so a building draws only from channel at its own height or above.
+   */
   const attachment = (b: BuildingState): Attachment | null => {
     let best: Attachment | null = null;
+    const height = heightAt(state, b.at);
     for (const n of hexNeighbors(b.at).map(hexKey)) {
+      if ((state.map.tiles[n]?.height ?? 0) < height) continue;
       const a = channelAt.get(n);
       if (
         a &&
@@ -285,7 +303,41 @@ export function resolveWater(ctx: SeasonContext): void {
     const evaporation =
       evaporating && !covered ? Math.floor(ch.keys.length / rules.evaporation.tilesPerUnit) : 0;
     let room = rules.channelCapacity;
-    const fresh = (n: number): number => {
+    // Rises along the channel (the Highland): water crosses one only as far as the working pump
+    // stations beside it lift it; a rise of more than a step, or with no pump, carries nothing.
+    const heights = ch.keys.map((k) => heightAt(state, tiles(k)));
+    const intakeHeight = intakeHeightOf(ch);
+    const lift = ch.keys.map(() => Infinity);
+    const usedPumps = new Set<string>();
+    heights.forEach((h, p) => {
+      const rise = h - (p === 0 ? intakeHeight : heights[p - 1]!);
+      if (rise <= 0) return;
+      let cap = 0;
+      if (rise === 1)
+        for (const pump of pumps) {
+          if (usedPumps.has(pump.uid)) continue;
+          if (!hexNeighbors(pump.at).some((n) => hexKey(n) === ch.keys[p])) continue;
+          usedPumps.add(pump.uid);
+          cap += defOf(content, pump).pump!.lift;
+          pumpOf.set(pump.uid, { channel: c, position: p });
+        }
+      lift[p] = cap;
+    });
+    /** What can still cross every rise after `from` and up to `to`. */
+    const canCross = (from: number, to: number) => {
+      let m = Infinity;
+      for (let p = from + 1; p <= to; p++) m = Math.min(m, lift[p]!);
+      return m;
+    };
+    const cross = (from: number, to: number, n: number) => {
+      for (let p = from + 1; p <= to; p++) {
+        if (lift[p] === Infinity || n === 0) continue;
+        lift[p]! -= n;
+        lifted.set(p, (lifted.get(p) ?? 0) + n);
+      }
+    };
+    const lifted = new Map<number, number>();
+    const fresh = (n: number, to = 0): number => {
       if (r.evaporated < evaporation) {
         const e = take(Math.min(evaporation - r.evaporated, room));
         r.evaporated += e;
@@ -295,12 +347,15 @@ export function resolveWater(ctx: SeasonContext): void {
         outAt[0]! += e;
         if (r.evaporated < evaporation) return 0;
       }
-      const got = take(Math.min(n, room));
+      const got = take(Math.min(n, room, canCross(-1, to)));
+      cross(-1, to, got);
       r.drawn += got;
       room -= got;
       inAt[0]! += got;
       return got;
     };
+    // Water in the channel that can't go up a rise stays below it, and leaves with the rest.
+    const stranded = units();
     const pool = units();
     const at = (b: BuildingState) => {
       const a = attachment(b);
@@ -324,6 +379,16 @@ export function resolveWater(ctx: SeasonContext): void {
       .sort((x, y) => x.p - y.p || rank.get(x.b.uid)! - rank.get(y.b.uid)!);
 
     for (let p = 0; p < ch.keys.length; p++) {
+      if (lift[p] !== Infinity && total(pool) > 0) {
+        let space = lift[p]!;
+        for (const q of WATER_QUALITIES) {
+          const up = Math.min(space, pool[q]);
+          stranded[q] += pool[q] - up;
+          pool[q] = up;
+          space -= up;
+        }
+        cross(p - 1, p, total(pool));
+      }
       for (const f of feeders.filter((x) => x.p === p)) {
         const feeds = defOf(content, f.b).water!.feeds!;
         pool[feeds.quality] += feeds.amount;
@@ -340,13 +405,14 @@ export function resolveWater(ctx: SeasonContext): void {
           const t = Math.min(left(), pool[q]);
           pool[q] -= t;
           u.got[q] += t;
-          if (q === 'clean' && left() > 0) u.got.clean += fresh(left());
+          if (q === 'clean' && left() > 0) u.got.clean += fresh(left(), p);
         }
         if (left() > 0 && w.accepts.includes('clean')) {
           // Cisterns at or above this building release what it still needs, nearest first.
           for (const cis of [...myCisterns].reverse()) {
             if (cis.p > p || left() <= 0) continue;
-            const t = Math.min(left(), cis.b.stored ?? 0);
+            const t = Math.min(left(), cis.b.stored ?? 0, canCross(cis.p, p));
+            cross(cis.p, p, t);
             cis.b.stored = (cis.b.stored ?? 0) - t;
             u.got.clean += t;
             r.released += t;
@@ -377,11 +443,16 @@ export function resolveWater(ctx: SeasonContext): void {
       const gain = refill(cis.b, (n) => {
         const spare = Math.min(n, pool.clean);
         pool.clean -= spare;
-        return spare + fresh(n - spare);
+        return spare + fresh(n - spare, cis.p);
       });
       r.stored += gain;
       outAt[cis.p]! += gain;
     }
+    for (const q of WATER_QUALITIES) pool[q] += stranded[q];
+    for (const [p, n] of lifted)
+      for (const [uid, at] of pumpOf)
+        if (at.channel === c && at.position === p)
+          explain(ctx, state.buildings[uid]!, `water: lifted ${n} up a step`);
     let running = 0;
     r.carried = ch.keys.map((_, p) => (running += inAt[p]! - outAt[p]!));
     r.carriedBy = r.carried.map((n, p) => ({

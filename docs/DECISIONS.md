@@ -707,6 +707,21 @@ still short on the coast (55% against 85%): it finishes the Lagoon a little less
 Garden, and the coast's +25 line was set before the Lagoon. Left for playtesting rather than
 tuned to one bot.
 
+## The Highland (Milestone 12)
+
+The third biome follows [proposals/highland.md](proposals/highland.md), reviewed by the
+playtester: height is a real rule (heights 0 to 3, water flows only downhill and a Pump Station
+lifts it a step, colder and windier up high, snow on high panels); biochar is a permanent mark
+the Biochar Kiln leaves on a farm tile beside it; the Highland joins once 4 districts stand in
+Root City; its art is procedural first. Built in steps HL1 to HL6 (the proposal's build plan).
+
+| Topic               | Decision                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Source                    |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| Height (HL1)        | A tile's `height` (0 to 3; missing is 0, so the Reach and the coast are level and play exactly as before). Along a channel, a rise is a step up from the tile before it (or from the river or lake at its intake). Water crosses a one-step rise only as far as the pump stations beside its upper tile lift it, each pump serving one rise; a rise of two steps, or one with no pump, carries nothing up. Water in the channel below a dry rise leaves with the rest (it rejoins the river or is lost), so water in and out still balance. | `src/sim/season/water.ts` |
+| Drawing from below  | A building draws only from channel at its own height or above: water doesn't climb from a channel beside and below it.                                                                                                                                                                                                                                                                                                                                                                                                                      | `attachment`              |
+| The Pump Station    | A fixed 2 day-energy demand, as the coast's desalinator, rather than spare energy: the water step resolves before energy, so it pumps as if powered (the desalinator's precedent). Lifts up to 2 water a season.                                                                                                                                                                                                                                                                                                                            | `pump.lift`               |
+| Cold, wind and snow | As data on each building, so other biomes are untouched: `heatAtHeight` (a home at height 2 or more needs 1 more heat on autumn and winter nights), `generationAtHeight` (a wind spire at height 2 or more makes 1 more in each slot), `idleAtHeight` (a solar canopy at height 2 or more makes nothing in winter).                                                                                                                                                                                                                         | `heatDemand`              |
+
 ## Deferred to later milestones
 
 - The world map that heals as runs are completed, Tempest levels, and biome unlocks (Highland,

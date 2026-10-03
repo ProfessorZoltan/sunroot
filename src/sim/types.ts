@@ -10,6 +10,8 @@ export interface Tile extends Hex {
   riverIndex?: number;
   /** Water held by a lake tile (still water off the river), while the water system is on. */
   water?: number;
+  /** Steps up from the valley floor (the Highland), 0 to 3; missing is 0. */
+  height?: number;
 }
 
 export interface MapState {

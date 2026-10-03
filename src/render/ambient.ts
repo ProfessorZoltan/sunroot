@@ -11,6 +11,7 @@ import type { Graphics } from 'pixi.js';
 import type { Content } from '../sim/content/load';
 import { hexKey } from '../sim/hex';
 import type { RunState } from '../sim/types';
+import { heatDemand } from '../sim/queries';
 import { hexToPixel, tileRandom, type Bounds, type Point } from './layout';
 
 export type FallingKind = 'petal' | 'fluff' | 'leaf' | 'snow';
@@ -70,7 +71,7 @@ export function ambientFor(content: Content, state: RunState): Ambient {
       if (d.stopsRot && report && !report.unstaffed.includes(b.uid) && !b.damage) return true;
       // Homes that need heat this season.
       const si = ['spring', 'summer', 'autumn', 'winter'].indexOf(state.season);
-      return d.housing > 0 && (d.demand?.heat.night[si] ?? 0) > 0;
+      return d.housing > 0 && heatDemand(content, state, b, 'night', si) > 0;
     })
     .map((b) => chimney(hexToPixel(b.at)));
   const fish = winter

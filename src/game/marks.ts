@@ -18,6 +18,7 @@ import {
   type RunState,
   type SeasonReport,
 } from '../sim';
+import { heatDemand } from '../sim/queries';
 
 export type MarkKind =
   /** Lasting: a flood's silt, for the seasons it feeds the farm. */
@@ -204,7 +205,7 @@ export function mapMarks(content: Content, state: RunState, forecast: SeasonRepo
   } else if (event === 'freeze') {
     const si = SEASONS.indexOf(state.season);
     for (const b of Object.values(state.buildings)) {
-      const heat = content.byId[b.type]?.demand?.heat.night[si] ?? 0;
+      const heat = content.byId[b.type] ? heatDemand(content, state, b, 'night', si) : 0;
       if (heat > 0)
         add(b.at, 'cold', true, `The freeze: the ${name(b.uid)} needs ${heat} heat at night.`);
     }

@@ -127,11 +127,23 @@ export interface ScenarioOptions {
   run?: Omit<RunOptions, 'seed'>;
   /** Other content (the water system on, say); the commands below take it too. */
   content?: Content;
+  /** Tile heights (the Highland), as rows of digits laid out like the map's rows. */
+  heights?: string[];
 }
 
 /** A run on a hand-drawn map, optionally moved to another season with everything unlocked. */
 export function scenario(rows: string[], options: ScenarioOptions = {}): RunState {
   const { map, camp } = mapFromAscii(rows);
+  if (options.heights)
+    options.heights.forEach((row, r) =>
+      row
+        .trim()
+        .split(/\s+/)
+        .forEach((digit, col) => {
+          const tile = map.tiles[hexKey(at(col, r))];
+          if (tile && digit !== '0') tile.height = Number(digit);
+        }),
+    );
   const c = options.content ?? content;
   const state = createRun(c, { ...options.run, seed: options.seed ?? 'test' }, { map, camp });
   const year = options.year ?? 1;

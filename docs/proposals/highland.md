@@ -169,21 +169,20 @@ reference, as the coast's was.
 Each step ends with tests and a commit; Willow Reach and the coast play exactly as before
 throughout (their golden tests unchanged).
 
-| Step | What                                                                                                                                                                           | Done when                                                                                          | Source       |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- | ------------ |
-| HL1  | **Height.** Tile heights, the map generator, water that flows only downhill, the Pump Station, cold and wind by height, snow on the panels; inert for the Reach and the coast. | Every height rule has a unit test; the other biomes' golden tests are unchanged.                   | EXPANSION.md |
-| HL2  | **Highland simulation.** Its tiles, events, buildings, biochar, the bothy's stove, heat always on.                                                                             | Every new rule has a unit test; the Year 1 walkthrough is proposed as a golden test for review.    | DESIGN.md    |
-| HL3  | **Combos and balance.** Its combos, tunings, charters, the Almanac; bots that play the Highland.                                                                               | Every combo triggers in a unit test; the bots' Heartwood share is within 10 points of the Reach's. | As the coast |
-| HL4  | **On screen.** Raised tiles for heights, terraces, snow, the pump's lift; a hand-art request.                                                                                  | A Highland run plays to the end with mouse and keyboard.                                           | As the coast |
-| HL5  | **In Root City.** Joins after 4 districts; the Ridge Quarter, the Charcoal Works, regions, twists.                                                                             | Runs move between the three biomes with progression kept (an e2e).                                 | DESIGN.md    |
-| HL6  | **Wonder, wildlife, festivals.** The Cloud Terraces, the Highland's animals and festivals.                                                                                     | As the coast's B6.                                                                                 | EXPANSION.md |
+| Step | What                                                                                                                                                                                                                    | Done when                                                                                          | Source       |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------ |
+| HL1  | **Height** (done; the map generator comes with HL2). Tile heights, the map generator, water that flows only downhill, the Pump Station, cold and wind by height, snow on the panels; inert for the Reach and the coast. | Every height rule has a unit test; the other biomes' golden tests are unchanged.                   | EXPANSION.md |
+| HL2  | **Highland simulation.** Its tiles, events, buildings, biochar, the bothy's stove, heat always on.                                                                                                                      | Every new rule has a unit test; the Year 1 walkthrough is proposed as a golden test for review.    | DESIGN.md    |
+| HL3  | **Combos and balance.** Its combos, tunings, charters, the Almanac; bots that play the Highland.                                                                                                                        | Every combo triggers in a unit test; the bots' Heartwood share is within 10 points of the Reach's. | As the coast |
+| HL4  | **On screen.** Raised tiles for heights, terraces, snow, the pump's lift; a hand-art request.                                                                                                                           | A Highland run plays to the end with mouse and keyboard.                                           | As the coast |
+| HL5  | **In Root City.** Joins after 4 districts; the Ridge Quarter, the Charcoal Works, regions, twists.                                                                                                                      | Runs move between the three biomes with progression kept (an e2e).                                 | DESIGN.md    |
+| HL6  | **Wonder, wildlife, festivals.** The Cloud Terraces, the Highland's animals and festivals.                                                                                                                              | As the coast's B6.                                                                                 | EXPANSION.md |
 
-## Open questions for review
+## Decided in review
 
-1. **Height as a rule, or as flavour?** Heights 0 to 3 that water can only flow down (pumps lift it)
-   and that are colder and windier higher up, as above; or only the tile types (glen, slope, crag),
-   with no per-tile height and the Pump Station watering any slope beside a channel.
-2. **Biochar**: a permanent mark the kiln leaves on a farm tile beside it (+1 food for good), as
-   above; or a new store, biochar, spread from the Stores panel like compost.
-3. **When it joins**: after 4 districts stand in Root City (DESIGN.md), or at a run, as the coast at 5.
-4. **Art**: procedural first with a hand-art request, as the coast.
+| Question      | Decision                                                                                                                                    | Source     |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| Height        | A real rule: heights 0 to 3; water flows only downhill and a Pump Station lifts it a step; colder and windier up high; snow on high panels. | Playtester |
+| Biochar       | A permanent mark the Biochar Kiln leaves on a farm tile beside it: +1 food for good. No new store.                                          | Playtester |
+| When it joins | Once 4 districts stand in Root City, as DESIGN.md; at once for a city that already has them.                                                | Playtester |
+| Art           | Procedural first, with a hand-art request written alongside HL4.                                                                            | Playtester |

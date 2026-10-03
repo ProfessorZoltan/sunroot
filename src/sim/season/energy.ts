@@ -30,7 +30,14 @@
 import type { Resource, Slot } from '../content/schema';
 import { AUTO_RECIPE, SLOTS } from '../content/schema';
 import { hexDistance } from '../hex';
-import { byPriority, defOf, neighborBuildings, neighborTiles, occupancy } from '../queries';
+import {
+  byPriority,
+  defOf,
+  heatDemand as heatNeed,
+  neighborBuildings,
+  neighborTiles,
+  occupancy,
+} from '../queries';
 import type { BuildingState, HeatLink } from '../types';
 import { addYield, explain, flow, type SeasonContext } from './context';
 
@@ -69,7 +76,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
 
   const energyOf = (b: BuildingState, slot: Slot) =>
     defOf(content, b).demand?.energy[slot][si] ?? 0;
-  const heatOf = (b: BuildingState, slot: Slot) => defOf(content, b).demand?.heat[slot][si] ?? 0;
+  const heatOf = (b: BuildingState, slot: Slot) => heatNeed(content, state, b, slot, si);
   const pumps = active.filter((b) => defOf(content, b).heatPump);
   const freeHeat = perSlot();
   for (const slot of SLOTS) {

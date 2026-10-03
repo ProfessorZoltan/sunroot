@@ -191,6 +191,30 @@ export const BuildingSchema = z
     saltProof: z.boolean().default(false),
     /** Sea fog dims it (the coast's solar). */
     fogged: z.boolean().default(false),
+    /** More heat on these nights at this height or above (a home high in the Highland). */
+    heatAtHeight: z
+      .object({ from: int.min(1), add: int.min(1), seasons: z.array(z.enum(SEASONS)).min(1) })
+      .strict()
+      .optional(),
+    /** More energy in every slot it runs at this height or above (a wind spire on the tops). */
+    generationAtHeight: z
+      .object({ from: int.min(1), add: int.min(1) })
+      .strict()
+      .optional(),
+    /** Makes nothing in these seasons at this height or above (snow on the panels). */
+    idleAtHeight: z
+      .object({ from: int.min(1), seasons: z.array(z.enum(SEASONS)).min(1) })
+      .strict()
+      .optional(),
+    /**
+     * Lifts channel water up one step of height (a Pump Station): up to `lift` water a season
+     * crosses a rise in a channel at a tile beside it. A channel carries nothing up a rise
+     * without one.
+     */
+    pump: z
+      .object({ lift: int.min(1) })
+      .strict()
+      .optional(),
     /** More energy on these tiles, in every slot it runs (a wind spire on a headland). */
     generationOnTiles: z
       .object({ tiles: z.array(TileTypeSchema).min(1), add: int.min(1) })

@@ -22,6 +22,29 @@ export function tileAt(state: RunState, h: Hex): Tile | undefined {
   return state.map.tiles[hexKey(h)];
 }
 
+/** A tile's height (the Highland's steps); 0 where the land has none. */
+export function heightAt(state: RunState, h: Hex): number {
+  return tileAt(state, h)?.height ?? 0;
+}
+
+/**
+ * The heat a building needs in a slot this season: its demand, and in the Highland more for a
+ * home high up on autumn and winter nights (`heatAtHeight`).
+ */
+export function heatDemand(
+  content: Content,
+  state: RunState,
+  b: BuildingState,
+  slot: 'day' | 'night',
+  si: number,
+): number {
+  const def = defOf(content, b);
+  const base = def.demand?.heat[slot][si] ?? 0;
+  const cold = def.heatAtHeight;
+  if (!cold || slot !== 'night' || !cold.seasons.includes(SEASONS[si]!)) return base;
+  return heightAt(state, b.at) >= cold.from ? base + cold.add : base;
+}
+
 const occupancyCache = new WeakMap<object, { size: number; map: Map<string, BuildingState> }>();
 
 /**

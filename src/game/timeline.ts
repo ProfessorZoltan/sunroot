@@ -15,6 +15,7 @@ import {
   type Slot,
 } from '../sim';
 import { axialToOffset, parseHexKey } from '../sim/hex';
+import { heatDemand } from '../sim/queries';
 
 export type PhaseName = 'event' | 'day' | 'night' | 'settle';
 
@@ -196,7 +197,7 @@ export function buildTimeline(
       const def = content.byId[b.type];
       const need =
         (def?.demand?.energy[slot][si] ?? 0) +
-        (def?.demand?.heat[slot][si] ?? 0) +
+        (def ? heatDemand(content, after, b, slot, si) : 0) +
         (report.runs[b.uid]?.energy[slot] ?? 0);
       if (need > 0) sinks.push({ at: b.at, need });
     }
@@ -285,7 +286,7 @@ export function buildTimeline(
   }
   if (report.event === 'freeze') {
     for (const b of Object.values(after.buildings)) {
-      const heat = content.byId[b.type]?.demand?.heat.night[si] ?? 0;
+      const heat = content.byId[b.type] ? heatDemand(content, after, b, 'night', si) : 0;
       if (heat > 0) fx('chilled', b.at, across(b.at));
     }
   }
