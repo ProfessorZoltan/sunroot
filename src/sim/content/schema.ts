@@ -221,6 +221,8 @@ export const BuildingSchema = z
         needsBuildings: z.record(z.string(), int.min(1)).default({}),
         /** One of its tiles must touch the river, a reservoir or a channel. */
         nearWater: z.boolean().default(true),
+        /** Its 7 tiles must include one of each of these (the Tidal Lagoon: mudflat and sea). */
+        mustInclude: z.array(TileTypeSchema).default([]),
         score: nonNeg,
         graftTiers: nonNeg.default(0),
       })
@@ -1259,7 +1261,14 @@ const WildlifeEffectSchema = z.discriminatedUnion('kind', [
   /** Their arrival is what an evolution waits for (beavers and the Beaver Dam). */
   z.object({ kind: z.literal('evolution'), combo: z.string() }).strict(),
   /** Wellbeing every season for each herd (each group of habitat). */
-  z.object({ kind: z.literal('wellbeing'), perHerd: int.min(1) }).strict(),
+  z
+    .object({
+      kind: z.literal('wellbeing'),
+      perHerd: int.min(1),
+      /** What one group is called: a herd of deer, a pod of dolphins, a colony of puffins. */
+      group: z.string().min(1).default('herd'),
+    })
+    .strict(),
 ]);
 export type WildlifeEffect = z.infer<typeof WildlifeEffectSchema>;
 
@@ -1295,6 +1304,11 @@ export const FestivalSchema = z
     freeRerolls: nonNeg.default(0),
     /** The valley's animals come out on screen (Lantern Night). */
     showsWildlife: z.boolean().default(false),
+    /** These generators make this much more in each slot that season (Kite Day: the wind). */
+    boosts: z
+      .object({ buildings: z.array(z.string()).min(1), generation: int.min(1) })
+      .strict()
+      .optional(),
     requiresWater: z.boolean().default(true),
   })
   .strict();

@@ -404,6 +404,24 @@ export const BUILDING_ART: Record<string, Art> = {
     g.poly([c.x - 11, c.y - 2, c.x, c.y - 16, c.x + 11, c.y - 2]).fill({ color: COLORS.wood });
     g.rect(c.x - 8, c.y - 2, 16, 6).fill({ color: 0xf3e3c3 });
   },
+  tidalLagoon(g, c) {
+    // A ring of sea wall around a lagoon of 7 tiles, its turbine house at the centre.
+    g.ellipse(c.x, c.y + 2, 62, 54).stroke({ width: 5, color: COLORS.stone });
+    g.ellipse(c.x, c.y + 2, 58, 50).fill({ color: 0x6fa5bb, alpha: 0.55 });
+    for (let i = 0; i < 6; i++) {
+      const a = (Math.PI / 3) * i + Math.PI / 6;
+      const x = c.x + Math.cos(a) * 40;
+      const y = c.y + Math.sin(a) * 34;
+      g.moveTo(x - 6, y)
+        .quadraticCurveTo(x - 3, y - 2.5, x, y)
+        .quadraticCurveTo(x + 3, y - 2.5, x + 6, y)
+        .stroke({ width: 1.4, color: 0xd6ecf2, cap: 'round' });
+    }
+    g.rect(c.x - 9, c.y - 4, 18, 9).fill({ color: 0xf3e3c3 });
+    g.poly([c.x - 11, c.y - 4, c.x, c.y - 13, c.x + 11, c.y - 4]).fill({ color: 0x6c7f86 });
+    g.circle(c.x + 14, c.y + 6, 3).fill({ color: 0x4f8196 });
+    g.circle(c.x - 14, c.y + 6, 3).fill({ color: 0x4f8196 });
+  },
   singingSpire(g, c) {
     BUILDING_ART.windSpire!(g, c);
     for (const [dx, dy] of [

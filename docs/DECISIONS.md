@@ -681,6 +681,10 @@ B1 to B6 (the proposal's build plan).
 | A first coast run | The first run in a biome other than the home one has a guided first year (the coast's own offers) and opens with what is new there (`intro`). Root City counts each biome's runs (`biomeRuns`). | `nextRunOptions` |
 | Tempest per biome | A Heartwood Graft unlocks the next Tempest level in the biome it was earned in (the home biome's levels stay in `tempestUnlocked`). The chosen level holds wherever it is unlocked; elsewhere a run plays the highest level its biome has. | `tempestUnlockedIn` |
 
+| The Tidal Lagoon (B6) | As the proposal: a 7-tile flower over mudflat, saltmarsh and sea that must include both mudflat and sea, from era 3, 60 materials and 30 biomass, 4 seasons, needing a closed Kelp Loop and 3 oyster reefs. Finished: 2 energy in each slot, +60 to the score, the Graft a tier higher, and the Bloom era's goal. A wonder now makes nothing until it is finished. | `wonder.mustInclude` |
+| Coast animals | As the proposal: terns (Harmony 20, dunes: crofts next to 2 dunes +1 food in summer), seals (40, open mudflat beside an oyster reef: kelp farms within 2 +1 food), puffins (50, a lighthouse by the sea: +1 wellbeing per lighthouse, "colonies"), dolphins (70, open sea in waters of 6+ tiles: +1 wellbeing per "pod"). | `windswept-coast.json` |
+| Coast festivals | Kite Day (spring, 5 materials: +3 wellbeing, wind spires +1 in each slot that season), the Harvest of the Sea (autumn, 10 food: +5 wellbeing and a free reroll), Lantern Night (as the Reach's). | `festival.boosts` |
+
 The coast against the Reach: 20 seeds per row, water on.
 
 | Bot          | Biome                   | Median score | Heartwood | Collapsed | Source                     |

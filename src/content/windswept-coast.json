@@ -1455,6 +1455,39 @@
       "yields": {
         "food": [1, 1, 1, 1]
       }
+    },
+    {
+      "id": "tidalLagoon",
+      "name": "Tidal Lagoon",
+      "cost": 60,
+      "workers": 0,
+      "kind": "energy",
+      "draftable": false,
+      "minEra": 3,
+      "requiresWater": true,
+      "floodTolerant": true,
+      "stormProof": true,
+      "placement": {
+        "tiles": ["mudflat", "sea", "saltmarsh"]
+      },
+      "generation": {
+        "day": [2, 2, 2, 2],
+        "night": [2, 2, 2, 2]
+      },
+      "wonder": {
+        "seasons": 4,
+        "alsoCosts": {
+          "biomass": 30
+        },
+        "needsLoops": ["kelpLoop"],
+        "needsBuildings": {
+          "oysterReef": 3
+        },
+        "nearWater": false,
+        "mustInclude": ["mudflat", "sea"],
+        "score": 60,
+        "graftTiers": 1
+      }
     }
   ],
   "combos": [
@@ -2502,8 +2535,116 @@
       }
     }
   ],
-  "wildlife": [],
-  "festivals": [],
+  "wildlife": [
+    {
+      "id": "terns",
+      "name": "Terns",
+      "text": "Terns come to the dunes at Harmony 20. In summer, every croft next to 2 or more dune tiles makes 1 more food.",
+      "harmony": 20,
+      "habitat": {
+        "kind": "tiles",
+        "tiles": ["dune"]
+      },
+      "effect": {
+        "kind": "nextToTiles",
+        "buildings": ["croft", "machairCroft"],
+        "tiles": ["dune"],
+        "count": 2,
+        "seasons": ["summer"],
+        "food": 1
+      }
+    },
+    {
+      "id": "seals",
+      "name": "Seals",
+      "text": "Seals come at Harmony 40 to open mudflat beside an oyster reef. Kelp farms within 2 tiles of them make 1 more food.",
+      "harmony": 40,
+      "habitat": {
+        "kind": "tiles",
+        "tiles": ["mudflat"],
+        "wild": true,
+        "nextToBuildings": ["oysterReef"]
+      },
+      "effect": {
+        "kind": "nearHabitat",
+        "buildings": ["kelpFarm", "kelpForest"],
+        "range": 2,
+        "food": 1
+      }
+    },
+    {
+      "id": "puffins",
+      "name": "Puffins",
+      "text": "Puffins come at Harmony 50 to a lighthouse on its headland by the sea. Each lighthouse they nest by gives 1 wellbeing every season.",
+      "harmony": 50,
+      "habitat": {
+        "kind": "building",
+        "buildings": ["lighthouse"],
+        "nextToTiles": ["sea"]
+      },
+      "effect": {
+        "kind": "wellbeing",
+        "perHerd": 1,
+        "group": "colony"
+      }
+    },
+    {
+      "id": "dolphins",
+      "name": "Dolphins",
+      "text": "Dolphins come at Harmony 70 to open sea, in waters of 6 or more tiles with nothing built on them. Each pod (each such water) gives 1 wellbeing every season.",
+      "harmony": 70,
+      "habitat": {
+        "kind": "tiles",
+        "tiles": ["sea"],
+        "wild": true,
+        "minGroup": 6
+      },
+      "effect": {
+        "kind": "wellbeing",
+        "perHerd": 1,
+        "group": "pod"
+      }
+    }
+  ],
+  "festivals": [
+    {
+      "id": "kiteDay",
+      "name": "Kite Day",
+      "text": "A spring day of kites on the headlands. +3 wellbeing, and wind spires make 1 more energy by day and night this season.",
+      "season": "spring",
+      "cost": {
+        "materials": 5
+      },
+      "wellbeing": 3,
+      "boosts": {
+        "buildings": ["windSpire"],
+        "generation": 1
+      }
+    },
+    {
+      "id": "harvestOfTheSea",
+      "name": "Harvest of the Sea",
+      "text": "An autumn feast of fish, kelp and oysters. +5 wellbeing and one free draft reroll.",
+      "season": "autumn",
+      "cost": {
+        "food": 10
+      },
+      "wellbeing": 5,
+      "freeRerolls": 1
+    },
+    {
+      "id": "lanternNight",
+      "name": "Lantern Night",
+      "text": "A winter night of lanterns. +3 wellbeing if no night this season runs short of energy, and the coast's animals come out to see.",
+      "season": "winter",
+      "cost": {
+        "materials": 5
+      },
+      "wellbeing": 3,
+      "needsNightPowered": true,
+      "showsWildlife": true
+    }
+  ],
   "twists": [
     {
       "id": "fairWeather",
@@ -2924,6 +3065,13 @@
       },
       "reward": {
         "knowledge": 3
+      },
+      "or": {
+        "text": "Or finish the Tidal Lagoon.",
+        "goal": {
+          "kind": "wonder",
+          "building": "tidalLagoon"
+        }
       }
     }
   ],

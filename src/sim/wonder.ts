@@ -100,6 +100,9 @@ export function wonderSiteProblem(
     if (!def.placement.tiles.includes(t.type))
       return `the ${def.name} can't be built over ${t.type}`;
   }
+  for (const type of def.wonder?.mustInclude ?? [])
+    if (!tiles.some((h) => tileAt(state, h)?.type === type))
+      return `the ${def.name} needs ${type} among its 7 tiles`;
   // A hedge running between two of its tiles is in the way.
   const keys = new Set(tiles.map(hexKey));
   for (const h of tiles)

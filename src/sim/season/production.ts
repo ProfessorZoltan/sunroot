@@ -15,6 +15,8 @@ import {
 } from '../queries';
 import type { BuildingState } from '../types';
 import { addHeat, addSupply, addYield, explain, flow, type SeasonContext } from './context';
+import { festivalThisSeason } from '../wildlife';
+import { wonderDone } from '../wonder';
 
 const EPSILON = 1e-9;
 
@@ -25,6 +27,8 @@ export function staff(ctx: SeasonContext): void {
   let workers = ctx.state.citizens;
   for (const b of byPriority(ctx.state)) {
     if (b.damage) continue;
+    // A wonder does nothing until it is finished.
+    if (!wonderDone(ctx.content, ctx.state, b)) continue;
     const need = defOf(ctx.content, b).workers;
     if (need > workers) {
       ctx.report.unstaffed.push(b.uid);
@@ -58,6 +62,11 @@ export function generate(ctx: SeasonContext): void {
     if (effect?.generation) {
       adjust += effect.generation;
       notes.push(`in a formation +${effect.generation}`);
+    }
+    const boost = festivalThisSeason(content, state)?.boosts;
+    if (boost?.buildings.includes(b.type)) {
+      adjust += boost.generation;
+      notes.push(`${festivalThisSeason(content, state)!.name} +${boost.generation}`);
     }
     if (def.shading && !effect?.ignoresShade) {
       const casters = [

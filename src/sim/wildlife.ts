@@ -99,7 +99,7 @@ export function updateWildlife(content: Content, state: RunState, notices = true
     const here = welcomes(state, a, occ);
     if (here) present.push(a.id);
     if (!notices || was === here) continue;
-    if (here) state.notices.push(`${a.name} have come to the valley`);
+    if (here) state.notices.push(`${a.name} have come to the ${content.land}`);
     else if (state.harmony < a.harmony)
       state.notices.push(`${a.name} have left: Harmony fell below ${a.harmony}`);
     else state.notices.push(`${a.name} have left: their habitat is gone`);
@@ -151,6 +151,8 @@ export function wildlifeYields(ctx: SeasonContext): void {
   }
 }
 
+const plural = (word: string) => (word.endsWith('y') ? `${word.slice(0, -1)}ies` : `${word}s`);
+
 /** Wellbeing from the animals: each herd of deer. */
 export function wildlifeWellbeing(ctx: SeasonContext): WellbeingLine[] {
   const lines: WellbeingLine[] = [];
@@ -161,7 +163,7 @@ export function wildlifeWellbeing(ctx: SeasonContext): WellbeingLine[] {
     if (herds === 0) continue;
     lines.push({
       kind: 'wildlife',
-      reason: `${herds} herd${herds > 1 ? 's' : ''} of ${a.name.toLowerCase()}`,
+      reason: `${herds} ${herds > 1 ? plural(a.effect.group) : a.effect.group} of ${a.name.toLowerCase()}`,
       amount: herds * a.effect.perHerd,
     });
   }
