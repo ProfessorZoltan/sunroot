@@ -1,7 +1,14 @@
 /**
- * The Windswept Coast's Year 1 walkthrough (proposals/windswept-coast.md),
- * with the water system on as a coast run has it. PROPOSED, for review: it
- * becomes the coast's golden test once reviewed, as the Reach's v2 one did.
+ * Golden test: the Windswept Coast's Year 1 walkthrough
+ * (proposals/windswept-coast.md), with the water system on as a coast run has
+ * it. Reviewed and approved by the playtester; it must always pass, and
+ * changes only with their review (Working rules).
+ *
+ * | Season | Build                                                     | Materials | Food | Citizens |
+ * | Spring | Croft, Beachcombing Yard, Workshop, Tide Turbine          | 9         | 8    | 6        |
+ * | Summer | 2nd croft, Cottage                                        | 7         | 11   | 7        |
+ * | Autumn | Composter, Dune Grass                                     | 8         | 13   | 8        |
+ * | Winter | Kelp Farm (the night 1 short)                             | 9         | 8    | 8        |
  *
  *   Spring: a croft by the camp's channel, beachcombing yard, workshop, tide turbine
  *   Summer: a second croft by the channel, a cottage
@@ -77,8 +84,8 @@ export function coastYear(): RunState[] {
   return seasons;
 }
 
-describe('the Windswept Coast, Year 1 (proposed walkthrough)', () => {
-  it('plays out as proposed', () => {
+describe('the Windswept Coast, Year 1 (golden)', () => {
+  it('matches the walkthrough table', () => {
     const rows = coastYear().map((s) => ({
       season: s.lastReport!.season,
       materials: s.stores.materials,
@@ -87,7 +94,7 @@ describe('the Windswept Coast, Year 1 (proposed walkthrough)', () => {
       night: s.lastReport!.energy.night.shortfall,
     }));
     // Tuned (B3) to grow as the Reach's first year does; the winter night falls 1 short, which
-    // the wave buoy drafted that winter answers. Proposed, for review.
+    // the wave buoy drafted that winter answers.
     expect(rows).toEqual([
       { season: 'spring', materials: 9, food: 8, citizens: 6, night: 0 },
       { season: 'summer', materials: 7, food: 11, citizens: 7, night: 0 },

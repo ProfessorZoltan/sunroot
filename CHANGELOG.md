@@ -1,5 +1,10 @@
 # Changelog
 
+## The coast's Year 1 approved
+
+- The Windswept Coast's Year 1 walkthrough is now its **golden test**: 9 materials, 8 food and
+  8 citizens at the end of the first winter, as reviewed.
+
 ## The Windswept Coast: its wonder, animals and festivals
 
 - The coast's wonder, the **Tidal Lagoon**: from era 3, a flower of 7 tiles over the shore and

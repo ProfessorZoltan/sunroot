@@ -136,7 +136,7 @@ pool. Refinements as the Reach's, for the coast's buildings.
 | Tempest         | Per biome, as DESIGN.md: the coast's levels unlock after a Heartwood Graft there; the same 10 hardships.                                                                                                                                                            | DESIGN.md                       |
 | Score tiers     | Shared with the Reach; the coast's bots should reach Heartwood about as often as the Reach's (a coast score line if not, as with the layers).                                                                                                                       | New                             |
 
-## Year 1 walkthrough (to become the coast's golden test)
+## Year 1 walkthrough (the coast's golden test, approved)
 
 A proposal to check against the simulation once it exists; the build plan reviews it before it
 becomes the reference, as the Reach's v2 walkthrough was.
