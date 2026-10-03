@@ -250,8 +250,8 @@ export class MapView {
   /** Redraws whatever changed in the run state. */
   setState(state: RunState): void {
     const signature = Object.values(state.map.tiles)
-      .map((t) => t.type[0])
-      .join('');
+      .map((t) => t.type)
+      .join(',');
     // Art changes with winter, buildings drawn with their own tile take a tile's place, and
     // channels are dug into the ground.
     const terrainSignature = [

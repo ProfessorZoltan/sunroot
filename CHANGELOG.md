@@ -1,5 +1,16 @@
 # Changelog
 
+## The Windswept Coast on screen
+
+- A coast run can be played with **`?biome=windsweptCoast`**, until Root City sends expeditions
+  there. It is a visit: never saved, and your run and city are kept as they were.
+- The coast is **drawn in code** until its hand-made art comes: the sea, mudflat, saltmarsh and
+  dunes, and its crofts, tide turbines, wave buoys, kelp farms, oyster reefs, beachcombing yards,
+  dune grass, sea walls, lighthouses, smokehouses and desalinators.
+- **The tide** comes in over the mudflat by night and goes out by day as each season plays out.
+- **Salted crofts are marked** on the map, and the forecast says which ones the king tide will
+  salt; risky tiles, wording and the night's captions name the coast's own things.
+
 ## The Windswept Coast: combos and balance
 
 - The coast's **food**: crofts make 2 / 5 / 5 / 0, the founders' camp gathers 1 food a season on

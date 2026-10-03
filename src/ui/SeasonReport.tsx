@@ -264,6 +264,8 @@ function Bonuses({ store, report }: { store: GameStore; report: SeasonReport }) 
       `Harmony ${report.harmony.value}: food, biomass and knowledge × ${report.harmony.multiplier}.`,
     );
   if (report.silted.length > 0) lines.push(`Silt on ${report.silted.length} farms.`);
+  if (report.salted.length > 0)
+    lines.push(`Salt on ${report.salted.length} farms: half their food for a while.`);
   if (report.mixedGrid)
     lines.push(
       store.rules.events.storm?.mixedGridShelters

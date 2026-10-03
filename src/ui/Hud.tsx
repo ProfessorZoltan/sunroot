@@ -22,7 +22,9 @@ export function ForecastBanner({ store }: { store: GameStore }) {
   const { content, state } = store;
   const event = eventOf(content, state.forecast.event);
   const next = eventOf(content, state.forecast.next);
-  const reach = reachSummary(store.marks);
+  // "kept dry by levees" in the Reach, "by sea walls" on the coast.
+  const levee = store.content.buildings.find((d) => d.levee);
+  const reach = reachSummary(store.marks, levee ? `${levee.name.toLowerCase()}s` : 'levees');
   return (
     <div class="forecast-banner" role="note" aria-label="Forecast" title={event.description}>
       <Wind size={18} />

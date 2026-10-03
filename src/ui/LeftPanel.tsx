@@ -234,6 +234,8 @@ export function LastSeason({ store }: { store: GameStore }) {
   if (r.flooded.length) lines.push(`${event.name}: ${r.flooded.length} tiles flooded.`);
   if (r.silted.length)
     lines.push(`Silt on ${r.silted.length} farm${r.silted.length > 1 ? 's' : ''}.`);
+  if (r.salted.length)
+    lines.push(`Salt on ${r.salted.length} farm${r.salted.length > 1 ? 's' : ''}.`);
   if (r.damaged.length) lines.push(`Damaged: ${r.damaged.map(name).join(', ')}.`);
   if (r.mixedGrid)
     lines.push(

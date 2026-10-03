@@ -1,6 +1,7 @@
 {
   "id": "windsweptCoast",
   "name": "Windswept Coast",
+  "land": "coast",
   "rules": {
     "yearsPerRun": 12,
     "yearsPerEra": 3,
@@ -2342,7 +2343,7 @@
     },
     {
       "id": "lanternOfTheValley",
-      "name": "Lantern of the Valley",
+      "name": "Lantern of the Shore",
       "text": "Go a full year, spring to winter, with 30 or more citizens and no shortfall in any slot.",
       "goal": {
         "kind": "noShortfallYear",

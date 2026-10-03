@@ -165,9 +165,8 @@ seasons, so it also needs 3 stages of construction.
 ## The Windswept Coast (B4)
 
 The second biome ([proposals/windswept-coast.md](proposals/windswept-coast.md)). It is drawn
-procedurally until hand-made art comes; the game draws the tide (the sea's edge rising over the
-mudflat by night and falling back by day), fog, salt marks and the beam of the lighthouse in code,
-so don't paint them. Same frame, light and seasons as everything else: a summer `id.png` and a
+procedurally until hand-made art comes; the game draws the tide (the sea rising over the mudflat
+by night and falling back by day) and the king tide's salt marks in code, so don't paint them. Same frame, light and seasons as everything else: a summer `id.png` and a
 winter `id.winter.png`. A coast winter is grey and wet more than white: frost on the dunes, ice
 only in the saltmarsh pools.
 
@@ -183,19 +182,19 @@ only in the saltmarsh pools.
 
 ### Buildings
 
-| Name              | Id                 | What it is                                        | Files                                                          | Notes                                                                                                                      | Source              |
-| ----------------- | ------------------ | ------------------------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| Croft             | `croft`            | A small field strip with a stone dyke             | `croft.png`, `.winter`                                         | Carries its own ground, like the Floodplain Farm: lazy-beds of potatoes and oats, a drystone wall. Winter: bare ridges.    | Proposal, Buildings |
-| Tide Turbine      | `tideTurbine`      | An underwater turbine moored in the tidal race    | `tideTurbine.png`, `.winter`, optional `tideTurbine.rotor.png` | On the sea tile: a float or tower above the water, the blades just under it. Give the rotor's pivot if it has one.         | Proposal, Buildings |
-| Wave Buoy         | `waveBuoy`         | A bobbing wave-energy float                       | `waveBuoy.png`, `.winter`                                      | Small, bright, on open sea; the game rocks it.                                                                             | Proposal, Buildings |
-| Kelp Farm         | `kelpFarm`         | Kelp grown on long lines from floats              | `kelpFarm.png`, `.winter`                                      | On the sea tile: rows of floats with brown fronds under the surface, a small boat.                                         | Proposal, Buildings |
-| Oyster Reef       | `oysterReef`       | Oysters on stakes and racks on the mudflat        | `oysterReef.png`, `.winter`                                    | Low trestles and shell heaps; reads under a shallow film of water too.                                                     | Proposal, Buildings |
-| Beachcombing Yard | `beachcombingYard` | Sorted driftwood, rope and wreckage on the dune   | `beachcombingYard.png`, `.winter`                              | A lean-to, a cart, piles of timber and floats, nets drying.                                                                | Proposal, Buildings |
-| Dune Grass        | `duneGrass`        | Planted marram grass that holds the sand          | `duneGrass.png`, `.winter`                                     | Groundless: dense marram in rows with fencing; the dune tile shows around it.                                              | Proposal, Buildings |
-| Sea Wall          | `seaWall`          | A stone and timber sea wall                       | `seaWall.png`, `.winter`                                       | Faces the sea along the tile's seaward half; low enough to see the tile behind. Three in a row make a Breakwater.          | Proposal, Buildings |
-| Lighthouse        | `lighthouse`       | A white lighthouse on a headland                  | `lighthouse.png`, `.winter`, `lighthouse.lit.png`              | Carries its own hill tile, like the Wind Spire. Tall. The game sweeps the beam; the lit file only lights the lantern room. | Proposal, Buildings |
-| Smokehouse        | `smokehouse`       | A tarred hut for smoking fish                     | `smokehouse.png`, `.winter`                                    | Racks of fish inside, a vent at the ridge: smoke is drawn by code, so show where it rises.                                 | Proposal, Buildings |
-| Desalinator       | `desalinator`      | A small plant that makes fresh water from the sea | `desalinator.png`, `.winter`                                   | Tanks and a pipe running seaward; solar-era, clean lines, not industrial.                                                  | Proposal, Buildings |
+| Name              | Id                 | What it is                                        | Files                                                          | Notes                                                                                                                   | Source              |
+| ----------------- | ------------------ | ------------------------------------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| Croft             | `croft`            | A small field strip with a stone dyke             | `croft.png`, `.winter`                                         | Carries its own ground, like the Floodplain Farm: lazy-beds of potatoes and oats, a drystone wall. Winter: bare ridges. | Proposal, Buildings |
+| Tide Turbine      | `tideTurbine`      | An underwater turbine moored in the tidal race    | `tideTurbine.png`, `.winter`, optional `tideTurbine.rotor.png` | On the sea tile: a float or tower above the water, the blades just under it. Give the rotor's pivot if it has one.      | Proposal, Buildings |
+| Wave Buoy         | `waveBuoy`         | A bobbing wave-energy float                       | `waveBuoy.png`, `.winter`                                      | Small, bright, on open sea; the game rocks it.                                                                          | Proposal, Buildings |
+| Kelp Farm         | `kelpFarm`         | Kelp grown on long lines from floats              | `kelpFarm.png`, `.winter`                                      | On the sea tile: rows of floats with brown fronds under the surface, a small boat.                                      | Proposal, Buildings |
+| Oyster Reef       | `oysterReef`       | Oysters on stakes and racks on the mudflat        | `oysterReef.png`, `.winter`                                    | Low trestles and shell heaps; reads under a shallow film of water too.                                                  | Proposal, Buildings |
+| Beachcombing Yard | `beachcombingYard` | Sorted driftwood, rope and wreckage on the dune   | `beachcombingYard.png`, `.winter`                              | A lean-to, a cart, piles of timber and floats, nets drying.                                                             | Proposal, Buildings |
+| Dune Grass        | `duneGrass`        | Planted marram grass that holds the sand          | `duneGrass.png`, `.winter`                                     | Groundless: dense marram in rows with fencing; the dune tile shows around it.                                           | Proposal, Buildings |
+| Sea Wall          | `seaWall`          | A stone and timber sea wall                       | `seaWall.png`, `.winter`                                       | Faces the sea along the tile's seaward half; low enough to see the tile behind. Three in a row make a Breakwater.       | Proposal, Buildings |
+| Lighthouse        | `lighthouse`       | A white lighthouse on a headland                  | `lighthouse.png`, `.winter`, `lighthouse.lit.png`              | Carries its own hill tile, like the Wind Spire. Tall. The lit file lights the lantern room.                             | Proposal, Buildings |
+| Smokehouse        | `smokehouse`       | A tarred hut for smoking fish                     | `smokehouse.png`, `.winter`                                    | Racks of fish inside, a vent at the ridge: smoke is drawn by code, so show where it rises.                              | Proposal, Buildings |
+| Desalinator       | `desalinator`      | A small plant that makes fresh water from the sea | `desalinator.png`, `.winter`                                   | Tanks and a pipe running seaward; solar-era, clean lines, not industrial.                                               | Proposal, Buildings |
 
 ### Evolutions
 

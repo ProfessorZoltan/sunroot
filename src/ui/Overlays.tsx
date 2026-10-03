@@ -16,8 +16,8 @@ import { SoundSettings } from './Sound';
 
 const PHASE_TEXT = {
   event: (event: string) => event,
-  day: () => 'Day: the sun crosses the valley',
-  night: () => 'Night: stores and wind carry the valley',
+  day: (_: string, land: string) => `Day: the sun crosses the ${land}`,
+  night: (_: string, land: string) => `Night: stores and wind carry the ${land}`,
   settle: () => 'The season settles',
 } as const;
 
@@ -29,7 +29,8 @@ export function ResolutionBanner({ store }: { store: GameStore }) {
     <div class="pill resolution" role="status" aria-label="The season is resolving">
       <Sun size={16} />
       <span>
-        <strong>{SEASON_NAMES[r.report.season]}</strong> · {PHASE_TEXT[r.phase](event.name)}
+        <strong>{SEASON_NAMES[r.report.season]}</strong> ·{' '}
+        {PHASE_TEXT[r.phase](event.name, store.content.land)}
         {r.paused ? ' (paused)' : ''}
       </span>
       <button

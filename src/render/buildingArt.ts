@@ -595,6 +595,189 @@ export const BUILDING_ART: Record<string, Art> = {
       .lineTo(c.x - 4, c.y + 1)
       .stroke({ width: 1.2, color: DARK });
   },
+  // The Windswept Coast.
+  croft(g, c) {
+    // Lazy-beds: raised strips of potatoes and oats inside a drystone dyke.
+    g.poly(hexCorners(c, 21)).fill({ color: 0xc9cf8a }).stroke({ width: 2, color: COLORS.stone });
+    for (let i = -2; i <= 2; i++)
+      g.roundRect(c.x - 13, c.y + i * 5 - 1.5, 26, 3, 1.5).fill({
+        color: i % 2 === 0 ? 0x8fae62 : 0xd9c37a,
+      });
+  },
+  machairCroft(g, c) {
+    BUILDING_ART.croft!(g, c);
+    for (const [x, y, color] of [
+      [-8, -6, COLORS.flowerPink],
+      [6, -1, COLORS.sunGold],
+      [-2, 5, 0xffffff],
+      [9, 6, COLORS.flowerPink],
+      [-11, 2, COLORS.sunGold],
+    ] as const)
+      g.circle(c.x + x, c.y + y, 1.6).fill({ color });
+  },
+  tideTurbine(g, c) {
+    // A float tower in the race, the blades just under the water.
+    g.ellipse(c.x, c.y + 6, 13, 5).fill({ color: 0x4f8196, alpha: 0.6 });
+    for (const a of [20, 140, 260]) {
+      const r = (a * Math.PI) / 180;
+      g.moveTo(c.x, c.y + 6).lineTo(c.x + Math.cos(r) * 11, c.y + 6 + Math.sin(r) * 4);
+    }
+    g.stroke({ width: 2.2, color: 0xd6ecf2, alpha: 0.7, cap: 'round' });
+    g.rect(c.x - 2.5, c.y - 12, 5, 18).fill({ color: 0xf6eedb });
+    g.rect(c.x - 2.5, c.y - 12, 5, 4).fill({ color: COLORS.leadingGold });
+    g.circle(c.x, c.y - 13, 1.8).fill({ color: COLORS.terracotta });
+  },
+  waveBuoy(g, c) {
+    g.ellipse(c.x, c.y + 6, 11, 3.5).fill({ color: 0xd6ecf2, alpha: 0.5 });
+    g.ellipse(c.x, c.y + 3, 9, 5)
+      .fill({ color: COLORS.sunGold })
+      .stroke({
+        width: 1.2,
+        color: COLORS.leadingGold,
+      });
+    g.rect(c.x - 1, c.y - 10, 2, 12).fill({ color: DARK });
+    g.circle(c.x, c.y - 11, 2.2).fill({ color: COLORS.terracotta });
+  },
+  kelpFarm(g, c) {
+    // Lines of floats with brown fronds beneath, and a little boat.
+    for (const dy of [-6, 2]) {
+      g.moveTo(c.x - 13, c.y + dy).lineTo(c.x + 11, c.y + dy - 3);
+      g.stroke({ width: 1, color: 0xf6eedb, alpha: 0.8 });
+      for (let i = 0; i < 4; i++) {
+        const x = c.x - 10 + i * 7;
+        const y = c.y + dy - (i * 3) / 4;
+        g.moveTo(x, y)
+          .quadraticCurveTo(x + 2, y + 4, x - 1, y + 7)
+          .stroke({ width: 1.6, color: 0x7a6a32, alpha: 0.8, cap: 'round' });
+        g.circle(x, y, 1.6).fill({ color: COLORS.terracotta });
+      }
+    }
+    g.poly([c.x + 2, c.y + 9, c.x + 14, c.y + 9, c.x + 11, c.y + 12, c.x + 5, c.y + 12]).fill({
+      color: COLORS.wood,
+    });
+  },
+  kelpForest(g, c) {
+    for (let i = 0; i < 6; i++) {
+      const x = c.x - 12 + i * 5;
+      g.moveTo(x, c.y + 10)
+        .quadraticCurveTo(x + 4, c.y + 2, x - 1, c.y - 6 + (i % 2) * 3)
+        .stroke({ width: 2, color: i % 2 ? 0x6d6a2c : 0x8a7a3a, cap: 'round' });
+    }
+    g.circle(c.x + 6, c.y - 7, 2.4).fill({ color: 0x5e6b70 });
+  },
+  oysterReef(g, c) {
+    // Trestles of oyster bags on the mud, shells heaped beside.
+    shadow(g, c, 13, 3, 8);
+    for (const dy of [-4, 3]) {
+      g.rect(c.x - 12, c.y + dy, 22, 3).fill({ color: 0x8c8574 });
+      g.moveTo(c.x - 10, c.y + dy + 3)
+        .lineTo(c.x - 10, c.y + dy + 6)
+        .moveTo(c.x + 7, c.y + dy + 3)
+        .lineTo(c.x + 7, c.y + dy + 6)
+        .stroke({ width: 1, color: DARK });
+    }
+    for (const [x, y] of [
+      [-6, 10],
+      [-2, 11],
+      [3, 10],
+      [12, 4],
+    ] as const)
+      g.ellipse(c.x + x, c.y + y, 2.4, 1.4).fill({ color: 0xece4d2 });
+  },
+  beachcombingYard(g, c) {
+    shadow(g, c, 14);
+    // A lean-to, driftwood stacked, a float or two and a net.
+    g.poly([c.x - 13, c.y + 7, c.x - 13, c.y - 5, c.x - 1, c.y - 9, c.x - 1, c.y + 7]).fill({
+      color: 0x9b8a6c,
+    });
+    for (let i = 0; i < 3; i++)
+      g.moveTo(c.x + 1, c.y + 7 - i * 3)
+        .lineTo(c.x + 13, c.y + 5 - i * 3)
+        .stroke({ width: 2, color: 0xb8a27e, cap: 'round' });
+    g.circle(c.x + 10, c.y - 6, 2.5).fill({ color: COLORS.terracotta });
+    g.circle(c.x + 5, c.y - 5, 2).fill({ color: COLORS.sunGold });
+    g.moveTo(c.x - 11, c.y - 3)
+      .lineTo(c.x - 3, c.y + 5)
+      .moveTo(c.x - 3, c.y - 5)
+      .lineTo(c.x - 11, c.y + 3)
+      .stroke({ width: 0.8, color: 0x5e6b58 });
+  },
+  duneGrass(g, c) {
+    // Marram in rows, with a line of fencing to hold the sand.
+    for (let row = 0; row < 3; row++)
+      for (let i = 0; i < 4; i++) {
+        const x = c.x - 10 + i * 7 + (row % 2) * 3;
+        const y = c.y - 6 + row * 7;
+        g.moveTo(x - 3, y - 4)
+          .lineTo(x, y + 1)
+          .lineTo(x + 3, y - 4)
+          .moveTo(x, y + 1)
+          .lineTo(x, y - 5);
+      }
+    g.stroke({ width: 1.2, color: 0x8a9a52, cap: 'round', join: 'round' });
+    g.moveTo(c.x - 13, c.y + 11).lineTo(c.x + 13, c.y + 8);
+    g.stroke({ width: 1.2, color: COLORS.wood });
+  },
+  seaWall(g, c) {
+    shadow(g, c, 14, 4, 8);
+    g.poly([c.x - 15, c.y + 6, c.x - 13, c.y - 4, c.x + 13, c.y - 8, c.x + 15, c.y + 2]).fill({
+      color: COLORS.stone,
+    });
+    g.moveTo(c.x - 13, c.y - 4).lineTo(c.x + 13, c.y - 8);
+    g.stroke({ width: 2, color: 0xc4b9a2 });
+    for (let i = -1; i <= 1; i++)
+      g.moveTo(c.x + i * 8, c.y - 5 - i).lineTo(c.x + i * 8 + 1, c.y + 4 - i);
+    g.stroke({ width: 1, color: 0x7c7262 });
+  },
+  lighthouse(g, c) {
+    shadow(g, c, 8, 3, 12);
+    g.poly([c.x - 5, c.y + 12, c.x - 3, c.y - 10, c.x + 3, c.y - 10, c.x + 5, c.y + 12]).fill({
+      color: 0xfbf5e6,
+    });
+    g.rect(c.x - 4.2, c.y - 2, 8.4, 4).fill({ color: COLORS.terracotta });
+    g.rect(c.x - 4.8, c.y + 6, 9.6, 4).fill({ color: COLORS.terracotta });
+    g.rect(c.x - 3, c.y - 16, 6, 6).fill({ color: COLORS.sunGold });
+    g.poly([c.x - 4, c.y - 16, c.x, c.y - 20, c.x + 4, c.y - 16]).fill({ color: DARK });
+  },
+  smokehouse(g, c) {
+    shadow(g, c, 12);
+    g.rect(c.x - 9, c.y - 3, 18, 11).fill({ color: 0x4a3f36 });
+    g.poly([c.x - 11, c.y - 2, c.x, c.y - 11, c.x + 11, c.y - 2]).fill({ color: 0x2f2a26 });
+    g.rect(c.x - 2, c.y + 2, 4, 6).fill({ color: COLORS.leadingGold });
+    g.moveTo(c.x + 2, c.y - 12)
+      .quadraticCurveTo(c.x - 1, c.y - 16, c.x + 3, c.y - 20)
+      .stroke({ width: 1.4, color: 0xd8d4cc, alpha: 0.9, cap: 'round' });
+  },
+  desalinator(g, c) {
+    shadow(g, c, 14);
+    g.roundRect(c.x - 12, c.y - 6, 9, 14, 3)
+      .fill({ color: 0xe9eef0 })
+      .stroke({
+        width: 1.2,
+        color: 0x6c9fae,
+      });
+    g.roundRect(c.x - 1, c.y - 3, 9, 11, 3)
+      .fill({ color: 0xe9eef0 })
+      .stroke({
+        width: 1.2,
+        color: 0x6c9fae,
+      });
+    g.moveTo(c.x + 8, c.y + 4)
+      .lineTo(c.x + 14, c.y + 4)
+      .stroke({ width: 2, color: 0x6c9fae });
+    panel(g, { x: c.x + 2, y: c.y - 12 }, COLORS.solarTeal, 0x9fc6c8);
+  },
+  rockPool(g, c) {
+    shadow(g, c, 13);
+    g.rect(c.x - 12, c.y - 2, 7, 9).fill({ color: COLORS.stone });
+    g.ellipse(c.x + 3, c.y + 2, 10, 6)
+      .fill({ color: COLORS.water })
+      .stroke({ width: 1.5, color: 0x8c8574 });
+    g.moveTo(c.x - 1, c.y + 4)
+      .quadraticCurveTo(c.x + 2, c.y, c.x + 1, c.y - 3)
+      .stroke({ width: 1.4, color: 0x6d7a3c, cap: 'round' });
+    g.circle(c.x + 7, c.y + 3, 1.6).fill({ color: COLORS.terracotta });
+  },
 };
 
 /** Damaged buildings get a grey veil and a crack; blacked-out ones a dim veil. */

@@ -83,6 +83,8 @@ export interface Timeline {
   /** What the event did, tile by tile; and the river's tiles (low river, freeze). */
   eventFx: EventFx[];
   river: Hex[];
+  /** Ground the tide covers and uncovers (the coast's mudflat): it rises by night, falls by day. */
+  tide: Hex[];
 }
 
 /**
@@ -330,8 +332,14 @@ export function buildTimeline(
       .map((hit) => hit.members.map(at).filter((h): h is Hex => h !== undefined)),
     eventFx,
     river: after.map.river.map(parseHexKey),
+    tide: Object.values(after.map.tiles)
+      .filter((tile) => TIDAL.includes(tile.type))
+      .map((tile) => ({ q: tile.q, r: tile.r })),
   };
 }
+
+/** Tile types the daily tide covers and uncovers. */
+export const TIDAL: readonly string[] = ['mudflat'];
 
 function dist(a: Hex, b: Hex): number {
   const dq = a.q - b.q;

@@ -604,7 +604,8 @@ export class GameStore {
 
   /**
    * Every legal tile for the building (or compost) being placed, for the map
-   * to highlight; `risky` marks floodplain a flood would damage it on.
+   * to highlight; `risky` marks ground the flood (or the coast's king tide) reaches, where it
+   * would damage the building.
    */
   get legalSites(): { at: Hex; risky: boolean }[] {
     const tool = this.tool;
@@ -614,13 +615,15 @@ export class GameStore {
     const def = tool.kind === 'build' ? this.content.byId[tool.building] : undefined;
     const sites = this.siteCycle().map((at) => ({
       at,
-      risky:
-        def !== undefined &&
-        !def.floodTolerant &&
-        this.state.map.tiles[hexKey(at)]?.type === 'floodplain',
+      risky: def !== undefined && !def.floodTolerant && this.floodable.has(hexKey(at)),
     }));
     this.sitesCache = { state: this.state, tool, sites };
     return sites;
+  }
+
+  /** Tiles the year's flood can reach: the Reach's floodplain, the coast's mudflat and marsh. */
+  private get floodable(): Set<string> {
+    return new Set(this.state.map.floodOrder);
   }
 
   private siteCycle(): Hex[] {
@@ -638,8 +641,8 @@ export class GameStore {
             ? coppiceProblem(this.rules, this.state, t) === null
             : ladder.indexOf(t.type) >= 0 && ladder.indexOf(t.type) < ladder.length - 1,
     );
-    const risky = (t: { type: string }) =>
-      def !== undefined && !def.floodTolerant && t.type === 'floodplain';
+    const risky = (t: Hex) =>
+      def !== undefined && !def.floodTolerant && this.floodable.has(hexKey(t));
     return legal
       .map((t) => ({ t, rank: (risky(t) ? 1000 : 0) + hexDistance(t, camp) }))
       .sort((a, b) => a.rank - b.rank)

@@ -11,6 +11,8 @@ import { dashedLine } from './tileArt';
 
 const BADGE: Record<MarkKind, { fill: number; ink: number }> = {
   silt: { fill: 0xe0a33b, ink: 0x5a3a14 },
+  salt: { fill: 0xf2f0ea, ink: 0x5b6770 },
+  saltBonus: { fill: 0x7f9868, ink: 0xffffff },
   damaged: { fill: 0xa3401f, ink: 0xfff3e8 },
   unstaffed: { fill: 0x8b9386, ink: 0xffffff },
   shade: { fill: 0x5e6b58, ink: 0xf4ebd6 },
@@ -51,6 +53,21 @@ export function drawMarkTiles(g: Graphics, marks: Mark[]): void {
             .quadraticCurveTo(c.x + 8, y + 3, c.x + 16, y)
             .stroke({ width: 1.4, color: 0x9a6f2c, alpha: 0.55 });
         }
+        break;
+      case 'salt':
+        // A white crust of salt, in flecks.
+        g.poly(corners).fill({ color: 0xf4f2ec, alpha: 0.35 });
+        for (let i = 0; i < 7; i++) {
+          const a = i * 2.4;
+          const d = 6 + (i % 3) * 5;
+          g.circle(c.x + Math.cos(a) * d, c.y + Math.sin(a) * d * 0.8, 1.5).fill({
+            color: 0xffffff,
+            alpha: 0.85,
+          });
+        }
+        break;
+      case 'saltBonus':
+        g.poly(corners).stroke({ width: 2, color: 0x7f9868, alpha: 0.7 });
         break;
       case 'dry':
         g.poly(corners).fill({ color: 0xd9b98a, alpha: 0.35 });
@@ -117,6 +134,25 @@ function icon(g: Graphics, kind: MarkKind, p: Point, ink: number): void {
         .quadraticCurveTo(x + 2, y + 4, x + 4, y + 1)
         .stroke({ width: 1.4, color: ink });
       g.circle(x, y - 3, 1.1).fill({ color: ink });
+      break;
+    case 'salt':
+      // Three grains of salt.
+      for (const [dx, dy] of [
+        [-2.5, 1.5],
+        [2.5, 1.5],
+        [0, -2.5],
+      ] as const)
+        g.rect(x + dx - 1.4, y + dy - 1.4, 2.8, 2.8).fill({ color: ink });
+      break;
+    case 'saltBonus':
+      // A sprig of samphire.
+      g.moveTo(x, y + 4)
+        .lineTo(x, y - 4)
+        .moveTo(x, y)
+        .lineTo(x - 3, y - 3)
+        .moveTo(x, y + 1)
+        .lineTo(x + 3, y - 2)
+        .stroke({ width: 1.4, color: ink, cap: 'round' });
       break;
     case 'damaged':
     case 'floodDamage':

@@ -90,6 +90,66 @@ function drawDetails(g: Graphics, tile: Tile, c: Point, rand: () => number): voi
         g.rect(p.x - 4, p.y - 2.5, 8, 5).fill({ color: i === 0 ? 0xa89c86 : detail });
       }
       break;
+    // The Windswept Coast.
+    case 'sea':
+      // A soft swell: two or three short crests.
+      for (let i = 0; i < 3; i++) {
+        const p = spot(rand, c);
+        g.moveTo(p.x - 6, p.y)
+          .quadraticCurveTo(p.x - 3, p.y - 2.5, p.x, p.y)
+          .quadraticCurveTo(p.x + 3, p.y - 2.5, p.x + 6, p.y)
+          .stroke({ width: 1.2, color: detail, alpha: 0.7, cap: 'round' });
+      }
+      break;
+    case 'mudflat':
+      // Ripple marks and a shell or two.
+      for (let i = 0; i < 3; i++) {
+        const y = c.y - 6 + i * 6 + (rand() - 0.5) * 2;
+        const x = c.x + (rand() - 0.5) * 6;
+        g.moveTo(x - 10, y)
+          .quadraticCurveTo(x - 5, y - 2, x, y)
+          .quadraticCurveTo(x + 5, y + 2, x + 10, y)
+          .stroke({ width: 1.1, color: detail, cap: 'round' });
+      }
+      if (rand() < 0.6) {
+        const p = spot(rand, c, HEX_RADIUS * 0.4);
+        g.circle(p.x, p.y, 1.6).fill({ color: COLORS.paper });
+      }
+      break;
+    case 'saltmarsh': {
+      // A creek across it, a pan of water, tufts of samphire.
+      const y = c.y + (rand() - 0.5) * 6;
+      g.moveTo(c.x - 14, y + 3)
+        .quadraticCurveTo(c.x - 4, y - 5, c.x + 2, y + 1)
+        .quadraticCurveTo(c.x + 8, y + 6, c.x + 14, y - 2)
+        .stroke({ width: 1.8, color: TILE_COLORS.sea.top, cap: 'round' });
+      const pan = spot(rand, c, HEX_RADIUS * 0.4);
+      g.ellipse(pan.x, pan.y, 3.5, 2).fill({ color: TILE_COLORS.sea.top });
+      for (let i = 0; i < 3; i++) {
+        const p = spot(rand, c);
+        g.circle(p.x, p.y, 2).fill({ color: i === 0 ? 0xb39ac2 : detail });
+      }
+      break;
+    }
+    case 'dune':
+      // Soft sand ridges with marram tufts.
+      for (let i = 0; i < 2; i++) {
+        const y = c.y - 3 + i * 8 + (rand() - 0.5) * 3;
+        const x = c.x + (rand() - 0.5) * 6;
+        g.moveTo(x - 12, y + 3)
+          .quadraticCurveTo(x - 2, y - 5, x + 12, y + 2)
+          .stroke({ width: 1.3, color: TILE_COLORS.dune.side, cap: 'round' });
+      }
+      for (let i = 0; i < 2; i++) {
+        const p = spot(rand, c);
+        g.moveTo(p.x - 2.5, p.y - 4)
+          .lineTo(p.x, p.y)
+          .lineTo(p.x + 2.5, p.y - 4)
+          .moveTo(p.x, p.y)
+          .lineTo(p.x, p.y - 5)
+          .stroke({ width: 1.1, color: detail, cap: 'round', join: 'round' });
+      }
+      break;
     case 'river':
     case 'reservoir':
       break;

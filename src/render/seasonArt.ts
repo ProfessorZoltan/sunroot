@@ -11,19 +11,37 @@ import type { RunState } from '../sim/types';
 import { hexToPixel, tileRandom, type Point } from './layout';
 
 const LAND_SPECKS: Record<string, { colors: number[]; per: number; on: string[] }> = {
-  spring: { colors: [0xf6d6e0, 0xfff7f0, 0xe58fa8], per: 3, on: ['meadow', 'woodland', 'scrub'] },
+  spring: {
+    colors: [0xf6d6e0, 0xfff7f0, 0xe58fa8],
+    per: 3,
+    on: ['meadow', 'woodland', 'scrub', 'saltmarsh'],
+  },
   summer: { colors: [], per: 0, on: [] },
   autumn: {
     colors: [0xd98c5f, 0xe0a33b, 0xb85c3c],
     per: 4,
-    on: ['meadow', 'woodland', 'scrub', 'floodplain'],
+    on: ['meadow', 'woodland', 'scrub', 'floodplain', 'saltmarsh'],
   },
   winter: {
     colors: [0xffffff, 0xf4f8fb],
     per: 6,
-    on: ['meadow', 'woodland', 'scrub', 'floodplain', 'barren', 'hill', 'ruin'],
+    // On the coast, frost on the dunes and in the marsh; the sea and the wet mud stay open.
+    on: [
+      'meadow',
+      'woodland',
+      'scrub',
+      'floodplain',
+      'barren',
+      'hill',
+      'ruin',
+      'dune',
+      'saltmarsh',
+    ],
   },
 };
+
+/** Water the seasons don't wash over. */
+const OPEN_WATER = ['river', 'reservoir', 'sea'];
 
 const WASH: Record<string, { color: number; alpha: number } | null> = {
   spring: null,
@@ -46,7 +64,7 @@ export function drawSeason(
   for (const [key, tile] of Object.entries(state.map.tiles)) {
     if (hasArt(key)) continue;
     const c = hexToPixel(tile);
-    if (wash && tile.type !== 'river' && tile.type !== 'reservoir') {
+    if (wash && !OPEN_WATER.includes(tile.type)) {
       g.circle(c.x, c.y, 24).fill(wash);
     }
     if (!specks.on.includes(tile.type)) continue;

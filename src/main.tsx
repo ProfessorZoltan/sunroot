@@ -14,12 +14,13 @@
  * ?seed or ?sandbox: the water system, which otherwise joins at run 2), ?commute=1
  * (likewise: walks to work, from run 3), ?heat=1 (likewise: the heat layer, as in
  * a Long Winter), ?sandbox
- * (everything unlocked, 999 materials; never saved).
+ * (everything unlocked, 999 materials; never saved), ?biome=<id> (a run in another biome, such
+ * as windsweptCoast: a visit outside Root City until the city offers it, never saved).
  */
 import { Application } from 'pixi.js';
 import { render } from 'preact';
 import { fontsReady } from './fonts';
-import { biomeContent, HOME_BIOME } from './content';
+import { BIOMES, biomeContent, HOME_BIOME } from './content';
 import { connectAudio } from './audio/director';
 import { AudioEngine } from './audio/engine';
 import { loadAlmanac, saveAlmanac } from './game/almanac';
@@ -55,8 +56,12 @@ async function start() {
   // The type is served with the app; wait for it so nothing changes font after the first paint.
   await fontsReady();
   const params = new URLSearchParams(location.search);
-  // Root City and the run share the home biome's content until a second biome joins (B5).
-  const content = biomeContent(HOME_BIOME);
+  // Root City and the run share the home biome's content until a second biome joins (B5); a run
+  // in another biome is a visit, which like a sandbox run never touches the saves.
+  const asked = params.get('biome');
+  const biome = asked && asked in BIOMES ? asked : HOME_BIOME;
+  const visit = biome !== HOME_BIOME;
+  const content = biomeContent(biome);
   let storage: Storage | null = null;
   try {
     storage = window.localStorage;
@@ -64,6 +69,8 @@ async function start() {
     // Blocked storage: the Almanac and the playtest log last for this visit only.
   }
   const sandbox = params.has('sandbox');
+  /** Runs that are never saved, and never change Root City. */
+  const passing = sandbox || visit;
   const slot = indexedDbSlot('current');
   const citySlot = indexedDbSlot('city');
   const root = document.getElementById('app')!;
@@ -76,8 +83,8 @@ async function start() {
     document.visibilityState === 'hidden' ? audio.pause() : audio.unlock(),
   );
 
-  // Root City, saved in its own slot (sandbox runs never touch it).
-  const loaded = sandbox
+  // Root City, saved in its own slot (sandbox runs and visits never touch it).
+  const loaded = passing
     ? { city: createCity(content, 'sandbox'), problem: null }
     : await loadCity(content, citySlot, storage, randomSeed('city'));
   let city: CityState = loaded.city;
@@ -85,7 +92,7 @@ async function start() {
   const cityStatus = { runs: -1, savedAt: '' };
   const keepCity = (next: CityState) => {
     city = next;
-    if (sandbox) return;
+    if (passing) return;
     const savedAt = new Date().toISOString();
     citySaving = citySaving
       .then(() => saveCity(citySlot, next, savedAt))
@@ -106,7 +113,7 @@ async function start() {
   let resumeNote: string | null = loaded.problem
     ? `Root City couldn't be loaded (${loaded.problem}), so it begins again.`
     : null;
-  if (!params.has('seed') && !params.has('new') && !sandbox) {
+  if (!params.has('seed') && !params.has('new') && !passing) {
     const data = await slot.load();
     if (data !== undefined) {
       const read = readSave(content, data);
@@ -122,8 +129,9 @@ async function start() {
 
   // Root City: asked for, or there is a Graft to place or an expedition to choose.
   const cityFirst =
-    !state && !params.has('seed') && !sandbox && nextUrl() === '?city' && !params.has('new');
-  if (params.has('city') || cityFirst || (params.has('new') && nextUrl() === '?city')) {
+    !state && !params.has('seed') && !passing && nextUrl() === '?city' && !params.has('new');
+  const cityAsked = !visit && (params.has('city') || (params.has('new') && nextUrl() === '?city'));
+  if (cityAsked || cityFirst) {
     if (params.has('new') || params.has('city')) history.replaceState(null, '', location.pathname);
     const readOnly = state !== null;
     render(
@@ -158,16 +166,17 @@ async function start() {
   }
 
   let intro: Reveal[] = [];
-  if (!state && (params.has('seed') || sandbox)) {
+  if (!state && (params.has('seed') || passing)) {
     state = createRun(content, {
       seed: params.get('seed') ?? randomSeed('run'),
       guided: params.get('guided') !== '0',
       sandbox,
       visions: params.get('visions') !== '0',
-      water: params.get('water') === '1',
+      // A visit plays with water on, as a run that far down the teaching ladder would.
+      water: visit ? params.get('water') !== '0' : params.get('water') === '1',
       commute: params.get('commute') === '1',
       localHeat: params.get('heat') === '1',
-      city: sandbox ? undefined : runCity(content, city),
+      city: passing ? undefined : runCity(content, city),
     });
   } else if (!state) {
     // The city's next run: what it teaches, the city's gifts, and the chosen expedition.
@@ -182,7 +191,7 @@ async function start() {
   if (params.has('new')) history.replaceState(null, '', location.pathname);
 
   // The playtest log: a row per season, kept in the browser (not for sandbox runs).
-  const log = new PlayLog(content, sandbox ? null : storage);
+  const log = new PlayLog(content, passing ? null : storage);
   // Notes for what the player does, chords for combos, music that follows Harmony.
   let sound: ReturnType<typeof connectAudio> | null = null;
   const store = new GameStore(content, state, {
@@ -194,9 +203,9 @@ async function start() {
     almanac: loadAlmanac(content, storage),
     onAlmanac: (almanac) => saveAlmanac(content, storage, almanac),
     // Sent home: the Graft is planted or the Seeds banked; the finished run's save is done with.
-    bankedSeeds: sandbox ? 0 : city.seeds,
+    bankedSeeds: passing ? 0 : city.seeds,
     onRunEnd: (result) => {
-      if (sandbox) return;
+      if (passing) return;
       const home = applyCityCommand(content, city, { type: 'sendHome', result });
       if (home.ok) keepCity(home.city);
       void slot.clear();
@@ -211,7 +220,7 @@ async function start() {
   // change, then at most every 300 ms, and again when the page is hidden or closed.
   const status = { turn: -1, savedAt: '' };
   const save = () => {
-    if (sandbox || store.result) return;
+    if (passing || store.result) return;
     const savedAt = new Date().toISOString();
     const turn = store.state.turn;
     void slot.save(makeSave(store.state, savedAt)).then(() => {
@@ -232,7 +241,11 @@ async function start() {
   });
   save();
   // Abandoning a run, or after sending one home: Root City, or straight on to the next run.
-  const newRun = () => void slot.clear().then(() => go(nextUrl()));
+  // A sandbox run or a visit leaves the saved run alone, and starts another of its own kind.
+  const newRun = () =>
+    passing
+      ? go(visit ? `?biome=${biome}${sandbox ? '&sandbox' : ''}` : '?sandbox')
+      : void slot.clear().then(() => go(nextUrl()));
   const viewCity = () => go('?city');
 
   let view: MapView | null = null;
@@ -244,7 +257,7 @@ async function start() {
         view={() => view}
         icons={() => icons}
         newRun={newRun}
-        viewCity={sandbox ? undefined : viewCity}
+        viewCity={passing ? undefined : viewCity}
         log={log}
         audio={audio}
       />,

@@ -22,6 +22,10 @@ import {
 export type MarkKind =
   /** Lasting: a flood's silt, for the seasons it feeds the farm. */
   | 'silt'
+  /** Lasting: the coast's king tide salted this farm, which makes less for a while. */
+  | 'salt'
+  /** Lasting: the salt has cleared from this saltmarsh farm, which makes more until the next tide. */
+  | 'saltBonus'
   /** Lasting: out of action until repaired (flood) or for the season (storm). */
   | 'damaged'
   /** This season: no worker to staff it. */
@@ -63,23 +67,52 @@ export function mapMarks(content: Content, state: RunState, forecast: SeasonRepo
 
   // Lasting effects.
   const flood = content.events.flood;
+  // "the flood" in the Reach, "the king tide" on the coast.
+  const theFlood = `the ${(flood?.name ?? 'flood').toLowerCase()}`;
+  const salt = flood?.salt;
   for (const b of Object.values(state.buildings)) {
     if (flood && b.siltYear === state.year && flood.siltSeasons.includes(state.season)) {
       const bonus = Math.round(flood.siltBonus * (b.siltShare ?? 1) * 100);
-      add(b.at, 'silt', false, `Silted by the flood: +${bonus}% food this ${state.season}.`);
+      add(b.at, 'silt', false, `Silted by ${theFlood}: +${bonus}% food this ${state.season}.`);
+    }
+    // The coast's salt, as the season's harvest counts it (src/sim/season/production.ts).
+    if (salt && b.saltTurn !== undefined) {
+      const since = state.turn - b.saltTurn;
+      const last = since === 0 ? b.saltBefore : b.saltTurn;
+      const after = last === undefined ? -1 : state.turn - last;
+      const tile = state.map.tiles[hexKey(b.at)]?.type;
+      if (since >= 1 && since <= salt.seasons)
+        add(
+          b.at,
+          'salt',
+          false,
+          `Salted by ${theFlood}: ${salt.factor === 0.5 ? 'half its' : `×${salt.factor}`} food this ${state.season}.`,
+        );
+      else if (tile && after > salt.seasons && after <= 4 && salt.bonusOn.includes(tile))
+        add(
+          b.at,
+          'saltBonus',
+          false,
+          `The salt has cleared: +${salt.bonus} food this ${state.season} on ${tile}.`,
+        );
     }
     if (b.damage) {
       const cost = repairCost(content, b);
-      const cause = b.damage.cause === 'flood' ? 'Flood' : 'Storm';
+      const event = b.damage.cause === 'flood' ? content.events.flood : content.events.storm;
+      const named = event?.name ?? (b.damage.cause === 'flood' ? 'Flood' : 'Storm');
+      // "Flood-damaged" in the Reach; "Damaged by the king tide" on the coast.
+      const cause = named.includes(' ')
+        ? `Damaged by the ${named.toLowerCase()}`
+        : `${named}-damaged`;
       add(
         b.at,
         'damaged',
         false,
         cost === null
-          ? `${cause}-damaged: idle this season.`
+          ? `${cause}: idle this season.`
           : b.holdRepairs
-            ? `${cause}-damaged: repairs on hold. Repair it from its panel (${cost} materials).`
-            : `${cause}-damaged: idle until repaired for ${cost} materials.`,
+            ? `${cause}: repairs on hold. Repair it from its panel (${cost} materials).`
+            : `${cause}: idle until repaired for ${cost} materials.`,
       );
     }
   }
@@ -129,19 +162,30 @@ export function mapMarks(content: Content, state: RunState, forecast: SeasonRepo
   if (event === 'flood') {
     const damaged = new Set(forecast.damaged);
     const silted = new Set(forecast.silted);
+    const salted = new Set(forecast.salted);
+    const levee = content.buildings.find((d) => d.levee);
+    const leveeName = levee ? `A ${levee.name.toLowerCase()}` : 'A levee';
+    const The = theFlood[0]!.toUpperCase() + theFlood.slice(1);
     for (const key of forecast.flooded) {
       const at = parseHexKey(key);
       const b = Object.values(state.buildings).find((x) => hexKey(x.at) === key);
       if (b && damaged.has(b.uid)) {
-        add(at, 'floodDamage', true, `The flood will damage the ${name(b.uid)}.`);
+        add(at, 'floodDamage', true, `${The} will damage the ${name(b.uid)}.`);
       } else if (b && silted.has(b.uid)) {
-        add(at, 'flood', true, `The flood will leave silt on the ${name(b.uid)}.`);
+        add(at, 'flood', true, `${The} will leave silt on the ${name(b.uid)}.`);
+      } else if (b && salted.has(b.uid) && salt) {
+        add(
+          at,
+          'flood',
+          true,
+          `${The} will salt the ${name(b.uid)}: ${salt.factor === 0.5 ? 'half' : `×${salt.factor}`} its food for ${salt.seasons} seasons.`,
+        );
       } else {
-        add(at, 'flood', true, 'The flood will cover this tile.');
+        add(at, 'flood', true, `${The} will cover this tile.`);
       }
     }
     for (const key of forecast.sheltered)
-      add(parseHexKey(key), 'sheltered', true, 'A levee keeps this tile dry.');
+      add(parseHexKey(key), 'sheltered', true, `${leveeName} keeps this tile dry.`);
   } else if (event === 'lowRiver') {
     for (const uid of forecast.dried)
       add(atOf(uid), 'dry', true, `Low river: the ${name(uid)} is far from water and loses food.`);
@@ -169,13 +213,13 @@ export function mapMarks(content: Content, state: RunState, forecast: SeasonRepo
 }
 
 /** A line for the forecast pill: how far the coming event reaches. */
-export function reachSummary(marks: Mark[]): string {
+export function reachSummary(marks: Mark[], shelter = 'levees'): string {
   const count = (k: MarkKind) => marks.filter((m) => m.kind === k).length;
   const parts: string[] = [];
   const flood = count('flood') + count('floodDamage');
   if (flood) parts.push(`${flood} tiles will flood`);
   if (count('floodDamage')) parts.push(`${count('floodDamage')} buildings damaged`);
-  if (count('sheltered')) parts.push(`${count('sheltered')} kept dry by levees`);
+  if (count('sheltered')) parts.push(`${count('sheltered')} kept dry by ${shelter}`);
   if (count('dry')) parts.push(`${count('dry')} short of water`);
   if (count('exposed')) parts.push(`${count('exposed')} buildings exposed`);
   if (count('calm')) parts.push('the Mixed Grid shelters all');

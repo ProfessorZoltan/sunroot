@@ -1285,6 +1285,8 @@ export const ContentSchema = z
   .object({
     id: z.string(),
     name: z.string(),
+    /** What the interface calls the land a run settles: "the valley", "the coast". */
+    land: z.string().min(1).default('valley'),
     rules: RulesSchema,
     map: MapGenSchema,
     /** The event at the end of each season, spring to winter. */

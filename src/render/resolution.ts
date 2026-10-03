@@ -9,7 +9,7 @@ import type { PhaseName, Pop, Timeline } from '../game/timeline';
 import { parseHexKey } from '../sim/hex';
 import { drawCondition } from './buildingArt';
 import { HEX_RADIUS, hexCorners, hexToPixel, type Bounds, type Point } from './layout';
-import { COLORS } from './palette';
+import { COLORS, TILE_COLORS } from './palette';
 import { artSprite, windowsTexture } from './sprites';
 
 export interface ResolutionLayers {
@@ -36,6 +36,7 @@ export class ResolutionPlayer {
   private phase: PhaseName | null = null;
   private paused = false;
   private done = false;
+  private readonly tide = new Graphics();
   private readonly water = new Graphics();
   /** The event on the ground (dry earth, ice, sandbars), under the buildings. */
   private readonly eventGround = new Graphics();
@@ -64,7 +65,7 @@ export class ResolutionPlayer {
     private readonly hooks: ResolutionHooks,
     private readonly reducedMotion = false,
   ) {
-    layers.under.addChild(this.water, this.eventGround, this.shadows);
+    layers.under.addChild(this.tide, this.water, this.eventGround, this.shadows);
     layers.over.addChild(
       this.sky,
       this.eventMarks,
@@ -113,6 +114,7 @@ export class ResolutionPlayer {
     this.done = true;
     this.layers.shake.position.set(this.shakeOrigin.x, this.shakeOrigin.y);
     for (const g of [
+      this.tide,
       this.water,
       this.eventGround,
       this.eventMarks,
@@ -158,6 +160,7 @@ export class ResolutionPlayer {
     const settle = this.progress('settle');
     const isDay = this.t >= phaseStart(tl, 'day') && this.t < phaseStart(tl, 'night');
 
+    this.drawTide(current, dawn, dusk, settle);
     this.drawWater();
     this.drawEvent();
     this.drawWeather();
@@ -169,6 +172,35 @@ export class ResolutionPlayer {
     this.drawPops();
     this.drawSun(current, dawn, dusk);
     this.drawShake();
+  }
+
+  /**
+   * The tide over the mudflat: half in as the season turns, out through the day, in again by
+   * night, and back to half as it settles.
+   */
+  private drawTide(phase: PhaseName, dawn: number, dusk: number, settle: number): void {
+    const g = this.tide.clear();
+    if (this.timeline.tide.length === 0) return;
+    const level =
+      phase === 'event'
+        ? 0.5
+        : phase === 'day'
+          ? 0.5 * (1 - dawn)
+          : phase === 'night'
+            ? dusk
+            : 1 - 0.5 * settle;
+    if (level <= 0.02) return;
+    for (const h of this.timeline.tide) {
+      const c = hexToPixel(h);
+      g.poly(hexCorners(c, (HEX_RADIUS - 1) * (0.55 + 0.45 * level))).fill({
+        color: TILE_COLORS.sea.top,
+        alpha: 0.65 * level,
+      });
+      g.moveTo(c.x - 12, c.y + 2)
+        .quadraticCurveTo(c.x - 6, c.y - 2, c.x, c.y + 2)
+        .quadraticCurveTo(c.x + 6, c.y + 6, c.x + 12, c.y + 2)
+        .stroke({ width: 1.2, color: TILE_COLORS.sea.detail, alpha: 0.7 * level });
+    }
   }
 
   /** The flood spreads tile by tile, then drains through the day. */
