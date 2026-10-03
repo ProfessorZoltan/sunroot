@@ -27,8 +27,7 @@
 import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { chromium } from '@playwright/test';
-import willowReach from '../src/content/willow-reach.json';
-import { loadBiome } from '../src/content';
+import { BIOMES, biomeContent } from '../src/content';
 import { TILE_TYPES } from '../src/sim';
 
 const IN = 'art/incoming';
@@ -46,12 +45,14 @@ interface Manifest {
   assets: { file: string; rotation_hub?: [number, number] }[];
 }
 
-const content = loadBiome(willowReach);
+// Art for every biome: Willow Reach and the Windswept Coast share one art folder.
+const biomes = Object.keys(BIOMES).map((id) => biomeContent(id));
+const byId = Object.fromEntries(biomes.flatMap((c) => Object.entries(c.byId)));
 const manifest = JSON.parse(readFileSync(join(IN, 'manifest.json'), 'utf8')) as Manifest;
 const tiles = new Set<string>(TILE_TYPES);
 /** Buildings, and pieces drawn with them: the sluice gate at a channel's intake. */
 const DECORATIONS = ['sluiceGate'];
-const buildings = new Set([...content.buildings.map((b) => b.id), ...DECORATIONS]);
+const buildings = new Set([...Object.keys(byId), ...DECORATIONS]);
 const idOf = (file: string) => file.split('.')[0]!.replace(/-\d+$/, '');
 const inDir = (dir: 'tiles' | 'buildings') =>
   readdirSync(join(IN, dir))
@@ -215,8 +216,22 @@ try {
   }
 
   // Wildlife and festival props at half size; festival cards as WebP, for the interface.
-  const animals = new Set(['wildBees', 'otter', 'beaver', 'deer']);
-  const festivals = new Set([...content.festivals.map((f) => f.id), 'bunting', 'lantern']);
+  // Each animal's art is named by its frames' first part (src/render/wildlifeArt.ts).
+  const animals = new Set([
+    'wildBees',
+    'otter',
+    'beaver',
+    'deer',
+    'tern',
+    'seal',
+    'puffin',
+    'dolphin',
+  ]);
+  const festivals = new Set([
+    ...biomes.flatMap((c) => c.festivals.map((f) => f.id)),
+    'bunting',
+    'lantern',
+  ]);
   let extras = 0;
   for (const dir of ['wildlife', 'festivals'] as const) {
     for (const file of readdirSync(join(IN, dir)).filter((f) => f.endsWith('.png'))) {
@@ -247,7 +262,7 @@ try {
   // Wonders: half size on their own frame, and an icon from the finished one.
   for (const file of readdirSync(join(IN, 'wonders')).filter((f) => f.endsWith('.png'))) {
     const id = idOf(file);
-    if (!content.byId[id]?.wonder) throw new Error(`not a wonder id: wonders/${file}`);
+    if (!byId[id]?.wonder) throw new Error(`not a wonder id: wonders/${file}`);
     const out = await page.evaluate(
       async ({ src, scale, icon, wantIcon }) => {
         const img = new Image();

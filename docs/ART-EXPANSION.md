@@ -23,6 +23,8 @@ The wildlife and festival art is in the game (E4): the importer brings the anima
 | E4. Wildlife and festivals  | Yes        | 4 animals, 3 festival cards, 2 props          | EXPANSION.md, Bigger systems                |
 | E5. Great Water Garden      | Yes        | The 7-hex wonder and its build stages         | EXPANSION.md, Bigger systems                |
 | B4. The coast on screen     | Yes        | Its 4 tiles, then the Croft and Tide Turbine  | proposals/windswept-coast.md, Build plan    |
+| B5. The coast in Root City  | Yes        | The Tide Mill and the Estuary Turbine         | proposals/windswept-coast.md, Build plan    |
+| B6. The coast's wonder      | Yes        | The Tidal Lagoon, 4 animals, 2 festival cards | proposals/windswept-coast.md, Build plan    |
 
 ## The standard frame (reminder)
 
@@ -162,39 +164,47 @@ seasons, so it also needs 3 stages of construction.
 | ------------------ | ------------------ | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
 | Great Water Garden | `greatWaterGarden` | `greatWaterGarden.png`, `.winter`, `greatWaterGarden.stage1.png` … `.stage3.png` | Carries its own ground over all 7 tiles: pools, reed margins, stepping stones, a pavilion at the centre. Stages: dug and staked; pools filling; planted but bare. | EXPANSION.md, Biome wonder |
 
-## The Windswept Coast (B4)
+## The Windswept Coast (B4 to B6)
 
-The second biome ([proposals/windswept-coast.md](proposals/windswept-coast.md)). It is drawn
-procedurally until hand-made art comes; the game draws the tide (the sea rising over the mudflat
-by night and falling back by day) and the king tide's salt marks in code, so don't paint them. Same frame, light and seasons as everything else: a summer `id.png` and a
-winter `id.winter.png`. A coast winter is grey and wet more than white: frost on the dunes, ice
-only in the saltmarsh pools.
+The second biome ([proposals/windswept-coast.md](proposals/windswept-coast.md)). Everything here is
+drawn in code until hand-made art comes, so any piece can arrive on its own. Same frame, light and
+seasons as everything else: a summer `id.png` and a winter `id.winter.png`, delivered to the same
+folders of `art/incoming/` as the Reach's (`tiles/`, `buildings/`, `wildlife/`, `festivals/`,
+`wonders/`); `scripts/import-art.ts` takes every biome's names. A coast winter is grey and wet more
+than white: frost on the dunes, ice only in the saltmarsh pools.
+
+The game draws these in code, so don't paint them: the tide (the sea rising over the mudflat by
+night and falling back by day), the king tide's salt marks, the smoke over a working smokehouse,
+lit windows from a `.lit.png` (as before), and a rotor's turn from a `.rotor.png` (as the Wind
+Spire's).
 
 ### Tiles
 
-| Tile      | Id          | What it is                                       | Notes                                                                                                                        | Source        |
-| --------- | ----------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| Sea       | `sea`       | Open water off the shore                         | Groundless top face of deep blue-green water with a soft swell; the side band dark water, not paper earth. Several variants. | Proposal, Map |
-| Mudflat   | `mudflat`   | Wet sand and mud the tide covers and uncovers    | Glistening grey-brown with ripple marks and a few shells and worm casts. The game floods it with code-drawn water at night.  | Proposal, Map |
-| Saltmarsh | `saltmarsh` | Low marsh of samphire and sea lavender, in pools | Green-grey turf cut by small creeks and pans of standing water; purple flecks of sea lavender in summer.                     | Proposal, Map |
-| Dune      | `dune`      | Sand hills with marram grass                     | Pale sand in two or three soft ridges, sparse marram tufts; the healing ladder's lowest step, below barren.                  | Proposal, Map |
-| Headland  | `hill`      | The coast's hills: rocky headlands over the sea  | Optional: the Reach's hill tile serves until then. Grass over grey rock, short cliffs on the seaward side.                   | Proposal, Map |
+| Tile      | Id          | What it is                                       | Notes                                                                                                                                                                                          | Source        |
+| --------- | ----------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| Sea       | `sea`       | Open water off the shore                         | Groundless top face of deep blue-green water with a soft swell; the side band dark water, not paper earth. Up to 3 variants: `sea.png`, `sea-2.png`, `sea-3.png`; one winter `sea.winter.png`. | Proposal, Map |
+| Mudflat   | `mudflat`   | Wet sand and mud the tide covers and uncovers    | Glistening grey-brown with ripple marks and a few shells and worm casts. The game floods it with code-drawn water at night.                                                                    | Proposal, Map |
+| Saltmarsh | `saltmarsh` | Low marsh of samphire and sea lavender, in pools | Green-grey turf cut by small creeks and pans of standing water; purple flecks of sea lavender in summer.                                                                                       | Proposal, Map |
+| Dune      | `dune`      | Sand hills with marram grass                     | Pale sand in two or three soft ridges, sparse marram tufts; the healing ladder's lowest step, below barren.                                                                                    | Proposal, Map |
+| Headland  | `hill`      | The coast's hills: rocky headlands over the sea  | Optional: the Reach's hill tile serves until then. Grass over grey rock, short cliffs on the seaward side.                                                                                     | Proposal, Map |
 
 ### Buildings
 
-| Name              | Id                 | What it is                                        | Files                                                          | Notes                                                                                                                   | Source              |
-| ----------------- | ------------------ | ------------------------------------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| Croft             | `croft`            | A small field strip with a stone dyke             | `croft.png`, `.winter`                                         | Carries its own ground, like the Floodplain Farm: lazy-beds of potatoes and oats, a drystone wall. Winter: bare ridges. | Proposal, Buildings |
-| Tide Turbine      | `tideTurbine`      | An underwater turbine moored in the tidal race    | `tideTurbine.png`, `.winter`, optional `tideTurbine.rotor.png` | On the sea tile: a float or tower above the water, the blades just under it. Give the rotor's pivot if it has one.      | Proposal, Buildings |
-| Wave Buoy         | `waveBuoy`         | A bobbing wave-energy float                       | `waveBuoy.png`, `.winter`                                      | Small, bright, on open sea; the game rocks it.                                                                          | Proposal, Buildings |
-| Kelp Farm         | `kelpFarm`         | Kelp grown on long lines from floats              | `kelpFarm.png`, `.winter`                                      | On the sea tile: rows of floats with brown fronds under the surface, a small boat.                                      | Proposal, Buildings |
-| Oyster Reef       | `oysterReef`       | Oysters on stakes and racks on the mudflat        | `oysterReef.png`, `.winter`                                    | Low trestles and shell heaps; reads under a shallow film of water too.                                                  | Proposal, Buildings |
-| Beachcombing Yard | `beachcombingYard` | Sorted driftwood, rope and wreckage on the dune   | `beachcombingYard.png`, `.winter`                              | A lean-to, a cart, piles of timber and floats, nets drying.                                                             | Proposal, Buildings |
-| Dune Grass        | `duneGrass`        | Planted marram grass that holds the sand          | `duneGrass.png`, `.winter`                                     | Groundless: dense marram in rows with fencing; the dune tile shows around it.                                           | Proposal, Buildings |
-| Sea Wall          | `seaWall`          | A stone and timber sea wall                       | `seaWall.png`, `.winter`                                       | Faces the sea along the tile's seaward half; low enough to see the tile behind. Three in a row make a Breakwater.       | Proposal, Buildings |
-| Lighthouse        | `lighthouse`       | A white lighthouse on a headland                  | `lighthouse.png`, `.winter`, `lighthouse.lit.png`              | Carries its own hill tile, like the Wind Spire. Tall. The lit file lights the lantern room.                             | Proposal, Buildings |
-| Smokehouse        | `smokehouse`       | A tarred hut for smoking fish                     | `smokehouse.png`, `.winter`                                    | Racks of fish inside, a vent at the ridge: smoke is drawn by code, so show where it rises.                              | Proposal, Buildings |
-| Desalinator       | `desalinator`      | A small plant that makes fresh water from the sea | `desalinator.png`, `.winter`                                   | Tanks and a pipe running seaward; solar-era, clean lines, not industrial.                                               | Proposal, Buildings |
+| Name                 | Id                 | What it is                                        | Files                                                          | Notes                                                                                                                   | Source              |
+| -------------------- | ------------------ | ------------------------------------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| Croft                | `croft`            | A small field strip with a stone dyke             | `croft.png`, `.winter`                                         | Carries its own ground, like the Floodplain Farm: lazy-beds of potatoes and oats, a drystone wall. Winter: bare ridges. | Proposal, Buildings |
+| Tide Turbine         | `tideTurbine`      | An underwater turbine moored in the tidal race    | `tideTurbine.png`, `.winter`, optional `tideTurbine.rotor.png` | On the sea tile: a float or tower above the water, the blades just under it. Give the rotor's pivot if it has one.      | Proposal, Buildings |
+| Wave Buoy            | `waveBuoy`         | A bobbing wave-energy float                       | `waveBuoy.png`, `.winter`                                      | Small, bright, on open sea.                                                                                             | Proposal, Buildings |
+| Kelp Farm            | `kelpFarm`         | Kelp grown on long lines from floats              | `kelpFarm.png`, `.winter`                                      | On the sea tile: rows of floats with brown fronds under the surface, a small boat.                                      | Proposal, Buildings |
+| Oyster Reef          | `oysterReef`       | Oysters on stakes and racks on the mudflat        | `oysterReef.png`, `.winter`                                    | Low trestles and shell heaps; reads under a shallow film of water too.                                                  | Proposal, Buildings |
+| Beachcombing Yard    | `beachcombingYard` | Sorted driftwood, rope and wreckage on the dune   | `beachcombingYard.png`, `.winter`                              | A lean-to, a cart, piles of timber and floats, nets drying.                                                             | Proposal, Buildings |
+| Dune Grass           | `duneGrass`        | Planted marram grass that holds the sand          | `duneGrass.png`, `.winter`                                     | Groundless: dense marram in rows with fencing; the dune tile shows around it.                                           | Proposal, Buildings |
+| Sea Wall             | `seaWall`          | A stone and timber sea wall                       | `seaWall.png`, `.winter`                                       | Faces the sea along the tile's seaward half; low enough to see the tile behind. Three in a row make a Breakwater.       | Proposal, Buildings |
+| Lighthouse           | `lighthouse`       | A white lighthouse on a headland                  | `lighthouse.png`, `.winter`, `lighthouse.lit.png`              | Carries its own hill tile, like the Wind Spire. Tall. The lit file lights the lantern room.                             | Proposal, Buildings |
+| Smokehouse           | `smokehouse`       | A tarred hut for smoking fish                     | `smokehouse.png`, `.winter`                                    | Racks of fish inside, a vent at the ridge: smoke is drawn by code, so show where it rises.                              | Proposal, Buildings |
+| Desalinator          | `desalinator`      | A small plant that makes fresh water from the sea | `desalinator.png`, `.winter`                                   | Tanks and a pipe running seaward; solar-era, clean lines, not industrial.                                               | Proposal, Buildings |
+| Tide Mill (B5)       | `tideMill`         | A mill on the mudflat that fills with the tide    | `tideMill.png`, `.winter`                                      | A small mill house with its pond walled off from the sea and an undershot wheel. The Tidal Quarter's card.              | Proposal, Energy    |
+| Estuary Turbine (B5) | `estuaryTurbine`   | Turbines in a low barrage at the stream's mouth   | `estuaryTurbine.png`, `.winter`                                | Carries its own river tile, like the Weir: a low barrage with a walkway and a small tower. The Estuary Works' gift.     | Proposal, Energy    |
 
 ### Evolutions
 
@@ -218,8 +228,12 @@ Drawn in code until this art comes, like the rest of the coast.
 | Kite Day           | `kiteDay`         | `kiteDay.card.png`                                                     | Spring: kites over a headland, people on the dunes.                                                                                                                                                                         | Proposal, Festivals |
 | Harvest of the Sea | `harvestOfTheSea` | `harvestOfTheSea.card.png`                                             | Autumn: long tables on the shore, baskets of fish, kelp and oysters.                                                                                                                                                        | Proposal, Festivals |
 
-Animals follow the wildlife frame above (128 × 128, bottom-centre anchor, facing right); the
-coast's Lantern Night uses the Reach's card.
+Animals follow the wildlife frame above (128 × 128, bottom-centre anchor, facing right), and an
+optional `.winter` of any frame. The game shows these frames: terns fly between frames 1 and 2 and
+rest on `tern.rest`; seals swim on frames 1 and 2 and rest hauled out; puffins alternate their 2;
+dolphins rise and leap through 1 to 3 and show 1 when still. The Tidal Lagoon gives its icon from
+the finished frame, as the Garden does. The coast's Lantern Night uses the Reach's card, and its
+festivals the Reach's bunting and lanterns.
 
 ## Optional: interface marks
 

@@ -153,9 +153,18 @@ export function poseAt(actor: Actor, clock: number, still: boolean): Pose {
         ? `deer.walk.${(step % 4) + 1}`
         : `deer.graze.${(Math.floor(step / 6) % 2) + 1}`;
       break;
-    default:
-      // The coast's animals have no art yet: the frame says moving or still, for drawCoastAnimal.
-      frame = `${kind}.${moving ? 'move' : 'rest'}.${(step % 2) + 1}`;
+    // The coast's (ART-EXPANSION.md); drawn in code from the same frame names until art comes.
+    case 'tern':
+      frame = moving ? `tern.fly.${(step % 2) + 1}` : 'tern.rest';
+      break;
+    case 'seal':
+      frame = moving ? `seal.swim.${(Math.floor(step / 2) % 2) + 1}` : 'seal.rest';
+      break;
+    case 'puffin':
+      frame = `puffin.${(Math.floor(step / 4) % 2) + 1}`;
+      break;
+    case 'dolphin':
+      frame = moving ? `dolphin.${(Math.floor(step / 2) % 3) + 1}` : 'dolphin.1';
       break;
   }
   return { x, y, frame, flip };
@@ -166,6 +175,7 @@ export function drawCoastAnimal(g: Graphics, kind: ActorKind, pose: Pose): void 
   const { x, y } = pose;
   const dir = pose.flip ? -1 : 1;
   const flap = pose.frame.endsWith('.2') ? 1 : 0;
+  const moving = /\.(fly|swim)\./.test(pose.frame) || /dolphin\.[23]$/.test(pose.frame);
   switch (kind) {
     case 'tern': {
       // A white bird with a black cap, wings up or down, a little above the dunes.
@@ -191,7 +201,7 @@ export function drawCoastAnimal(g: Graphics, kind: ActorKind, pose: Pose): void 
       break;
     case 'dolphin': {
       // A grey back and fin rising out of the water, a ripple behind.
-      const rise = pose.frame.includes('.move.') ? 1.5 + flap : 0.5;
+      const rise = moving ? 1.5 + (pose.frame.endsWith('.3') ? 2 : flap) : 0.5;
       g.moveTo(x - 6, y)
         .quadraticCurveTo(x, y - 3 - rise, x + 6, y)
         .stroke({ width: 2.4, color: 0x6c7a82, cap: 'round' });

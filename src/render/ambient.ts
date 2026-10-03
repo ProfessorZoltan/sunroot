@@ -65,6 +65,9 @@ export function ambientFor(content: Content, state: RunState): Ambient {
       const d = def(b.type);
       if (!d) return false;
       if ((ran[b.uid]?.runs ?? 0) > 0) return true;
+      // A smokehouse at work (the coast's): staffed and standing last season.
+      const report = state.lastReport;
+      if (d.stopsRot && report && !report.unstaffed.includes(b.uid) && !b.damage) return true;
       // Homes that need heat this season.
       const si = ['spring', 'summer', 'autumn', 'winter'].indexOf(state.season);
       return d.housing > 0 && (d.demand?.heat.night[si] ?? 0) > 0;

@@ -262,3 +262,33 @@ describe("the coast's animals on screen", () => {
     expect(g.bounds.width).toBeGreaterThan(0);
   });
 });
+
+describe('the coast on screen, as its art guide says (ART-EXPANSION.md)', () => {
+  it("the animals' frames are the guide's file names", async () => {
+    const { poseAt } = await import('../src/render/wildlifeArt');
+    const frames = (kind: 'tern' | 'seal' | 'puffin' | 'dolphin') => {
+      const actor = {
+        kind,
+        path: [
+          { x: 0, y: 0 },
+          { x: 40, y: 0 },
+        ],
+        phase: 0,
+      };
+      return new Set(Array.from({ length: 400 }, (_, i) => poseAt(actor, i * 97, false).frame));
+    };
+    expect([...frames('tern')].sort()).toEqual(['tern.fly.1', 'tern.fly.2', 'tern.rest']);
+    expect([...frames('seal')].sort()).toEqual(['seal.rest', 'seal.swim.1', 'seal.swim.2']);
+    expect([...frames('puffin')].sort()).toEqual(['puffin.1', 'puffin.2']);
+    expect([...frames('dolphin')].sort()).toEqual(['dolphin.1', 'dolphin.2', 'dolphin.3']);
+  });
+
+  it('a working smokehouse smokes', async () => {
+    const { ambientFor } = await import('../src/render/ambient');
+    const rows = [', , , : = =', ', C , , = ='];
+    const start = () => scenario(rows, { content: COAST, citizens: 4, stores: { food: 40 } });
+    const without = ambientFor(COAST, end(start())).smoke.length;
+    const s = end(place(start(), 'smokehouse', 2, 0, COAST));
+    expect(ambientFor(COAST, s).smoke.length).toBe(without + 1);
+  });
+});
