@@ -36,7 +36,9 @@ describe('the glen', () => {
         if (t.type === 'crag') expect(t.height).toBe(3);
         if (t.type === 'bog' || t.type === 'ruin') expect([1, 2]).toContain(t.height);
       }
-      expect(tiles.filter((t) => t.type === 'ruin')).toHaveLength(3);
+      expect(tiles.filter((t) => t.type === 'ruin')).toHaveLength(
+        HIGH.map.kind === 'highland' ? HIGH.map.ruins : 0,
+      );
     }
   });
 

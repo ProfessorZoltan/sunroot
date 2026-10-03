@@ -1,5 +1,18 @@
 # Changelog
 
+## The Highland: combos, cards and balance
+
+- The Highland's own **combos**: the Carbon Loop (coppice, biochar kiln, farm), the Meltwater
+  Loop (a bog, a pump and a terrace: the pump lifts more), Hearth Stones (a bothy by a heat well
+  burns no biomass), High Pasture, the Water Stair, the Snow Line, Ridge Spires (no Harmony
+  cost), and three evolutions: the **Hanging Garden**, the **Cascade** and the **Bat Roost**.
+  The Reach's farm loops work with terrace and glen farms.
+- **8 Highland tunings** and **2 charters** (Mountain Rescue, Hearth Keepers).
+- Bothies burn 1 biomass in autumn and winter for their heat, and house 3. A snow fence keeps a
+  high solar canopy making a little in winter.
+- Balance: glen and terrace farms make more, the glen has a fourth old mine, and a Highland run
+  scores +30 for wintering in it.
+
 ## The coast's art, and the Well's
 
 - The Windswept Coast is **hand-drawn**: the sea, mudflat, saltmarsh, dunes and rocky headlands;

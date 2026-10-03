@@ -7,13 +7,15 @@
  * are 9 materials and its summer (a step of channel, a terrace farm, a pump
  * station) costs 10, and with the stream low in summer the pump's 2 day
  * energy leaves the workshop none. This is the same lesson played on what
- * the glen can pay for, until HL3 tunes it (DECISIONS.md, The Highland).
+ * the glen can pay for. Re-derived after HL3's tuning (glen and terrace farms
+ * +1 food in summer and autumn): food is up, materials and citizens are not
+ * (DECISIONS.md, The Highland).
  *
  * | Season | Build                                                      | Materials | Food | Citizens |
  * | Spring | Glen Farm, Salvage Yard, Workshop, Hill Turbine            | 9         | 8    | 6        |
- * | Summer | Solar Canopy; a channel up a step, a Terrace Farm (dry)    | 9         | 8    | 6        |
- * | Autumn | Pump Station (the terrace watered), Composter              | 5         | 11   | 6        |
- * | Winter | Bothy (warm by its stove; the camp cold)                   | 3         | 5    | 6        |
+ * | Summer | Solar Canopy; a channel up a step, a Terrace Farm (dry)    | 9         | 9    | 6        |
+ * | Autumn | Pump Station (the terrace watered), Composter              | 5         | 14   | 6        |
+ * | Winter | Bothy (warm by its stove; the camp cold)                   | 3         | 8    | 6        |
  */
 import { describe, expect, it } from 'vitest';
 import { biomeContent } from '../src/content';
@@ -102,9 +104,9 @@ describe('the Highland, Year 1 (golden, PROPOSED)', () => {
     }));
     expect(rows).toEqual([
       { season: 'spring', materials: 9, food: 8, citizens: 6 },
-      { season: 'summer', materials: 9, food: 8, citizens: 6 },
-      { season: 'autumn', materials: 5, food: 11, citizens: 6 },
-      { season: 'winter', materials: 3, food: 5, citizens: 6 },
+      { season: 'summer', materials: 9, food: 9, citizens: 6 },
+      { season: 'autumn', materials: 5, food: 14, citizens: 6 },
+      { season: 'winter', materials: 3, food: 8, citizens: 6 },
     ]);
   });
 

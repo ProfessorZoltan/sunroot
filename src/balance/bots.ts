@@ -110,8 +110,14 @@ const foodGap = (t: Turn) =>
 /** The biome's farms (fields that want water) and orchards: those of these it has. */
 const FARMS = ['floodplainFarm', 'croft', 'glenFarm', 'terraceFarm'];
 const ORCHARDS = ['orchard'];
-const tilesFor = (turn: Turn, ids: readonly string[]) =>
-  ids.flatMap((id) => turn.content.byId[id]?.placement.tiles ?? []);
+/** Whether one of these buildings could stand on the tile by its type and height. */
+const fitsAny = (turn: Turn, ids: readonly string[], t: Tile) =>
+  ids.some((id) => {
+    const p = turn.content.byId[id]?.placement;
+    if (!p || !p.tiles.includes(t.type)) return false;
+    const h = t.height ?? 0;
+    return !p.heights || (h >= p.heights[0] && h <= p.heights[1]);
+  });
 
 /** Workshop runs short of two each, while there is salvage for them. */
 const idleWorkshops = (t: Turn) =>
@@ -129,8 +135,7 @@ const idleWorkshops = (t: Turn) =>
 /** Free sites a farm or orchard could take that can draw water. */
 function wateredSites(turn: Turn): number {
   const taken = new Set(Object.values(turn.state.buildings).map((b) => hexKey(b.at)));
-  const land = tilesFor(turn, [...FARMS, ...ORCHARDS]);
-  const fits = (t: Tile) => land.includes(t.type);
+  const fits = (t: Tile) => fitsAny(turn, [...FARMS, ...ORCHARDS], t);
   return Object.values(turn.state.map.tiles).filter(
     (t) => !taken.has(hexKey(t)) && fits(t) && turn.watered(t),
   ).length;
@@ -144,20 +149,27 @@ function bestChannelSite(turn: Turn, policy: WaterPolicy): Tile | undefined {
       .map((b) => hexKey(b.at)),
   );
   const taken = new Set(Object.values(turn.state.buildings).map((b) => hexKey(b.at)));
-  const farm = tilesFor(turn, FARMS);
-  const orchard = tilesFor(turn, ORCHARDS);
+  const heightOf = (h: Hex) => turn.state.map.tiles[hexKey(h)]?.height ?? 0;
   let best: Tile | undefined;
   let bestScore = 2;
   for (const t of turn.sites(turn.rules.rules.water.channelBuilding)) {
     const extends_ = hexNeighbors(t).some((n) => channelAt.has(hexKey(n)));
     if (policy === 'short' && extends_) continue;
     if (policy === 'long' && !extends_ && channelAt.size > 0) continue;
+    // Never dug uphill from what feeds it: water wouldn't climb into it (the Highland).
+    const feeds = hexNeighbors(t).filter((n) => {
+      const type = turn.state.map.tiles[hexKey(n)]?.type;
+      return channelAt.has(hexKey(n)) || type === 'river' || type === 'reservoir';
+    });
+    if (feeds.length > 0 && Math.max(...feeds.map(heightOf)) < heightOf(t)) continue;
     let score = lowGround(t) ? -1 : 0;
     for (const n of hexNeighbors(t)) {
       const tile = turn.state.map.tiles[hexKey(n)];
       if (!tile || taken.has(hexKey(n)) || turn.watered(n)) continue;
-      if (farm.includes(tile.type)) score += 2;
-      else if (orchard.includes(tile.type)) score += 1;
+      // Only land a farm may stand on and this channel can feed (no higher than it).
+      if (heightOf(n) > heightOf(t)) continue;
+      if (fitsAny(turn, FARMS, tile)) score += 2;
+      else if (fitsAny(turn, ORCHARDS, tile)) score += 1;
     }
     score += nextFloat(turn.rng) * 0.1;
     if (score > bestScore) {
@@ -304,7 +316,7 @@ function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): v
 
   // Long walks to work: a cottage near the far work, when the walks cost wellbeing.
   if (turn.commuteOn && turn.commuteAware && (turn.peek()?.report.commute?.wellbeing ?? 0) < 0)
-    turn.build('cottage', profile.reserve);
+    buildHome(turn, profile.reserve);
   // Long walks to water: a well by the homes far from it.
   if (
     turn.commuteOn &&
@@ -317,7 +329,7 @@ function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): v
   const p = turn.peek();
   if (p && turn.state.citizens >= turn.housing() && turn.state.wellbeing >= 60) {
     if (p.report.food.produced - turn.state.citizens >= 2 || turn.state.stores.food > 20) {
-      turn.build('cottage');
+      buildHome(turn);
     }
   }
 
@@ -562,6 +574,10 @@ function spend(turn: Turn, profile: Profile, options: readonly string[], limit =
   }
 }
 
+/** Homes, in the order a bot builds them: the Highland's bothy where there are no cottages yet. */
+const HOMES = ['cottage', 'bothy'];
+const buildHome = (turn: Turn, reserve = 0) => HOMES.some((id) => turn.build(id, reserve));
+
 const growHousing = (turn: Turn) =>
   turn.state.citizens >= turn.housing() - 1 && turn.state.wellbeing >= 60;
 
@@ -637,7 +653,7 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       // A mushroom cellar once there is biomass to spare.
       if (turn.state.stores.biomass >= 2 && turn.count('mushroomCellar') < 2)
         options.unshift('mushroomCellar');
-      if (growHousing(turn)) options.unshift('cottage');
+      if (growHousing(turn)) options.unshift(...HOMES);
       spend(turn, profile, options);
     },
   },
@@ -692,7 +708,7 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
         spare >= 2
           ? ['workshop', 'kiln']
           : ['riverWheel', 'tideTurbine', 'hillTurbine', 'windSpire', 'waveBuoy', 'solarCanopy'];
-      if (growHousing(turn)) options.unshift('cottage');
+      if (growHousing(turn)) options.unshift(...HOMES);
       spend(turn, profile, options, 2);
       // Hedges by the hill generators storms can reach.
       plantHedges(turn, profile, 6);
@@ -742,7 +758,7 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
     wonder: true,
     extras(turn, profile) {
       const options = ['pollinatorMeadow', 'treeNursery'];
-      if (growHousing(turn)) options.unshift('cottage');
+      if (growHousing(turn)) options.unshift(...HOMES);
       if (turn.state.citizens >= 10 && !turn.has('commonsPlaza')) options.push('commonsPlaza');
       // A bathhouse for wellbeing, and a reed bed to clean what it lets out.
       if (turn.state.citizens >= 12 && turn.count('bathhouse') < 1) options.unshift('bathhouse');

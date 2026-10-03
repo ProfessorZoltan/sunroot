@@ -160,13 +160,19 @@ export class Turn {
 
   /** Whether a building here could draw water: beside the river, a lake or a channel. */
   watered(h: Hex, occ: Map<string, BuildingState> = occupancyOf(this.state)): boolean {
+    // Water runs only downhill (the Highland): a channel below the tile can't feed it.
+    const height = this.state.map.tiles[hexKey(h)]?.height ?? 0;
     return hexNeighbors(h).some((n) => {
       const key = hexKey(n);
       const tile = this.state.map.tiles[key];
       if (tile && (tile.type === 'river' || tile.type === 'reservoir'))
         return this.rules.rules.water.drawBesideRiver;
       const b = occ.get(key);
-      return b !== undefined && (this.content.byId[b.type]!.water?.channel ?? false);
+      return (
+        b !== undefined &&
+        (this.content.byId[b.type]!.water?.channel ?? false) &&
+        (tile?.height ?? 0) >= height
+      );
     });
   }
 

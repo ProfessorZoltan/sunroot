@@ -198,7 +198,11 @@
           "name": "Heartwood",
           "min": 345
         }
-      ]
+      ],
+      "biome": {
+        "reason": "a cold glen to winter in",
+        "points": 30
+      }
     },
     "visionChoices": 2
   },
@@ -211,7 +215,7 @@
     "slopeWidth": 2,
     "cragChance": 0.4,
     "bogs": 3,
-    "ruins": 3,
+    "ruins": 4,
     "ruinSalvage": 30,
     "barrenChance": 0.5,
     "woodlands": 3,
@@ -359,7 +363,7 @@
         "heights": [1, 2]
       },
       "yields": {
-        "food": [1, 4, 5, 0],
+        "food": [1, 5, 6, 0],
         "biomass": [1, 1, 1, 0]
       },
       "water": {
@@ -384,7 +388,7 @@
         "heights": [1, 2]
       },
       "yields": {
-        "food": [2, 5, 6, 0],
+        "food": [2, 6, 7, 0],
         "biomass": [1, 1, 1, 0]
       },
       "water": {
@@ -412,7 +416,7 @@
         "heights": [0, 0]
       },
       "yields": {
-        "food": [2, 4, 4, 0],
+        "food": [2, 5, 5, 0],
         "biomass": [1, 1, 1, 0]
       },
       "water": {
@@ -491,7 +495,7 @@
       "placement": {
         "tiles": ["barren", "scrub", "meadow", "woodland", "hill"]
       },
-      "housing": 2,
+      "housing": 3,
       "foodStorage": 3,
       "demand": {
         "energy": {
