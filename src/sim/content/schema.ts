@@ -27,6 +27,9 @@ export const TILE_TYPES = [
   'mudflat',
   'saltmarsh',
   'dune',
+  // The Highland (Milestone 12).
+  'crag',
+  'bog',
 ] as const;
 export const TileTypeSchema = z.enum(TILE_TYPES);
 export type TileType = z.infer<typeof TileTypeSchema>;
@@ -184,6 +187,8 @@ export const BuildingSchema = z
       adjacentToBuildings: z.array(z.string()).optional(),
       /** Must not touch any tile of these types (a wave buoy, out in the deep sea). */
       awayFrom: z.array(TileTypeSchema).optional(),
+      /** Only at these heights, lowest and highest (the Highland: a terrace on the slopes). */
+      heights: z.tuple([int.min(0), int.min(0)]).optional(),
     }),
     housing: nonNeg.default(0),
     foodStorage: nonNeg.default(0),
@@ -265,6 +270,11 @@ export const BuildingSchema = z
     requiresPower: z.boolean().default(false),
     /** Gains silt from the spring flood and suffers far from water in low river. */
     farmland: z.boolean().default(false),
+    /**
+     * Each season it runs, chars the tile of one farm beside it for good: +1 food there whenever
+     * the farm makes any (the Biochar Kiln).
+     */
+    chars: z.boolean().default(false),
     /** Farmland that keeps its yield far from water in low river (the Agrivoltaic Field). */
     ignoresLowRiver: z.boolean().default(false),
     /** Counts as a pond for the low-river rule. */
@@ -494,6 +504,8 @@ export const EventsSchema = z
       repairCost: nonNeg.default(0),
       /** Buildings on these tiles are exposed too, wherever they stand (the coast's offshore ones). */
       exposedAnywhereOn: z.array(TileTypeSchema).default([]),
+      /** Buildings at this height or above are exposed too, on any tile (the Highland's tops). */
+      exposedFromHeight: int.min(1).optional(),
     }).optional(),
     freeze: EventBase.optional(),
   })
@@ -825,7 +837,37 @@ const CoastMapSchema = z
   })
   .strict();
 
-export const MapGenSchema = z.union([CoastMapSchema, ValleyMapSchema]);
+/**
+ * A glen (the Highland): a stream runs down the map from the tops, the land rising in steps of
+ * height away from it to crags on the tops, with bogs on the shoulders and old mine workings on
+ * the slopes (proposals/highland.md, Map).
+ */
+const HighlandMapSchema = z
+  .object({
+    kind: z.literal('highland'),
+    width: int.min(8),
+    height: int.min(6),
+    /** Columns where the stream may start at the top edge. */
+    streamColumns: z.tuple([nonNeg, nonNeg]),
+    /** The stream's height where it enters at the top; it falls to 0 by the bottom. */
+    streamTopHeight: int.min(0).max(3),
+    /** Tiles of land per step of height, out from the stream. */
+    slopeWidth: int.min(1),
+    /** At height 3, a tile is crag by this chance. */
+    cragChance: z.number().min(0).max(1),
+    bogs: nonNeg,
+    ruins: nonNeg,
+    ruinSalvage: int.min(1),
+    barrenChance: z.number().min(0).max(1),
+    woodlands: nonNeg,
+    startingHarmony: nonNeg,
+    /** Tiles from the stream where the camp may stand. */
+    campStreamDistance: z.tuple([int.min(1), int.min(1)]),
+  })
+  .strict();
+
+export const MapGenSchema = z.union([CoastMapSchema, HighlandMapSchema, ValleyMapSchema]);
+export type HighlandMapGen = z.infer<typeof HighlandMapSchema>;
 export type MapGen = z.infer<typeof MapGenSchema>;
 export type ValleyMapGen = z.infer<typeof ValleyMapSchema>;
 export type CoastMapGen = z.infer<typeof CoastMapSchema>;

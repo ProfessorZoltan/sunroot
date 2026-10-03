@@ -12,6 +12,8 @@ export interface Tile extends Hex {
   water?: number;
   /** Steps up from the valley floor (the Highland), 0 to 3; missing is 0. */
   height?: number;
+  /** Charred by a biochar kiln (the Highland): a farm here makes 1 more food, for good. */
+  charred?: boolean;
 }
 
 export interface MapState {

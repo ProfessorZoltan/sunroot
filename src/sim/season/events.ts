@@ -87,7 +87,8 @@ export function applyEvent(ctx: SeasonContext): void {
           if (b.saltTurn !== undefined) b.saltBefore = b.saltTurn;
           b.saltTurn = state.turn;
           report.salted.push(b.uid);
-        } else if (def.farmland) {
+        } else if (def.farmland && eventOf(content, 'flood').siltBonus > 0) {
+          // A flood that leaves no silt (the Highland's snowmelt) leaves none on the farms either.
           b.siltYear = state.year;
           b.siltShare = 1;
           report.silted.push(b.uid);

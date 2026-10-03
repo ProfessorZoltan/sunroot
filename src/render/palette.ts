@@ -22,6 +22,9 @@ export const TILE_COLORS: Record<TileType, TileColors> = {
   mudflat: { top: 0xb5a98e, side: 0x8f846b, detail: 0x9fb6b8 },
   saltmarsh: { top: 0xa9c08f, side: 0x7f9868, detail: 0xc9b98a },
   dune: { top: 0xe8dab2, side: 0xc4b38a, detail: 0xb7c48a },
+  // The Highland: grey rock on the tops, dark peat on the shoulders.
+  crag: { top: 0xa9a59a, side: 0x7f7b70, detail: 0x6f6c63 },
+  bog: { top: 0x8c8a5a, side: 0x6a6842, detail: 0x6f8f7a },
 };
 
 export const COLORS = {

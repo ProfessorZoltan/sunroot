@@ -228,8 +228,14 @@ export function campChannelPath(
     );
   };
   const distance = hexDistance;
+  /** Higher than the water beside it, so nothing would flow in. */
+  const aboveWater = (t: Tile) =>
+    hexNeighbors(t).some((n) => {
+      const w = tileAt(state, n);
+      return (w?.type === 'river' || w?.type === 'reservoir') && (w.height ?? 0) < (t.height ?? 0);
+    });
   const starts = Object.values(state.map.tiles)
-    .filter((t) => free(t) && riverIndexesNear(state, t).length > 0)
+    .filter((t) => free(t) && riverIndexesNear(state, t).length > 0 && !aboveWater(t))
     .sort((a, b) => distance(a, goal) - distance(b, goal) || hexKey(a).localeCompare(hexKey(b)));
   const start = starts[0];
   if (!start || length === 0) return [];
@@ -241,6 +247,8 @@ export function campChannelPath(
       .filter((n) => free(n) && !taken(n))
       // Stay a simple path: the new tile touches only the current end.
       .filter((n) => path.filter((p) => distance(p, n) === 1).length === 1)
+      // Never uphill: water would not follow it (on level land, every tile).
+      .filter((n) => (tileAt(state, n)?.height ?? 0) <= (tileAt(state, end)?.height ?? 0))
       .sort((a, b) => distance(a, goal) - distance(b, goal) || hexKey(a).localeCompare(hexKey(b)));
     if (next.length === 0 || distance(next[0]!, goal) === 0) break;
     path.push(next[0]!);

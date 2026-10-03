@@ -172,6 +172,14 @@ export function resolveEnergy(ctx: SeasonContext): void {
     // Free heat: each building, in priority order, from the collectors within reach.
     const freeLeft = new Map(collectors.map((c) => [c.uid, freeOf(c, slot)]));
     let free = 0;
+    // A building with its own stove (the Highland's bothy) heats itself before anyone else.
+    for (const b of consumers) {
+      const own = Math.min(left.get(b.uid)!, freeLeft.get(b.uid) ?? 0);
+      if (own <= 0) continue;
+      freeLeft.set(b.uid, freeLeft.get(b.uid)! - own);
+      left.set(b.uid, left.get(b.uid)! - own);
+      free += own;
+    }
     for (const b of consumers) {
       for (const c of collectors.filter((x) => near(x, b)).sort(nearestTo(b))) {
         const t = Math.min(left.get(b.uid)!, freeLeft.get(c.uid)!);

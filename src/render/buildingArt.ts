@@ -812,6 +812,93 @@ export const BUILDING_ART: Record<string, Art> = {
       color: COLORS.leadingGold,
     });
   },
+  // The Highland (drawn in code until its art comes).
+  terraceFarm(g, c) {
+    // Stepped strips held by drystone walls, across the slope.
+    for (let i = 0; i < 3; i++) {
+      const y = c.y - 9 + i * 7;
+      g.roundRect(c.x - 13 + i * 2, y, 24 - i * 2, 5, 2).fill({
+        color: i === 1 ? 0xd9c37a : 0x9fbf6a,
+      });
+      g.moveTo(c.x - 13 + i * 2, y + 5)
+        .lineTo(c.x + 11, y + 5)
+        .stroke({ width: 1.6, color: COLORS.stone });
+    }
+  },
+  glenFarm(g, c) {
+    g.poly(hexCorners(c, 21))
+      .fill({ color: COLORS.field })
+      .stroke({ width: 1.5, color: COLORS.stone });
+    for (let i = -2; i <= 2; i++) g.moveTo(c.x - 14, c.y + i * 5).lineTo(c.x + 14, c.y + i * 5);
+    g.stroke({ width: 1.1, color: COLORS.furrow });
+  },
+  shieling(g, c) {
+    // A small turf-roofed hut on the high pasture, a few sheep.
+    shadow(g, c, 10);
+    g.rect(c.x - 7, c.y - 2, 12, 8).fill({ color: COLORS.stone });
+    g.poly([c.x - 9, c.y - 1, c.x - 1, c.y - 8, c.x + 7, c.y - 1]).fill({ color: COLORS.treeDark });
+    for (const [x, y] of [
+      [8, 6],
+      [12, 2],
+    ] as const)
+      g.ellipse(c.x + x, c.y + y, 3, 2).fill({ color: 0xf4f2ec });
+  },
+  hillTurbine(g, c) {
+    // A little hydro house with its wheel turning in the falling stream.
+    shadow(g, c, 11);
+    house(g, c.x - 4, c.y, 0.8, 0x6c7f86);
+    g.circle(c.x + 8, c.y + 2, 6).stroke({ width: 1.6, color: COLORS.wood });
+    g.moveTo(c.x + 2, c.y + 2)
+      .lineTo(c.x + 14, c.y + 2)
+      .moveTo(c.x + 8, c.y - 4)
+      .lineTo(c.x + 8, c.y + 8);
+    g.stroke({ width: 1, color: COLORS.wood });
+  },
+  bothy(g, c) {
+    shadow(g, c, 11);
+    g.rect(c.x - 9, c.y - 3, 18, 10).fill({ color: COLORS.stone });
+    g.poly([c.x - 11, c.y - 2, c.x, c.y - 10, c.x + 11, c.y - 2]).fill({ color: 0x5e6b58 });
+    g.rect(c.x - 2, c.y + 2, 4, 5).fill({ color: DARK });
+    g.rect(c.x + 5, c.y - 12, 3, 5).fill({ color: COLORS.stone });
+  },
+  pumpStation(g, c) {
+    shadow(g, c, 11);
+    g.rect(c.x - 8, c.y - 4, 12, 11).fill({ color: WALL });
+    g.poly([c.x - 10, c.y - 3, c.x - 2, c.y - 10, c.x + 6, c.y - 3]).fill({ color: 0x6c7f86 });
+    g.moveTo(c.x + 4, c.y + 4)
+      .lineTo(c.x + 13, c.y + 4)
+      .lineTo(c.x + 13, c.y - 8)
+      .stroke({ width: 2.2, color: 0x6c9fae });
+  },
+  biocharKiln(g, c) {
+    shadow(g, c, 11);
+    g.roundRect(c.x - 9, c.y - 6, 18, 13, 6).fill({ color: 0x4a3f36 });
+    g.rect(c.x - 3, c.y + 1, 6, 6).fill({ color: COLORS.leadingGold });
+    g.moveTo(c.x + 2, c.y - 7)
+      .quadraticCurveTo(c.x - 1, c.y - 12, c.x + 3, c.y - 16)
+      .stroke({ width: 1.4, color: 0xd8d4cc, alpha: 0.9, cap: 'round' });
+  },
+  snowFence(g, c) {
+    for (let i = -2; i <= 2; i++) g.moveTo(c.x + i * 5, c.y + 6).lineTo(c.x + i * 5, c.y - 4);
+    g.moveTo(c.x - 12, c.y - 1).lineTo(c.x + 12, c.y - 1);
+    g.stroke({ width: 1.4, color: COLORS.wood });
+  },
+  rewettedBog(g, c) {
+    for (const [x, y, r] of [
+      [-6, 0, 5],
+      [5, 3, 4],
+      [1, -5, 3],
+    ] as const)
+      g.ellipse(c.x + x, c.y + y, r, r * 0.6).fill({ color: 0x5f7f86 });
+    for (let i = 0; i < 5; i++)
+      g.circle(c.x - 10 + i * 5, c.y + 8 - (i % 2) * 3, 1.5).fill({ color: 0xf4f2ec });
+  },
+  lookout(g, c) {
+    shadow(g, c, 8, 3, 10);
+    g.rect(c.x - 4, c.y - 10, 8, 18).fill({ color: COLORS.stone });
+    g.rect(c.x - 6, c.y - 13, 12, 3).fill({ color: DARK });
+    g.rect(c.x - 2, c.y - 8, 4, 3).fill({ color: COLORS.sunGold });
+  },
   rockPool(g, c) {
     shadow(g, c, 13);
     g.rect(c.x - 12, c.y - 2, 7, 9).fill({ color: COLORS.stone });

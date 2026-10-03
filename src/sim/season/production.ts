@@ -210,6 +210,11 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
       base = Math.max(0, base + mod);
       lines.push(`${mod > 0 ? '+' : '−'}${Math.abs(mod)} on ${tile.type}`);
     }
+    // Biochar (the Highland): a charred tile keeps a farm 1 better, for good.
+    if (def.farmland && tile.charred) {
+      base += 1;
+      lines.push('+1 biochar');
+    }
   }
   let multiplier = 1;
   if (res === 'food' && def.farmland) {
@@ -375,6 +380,20 @@ export function convert(ctx: SeasonContext): void {
         b,
         `${runs} runs: ${runs * d.energyPerRun} ${slot} energy, ${runs * d.compostPerRun} compost`,
       );
+      // A biochar kiln chars the tile of one farm beside it, for good.
+      if (runs > 0 && def.chars) {
+        const farm = neighborBuildings(state, b)
+          .filter((n) => defOf(content, n).farmland && !tileAt(state, n.at)?.charred)
+          .sort((x, y) => state.priority.indexOf(x.uid) - state.priority.indexOf(y.uid))[0];
+        if (farm) {
+          tileAt(state, farm.at)!.charred = true;
+          explain(
+            ctx,
+            b,
+            `charred the ${defOf(content, farm).name}'s land: +1 food there for good`,
+          );
+        }
+      }
     }
     if (def.composter) {
       const c = def.composter;

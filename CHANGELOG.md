@@ -1,5 +1,20 @@
 # Changelog
 
+## The Highland: its glen and its rules
+
+- The third biome's land: a stream falling down a glen, slopes rising to crags, bogs and old
+  mines on the shoulders. Not yet reachable from Root City (HL5).
+- **Height** is a rule: water runs only downhill, and a **Pump Station** lifts it a step;
+  homes high up need more heat, wind spires high up make more, and panels high up are snowed
+  under in winter.
+- Its buildings: **terrace farms** on the slopes, **glen farms** on the floor, **shielings** up
+  high, **hill turbines** where the stream drops, **bothies** with their own stove, the
+  **Biochar Kiln** (+1 food for good on the farm it chars), snow fences, rewetted bogs and
+  lookouts.
+- Its year: the **Snowmelt** floods the glen floor (no silt), the **Dry spell**, **Gales** on
+  the tops and **Deep snow**. Heat always needs a building.
+- Fixed: a bothy next to another home kept its own stove's heat (it used to give it away).
+
 ## The coast's Year 1 approved
 
 - The Windswept Coast's Year 1 walkthrough is now its **golden test**: 9 materials, 8 food and

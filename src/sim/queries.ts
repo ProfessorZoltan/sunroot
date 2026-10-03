@@ -151,7 +151,10 @@ export function stormExposed(content: Content, state: RunState, b: BuildingState
   if (sheltered) return false;
   // Offshore (the coast's sea buildings): nothing on land breaks the wind there.
   if (storm.exposedAnywhereOn.includes(type)) return true;
-  if (!storm.exposedOn.includes(type)) return false;
+  const high =
+    storm.exposedFromHeight !== undefined &&
+    (tileAt(state, b.at)?.height ?? 0) >= storm.exposedFromHeight;
+  if (!storm.exposedOn.includes(type) && !high) return false;
   if (neighborTiles(state, b.at).some((t) => t.type === 'woodland')) return false;
   // A hedgerow next to it breaks the wind: one along an edge of its tile, or a hedgerow building
   // beside it; a Windbreak further.

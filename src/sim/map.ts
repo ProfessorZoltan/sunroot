@@ -5,7 +5,7 @@
  * placed so the valley starts at exactly the biome's starting Harmony.
  */
 import type { Content } from './content/load';
-import type { CoastMapGen, TileType, ValleyMapGen } from './content/schema';
+import type { CoastMapGen, HighlandMapGen, TileType, ValleyMapGen } from './content/schema';
 import { hexDistance, hexKey, hexNeighbors, offsetToAxial, type Hex } from './hex';
 import { chance, createRng, nextInt, shuffled, type RngState } from './rng';
 import type { MapState, Tile } from './types';
@@ -18,7 +18,123 @@ export interface GeneratedMap {
 export function generateMap(content: Content, seed: string): GeneratedMap {
   const gen = content.map;
   if (gen.kind === 'coast') return generateCoast(content, gen, seed);
+  if (gen.kind === 'highland') return generateHighland(content, gen, seed);
   return generateValley(content, gen, seed);
+}
+
+/**
+ * A glen (the Highland): a stream from the top edge down the map, falling from
+ * `streamTopHeight` to 0; the land rises a step for every `slopeWidth` tiles
+ * out from it, to crags on the tops; bogs on the shoulders, old mine workings
+ * on the slopes, the camp low by the stream, and green land summing to the
+ * starting Harmony. The snowmelt reaches the glen floor beside the stream.
+ */
+function generateHighland(content: Content, gen: HighlandMapGen, seed: string): GeneratedMap {
+  const rng = createRng(`${seed}:map`);
+  const tiles: Record<string, Tile> = {};
+  const order: string[] = [];
+  const at = (col: number, row: number) => tiles[hexKey(offsetToAxial(col, row))];
+  for (let row = 0; row < gen.height; row++)
+    for (let col = 0; col < gen.width; col++) {
+      const h = offsetToAxial(col, row);
+      tiles[hexKey(h)] = { ...h, type: 'barren' };
+      order.push(hexKey(h));
+    }
+  const tile = (h: Hex) => tiles[hexKey(h)];
+
+  // The stream, from the top edge down, wandering a column now and then; it falls as it goes.
+  const [minCol, maxCol] = gen.streamColumns;
+  let col = minCol + nextInt(rng, maxCol - minCol + 1);
+  const river: string[] = [];
+  const fall = (row: number) =>
+    Math.max(0, gen.streamTopHeight - Math.floor((row * (gen.streamTopHeight + 1)) / gen.height));
+  for (let row = 0; row < gen.height; row++) {
+    if (row > 0 && chance(rng, 0.35))
+      col = Math.max(1, Math.min(gen.width - 2, col + (chance(rng, 0.5) ? 1 : -1)));
+    const t = at(col, row)!;
+    t.type = 'river';
+    t.riverIndex = river.length;
+    t.height = fall(row);
+    river.push(hexKey(t));
+  }
+  const stream = river.map((k) => tiles[k]!);
+  const nearest = (t: Tile) =>
+    stream.reduce((best, s) => (hexDistance(s, t) < hexDistance(best, t) ? s : best), stream[0]!);
+
+  // The land rises a step for every `slopeWidth` tiles out from the stream.
+  for (const key of order) {
+    const t = tiles[key]!;
+    if (t.type === 'river') continue;
+    const s = nearest(t);
+    const d = hexDistance(s, t);
+    const height = Math.min(3, (s.height ?? 0) + Math.floor((d - 1) / gen.slopeWidth));
+    if (height > 0) t.height = height;
+    if (height === 3 && chance(rng, gen.cragChance)) t.type = 'crag';
+    else if (!chance(rng, gen.barrenChance)) t.type = 'scrub';
+  }
+  const heightOf = (t: Tile) => t.height ?? 0;
+  const plain = (t: Tile) => t.type === 'barren' || t.type === 'scrub';
+
+  // Bogs on the shoulders (heights 1 and 2), away from the stream.
+  let bogsLeft = gen.bogs;
+  for (const key of shuffled(rng, order)) {
+    if (bogsLeft === 0) break;
+    const t = tiles[key]!;
+    if (!plain(t) || heightOf(t) < 1 || heightOf(t) > 2) continue;
+    if (hexNeighbors(t).some((n) => tile(n)?.type === 'river' || tile(n)?.type === 'bog')) continue;
+    t.type = 'bog';
+    bogsLeft--;
+  }
+
+  // Old mine workings on the slopes, never touching each other.
+  let ruinsLeft = gen.ruins;
+  for (const key of shuffled(rng, order)) {
+    if (ruinsLeft === 0) break;
+    const t = tiles[key]!;
+    if (!plain(t) || heightOf(t) < 1 || heightOf(t) > 2) continue;
+    if (hexNeighbors(t).some((n) => tile(n)?.type === 'ruin' || tile(n)?.type === 'river'))
+      continue;
+    t.type = 'ruin';
+    t.salvage = gen.ruinSalvage;
+    ruinsLeft--;
+  }
+
+  // The camp: plain land low in the glen, a short walk from the stream, mid-way down.
+  const [nearestCamp, farthestCamp] = gen.campStreamDistance;
+  const midRows = (r: number) => r >= gen.height / 4 && r < (gen.height * 3) / 4;
+  const campOptions = order.filter((key) => {
+    const t = tiles[key]!;
+    const d = hexDistance(nearest(t), t);
+    return plain(t) && heightOf(t) <= 1 && d >= nearestCamp && d <= farthestCamp && midRows(t.r);
+  });
+  if (campOptions.length === 0) throw new Error('map has no site for the Founders Camp');
+  const campKey = campOptions[nextInt(rng, campOptions.length)]!;
+  const camp = tiles[campKey]!;
+  camp.type = 'scrub';
+
+  placeGreenLand(content, rng, tiles, order, campKey);
+
+  // The snowmelt reaches the glen floor beside the stream, highest up the stream first.
+  const floodOrder = order
+    .filter((k) => {
+      const t = tiles[k]!;
+      return (
+        k !== campKey &&
+        t.type !== 'river' &&
+        heightOf(t) === 0 &&
+        hexNeighbors(t).some((n) => tile(n)?.type === 'river')
+      );
+    })
+    .sort(
+      (a, b) =>
+        (nearest(tiles[a]!).riverIndex ?? 0) - (nearest(tiles[b]!).riverIndex ?? 0) ||
+        order.indexOf(a) - order.indexOf(b),
+    );
+
+  return {
+    map: { width: gen.width, height: gen.height, tiles, river, floodOrder },
+    camp: { q: camp.q, r: camp.r },
+  };
 }
 
 function generateValley(content: Content, gen: ValleyMapGen, seed: string): GeneratedMap {

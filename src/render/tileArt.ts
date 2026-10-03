@@ -150,6 +150,27 @@ function drawDetails(g: Graphics, tile: Tile, c: Point, rand: () => number): voi
           .stroke({ width: 1.1, color: detail, cap: 'round', join: 'round' });
       }
       break;
+    // The Highland.
+    case 'crag':
+      // Broken rock: a few angular stones.
+      for (let i = 0; i < 3; i++) {
+        const p = spot(rand, c, HEX_RADIUS * 0.45);
+        g.poly([p.x - 5, p.y + 2, p.x - 1, p.y - 4, p.x + 4, p.y - 1, p.x + 3, p.y + 3]).fill({
+          color: i === 0 ? 0xc2beb2 : detail,
+        });
+      }
+      break;
+    case 'bog':
+      // Dark pools among cotton grass.
+      for (let i = 0; i < 2; i++) {
+        const p = spot(rand, c, HEX_RADIUS * 0.4);
+        g.ellipse(p.x, p.y, 4, 2.2).fill({ color: 0x4f5f58 });
+      }
+      for (let i = 0; i < 3; i++) {
+        const p = spot(rand, c);
+        g.circle(p.x, p.y, 1.5).fill({ color: 0xf4f2ec });
+      }
+      break;
     case 'river':
     case 'reservoir':
       break;

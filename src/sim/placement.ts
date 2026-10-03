@@ -48,6 +48,18 @@ export function canPlace(
   if (!def.placement.tiles.includes(tile.type)) {
     return { ok: false, reason: `${def.name} can't be built on ${tile.type}` };
   }
+  const heights = def.placement.heights;
+  if (heights) {
+    const h = tile.height ?? 0;
+    if (h < heights[0] || h > heights[1])
+      return {
+        ok: false,
+        reason:
+          heights[0] === heights[1]
+            ? `${def.name} goes at height ${heights[0]}`
+            : `${def.name} goes at heights ${heights[0]} to ${heights[1]}`,
+      };
+  }
   if (tile.type === 'ruin' && (tile.salvage ?? 0) <= 0) {
     return { ok: false, reason: 'the ruin is empty' };
   }

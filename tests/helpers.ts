@@ -16,6 +16,7 @@ import {
   createRun,
   hexDistance,
   hexKey,
+  hexNeighbors,
   offsetToAxial,
   SEASONS,
   type Command,
@@ -72,6 +73,8 @@ const TOKENS: Record<string, TileType> = {
   _: 'mudflat',
   '"': 'saltmarsh',
   ':': 'dune',
+  A: 'crag',
+  b: 'bog',
 };
 
 export function mapFromAscii(rows: string[]): { map: MapState; camp: Hex } {
@@ -145,6 +148,17 @@ export function scenario(rows: string[], options: ScenarioOptions = {}): RunStat
         }),
     );
   const c = options.content ?? content;
+  // The Highland's snowmelt reaches the glen floor (height 0) beside the stream.
+  if (c.map.kind === 'highland')
+    map.floodOrder = Object.values(map.tiles)
+      .filter(
+        (t) =>
+          t.type !== 'river' &&
+          (t.height ?? 0) === 0 &&
+          !(t.q === camp.q && t.r === camp.r) &&
+          hexNeighbors(t).some((n) => map.tiles[hexKey(n)]?.type === 'river'),
+      )
+      .map(hexKey);
   const state = createRun(c, { ...options.run, seed: options.seed ?? 'test' }, { map, camp });
   const year = options.year ?? 1;
   const season = options.season ?? 'spring';
