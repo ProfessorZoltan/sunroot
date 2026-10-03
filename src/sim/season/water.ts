@@ -38,6 +38,7 @@ import {
   type Channel,
 } from '../water';
 import { explain, type SeasonContext } from './context';
+import { loopLift } from '../combos';
 
 const units = (): WaterUnits => ({ clean: 0, nutrient: 0, grey: 0 });
 const total = (u: WaterUnits) => u.clean + u.nutrient + u.grey;
@@ -318,7 +319,7 @@ export function resolveWater(ctx: SeasonContext): void {
           if (usedPumps.has(pump.uid)) continue;
           if (!hexNeighbors(pump.at).some((n) => hexKey(n) === ch.keys[p])) continue;
           usedPumps.add(pump.uid);
-          cap += defOf(content, pump).pump!.lift;
+          cap += defOf(content, pump).pump!.lift + loopLift(content, state, pump.uid);
           pumpOf.set(pump.uid, { channel: c, position: p });
         }
       lift[p] = cap;

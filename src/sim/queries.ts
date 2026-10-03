@@ -1,5 +1,5 @@
 /** Read-only helpers over run state shared by commands and season resolution. */
-import { formationHarmony, shelteredByFormation } from './combos';
+import { formationHarmony, loopHarmony, quietedByFormations, shelteredByFormation } from './combos';
 import { edgeBuilding, hedged } from './edges';
 import { finishedProjects } from './projects';
 import type { Content } from './content/load';
@@ -236,6 +236,7 @@ export function harmonyLines(content: Content, state: RunState): HarmonyLine[] {
   const byBuilding = new Map<string, { n: number; amount: number }>();
   const penalties = new Map<string, { n: number; amount: number }>();
   const occ = occupancy(state);
+  const quiet = quietedByFormations(content, state);
   for (const b of Object.values(state.buildings)) {
     const def = defOf(content, b);
     if (def.harmony) {
@@ -246,7 +247,7 @@ export function harmonyLines(content: Content, state: RunState): HarmonyLine[] {
       const cancelled = neighborBuildings(state, b, occ).some((n) =>
         def.harmonyPenalty!.cancelledByNeighbor.includes(n.type),
       );
-      if (!cancelled) {
+      if (!cancelled && !quiet.has(b.uid)) {
         const e = penalties.get(def.name) ?? { n: 0, amount: 0 };
         penalties.set(def.name, { n: e.n + 1, amount: e.amount - def.harmonyPenalty.amount });
       }
@@ -263,6 +264,7 @@ export function harmonyLines(content: Content, state: RunState): HarmonyLine[] {
     });
   for (const [name, e] of penalties) lines.push({ label: `${e.n} ${name}`, amount: e.amount });
   lines.push(...formationHarmony(content, state));
+  lines.push(...loopHarmony(content, state));
   if (harmony.bonus !== 0) lines.push({ label: 'Root City', amount: harmony.bonus });
   const grey = state.lastReport?.water?.greyToRiver ?? 0;
   if (grey > 0 && content.rules.water.enabled)

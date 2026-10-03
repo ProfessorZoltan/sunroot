@@ -17,6 +17,7 @@ import {
 import type { BuildingState } from '../types';
 import { addHeat, addSupply, addYield, explain, flow, type SeasonContext } from './context';
 import { festivalThisSeason } from '../wildlife';
+import { hedged } from '../edges';
 import { wonderDone } from '../wonder';
 
 const EPSILON = 1e-9;
@@ -96,7 +97,28 @@ export function generate(ctx: SeasonContext): void {
     }
     const snow = def.idleAtHeight;
     const snowed = snow !== undefined && high >= snow.from && snow.seasons.includes(state.season);
-    if (snowed) notes.push(`under snow at height ${high}: nothing this ${state.season}`);
+    // A snow fence beside it keeps the drift off: it still makes a little by day.
+    const kept =
+      snowed && snow.keepsBesideEdge > 0 && hedged(state, b.at) ? snow.keepsBesideEdge : 0;
+    if (kept > 0)
+      notes.push(`under snow at height ${high}, but a fence keeps the drift off: ${kept} by day`);
+    else if (snowed) notes.push(`under snow at height ${high}: nothing this ${state.season}`);
+    // A stove burns its fuel (a bothy's biomass) in a season it makes any heat.
+    let unfuelled = false;
+    const fuel = makesHeat ? def.heatFuel : undefined;
+    if (fuel && SLOTS.some((slot) => output[slot][si]! > 0)) {
+      const free = neighbors.find((n) => fuel.freeNextTo.includes(n.type));
+      if (free)
+        notes.push(`next to a ${defOf(content, free).name}: its stove needs no ${fuel.resource}`);
+      else if (fuel.amount > 0 && state.stores[fuel.resource] >= fuel.amount) {
+        state.stores[fuel.resource] -= fuel.amount;
+        flow(ctx.report.flows, fuel.resource, 'used', def.name, fuel.amount, b.uid);
+        notes.push(`its stove burned ${fuel.amount} ${fuel.resource}`);
+      } else if (fuel.amount > 0) {
+        unfuelled = true;
+        notes.push(`no ${fuel.resource} for its stove: no heat`);
+      }
+    }
     // Sea fog dims the sun.
     const fog = ctx.fog ? (content.events.fog?.solarPenalty ?? 0) : 0;
     if (def.fogged && fog > 0) {
@@ -118,18 +140,20 @@ export function generate(ctx: SeasonContext): void {
       }
     }
     // While the water system is on, a river wheel turns with the flow beside it.
-    const flow = ctx.wheelFlow.get(b.uid);
-    if (flow !== undefined)
+    const wheel = ctx.wheelFlow.get(b.uid);
+    if (wheel !== undefined)
       notes.unshift(
-        `river flow ${flow}: ${Math.ceil(flow / content.rules.water.wheelFlowPerEnergy)} a slot`,
+        `river flow ${wheel}: ${Math.ceil(wheel / content.rules.water.wheelFlowPerEnergy)} a slot`,
       );
     for (const slot of SLOTS) {
       const base =
-        flow !== undefined
-          ? Math.ceil(flow / content.rules.water.wheelFlowPerEnergy)
+        wheel !== undefined
+          ? Math.ceil(wheel / content.rules.water.wheelFlowPerEnergy)
           : output[slot][si]!;
       // Adjustments apply only to slots where the source runs at all.
-      const amount = base > 0 && !snowed ? Math.max(0, base + adjust) : 0;
+      let amount = base > 0 && !snowed && !unfuelled ? Math.max(0, base + adjust) : 0;
+      if (kept > 0 && slot === 'day' && base > 0)
+        amount = Math.min(kept, Math.max(0, base + adjust));
       if (makesHeat) addHeat(ctx, slot, b, amount);
       else addSupply(ctx, slot, b, amount);
       const what = makesHeat ? 'heat' : 'energy';
@@ -214,6 +238,15 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
     if (def.farmland && tile.charred) {
       base += 1;
       lines.push('+1 biochar');
+    }
+    // High pasture: a shieling among meadows.
+    const pasture = def.nextToTilesFood;
+    if (pasture?.seasons[ctx.si]) {
+      const n = neighborTiles(state, b.at).filter((t) => pasture.tiles.includes(t.type)).length;
+      if (n >= pasture.count) {
+        base += pasture.amount;
+        lines.push(`+${pasture.amount} next to ${n} ${pasture.tiles.join(' or ')}`);
+      }
     }
   }
   let multiplier = 1;

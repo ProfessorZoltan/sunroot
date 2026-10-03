@@ -25,7 +25,7 @@ import {
   hexNeighbors,
   type Hex,
 } from './hex';
-import { defOf, neighborBuildings, neighborTiles, occupancy, tileAt } from './queries';
+import { defOf, heightAt, neighborBuildings, neighborTiles, occupancy, tileAt } from './queries';
 import { addYield, explain, type FormationEffect, type SeasonContext } from './season/context';
 import type { BuildingState, ComboHit, RunState } from './types';
 import { available, waterOn } from './water';
@@ -90,6 +90,10 @@ export function findFormations(
             const x = occ.get(hexKey(at));
             if (!x || x.type !== type) break;
             if (shape.tiles && !shape.tiles.includes(tileAt(state, at)!.type)) break;
+            const h = heightAt(state, at);
+            if (shape.minHeight !== undefined && h < shape.minHeight) break;
+            const prev = members.at(-1);
+            if (shape.rising && prev && h !== heightAt(state, prev.at) + 1) break;
             members.push(x);
             at = hexAdd(at, dir);
           }
@@ -276,6 +280,13 @@ export function applyFormationYields(ctx: SeasonContext): void {
   }
 }
 
+/** Buildings whose Harmony penalty a standing formation cancels (the Ridge Spires). */
+export function quietedByFormations(content: Content, state: RunState): Set<string> {
+  const quiet = combosOf(content, 'formation').filter((c) => c.effect.quiet);
+  if (quiet.length === 0) return new Set();
+  return new Set(findFormations(content, state, quiet).flatMap((h) => h.members));
+}
+
 /** Is the building within a sheltering formation's reach (the Windbreak)? */
 export function shelteredByFormation(content: Content, state: RunState, b: BuildingState): boolean {
   const shelters = combosOf(content, 'formation').filter((c) => c.effect.shelterRadius > 0);
@@ -326,8 +337,9 @@ function runningLoops(ctx: SeasonContext): ComboHit[] {
       if (link.gotWater && (ctx.report.water?.uses[b.uid]?.got[link.gotWater] ?? 0) <= 0)
         return false;
       if (link.powered && !ctx.powered.has(b.uid)) return false;
+      if (link.standing && !ctx.active.has(b.uid)) return false;
       // A bathhouse, reed bed or desalinator makes nothing a chain counts; its condition is its work.
-      return worked(ctx, b) || link.heatFrom || link.cleaned || link.powered;
+      return worked(ctx, b) || link.heatFrom || link.cleaned || link.powered || link.standing;
     };
     for (const anchor of Object.values(state.buildings)) {
       if (!fits(anchor, 0)) continue;
@@ -346,6 +358,38 @@ function runningLoops(ctx: SeasonContext): ComboHit[] {
     }
   }
   return hits;
+}
+
+/** Closed loops whose members all still stand as types of the chain. */
+function standingLoops(content: Content, state: RunState) {
+  return state.loops.filter((loop) => {
+    const combo = content.comboById[loop.combo] as ComboOf<'chain'> | undefined;
+    if (!combo) return false;
+    const types = new Set(combo.links.flatMap((l) => l.buildings));
+    return loop.members.every((uid) => types.has(state.buildings[uid]?.type ?? ''));
+  });
+}
+
+/** Harmony from closed loops still standing (the Meltwater Loop), once per chain. */
+export function loopHarmony(
+  content: Content,
+  state: RunState,
+): { label: string; amount: number }[] {
+  const ids = new Set(standingLoops(content, state).map((l) => l.combo));
+  return [...ids]
+    .map((id) => content.comboById[id] as ComboOf<'chain'>)
+    .filter((c) => c.harmony !== 0)
+    .map((c) => ({ label: c.name, amount: c.harmony }));
+}
+
+/** How much more a pump station lifts in a closed loop (the Meltwater Loop). */
+export function loopLift(content: Content, state: RunState, uid: string): number {
+  let lift = 0;
+  for (const loop of standingLoops(content, state)) {
+    if (!loop.members.includes(uid)) continue;
+    lift = Math.max(lift, (content.comboById[loop.combo] as ComboOf<'chain'>).liftBonus);
+  }
+  return lift;
 }
 
 /**

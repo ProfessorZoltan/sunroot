@@ -291,7 +291,7 @@
       },
       "neighborFoodBonus": {
         "amount": 1,
-        "targets": ["glenFarm", "terraceFarm"],
+        "targets": ["terraceFarm", "glenFarm", "hangingGarden"],
         "maxTargets": 3,
         "seasons": [true, true, true, false],
         "disabledNextTo": ["windSpire"]
@@ -371,6 +371,34 @@
       }
     },
     {
+      "id": "hangingGarden",
+      "name": "Hanging Garden",
+      "cost": 3,
+      "workers": 0,
+      "kind": "food",
+      "starter": false,
+      "farmland": true,
+      "requiresWater": true,
+      "placement": {
+        "tiles": ["barren", "scrub", "meadow", "hill"],
+        "heights": [1, 2]
+      },
+      "yields": {
+        "food": [2, 5, 6, 0],
+        "biomass": [1, 1, 1, 0]
+      },
+      "water": {
+        "needs": [1, 1, 1, 0],
+        "accepts": ["nutrient", "clean"],
+        "nutrientBonus": {
+          "food": 1
+        }
+      },
+      "draftable": false,
+      "placeable": false,
+      "harmony": 1
+    },
+    {
       "id": "glenFarm",
       "name": "Glen Farm",
       "cost": 3,
@@ -407,6 +435,12 @@
       },
       "yields": {
         "food": [0, 4, 2, 0]
+      },
+      "nextToTilesFood": {
+        "tiles": ["meadow"],
+        "count": 2,
+        "amount": 1,
+        "seasons": [false, true, false, false]
       }
     },
     {
@@ -426,6 +460,26 @@
         "day": [3, 1, 2, 1],
         "night": [3, 1, 2, 1]
       }
+    },
+    {
+      "id": "cascade",
+      "name": "Cascade",
+      "cost": 6,
+      "workers": 0,
+      "kind": "energy",
+      "starter": false,
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["barren", "scrub", "meadow", "woodland", "hill"],
+        "adjacentTo": ["river"],
+        "heights": [1, 3]
+      },
+      "generation": {
+        "day": [4, 1, 3, 1],
+        "night": [4, 1, 3, 1]
+      },
+      "draftable": false,
+      "placeable": false
     },
     {
       "id": "bothy",
@@ -455,6 +509,11 @@
       "heatGeneration": {
         "day": [0, 0, 0, 0],
         "night": [0, 0, 2, 2]
+      },
+      "heatFuel": {
+        "resource": "biomass",
+        "amount": 1,
+        "freeNextTo": ["heatWell"]
       }
     },
     {
@@ -921,7 +980,8 @@
       },
       "idleAtHeight": {
         "from": 2,
-        "seasons": ["winter"]
+        "seasons": ["winter"],
+        "keepsBesideEdge": 1
       }
     },
     {
@@ -1084,8 +1144,8 @@
       }
     },
     {
-      "id": "rewildedRuin",
-      "name": "Rewilded Ruin",
+      "id": "batRoost",
+      "name": "Bat Roost",
       "cost": 2,
       "workers": 0,
       "kind": "nature",
@@ -1263,6 +1323,44 @@
   ],
   "combos": [
     {
+      "id": "busyBees",
+      "layer": "adjacency",
+      "name": "Busy Bees",
+      "building": "apiary",
+      "nextTo": {
+        "buildings": ["terraceFarm", "glenFarm", "hangingGarden"]
+      },
+      "notNextTo": ["windSpire"],
+      "seasons": [true, true, true, false],
+      "text": "An apiary next to terrace or glen farms: +1 food on each of up to 3, spring to autumn. A wind spire next door scares the bees off.",
+      "hint": "Bees work the fields around them."
+    },
+    {
+      "id": "hearthStones",
+      "layer": "adjacency",
+      "name": "Hearth Stones",
+      "building": "bothy",
+      "nextTo": {
+        "buildings": ["heatWell"]
+      },
+      "seasons": [false, false, true, true],
+      "text": "A bothy next to a heat well: its stove needs no biomass.",
+      "hint": "A warm store beside a cold hearth."
+    },
+    {
+      "id": "highPasture",
+      "layer": "adjacency",
+      "name": "High Pasture",
+      "building": "shieling",
+      "nextTo": {
+        "tiles": ["meadow"],
+        "count": 2
+      },
+      "seasons": [false, true, false, false],
+      "text": "A shieling next to 2 meadow tiles: +1 food in summer.",
+      "hint": "Summer grazing wants open grass around it."
+    },
+    {
       "id": "quietSpire",
       "layer": "adjacency",
       "name": "Quiet Spire",
@@ -1294,6 +1392,86 @@
       },
       "text": "A cottage next to meadow or woodland: +1 wellbeing each season.",
       "hint": "People like to live near green land."
+    },
+    {
+      "id": "kitchenLoop",
+      "layer": "chain",
+      "name": "Kitchen Loop",
+      "links": [
+        {
+          "buildings": ["composter"]
+        },
+        {
+          "buildings": ["terraceFarm", "glenFarm", "hangingGarden"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "compost"],
+      "text": "Farm → scraps and biomass → composter → compost → farm. Once it runs, every building in the loop makes +1 (farms food, the composter compost) for as long as it stands.",
+      "hint": "Put a composter among working farms."
+    },
+    {
+      "id": "gasLoop",
+      "layer": "chain",
+      "name": "Gas Loop",
+      "links": [
+        {
+          "buildings": ["biogasDigester"],
+          "slot": "night"
+        },
+        {
+          "buildings": ["terraceFarm", "glenFarm", "hangingGarden"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "compost"],
+      "text": "Farm biomass → digester → night power, digestate back to the farms. Once it runs, every building in the loop makes +1 (farms food, the digester compost) for as long as it stands.",
+      "hint": "A digester feeding the night, among working farms."
+    },
+    {
+      "id": "carbonLoop",
+      "layer": "chain",
+      "name": "Carbon Loop",
+      "links": [
+        {
+          "buildings": ["coppiceWood"]
+        },
+        {
+          "buildings": ["biocharKiln"]
+        },
+        {
+          "buildings": ["terraceFarm", "glenFarm", "hangingGarden"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "biomass", "compost"],
+      "text": "Coppice wood → biomass → biochar kiln → charcoal → farm, in a chain of neighbours. Once it runs, every building in the loop makes +1 (food, biomass or compost) for as long as it stands.",
+      "hint": "Wood the kiln chars, beside the field it feeds."
+    },
+    {
+      "id": "meltwaterLoop",
+      "layer": "chain",
+      "name": "Meltwater Loop",
+      "requiresWater": true,
+      "links": [
+        {
+          "buildings": ["rewettedBog"],
+          "standing": true
+        },
+        {
+          "buildings": ["pumpStation"],
+          "powered": true
+        },
+        {
+          "buildings": ["terraceFarm", "hangingGarden"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food"],
+      "harmony": 1,
+      "liftBonus": 1,
+      "text": "Rewetted bog → water → pump station → terrace farm, in a chain of neighbours. Once it runs, the pump lifts 1 more water up its step, the terrace makes +1 food, and the glen +1 Harmony, for as long as it stands.",
+      "hint": "A bog holds the melt; a pump beside it lifts it to the terraces."
     },
     {
       "id": "riverLoop",
@@ -1362,6 +1540,24 @@
       "hint": "Spare heat from a hot neighbour can warm two buildings, not one."
     },
     {
+      "id": "mushroomLoop",
+      "layer": "chain",
+      "name": "Mushroom Loop",
+      "requiresWater": true,
+      "links": [
+        {
+          "buildings": ["terraceFarm", "glenFarm", "hangingGarden"]
+        },
+        {
+          "buildings": ["mushroomCellar"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "compost"],
+      "text": "Farm → biomass → mushroom cellar → spent substrate (compost) → farm. It closes when a working cellar stands next to a working farm. Once it runs, both make +1 food for as long as it stands.",
+      "hint": "What a farm leaves, mushrooms eat; what mushrooms leave, a farm eats."
+    },
+    {
       "id": "villageGreen",
       "layer": "formation",
       "name": "Village Green",
@@ -1384,14 +1580,14 @@
       "shape": {
         "kind": "line",
         "sequence": ["solarCanopy", "solarCanopy", "solarCanopy"],
-        "tiles": ["hill"]
+        "minHeight": 1
       },
       "effect": {
         "generation": 1,
         "appliesTo": "solarCanopy"
       },
-      "text": "3 solar canopies in a row, all on hills: each makes +1 day energy every season.",
-      "hint": "Panels stepping in a straight line along the high ground."
+      "text": "3 solar canopies in a row, all on the slopes (height 1 or more): each makes +1 day energy every season.",
+      "hint": "Panels stepping in a straight line up the glen."
     },
     {
       "id": "wildway",
@@ -1408,10 +1604,47 @@
       "hint": "A green corridor from the water to the hills."
     },
     {
-      "id": "windbreak",
+      "id": "keyholeGarden",
       "layer": "formation",
-      "name": "Windbreak",
+      "name": "Keyhole Garden",
       "requiresWater": true,
+      "shape": {
+        "kind": "ring",
+        "center": "composter",
+        "size": 3,
+        "minTypes": 1,
+        "of": ["terraceFarm", "glenFarm", "hangingGarden"]
+      },
+      "effect": {
+        "outputMultiplier": 2,
+        "appliesTo": "composter"
+      },
+      "text": "A composter with 3 farms next to it: its compost doubles.",
+      "hint": "A heap at the heart of the beds."
+    },
+    {
+      "id": "waterStair",
+      "layer": "formation",
+      "name": "Water Stair",
+      "requiresWater": true,
+      "shape": {
+        "kind": "line",
+        "sequence": ["pumpStation", "terraceFarm", "terraceFarm"],
+        "rising": true
+      },
+      "effect": {
+        "yields": {
+          "food": 1
+        },
+        "appliesTo": "terraceFarm"
+      },
+      "text": "A pump station with 2 terrace farms in a straight line above it, each a step higher: each terrace makes +1 food in a season it makes any.",
+      "hint": "Terraces climbing straight up from a pump."
+    },
+    {
+      "id": "snowLine",
+      "layer": "formation",
+      "name": "Snow Line",
       "shape": {
         "kind": "hedgeRun",
         "length": 4
@@ -1419,8 +1652,25 @@
       "effect": {
         "shelterRadius": 2
       },
-      "text": "4 hedges joined end to end along the edges between tiles: storms can’t damage any building within 2 tiles of them, on any side.",
-      "hint": "A long hedge stops more wind than a short one."
+      "text": "4 snow fences joined end to end along the edges between tiles: gales can’t damage any building within 2 tiles of them.",
+      "hint": "A long fence stops more wind than a short one."
+    },
+    {
+      "id": "ridgeSpires",
+      "layer": "formation",
+      "name": "Ridge Spires",
+      "shape": {
+        "kind": "line",
+        "sequence": ["windSpire", "windSpire", "windSpire"],
+        "minHeight": 2
+      },
+      "effect": {
+        "generation": 1,
+        "appliesTo": "windSpire",
+        "quiet": true
+      },
+      "text": "3 wind spires in a row at height 2 or 3: each makes +1 energy in every slot, and they cost no Harmony.",
+      "hint": "Blades along the ridge, where only the wind lives."
     },
     {
       "id": "hearthSquare",
@@ -1452,18 +1702,6 @@
       },
       "text": "A greenhouse next to a heat well becomes a Winter Garden: the well keeps it warm, so it needs no heat in winter and makes 4 food then instead of 3.",
       "hint": "Glass that never gets cold."
-    },
-    {
-      "id": "rewildedRuin",
-      "layer": "evolution",
-      "name": "Rewilded Ruin",
-      "from": "salvageYard",
-      "into": "rewildedRuin",
-      "when": {
-        "kind": "ruinExhausted"
-      },
-      "text": "A salvage yard whose ruin is empty becomes a Rewilded Ruin: +2 Harmony, and its worker is free.",
-      "hint": "What happens when nothing is left to salvage?"
     },
     {
       "id": "treehouseCommons",
@@ -1560,6 +1798,52 @@
       "text": "Coppice a woodland tile next to a workshop and it becomes a Coppice Wood: 2 materials each season with 1 worker, but it counts as meadow for Harmony (1 instead of 2). Stop coppicing and it is woodland again after 2 seasons.",
       "hint": "Cut a tree low and it grows back many.",
       "requiresWater": true
+    },
+    {
+      "id": "hangingGarden",
+      "layer": "evolution",
+      "name": "Hanging Garden",
+      "from": "terraceFarm",
+      "into": "hangingGarden",
+      "when": {
+        "kind": "nextTo",
+        "nextTo": {
+          "buildings": ["terraceFarm", "hangingGarden"],
+          "count": 2
+        },
+        "also": {
+          "buildings": ["pollinatorMeadow"]
+        }
+      },
+      "text": "A terrace farm next to 2 terraces and a pollinator meadow becomes a Hanging Garden: +1 food, +1 Harmony, and it needs no worker.",
+      "hint": "Terraces among terraces, with flowers for the bees."
+    },
+    {
+      "id": "cascade",
+      "layer": "evolution",
+      "name": "Cascade",
+      "from": "hillTurbine",
+      "into": "cascade",
+      "when": {
+        "kind": "nextTo",
+        "nextTo": {
+          "buildings": ["hillTurbine", "cascade"]
+        }
+      },
+      "text": "2 hill turbines next to each other down the stream become a Cascade: each makes +1 energy in spring and autumn, by day and by night.",
+      "hint": "One wheel’s water turns the next."
+    },
+    {
+      "id": "batRoost",
+      "layer": "evolution",
+      "name": "Bat Roost",
+      "from": "salvageYard",
+      "into": "batRoost",
+      "when": {
+        "kind": "ruinExhausted"
+      },
+      "text": "A salvage yard whose old mine is empty becomes a Bat Roost: +2 Harmony, and its worker is free.",
+      "hint": "What lives in a mine when the miners leave?"
     }
   ],
   "tunings": [
@@ -1824,6 +2108,158 @@
           "add": 1
         }
       ]
+    },
+    {
+      "id": "deeperHeatWells",
+      "name": "Deeper Heat Wells",
+      "text": "Heat wells hold 2 more heat.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "heatWell",
+          "path": "storage.capacity",
+          "add": 2
+        }
+      ]
+    },
+    {
+      "id": "dryStoneTerraces",
+      "name": "Dry-stone Terraces",
+      "text": "Terrace farms can’t be damaged by gales.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "terraceFarm",
+          "path": "stormProof",
+          "set": true
+        },
+        {
+          "target": "building",
+          "id": "hangingGarden",
+          "path": "stormProof",
+          "set": true
+        }
+      ]
+    },
+    {
+      "id": "hardyOats",
+      "name": "Hardy Oats",
+      "text": "Terrace farms make 1 food in winter.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "terraceFarm",
+          "path": "yields.food.3",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "hangingGarden",
+          "path": "yields.food.3",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "steeperWheels",
+      "name": "Steeper Wheels",
+      "text": "Hill turbines make +1 energy in summer, by day and by night.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "hillTurbine",
+          "path": "generation.day.1",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "hillTurbine",
+          "path": "generation.night.1",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "cascade",
+          "path": "generation.day.1",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "cascade",
+          "path": "generation.night.1",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "thickWalls",
+      "name": "Thick Walls",
+      "text": "Homes high up need extra heat only in winter, not in autumn.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "foundersCamp",
+          "path": "heatAtHeight.seasons",
+          "set": ["winter"]
+        },
+        {
+          "target": "building",
+          "id": "cottage",
+          "path": "heatAtHeight.seasons",
+          "set": ["winter"]
+        },
+        {
+          "target": "building",
+          "id": "treehouseCommons",
+          "path": "heatAtHeight.seasons",
+          "set": ["winter"]
+        },
+        {
+          "target": "building",
+          "id": "bothy",
+          "path": "heatAtHeight.seasons",
+          "set": ["winter"]
+        }
+      ]
+    },
+    {
+      "id": "woolTrade",
+      "name": "Wool Trade",
+      "text": "Shielings make +1 food in autumn.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "shieling",
+          "path": "yields.food.2",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "widerWatch",
+      "name": "Wider Watch",
+      "text": "Lookouts shelter everything within 3 tiles from gales, not 2.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "lookout",
+          "path": "shelters.radius",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "strongerPumps",
+      "name": "Stronger Pumps",
+      "text": "Pump stations lift 1 more water up their step.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "pumpStation",
+          "path": "pump.lift",
+          "add": 1
+        }
+      ]
     }
   ],
   "charters": [
@@ -1915,6 +2351,44 @@
           "target": "building",
           "id": "pollinatorMeadow",
           "path": "harmony",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "mountainRescue",
+      "name": "Mountain Rescue",
+      "text": "Gales do no damage; lookouts give +1 wellbeing more.",
+      "modifiers": [
+        {
+          "target": "event",
+          "id": "storm",
+          "path": "disableCount",
+          "set": 0
+        },
+        {
+          "target": "building",
+          "id": "lookout",
+          "path": "wellbeing.whenPowered",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "hearthKeepers",
+      "name": "Hearth Keepers",
+      "text": "Bothies’ stoves need no biomass; bothies house 1 more.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "bothy",
+          "path": "heatFuel.amount",
+          "set": 0
+        },
+        {
+          "target": "building",
+          "id": "bothy",
+          "path": "housing",
           "add": 1
         }
       ]

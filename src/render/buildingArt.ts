@@ -825,6 +825,17 @@ export const BUILDING_ART: Record<string, Art> = {
         .stroke({ width: 1.6, color: COLORS.stone });
     }
   },
+  hangingGarden(g, c) {
+    // The terraces in flower, bees among them.
+    BUILDING_ART.terraceFarm!(g, c);
+    for (const [x, y, color] of [
+      [-8, -8, COLORS.flowerPink],
+      [4, -1, COLORS.leadingGold],
+      [-4, 6, COLORS.flowerPink],
+      [8, 5, 0xb48ad6],
+    ] as const)
+      g.circle(c.x + x, c.y + y, 1.8).fill({ color });
+  },
   glenFarm(g, c) {
     g.poly(hexCorners(c, 21))
       .fill({ color: COLORS.field })
@@ -853,6 +864,28 @@ export const BUILDING_ART: Record<string, Art> = {
       .moveTo(c.x + 8, c.y - 4)
       .lineTo(c.x + 8, c.y + 8);
     g.stroke({ width: 1, color: COLORS.wood });
+  },
+  cascade(g, c) {
+    // The hydro house, white water falling past it to the next wheel.
+    BUILDING_ART.hillTurbine!(g, c);
+    g.moveTo(c.x + 12, c.y - 8)
+      .quadraticCurveTo(c.x + 16, c.y, c.x + 12, c.y + 10)
+      .stroke({ width: 2, color: 0xe8f2f4, alpha: 0.9, cap: 'round' });
+  },
+  batRoost(g, c) {
+    // The old mine's mouth, grown over; bats at dusk.
+    shadow(g, c, 13);
+    g.roundRect(c.x - 9, c.y - 6, 18, 13, 6).fill({ color: COLORS.stone });
+    g.ellipse(c.x, c.y + 3, 5, 4).fill({ color: DARK });
+    tree(g, c.x - 9, c.y - 6, 4);
+    for (const [x, y] of [
+      [3, -12],
+      [9, -9],
+    ] as const)
+      g.moveTo(c.x + x - 3, c.y + y)
+        .lineTo(c.x + x, c.y + y + 2)
+        .lineTo(c.x + x + 3, c.y + y)
+        .stroke({ width: 1.2, color: DARK });
   },
   bothy(g, c) {
     shadow(g, c, 11);

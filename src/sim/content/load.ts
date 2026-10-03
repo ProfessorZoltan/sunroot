@@ -55,6 +55,7 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     b.weir?.downstreamFoodPenalty.targets.forEach((id) => known(id, `${b.id}.weir`));
     b.placement.adjacentToBuildings?.forEach((id) => known(id, `${b.id}.placement`));
     b.heatFromNeighbors?.forEach((id) => known(id, `${b.id}.heatFromNeighbors`));
+    b.heatFuel?.freeNextTo.forEach((id) => known(id, `${b.id}.heatFuel`));
     if (b.spawns) known(b.spawns.building, `${b.id}.spawns`);
     if (b.placement.adjacentToBuildings && !b.placement.adjacentTo) {
       problems.push(`${b.id}.placement.adjacentToBuildings needs adjacentTo`);

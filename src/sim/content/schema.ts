@@ -208,7 +208,12 @@ export const BuildingSchema = z
       .optional(),
     /** Makes nothing in these seasons at this height or above (snow on the panels). */
     idleAtHeight: z
-      .object({ from: int.min(1), seasons: z.array(z.enum(SEASONS)).min(1) })
+      .object({
+        from: int.min(1),
+        seasons: z.array(z.enum(SEASONS)).min(1),
+        /** By day it still makes up to this much beside an edge building (a snow fence). */
+        keepsBesideEdge: nonNeg.default(0),
+      })
       .strict()
       .optional(),
     /**
@@ -282,6 +287,28 @@ export const BuildingSchema = z
     generation: SlotSeason.optional(),
     /** Free heat made in each slot (Solar Thermal Collector); it can only pay heat or charge heat storage. */
     heatGeneration: SlotSeason.optional(),
+    /**
+     * What its heat burns (the Highland's bothy): `amount` of `resource` a season it makes any
+     * heat, none beside a building of `freeNextTo` (Hearth Stones). Without it, no heat.
+     */
+    heatFuel: z
+      .object({
+        resource: ResourceSchema,
+        amount: nonNeg,
+        freeNextTo: z.array(z.string()).default([]),
+      })
+      .strict()
+      .optional(),
+    /** More food in these seasons next to enough of these tiles (a shieling on high pasture). */
+    nextToTilesFood: z
+      .object({
+        tiles: z.array(TileTypeSchema).min(1),
+        count: int.min(1),
+        amount: int.min(1),
+        seasons: PerSeasonFlags,
+      })
+      .strict()
+      .optional(),
     /** Pays heat demand at `heatPerEnergy` heat per energy, up to `maxHeatPerSlot` in each slot. */
     heatPump: z.object({ heatPerEnergy: int.min(2), maxHeatPerSlot: int.min(1) }).optional(),
     /**
@@ -952,12 +979,18 @@ export const ComboSchema = z.discriminatedUnion('layer', [
               gotWater: WaterQualitySchema.optional(),
               /** It ran powered this season: its work is what it does with the energy (a desalinator). */
               powered: z.boolean().default(false),
+              /** Its work is to stand, at work (a rewetted bog holding water). */
+              standing: z.boolean().default(false),
             })
             .strict(),
         )
         .min(2),
       bonus: int.min(1),
       bonusOrder: z.array(ResourceSchema).min(1),
+      /** Harmony while a closed loop of it stands (the Meltwater Loop). */
+      harmony: int.default(0),
+      /** Pump stations in a closed loop of it lift this much more water (the Meltwater Loop). */
+      liftBonus: nonNeg.default(0),
     })
     .strict(),
   /** 3. Formations: hidden shapes. Their effect lasts while the shape stands. */
@@ -984,6 +1017,10 @@ export const ComboSchema = z.discriminatedUnion('layer', [
           kind: z.literal('line'),
           sequence: z.array(z.string()).min(2),
           tiles: z.array(TileTypeSchema).optional(),
+          /** Every member at this height or above (the Highland's Ridge Spires). */
+          minHeight: int.min(1).optional(),
+          /** Each member a step higher than the one before (the Water Stair). */
+          rising: z.boolean().default(false),
         }),
         /** An unbroken strip of these tiles from the river to a side edge of the valley. */
         z.object({
@@ -1008,6 +1045,8 @@ export const ComboSchema = z.discriminatedUnion('layer', [
           yields: z.partialRecord(ResourceSchema, int.min(1)).default({}),
           /** Storms can't damage buildings within this many tiles of a member (the Windbreak). */
           shelterRadius: nonNeg.default(0),
+          /** Its members' Harmony penalty is cancelled (the Ridge Spires). */
+          quiet: z.boolean().default(false),
           /** Seasons the wellbeing applies in (the Hearth Square: winter). */
           seasons: PerSeasonFlags.default([true, true, true, true]),
           appliesTo: z.string().optional(),
