@@ -120,6 +120,10 @@ export interface Ledger {
   citizenSeasons: number;
   /** Materials made by workshops and kilns. */
   industry: number;
+  /** Heat paid by local sources (free heat from stoves and collectors, and warm neighbours). */
+  heatLocal?: number;
+  /** All heat demanded, for the Ridge Quarter's share (missing in older saves: 0). */
+  heatTotal?: number;
 }
 
 export interface RunState {

@@ -2554,123 +2554,9 @@
       "text": "No twist: the seasons as usual."
     },
     {
-      "id": "droughtYear",
-      "name": "Drought Year",
-      "text": "A dry year: in summer every farm loses three quarters of its food, however near the water. The Graft is one tier higher.",
-      "modifiers": [
-        {
-          "target": "event",
-          "id": "lowRiver",
-          "path": "farFromWaterDistance",
-          "set": 0
-        },
-        {
-          "target": "event",
-          "id": "lowRiver",
-          "path": "farYieldFactor",
-          "set": 0.25
-        },
-        {
-          "target": "rules",
-          "path": "water.riverFlow.1",
-          "set": 0
-        },
-        {
-          "target": "rules",
-          "path": "water.riverFlow.2",
-          "set": 4
-        }
-      ],
-      "graftTierBonus": 1
-    },
-    {
-      "id": "longWinter",
-      "name": "Long Winter",
-      "text": "Homes need 4 more heat on winter nights, 3 more in autumn and 2 more in spring, and solar canopies make 1 less by day in autumn and winter. Heat is local: heat pumps, heat wells and solar thermal collectors warm only buildings within 2 tiles, and energy can't heat anything directly: homes left without a heat source go cold. The Graft is one tier higher.",
-      "modifiers": [
-        {
-          "target": "building",
-          "id": "foundersCamp",
-          "path": "demand.heat.night.3",
-          "add": 4
-        },
-        {
-          "target": "building",
-          "id": "foundersCamp",
-          "path": "demand.heat.night.2",
-          "add": 3
-        },
-        {
-          "target": "building",
-          "id": "foundersCamp",
-          "path": "demand.heat.night.0",
-          "add": 2
-        },
-        {
-          "target": "building",
-          "id": "cottage",
-          "path": "demand.heat.night.3",
-          "add": 4
-        },
-        {
-          "target": "building",
-          "id": "cottage",
-          "path": "demand.heat.night.2",
-          "add": 3
-        },
-        {
-          "target": "building",
-          "id": "cottage",
-          "path": "demand.heat.night.0",
-          "add": 2
-        },
-        {
-          "target": "building",
-          "id": "treehouseCommons",
-          "path": "demand.heat.night.3",
-          "add": 4
-        },
-        {
-          "target": "building",
-          "id": "treehouseCommons",
-          "path": "demand.heat.night.2",
-          "add": 3
-        },
-        {
-          "target": "building",
-          "id": "treehouseCommons",
-          "path": "demand.heat.night.0",
-          "add": 2
-        },
-        {
-          "target": "building",
-          "id": "solarCanopy",
-          "path": "generation.day.2",
-          "add": -1
-        },
-        {
-          "target": "building",
-          "id": "solarCanopy",
-          "path": "generation.day.3",
-          "add": -1
-        },
-        {
-          "target": "rules",
-          "path": "localHeat.enabled",
-          "set": true
-        },
-        {
-          "target": "rules",
-          "path": "localHeat.gridHeat",
-          "set": false
-        }
-      ],
-      "graftTierBonus": 1
-    },
-    {
       "id": "wildStorms",
       "name": "Wild Storms",
-      "text": "Storms can damage 3 buildings anywhere on open land, not just hills (woodland beside them still shelters them), the Mixed Grid can't stop them, and each repair costs 3 materials. The Graft is one tier higher.",
+      "text": "Gales can damage 3 buildings anywhere on open land, not just the tops (pine wood or a snow fence beside them still shelters them), the Mixed Grid can’t stop them, and each repair costs 3 materials. The Graft is one tier higher.",
       "modifiers": [
         {
           "target": "event",
@@ -2682,7 +2568,7 @@
           "target": "event",
           "id": "storm",
           "path": "exposedOn",
-          "set": ["hill", "barren", "scrub", "meadow", "floodplain"]
+          "set": ["crag", "barren", "scrub", "meadow", "bog"]
         },
         {
           "target": "event",
@@ -2721,31 +2607,6 @@
           "id": "storm",
           "path": "disableCount",
           "set": 2
-        }
-      ]
-    },
-    {
-      "id": "clearSkies",
-      "name": "Clear Skies",
-      "text": "Solar canopies make 1 more energy by day, but wind spires make 1 less, day and night.",
-      "modifiers": [
-        {
-          "target": "building",
-          "id": "solarCanopy",
-          "path": "generation.day",
-          "add": 1
-        },
-        {
-          "target": "building",
-          "id": "windSpire",
-          "path": "generation.day",
-          "add": -1
-        },
-        {
-          "target": "building",
-          "id": "windSpire",
-          "path": "generation.night",
-          "add": -1
         }
       ]
     },
@@ -2792,7 +2653,7 @@
     {
       "id": "scavengers",
       "name": "Scavengers' Glen",
-      "text": "Ruins hold 12 more salvage each (36 instead of 24), but every clutter costs 2 Harmony.",
+      "text": "Old mines hold 12 more salvage each (42 instead of 30), but every clutter costs 2 Harmony.",
       "modifiers": [
         {
           "target": "map",
@@ -2805,9 +2666,127 @@
           "set": -2
         }
       ]
+    },
+    {
+      "id": "deepWinter",
+      "name": "Deep Winter",
+      "text": "Snow from autumn: solar canopies at height 2 or 3 make nothing in autumn as well as winter. The Graft is one tier higher.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "solarCanopy",
+          "path": "idleAtHeight.seasons",
+          "set": ["autumn", "winter"]
+        }
+      ],
+      "graftTierBonus": 1
+    },
+    {
+      "id": "fohnWind",
+      "name": "Föhn Wind",
+      "text": "A warm wind off the tops: homes need 1 less heat on winter nights, but the snowmelt floods twice as far (up to 2 tiles from the stream, and at height 1).",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "localHeat.homeRelief.3",
+          "add": 1
+        },
+        {
+          "target": "map",
+          "path": "meltReach",
+          "set": 2
+        }
+      ]
+    },
+    {
+      "id": "lateThaw",
+      "name": "Late Thaw",
+      "text": "Spring stays in deep snow, and the snowmelt comes in summer instead of the dry spell.",
+      "modifiers": [
+        {
+          "target": "calendar",
+          "path": "0",
+          "set": "freeze"
+        },
+        {
+          "target": "calendar",
+          "path": "1",
+          "set": "flood"
+        }
+      ]
     }
   ],
-  "regions": [],
+  "regions": [
+    {
+      "id": "theGlen",
+      "name": "The Glen",
+      "text": "The glen as it is: a stream falling down the middle, slopes to the crags on either side, bogs and old mines on the shoulders."
+    },
+    {
+      "id": "corrieLochs",
+      "name": "Corrie Lochs",
+      "text": "Two mountain tarns at height 2, which the snowmelt fills each spring: water high up without pumping it there.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "tarns",
+          "set": 2
+        }
+      ]
+    },
+    {
+      "id": "highPlateau",
+      "name": "High Plateau",
+      "text": "The land climbs fast from the stream: most of it at heights 2 and 3, cold and windy, and the camp close by the water. The Graft is one tier higher.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "slopeWidth",
+          "set": 1
+        },
+        {
+          "target": "map",
+          "path": "campStreamDistance.0",
+          "set": 1
+        },
+        {
+          "target": "map",
+          "path": "campStreamDistance.1",
+          "set": 2
+        }
+      ],
+      "graftTierBonus": 1
+    },
+    {
+      "id": "oldPinewood",
+      "name": "Old Pinewood",
+      "text": "Remnants of the old pine forest: 6 woods where the glen has 3.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "woodlands",
+          "set": 6
+        }
+      ]
+    },
+    {
+      "id": "oldMines",
+      "name": "Old Mines",
+      "text": "A mining glen: 7 old workings, and fuller (36 salvage each).",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "ruins",
+          "set": 7
+        },
+        {
+          "target": "map",
+          "path": "ruinSalvage",
+          "set": 36
+        }
+      ]
+    }
+  ],
   "eraGoals": [
     {
       "era": 1,

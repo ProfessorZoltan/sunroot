@@ -545,7 +545,7 @@ export type EventId = (typeof EVENT_IDS)[number];
 
 export const ModifierSchema = z
   .object({
-    target: z.enum(['building', 'rules', 'event', 'combo', 'map']),
+    target: z.enum(['building', 'rules', 'event', 'combo', 'map', 'calendar']),
     /** Building, event or combo id (not for rules or the map generator). */
     id: z.string().optional(),
     path: z.string().min(1),
@@ -631,6 +631,8 @@ const LocalHeatRulesSchema = z
     gridHeat: z.boolean().default(true),
     /** A cold home costs this much more wellbeing for each bed in it (its people are cold). */
     coldPerBed: nonNeg.default(0),
+    /** Homes need this much less heat on each season's nights (the Ridge Quarter; never below 0). */
+    homeRelief: PerSeason.default([0, 0, 0, 0]),
   })
   .strict();
 
@@ -788,6 +790,7 @@ export const RulesSchema = z
       gridHeatCost: 1,
       gridHeat: true,
       coldPerBed: 0,
+      homeRelief: [0, 0, 0, 0],
     }),
     mixedGrid: z.object({
       minSourceTypes: int.min(1),
@@ -892,6 +895,10 @@ const HighlandMapSchema = z
     startingHarmony: nonNeg,
     /** Tiles from the stream where the camp may stand. */
     campStreamDistance: z.tuple([int.min(1), int.min(1)]),
+    /** Mountain lakes of 2 tiles at height 2 (the Corrie Lochs): the snowmelt fills them. */
+    tarns: nonNeg.default(0),
+    /** The snowmelt floods tiles below this height within this many tiles of the stream. */
+    meltReach: int.min(1).default(1),
   })
   .strict();
 
@@ -1136,7 +1143,13 @@ export const EraGoalSchema = z
 export type EraGoal = z.infer<typeof EraGoalSchema>;
 
 /** What a run's signature is measured by, for the Graft offer. */
-export const SIGNATURE_METRICS = ['energyShare', 'foodPerCitizen', 'harmony', 'industry'] as const;
+export const SIGNATURE_METRICS = [
+  'energyShare',
+  'foodPerCitizen',
+  'harmony',
+  'industry',
+  'localHeat',
+] as const;
 
 /** A Root City district a run can send home as its Graft. */
 export const DistrictSchema = z
@@ -1290,7 +1303,18 @@ export const ProgressionSchema = z
      * Biomes beyond the home one (the first biome's content), and the run from which
      * expeditions may go there (proposals/windswept-coast.md, Root City).
      */
-    biomes: z.array(z.object({ id: z.string(), fromRun: int.min(1) }).strict()).default([]),
+    biomes: z
+      .array(
+        z
+          .object({
+            id: z.string(),
+            fromRun: int.min(1).default(1),
+            /** Opens once this many districts stand in Root City (the Highland). */
+            fromDistricts: nonNeg.default(0),
+          })
+          .strict(),
+      )
+      .default([]),
     /**
      * Teaching across runs: the run (1 = the first) from which each system
      * joins. The guided first year is for runs before `guidedUntil`.

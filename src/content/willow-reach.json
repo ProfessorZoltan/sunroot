@@ -532,6 +532,41 @@
       }
     },
     {
+      "id": "bothy",
+      "name": "Bothy",
+      "cost": 4,
+      "workers": 0,
+      "kind": "home",
+      "starter": false,
+      "placement": {
+        "tiles": ["barren", "scrub", "meadow", "woodland", "hill", "floodplain"]
+      },
+      "housing": 3,
+      "foodStorage": 3,
+      "demand": {
+        "energy": {
+          "night": [1, 1, 1, 1]
+        },
+        "heat": {
+          "night": [0, 0, 1, 1]
+        }
+      },
+      "heatAtHeight": {
+        "from": 2,
+        "add": 1,
+        "seasons": ["autumn", "winter"]
+      },
+      "heatGeneration": {
+        "day": [0, 0, 0, 0],
+        "night": [0, 0, 2, 2]
+      },
+      "heatFuel": {
+        "resource": "biomass",
+        "amount": 1,
+        "freeNextTo": ["heatWell"]
+      }
+    },
+    {
       "id": "commonsPlaza",
       "name": "Commons Plaza",
       "cost": 8,

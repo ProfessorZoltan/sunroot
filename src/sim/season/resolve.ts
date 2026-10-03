@@ -119,12 +119,21 @@ function advance(content: Content, ctx: SeasonContext): RunState {
     energy[source] = (energy[source] ?? 0) + amount;
   let industry = 0;
   for (const uid of Object.keys(report.runs)) industry += report.yields[uid]?.materials ?? 0;
+  let heatLocal = 0;
+  let heatTotal = 0;
+  for (const slot of ['day', 'night'] as const) {
+    const h = report.energy[slot].heat;
+    heatLocal += h.free + h.neighbor;
+    heatTotal += h.demand;
+  }
   state.ledger = {
     energy,
     foodMade: state.ledger.foodMade + report.food.produced,
     foodEaten: state.ledger.foodEaten + report.food.eaten,
     citizenSeasons: state.ledger.citizenSeasons + state.citizens,
     industry: state.ledger.industry + industry,
+    heatLocal: (state.ledger.heatLocal ?? 0) + heatLocal,
+    heatTotal: (state.ledger.heatTotal ?? 0) + heatTotal,
   };
 
   const summary: SeasonSummary = {

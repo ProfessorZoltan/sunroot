@@ -285,6 +285,8 @@ export interface Signature {
   harmony: number;
   /** Materials made by workshops and kilns per season. */
   industry: number;
+  /** Heat paid by local sources (stoves, collectors, warm neighbours), as a share of all heat. */
+  localHeat: number;
 }
 
 export function runSignature(content: Content, state: RunState): Signature {
@@ -302,6 +304,7 @@ export function runSignature(content: Content, state: RunState): Signature {
     foodPerCitizen: ledger.citizenSeasons === 0 ? 0 : ledger.foodMade / ledger.citizenSeasons,
     harmony: state.harmony,
     industry: ledger.industry / seasons,
+    localHeat: (ledger.heatTotal ?? 0) === 0 ? 0 : (ledger.heatLocal ?? 0) / ledger.heatTotal!,
   };
 }
 

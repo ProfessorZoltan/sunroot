@@ -267,7 +267,13 @@ export function teaching(content: Content, run: number): Teaching {
 export function openBiomes(content: Content, city: CityState): string[] {
   const run = city.runs + 1;
   const others = (content.progression?.biomes ?? [])
-    .filter((b) => run >= b.fromRun && content.atlas?.[b.id] && b.id !== content.id)
+    .filter(
+      (b) =>
+        run >= b.fromRun &&
+        city.districts.length >= b.fromDistricts &&
+        content.atlas?.[b.id] &&
+        b.id !== content.id,
+    )
     .map((b) => b.id);
   return [content.id, ...others];
 }

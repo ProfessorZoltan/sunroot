@@ -1,5 +1,16 @@
 # Changelog
 
+## The Highland in Root City
+
+- Once **4 districts** stand in Root City, expeditions go to the **Highland** too, taking turns
+  with the Reach and the coast. The first run there is guided.
+- A new district, the **Ridge Quarter**, from heat-led runs (heat from stoves, collectors and
+  warm neighbours): homes need less heat at night, and the **Bothy** joins every biome's
+  drafts. Next to the Foundry District it makes the **Charcoal Works**: kilns and biochar kilns
+  run once more each season.
+- The Highland's **regions**: the Glen, Corrie Lochs (mountain tarns), High Plateau, Old
+  Pinewood and Old Mines; its own **twists**: Deep Winter, Föhn Wind and Late Thaw.
+
 ## The Highland on screen
 
 - A Highland run can be played with **`?biome=highland`**, a visit like the coast's was, until

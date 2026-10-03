@@ -39,10 +39,13 @@ export function heatDemand(
   si: number,
 ): number {
   const def = defOf(content, b);
-  const base = def.demand?.heat[slot][si] ?? 0;
+  let need = def.demand?.heat[slot][si] ?? 0;
   const cold = def.heatAtHeight;
-  if (!cold || slot !== 'night' || !cold.seasons.includes(SEASONS[si]!)) return base;
-  return heightAt(state, b.at) >= cold.from ? base + cold.add : base;
+  if (cold && slot === 'night' && cold.seasons.includes(SEASONS[si]!))
+    if (heightAt(state, b.at) >= cold.from) need += cold.add;
+  // The Ridge Quarter's perk: homes need less heat at night.
+  const relief = slot === 'night' && def.housing > 0 ? content.rules.localHeat.homeRelief[si]! : 0;
+  return Math.max(0, need - relief);
 }
 
 const occupancyCache = new WeakMap<object, { size: number; map: Map<string, BuildingState> }>();

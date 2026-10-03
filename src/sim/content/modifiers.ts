@@ -144,6 +144,8 @@ function applyModifier(data: Json, m: Modifier): void {
   else if (m.target === 'event') root = (data.events as Json)[m.id ?? ''];
   else if (m.target === 'map') root = data.map;
   else if (m.target === 'combo') root = (data.combos as Json[]).find((c) => c.id === m.id);
+  // The calendar's season events by index (Late Thaw moves the snowmelt to summer).
+  else if (m.target === 'calendar') root = data.calendar;
   else root = (data.buildings as Json[]).find((b) => b.id === m.id);
   if (root === undefined) throw new Error(`no ${m.target} ${m.id ?? ''}`);
   const parts = m.path.split('.');

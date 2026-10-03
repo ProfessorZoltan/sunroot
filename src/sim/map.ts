@@ -114,15 +114,37 @@ function generateHighland(content: Content, gen: HighlandMapGen, seed: string): 
 
   placeGreenLand(content, rng, tiles, order, campKey);
 
-  // The snowmelt reaches the glen floor beside the stream, highest up the stream first.
+  // Mountain tarns (the Corrie Lochs): 2 tiles of lake each, at height 2, away from the stream.
+  let tarnsLeft = gen.tarns;
+  if (tarnsLeft > 0)
+    for (const key of shuffled(rng, order)) {
+      if (tarnsLeft === 0) break;
+      const t = tiles[key]!;
+      const fits = (x: Tile | undefined): x is Tile =>
+        x !== undefined &&
+        plain(x) &&
+        heightOf(x) === 2 &&
+        hexKey(x) !== campKey &&
+        !hexNeighbors(x).some((n) => ['river', 'reservoir'].includes(tile(n)?.type ?? ''));
+      if (!fits(t)) continue;
+      const other = hexNeighbors(t).map(tile).find(fits);
+      if (!other) continue;
+      t.type = 'reservoir';
+      other.type = 'reservoir';
+      tarnsLeft--;
+    }
+
+  // The snowmelt reaches the glen floor beside the stream (further, with a Föhn wind), highest
+  // up the stream first.
   const floodOrder = order
     .filter((k) => {
       const t = tiles[k]!;
       return (
         k !== campKey &&
         t.type !== 'river' &&
-        heightOf(t) === 0 &&
-        hexNeighbors(t).some((n) => tile(n)?.type === 'river')
+        t.type !== 'reservoir' &&
+        heightOf(t) < gen.meltReach &&
+        hexDistance(nearest(t), t) <= gen.meltReach
       );
     })
     .sort(

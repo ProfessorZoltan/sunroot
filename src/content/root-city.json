@@ -224,6 +224,64 @@
         }
       ],
       "adds": "tideMill"
+    },
+    {
+      "id": "ridgeQuarter",
+      "name": "Ridge Quarter",
+      "earnedBy": "Heat-led runs",
+      "signature": {
+        "metric": "localHeat",
+        "full": 0.5
+      },
+      "green": false,
+      "perks": [
+        {
+          "text": "Homes need 1 less heat on winter nights",
+          "modifiers": [
+            {
+              "target": "rules",
+              "path": "localHeat.homeRelief.3",
+              "add": 1
+            }
+          ]
+        },
+        {
+          "text": "Homes need 1 less heat on autumn and winter nights",
+          "modifiers": [
+            {
+              "target": "rules",
+              "path": "localHeat.homeRelief.2",
+              "add": 1
+            },
+            {
+              "target": "rules",
+              "path": "localHeat.homeRelief.3",
+              "add": 1
+            }
+          ]
+        },
+        {
+          "text": "Homes need 1 less heat on spring, autumn and winter nights",
+          "modifiers": [
+            {
+              "target": "rules",
+              "path": "localHeat.homeRelief.0",
+              "add": 1
+            },
+            {
+              "target": "rules",
+              "path": "localHeat.homeRelief.2",
+              "add": 1
+            },
+            {
+              "target": "rules",
+              "path": "localHeat.homeRelief.3",
+              "add": 1
+            }
+          ]
+        }
+      ],
+      "adds": "bothy"
     }
   ],
   "landmarks": [
@@ -281,6 +339,31 @@
           "id": "estuaryTurbine",
           "path": "starter",
           "set": true
+        }
+      ]
+    },
+    {
+      "id": "charcoalWorks",
+      "name": "Charcoal Works",
+      "district": "ridgeQuarter",
+      "nextTo": {
+        "districts": ["foundryDistrict"],
+        "count": 1
+      },
+      "text": "The Ridge Quarter next to the Foundry District: kilns and biochar kilns run once more each season, in every biome.",
+      "hint": "Where the hearths meet the forges.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "kiln",
+          "path": "recipes.maxRuns",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "biocharKiln",
+          "path": "digester.maxRuns",
+          "add": 1
         }
       ]
     }
@@ -349,6 +432,10 @@
       {
         "id": "windsweptCoast",
         "fromRun": 5
+      },
+      {
+        "id": "highland",
+        "fromDistricts": 4
       }
     ],
     "teaching": {

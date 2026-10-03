@@ -46,6 +46,7 @@ const LOOK: Record<string, { color: string; ink: string }> = {
   mendedCommons: { color: '#2E8B6A', ink: '#eaf6ef' },
   foundryDistrict: { color: '#B85C6E', ink: '#fbecef' },
   tidalQuarter: { color: '#2F5E63', ink: '#e6f2f2' },
+  ridgeQuarter: { color: '#6B5B4E', ink: '#f4ece2' },
 };
 const lookOf = (id: string) => LOOK[id] ?? { color: '#9e9280', ink: '#fffbf0' };
 
@@ -103,6 +104,14 @@ function Emblem({ id, ink }: { id: string; ink: string }) {
           <rect x="-11" y="-2" width="16" height="11" />
           <rect x="6" y="-11" width="5" height="20" />
           <circle cx="9" cy="-14" r="2.5" opacity="0.7" />
+        </g>
+      );
+    case 'ridgeQuarter':
+      // A ridge with a warm hearth below it.
+      return (
+        <g>
+          <path d="M-12,8 L-4,-8 L1,-1 L5,-6 L12,8 Z" fill={ink} />
+          <circle cy="4" r="3" fill="#E0A33B" />
         </g>
       );
     default:
