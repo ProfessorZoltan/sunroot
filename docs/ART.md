@@ -9,6 +9,9 @@ The design doc kept art procedural "until the slice is fun" and left "when to co
 art" open ([DESIGN.md](DESIGN.md), Working rules); that question is answered (DECISIONS.md, Hand-made
 art).
 
+What the expansions need drawn is in [ART-EXPANSION.md](ART-EXPANSION.md), and Root City's art in
+[ART-CITY.md](ART-CITY.md).
+
 ## How art gets into the game
 
 1. **Delivered** to [`art/incoming/`](../art/incoming/): the full-size originals, as made, with
