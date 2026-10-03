@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { biomeContent } from '../src/content';
-import { createRun, hexKey, hexNeighbors, type RunState } from '../src/sim';
+import { createRun, hexKey, hexNeighbors, scoreRun, type RunState } from '../src/sim';
 import { at, endSeason, place, rejects, scenario, uidAt } from './helpers';
 
 const COAST = biomeContent('windsweptCoast');
@@ -62,6 +62,51 @@ describe('the coast content', () => {
     expect(s.status).toBe('active');
     expect(s.year).toBe(2);
   });
+
+  it('every combo has its Almanac entry: a name, what it does and a hint', () => {
+    const coastOwn = COAST.combos.filter((c) => !biomeContent('willowReach').comboById[c.id]);
+    expect(coastOwn.map((c) => c.id)).toEqual(
+      expect.arrayContaining(['shellfishBeds', 'kelpLoop', 'duneLine', 'rockPool']),
+    );
+    for (const c of COAST.combos) {
+      expect(c.name, c.id).not.toBe('');
+      expect(c.text, c.id).not.toBe('');
+      expect(c.hint, c.id).not.toBe('');
+    }
+  });
+});
+
+describe('the coast in a full run (B3)', () => {
+  it('every coast run scores "a wild coast to weather"; the Reach has no such line', () => {
+    const line = { reason: 'a wild coast to weather', points: 25 };
+    expect(scoreRun(COAST, createRun(COAST, { seed: 'line' })).lines).toContainEqual(line);
+    const reach = biomeContent('willowReach');
+    expect(
+      scoreRun(reach, createRun(reach, { seed: 'line' })).lines.map((l) => l.reason),
+    ).not.toContain(line.reason);
+  });
+
+  it("Restore the Shore asks for half the coast's healable land, dunes included", () => {
+    const vision = COAST.visions.find((v) => v.name === 'Restore the Shore')!;
+    expect(vision.goal).toEqual({ kind: 'greenLand', share: 0.5 });
+    expect(COAST.rules.landHealth[0]).toBe('dune');
+  });
+
+  it('the balanced bot plays a whole coast run to the end, salvaging the strandline', async () => {
+    const { BOTS } = await import('../src/balance/bots');
+    const { playRun } = await import('../src/balance/runner');
+    let last: RunState | null = null;
+    playRun(COAST, BOTS.balanced!, 'coast-run', {
+      onSeason: (s) => (last = s),
+      run: { water: true },
+    });
+    const s = last as unknown as RunState;
+    expect(s.status).toBe('complete');
+    const types = Object.values(s.buildings).map((b) => b.type);
+    expect(types).toContain('beachcombingYard');
+    expect(types).toContain('croft');
+    expect(scoreRun(COAST, s).total).toBeGreaterThan(COAST.rules.score.tiers[1]!.min);
+  }, 60_000);
 });
 
 describe('the coast rules', () => {

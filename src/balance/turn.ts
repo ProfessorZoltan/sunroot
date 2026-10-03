@@ -264,6 +264,10 @@ function heatScore(turn: Turn, def: BuildingDef, tile: Hex): number {
   return score;
 }
 
+/** Ground the year's flood reaches: the Reach's floodplain, the coast's mudflat and saltmarsh. */
+export const lowGround = (tile: Tile) =>
+  tile.type === 'floodplain' || tile.type === 'mudflat' || tile.type === 'saltmarsh';
+
 /** How good a tile is for a building, by simple local rules a player would use. */
 export function siteScore(
   turn: Turn,
@@ -282,8 +286,8 @@ export function siteScore(
   const touching = (...types: string[]) => neighbors.filter((b) => types.includes(b.type)).length;
   let score = 0;
 
-  // Keep the floodplain for things that survive the flood (and farm it).
-  if (tile.type === 'floodplain') score += def.floodTolerant ? -1 : -100;
+  // Keep the ground the flood reaches for things that survive it (and farm it).
+  if (lowGround(tile)) score += def.floodTolerant ? -1 : -100;
   // With commuting on, work goes near homes and homes near work that is far from any.
   if (turn.commuteOn && turn.commuteAware) score += commuteScore(turn, def, tile);
   // With local heat on, heat sources go near what needs heat, and the reverse.
@@ -300,8 +304,21 @@ export function siteScore(
     case 'orchard':
       score += 2 * touching('composter', 'apiary') + (tile.type === 'barren' ? 1 : 0);
       break;
+    // The coast's crofts: on the meadow, out of the king tide's reach, by a composter.
+    case 'croft':
+      score +=
+        (tile.type === 'meadow' ? 6 : tile.type === 'scrub' ? 3 : 0) +
+        2 * touching('composter', 'apiary');
+      break;
+    case 'oysterReef':
+    case 'kelpFarm':
+      score += 2 * touching('oysterReef', 'kelpFarm', 'kelpForest');
+      break;
+    case 'duneGrass':
+      score += 2 * neighbors.filter((b) => content.byId[b.type]!.workers > 0).length;
+      break;
     case 'composter':
-      score += 3 * touching('floodplainFarm', 'orchard', 'fishPond', 'greenhouse');
+      score += 3 * touching('floodplainFarm', 'orchard', 'fishPond', 'greenhouse', 'croft');
       score += 3 * touching('riceFishPaddy', 'mushroomCellar');
       break;
     // Willow Reach v2 (E3): next to what feeds them or what they feed.
@@ -327,7 +344,7 @@ export function siteScore(
       break;
     }
     case 'apiary':
-      score += 3 * touching('floodplainFarm', 'orchard');
+      score += 3 * touching('floodplainFarm', 'orchard', 'croft');
       if (touching('windSpire') > 0) score -= 100;
       break;
     case 'solarCanopy':

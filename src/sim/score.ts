@@ -78,6 +78,8 @@ export function scoreRun(content: Content, state: RunState): RunScore {
       points: warm * w.layers.localHeat,
     });
   }
+  // A harder biome (the Windswept Coast) scores as well for the same play.
+  if (w.biome) lines.push({ reason: w.biome.reason, points: w.biome.points });
   const total = lines.reduce((sum, l) => sum + l.points, 0);
   const tiers = w.tiers;
   const scored = Math.max(0, tiers.filter((t) => total >= t.min).length - 1);

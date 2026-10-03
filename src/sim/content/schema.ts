@@ -647,6 +647,12 @@ export const RulesSchema = z
         })
         .strict()
         .default({ water: 0, commute: 0, localHeat: 0 }),
+      /**
+       * Points every run in this biome gets, for a biome that is harder to play than
+       * Willow Reach (the Windswept Coast's gales and salt), so its runs reach the tiers
+       * about as often (docs/proposals/windswept-coast.md, Score tiers).
+       */
+      biome: z.object({ reason: z.string().min(1), points: int.min(1) }).optional(),
       /** Graft tiers from lowest; a run reaches the highest tier whose `min` its score meets. */
       tiers: z.array(z.object({ id: z.string(), name: z.string(), min: int.min(0) })).min(1),
     }),

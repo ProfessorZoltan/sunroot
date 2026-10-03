@@ -5,7 +5,7 @@
 import { describe, expect, it } from 'vitest';
 import { biomeContent } from '../src/content';
 import { harmonyLines, hexKey, type RunState } from '../src/sim';
-import { at, endSeason, place, scenario, uidAt } from './helpers';
+import { act, at, endSeason, place, scenario, uidAt } from './helpers';
 
 const COAST = biomeContent('windsweptCoast');
 type Season = 'spring' | 'summer' | 'autumn' | 'winter';
@@ -163,11 +163,23 @@ describe('evolutions', () => {
     expect(typeAt(s, 4, 0)).toBe('kelpForest');
   });
 
-  it('Rock Pool: an emptied salvage yard by the shore', () => {
+  it('Rock Pool: an emptied salvage yard by the shore, or a Rewilded Ruin; the player chooses', () => {
     const HARBOUR = [', R : =', ', , : =', ', C , =', ', , , ='];
     let s = build(start(HARBOUR), 'salvageYard', [[1, 0]]);
     s.map.tiles[hexKey(at(1, 0))]!.salvage = 0;
     s = end(s);
+    const uid = uidAt(s, 1, 0);
+    expect(s.evolutionOffer).toEqual([{ uid, options: ['rockPool', 'rewildedRuin'] }]);
+    s = act(s, { type: 'chooseEvolution', uid, combo: 'rockPool' }, COAST);
     expect(typeAt(s, 1, 0)).toBe('rockPool');
+  });
+
+  it('Rewilded Ruin: an emptied salvage yard inland', () => {
+    const INLAND = [', , , R', ', , , ,', ', C , ,', ', , , ,'];
+    let s = build(start(INLAND), 'salvageYard', [[3, 0]]);
+    s.map.tiles[hexKey(at(3, 0))]!.salvage = 0;
+    s = end(s);
+    expect(s.evolutionOffer).toEqual([]);
+    expect(typeAt(s, 3, 0)).toBe('rewildedRuin');
   });
 });

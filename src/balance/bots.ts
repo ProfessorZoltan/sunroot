@@ -21,7 +21,7 @@ import {
   type Tile,
 } from '../sim';
 import { pick, nextFloat, nextInt } from '../sim/rng';
-import { siteScore, type Turn } from './turn';
+import { lowGround, siteScore, type Turn } from './turn';
 import { edgeBuilding } from '../sim/edges';
 import { stormExposed } from '../sim/queries';
 import { wonderSiteProblem } from '../sim/wonder';
@@ -107,13 +107,30 @@ const foodGap = (t: Turn) =>
     0,
   );
 
+/** The biome's farms (fields that want water) and orchards: those of these it has. */
+const FARMS = ['floodplainFarm', 'croft'];
+const ORCHARDS = ['orchard'];
+const tilesFor = (turn: Turn, ids: readonly string[]) =>
+  ids.flatMap((id) => turn.content.byId[id]?.placement.tiles ?? []);
+
+/** Workshop runs short of two each, while there is salvage for them. */
+const idleWorkshops = (t: Turn) =>
+  t.state.stores.salvage < 6
+    ? 0
+    : peekOr(
+        t,
+        (p) =>
+          Object.values(t.state.buildings)
+            .filter((b) => b.type === 'workshop')
+            .reduce((sum, b) => sum + Math.max(0, 2 - (p.report.runs[b.uid]?.runs ?? 0)), 0),
+        0,
+      );
+
 /** Free sites a farm or orchard could take that can draw water. */
 function wateredSites(turn: Turn): number {
   const taken = new Set(Object.values(turn.state.buildings).map((b) => hexKey(b.at)));
-  const fits = (t: Tile) =>
-    ['floodplainFarm', 'orchard'].some((id) =>
-      turn.content.byId[id]!.placement.tiles.includes(t.type),
-    );
+  const land = tilesFor(turn, [...FARMS, ...ORCHARDS]);
+  const fits = (t: Tile) => land.includes(t.type);
   return Object.values(turn.state.map.tiles).filter(
     (t) => !taken.has(hexKey(t)) && fits(t) && turn.watered(t),
   ).length;
@@ -127,15 +144,15 @@ function bestChannelSite(turn: Turn, policy: WaterPolicy): Tile | undefined {
       .map((b) => hexKey(b.at)),
   );
   const taken = new Set(Object.values(turn.state.buildings).map((b) => hexKey(b.at)));
-  const farm = turn.content.byId.floodplainFarm!.placement.tiles;
-  const orchard = turn.content.byId.orchard!.placement.tiles;
+  const farm = tilesFor(turn, FARMS);
+  const orchard = tilesFor(turn, ORCHARDS);
   let best: Tile | undefined;
   let bestScore = 2;
   for (const t of turn.sites(turn.rules.rules.water.channelBuilding)) {
     const extends_ = hexNeighbors(t).some((n) => channelAt.has(hexKey(n)));
     if (policy === 'short' && extends_) continue;
     if (policy === 'long' && !extends_ && channelAt.size > 0) continue;
-    let score = t.type === 'floodplain' ? -1 : 0;
+    let score = lowGround(t) ? -1 : 0;
     for (const n of hexNeighbors(t)) {
       const tile = turn.state.map.tiles[hexKey(n)];
       if (!tile || taken.has(hexKey(n)) || turn.watered(n)) continue;
@@ -266,6 +283,8 @@ function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): v
   if (!turn.rules.rules.localHeat.gridHeat && turn.heatAware) tendHeat(turn, profile);
   if (!turn.has('salvageYard')) turn.build('salvageYard');
   if (!turn.has('workshop')) turn.build('workshop');
+  // On the coast, salvage from the strandline as well as the ruins: a beachcombing yard a workshop.
+  if (turn.count('beachcombingYard') < turn.count('workshop')) turn.build('beachcombingYard');
 
   for (let i = 0; i < 3 && shortfall('night')(turn) > 0; i++) {
     if (!buildFirstThatHelps(turn, profile.nightPower, shortfall('night'))) break;
@@ -275,6 +294,12 @@ function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): v
   }
   for (let i = 0; i < 3 && foodGap(turn) > 0; i++) {
     if (!buildFirstThatHelps(turn, profile.food, foodGap)) break;
+  }
+
+  // Salvage piling up while the workshops stand idle for want of day energy: power to run them.
+  for (let i = 0; i < 2 && idleWorkshops(turn) > 0; i++) {
+    const power = profile.dayPower.filter((id) => turn.canBuild(id, profile.reserve));
+    if (!buildFirstThatHelps(turn, power, idleWorkshops)) break;
   }
 
   // Long walks to work: a cottage near the far work, when the walks cost wellbeing.
@@ -486,16 +511,19 @@ const growHousing = (turn: Turn) =>
   turn.state.citizens >= turn.housing() - 1 && turn.state.wellbeing >= 60;
 
 // With the heat layer, a cold home counts as a blackout: the heat pumps answer it.
+// On the coast, the tide turbine and wave buoy in the river wheel's place.
 const NIGHT = [
   'airSourceHeatPump',
   'riverWheel',
+  'tideTurbine',
+  'waveBuoy',
   'windSpire',
   'heatPump',
   'heatWell',
   'cellBank',
   'biogasDigester',
 ];
-const DAY = ['solarCanopy', 'airSourceHeatPump'];
+const DAY = ['solarCanopy', 'tideTurbine', 'airSourceHeatPump'];
 
 const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
   greedyFood: {
@@ -509,13 +537,35 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'riverWheel',
       'heatWell',
       'cellBank',
+      'kelpFarm',
+      'oysterReef',
+      'smokehouse',
+      'tideTurbine',
     ],
     nightPower: NIGHT,
     dayPower: DAY,
-    food: ['floodplainFarm', 'riceFishPaddy', 'fishPond', 'orchard', 'greenhouse'],
+    food: [
+      'floodplainFarm',
+      'croft',
+      'riceFishPaddy',
+      'fishPond',
+      'kelpFarm',
+      'oysterReef',
+      'orchard',
+      'greenhouse',
+    ],
     reserve: 4,
     extras(turn, profile) {
-      const options = ['floodplainFarm', 'fishPond', 'orchard', 'apiary', 'greenhouse'];
+      const options = [
+        'floodplainFarm',
+        'croft',
+        'fishPond',
+        'kelpFarm',
+        'oysterReef',
+        'orchard',
+        'apiary',
+        'greenhouse',
+      ];
       // A paddy for every two farms, where the floodplain meets a channel.
       if (turn.count('riceFishPaddy') * 2 < turn.count('floodplainFarm'))
         options.unshift('riceFishPaddy');
@@ -539,23 +589,31 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'hedgerow',
       'weir',
       'pumpedReservoir',
+      'tideTurbine',
+      'waveBuoy',
+      'lighthouse',
+      'duneGrass',
     ],
     nightPower: [
       'windSpire',
       'riverWheel',
+      'tideTurbine',
+      'waveBuoy',
       'heatPump',
       'airSourceHeatPump',
       'biogasDigester',
       'cellBank',
       'heatWell',
     ],
-    dayPower: ['solarCanopy', 'riverWheel', 'airSourceHeatPump'],
-    food: ['floodplainFarm', 'fishPond', 'greenhouse', 'orchard'],
+    dayPower: ['solarCanopy', 'riverWheel', 'tideTurbine', 'airSourceHeatPump'],
+    food: ['floodplainFarm', 'croft', 'fishPond', 'kelpFarm', 'greenhouse', 'orchard'],
     reserve: 3,
     extras(turn, profile) {
       const spare = turn.peek()?.report.energy.day.unused ?? 0;
       const options =
-        spare >= 2 ? ['workshop', 'kiln'] : ['riverWheel', 'windSpire', 'solarCanopy'];
+        spare >= 2
+          ? ['workshop', 'kiln']
+          : ['riverWheel', 'tideTurbine', 'windSpire', 'waveBuoy', 'solarCanopy'];
       if (growHousing(turn)) options.unshift('cottage');
       spend(turn, profile, options, 2);
       // Hedges by the hill generators storms can reach.
@@ -577,10 +635,24 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'reedBed',
       'solarThermalCollector',
       'hedgerow',
+      'tideTurbine',
+      'kelpFarm',
+      'duneGrass',
+      'oysterReef',
+      'smokehouse',
+      'lighthouse',
     ],
     nightPower: NIGHT,
     dayPower: DAY,
-    food: ['floodplainFarm', 'fishPond', 'orchard', 'greenhouse'],
+    food: [
+      'floodplainFarm',
+      'croft',
+      'fishPond',
+      'kelpFarm',
+      'oysterReef',
+      'orchard',
+      'greenhouse',
+    ],
     reserve: 5,
     wonder: true,
     extras(turn, profile) {

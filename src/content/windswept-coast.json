@@ -181,6 +181,10 @@
         "commute": 5,
         "localHeat": 1
       },
+      "biome": {
+        "reason": "a wild coast to weather",
+        "points": 25
+      },
       "tiers": [
         {
           "id": "seedling",
@@ -1385,6 +1389,19 @@
       }
     },
     {
+      "id": "rewildedRuin",
+      "name": "Rewilded Ruin",
+      "cost": 2,
+      "workers": 0,
+      "kind": "nature",
+      "draftable": false,
+      "placeable": false,
+      "placement": {
+        "tiles": ["ruin"]
+      },
+      "harmony": 2
+    },
+    {
       "id": "rockPool",
       "name": "Rock Pool",
       "cost": 2,
@@ -1766,8 +1783,20 @@
           "tiles": ["sea", "mudflat", "dune"]
         }
       },
-      "text": "A salvage yard by the shore whose ruin is empty becomes a Rock Pool: +2 Harmony, 1 food a season, and its worker is free.",
+      "text": "A salvage yard by the shore whose ruin is empty may become a Rock Pool instead of a Rewilded Ruin: +2 Harmony, 1 food a season, and its worker is free. You choose.",
       "hint": "Where the old harbour was, the sea moves back in."
+    },
+    {
+      "id": "rewildedRuin",
+      "layer": "evolution",
+      "name": "Rewilded Ruin",
+      "from": "salvageYard",
+      "into": "rewildedRuin",
+      "when": {
+        "kind": "ruinExhausted"
+      },
+      "text": "A salvage yard whose ruin is empty becomes a Rewilded Ruin: +2 Harmony, and its worker is free. By the shore, choose it or a Rock Pool.",
+      "hint": "What happens when nothing is left to salvage?"
     }
   ],
   "tunings": [
@@ -2305,10 +2334,10 @@
     {
       "id": "restoreTheReach",
       "name": "Restore the Shore",
-      "text": "Make 60% of the coast's healable land meadow or woodland.",
+      "text": "Make half the coast's healable land meadow or woodland.",
       "goal": {
         "kind": "greenLand",
-        "share": 0.6
+        "share": 0.5
       }
     },
     {

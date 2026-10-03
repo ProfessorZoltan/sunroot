@@ -1,5 +1,19 @@
 # Changelog
 
+## The Windswept Coast: combos and balance
+
+- The coast's **food**: crofts make 2 / 5 / 5 / 0, the founders' camp gathers 1 food a season on
+  the shore, and kelp farms make 2 in winter, so a first year on the coast grows as one in the
+  Reach does.
+- Its **combos**: Shellfish Beds, Lee of the Dunes, the Kelp, Sweetwater and Shore Loops,
+  Breakwater, Dune Line, Wind Ridge, the Machair Croft, Kelp Forest and Rock Pool, with the
+  Kitchen and Gas Loops built with crofts. An emptied salvage yard inland becomes a Rewilded Ruin;
+  by the shore, you choose it or a Rock Pool. All are in the coast's Almanac.
+- **8 coast tunings and 2 charters** (Shore Keepers, Storm Wardens). **Restore the Shore** asks
+  for half the coast's healable land.
+- Every coast run scores **+25 for a wild coast to weather**, so its runs reach the Graft tiers
+  about as often as the Reach's.
+
 ## The Great Water Garden
 
 - From era 3 of a run with water, the valley's wonder can be built: the **Great Water Garden**, a
