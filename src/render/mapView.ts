@@ -51,7 +51,14 @@ import {
   wonderTexture,
 } from './sprites';
 import { wonderStage } from '../sim/wonder';
-import { festivalProps, poseAt, wildlifeActors, type Actor, type Prop } from './wildlifeArt';
+import {
+  drawCoastAnimal,
+  festivalProps,
+  poseAt,
+  wildlifeActors,
+  type Actor,
+  type Prop,
+} from './wildlifeArt';
 import { animals as wildlifeOf } from '../sim/wildlife';
 import { effectiveContent } from '../sim/content/modifiers';
 
@@ -122,6 +129,8 @@ export class MapView {
   /** The valley's animals (E4) and a festival's props, as sprites. */
   private readonly animalLayer = new Container();
   private actors: { actor: Actor; sprite: Sprite }[] = [];
+  /** Animals with no art yet (the coast's), drawn in code each frame. */
+  private drawnActors: Actor[] = [];
   /** Wonders drawn with their art over their 7 tiles (for tests). */
   private wondersDrawn = 0;
   private props: Prop[] = [];
@@ -479,9 +488,13 @@ export class MapView {
       this.animalLayer.addChild(s);
     }
     this.actors = [];
+    this.drawnActors = [];
     for (const actor of wildlifeActors(rules, state)) {
       const tex = wildlifeTexture(poseAt(actor, 0, true).frame, state.season);
-      if (!tex) continue;
+      if (!tex) {
+        this.drawnActors.push(actor);
+        continue;
+      }
       const sprite = new Sprite(tex);
       // Bottom centre (64, 120), where it meets the ground or water; the bees at their centre.
       sprite.anchor.set(0.5, actor.kind === 'wildBees' ? 0.5 : 120 / 128);
@@ -510,6 +523,8 @@ export class MapView {
     const still = this.reducedMotion;
     if (this.ambient && this.bounds) drawAmbient(g, this.ambient, this.bounds, this.clock, still);
     for (const d of deer) drawDeer(g, d);
+    for (const actor of this.drawnActors)
+      drawCoastAnimal(g, actor.kind, poseAt(actor, this.clock, still));
     otters.forEach((o, i) => drawOtter(g, o, still ? 0 : Math.sin(this.clock / 400 + i) * 1.2));
     if (birds && this.bounds) {
       const { minX, maxX, minY } = this.bounds;

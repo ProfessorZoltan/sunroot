@@ -1468,7 +1468,7 @@
       "floodTolerant": true,
       "stormProof": true,
       "placement": {
-        "tiles": ["mudflat", "sea", "saltmarsh"]
+        "tiles": ["mudflat", "sea", "saltmarsh", "dune"]
       },
       "generation": {
         "day": [2, 2, 2, 2],
@@ -1481,7 +1481,7 @@
         },
         "needsLoops": ["kelpLoop"],
         "needsBuildings": {
-          "oysterReef": 3
+          "oysterReef": 2
         },
         "nearWater": false,
         "mustInclude": ["mudflat", "sea"],

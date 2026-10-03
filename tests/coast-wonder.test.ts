@@ -48,8 +48,8 @@ const build = (s: RunState, id: string, cells: [number, number][]) =>
   cells.reduce((acc, [col, row]) => place(acc, id, col, row, COAST), s);
 const end = (s: RunState) => endSeason({ ...s, stores: { ...s.stores, food: 400 } }, COAST);
 
-/** A closed Kelp Loop (kelp farm → composter → croft) and 3 oyster reefs, one season on. */
-function ready(year = 7, reefs = 3): RunState {
+/** A closed Kelp Loop (kelp farm → composter → croft) and 2 oyster reefs, one season on. */
+function ready(year = 7, reefs = 2): RunState {
   let s = start(year);
   s = build(s, 'kelpFarm', [[5, 0]]);
   s = build(s, 'composter', [[4, 0]]);
@@ -72,19 +72,19 @@ function ready(year = 7, reefs = 3): RunState {
 const startLagoon = (s: RunState) => place(s, LAGOON, 4, 5, COAST);
 
 describe('the Tidal Lagoon', () => {
-  it('needs a closed Kelp Loop and 3 oyster reefs, from era 3', () => {
+  it('needs a closed Kelp Loop and 2 oyster reefs, from era 3', () => {
     expect(rejects(start(), { type: 'place', building: LAGOON, at: at(4, 5) }, COAST)).toBe(
-      'the Tidal Lagoon needs a closed Kelp Loop and 3 oyster reefs (0 now)',
+      'the Tidal Lagoon needs a closed Kelp Loop and 2 oyster reefs (0 now)',
     );
-    expect(rejects(ready(7, 2), { type: 'place', building: LAGOON, at: at(4, 5) }, COAST)).toBe(
-      'the Tidal Lagoon needs 3 oyster reefs (2 now)',
+    expect(rejects(ready(7, 1), { type: 'place', building: LAGOON, at: at(4, 5) }, COAST)).toBe(
+      'the Tidal Lagoon needs 2 oyster reefs (1 now)',
     );
     expect(rejects(ready(4), { type: 'place', building: LAGOON, at: at(4, 5) }, COAST)).toBe(
       'the Tidal Lagoon can be started from era 3',
     );
   });
 
-  it('stands on mudflat and the sea together, never on land', () => {
+  it('stands on the shore (mudflat, marsh, dune) and the sea, with mudflat and sea among them', () => {
     const s = ready();
     const why = (col: number, row: number) =>
       rejects(s, { type: 'place', building: LAGOON, at: at(col, row) }, COAST);
@@ -236,5 +236,29 @@ describe("the coast's festivals", () => {
     let s = hold(start(7, 'autumn'), 'harvestOfTheSea');
     s = end(s);
     expect(s.freeRerolls).toBe(1);
+  });
+});
+
+describe("the coast's animals on screen", () => {
+  it('each moves about its habitat, drawn in code until its art comes', async () => {
+    const { wildlifeActors, poseAt, drawCoastAnimal } = await import('../src/render/wildlifeArt');
+    const { Graphics } = await import('pixi.js');
+    const rows = [', , : _ = = = =', ', , : ^ = = = =', ', C : _ = = = =', ', , : _ = = = ='];
+    let s = scenario(rows, { content: COAST, run: { water: true } });
+    // The seals' mudflat (3,3) is beside the reef.
+    s = place(s, 'oysterReef', 3, 2, COAST);
+    s = place(s, 'lighthouse', 3, 1, COAST);
+    s.wildlife = ['terns', 'seals', 'puffins', 'dolphins'];
+    const actors = wildlifeActors(contentFor(COAST, s), s);
+    expect([...new Set(actors.map((a) => a.kind))].sort()).toEqual([
+      'dolphin',
+      'puffin',
+      'seal',
+      'tern',
+    ]);
+    const g = new Graphics();
+    for (const a of actors)
+      for (const t of [0, 4000, 9000]) drawCoastAnimal(g, a.kind, poseAt(a, t, false));
+    expect(g.bounds.width).toBeGreaterThan(0);
   });
 });

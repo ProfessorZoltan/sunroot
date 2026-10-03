@@ -204,6 +204,23 @@ only in the saltmarsh pools.
 | Kelp Forest   | `kelpForest`   | Kelp Farm    | The kelp grown wild among the reefs             | `kelpForest.png`, `.winter`   | Fronds reaching the surface, a seal's head.          | Proposal, Combos |
 | Rock Pool     | `rockPool`     | Salvage Yard | An old harbour ruin the sea has moved back into | `rockPool.png`, `.winter`     | Carries its own ruin tile: broken quay, pools, weed. | Proposal, Combos |
 
+### The coast's wonder, animals and festivals (B6)
+
+Drawn in code until this art comes, like the rest of the coast.
+
+| Name               | Id                | Files                                                                  | Notes                                                                                                                                                                                                                       | Source              |
+| ------------------ | ----------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| Tidal Lagoon       | `tidalLagoon`     | `tidalLagoon.png`, `.winter`, `tidalLagoon.stage1.png` … `.stage3.png` | On the Great Water Garden's frame (1536 × 1280): a ring of sea wall around a lagoon over mudflat and the sea's edge, a turbine house at the centre. Stages: staked out; the wall rising; the wall closed, the lagoon empty. | Proposal, Wonder    |
+| Terns              | `terns`           | `tern.fly.1.png`, `tern.fly.2.png`, `tern.rest.png`                    | White with a black cap; over the dunes.                                                                                                                                                                                     | Proposal, Wildlife  |
+| Seals              | `seals`           | `seal.swim.1.png`, `seal.swim.2.png`, `seal.rest.png`                  | Grey, hauled out on the mudflat at rest.                                                                                                                                                                                    | Proposal, Wildlife  |
+| Puffins            | `puffins`         | `puffin.1.png`, `puffin.2.png`                                         | Small, upright, on the headland by the lighthouse.                                                                                                                                                                          | Proposal, Wildlife  |
+| Dolphins           | `dolphins`        | `dolphin.1.png` … `.3.png`                                             | A back and fin rising from the sea, a leap at the top.                                                                                                                                                                      | Proposal, Wildlife  |
+| Kite Day           | `kiteDay`         | `kiteDay.card.png`                                                     | Spring: kites over a headland, people on the dunes.                                                                                                                                                                         | Proposal, Festivals |
+| Harvest of the Sea | `harvestOfTheSea` | `harvestOfTheSea.card.png`                                             | Autumn: long tables on the shore, baskets of fish, kelp and oysters.                                                                                                                                                        | Proposal, Festivals |
+
+Animals follow the wildlife frame above (128 × 128, bottom-centre anchor, facing right); the
+coast's Lantern Night uses the Reach's card.
+
 ## Optional: interface marks
 
 The game draws these in code. Paint them only if you want them in the art style; 128 × 128 px,

@@ -131,3 +131,10 @@ test('the Great Water Garden: drawn over its 7 tiles, its progress, a season on'
   await expect(details).toContainText('1 of 4 seasons built');
   expect(errors).toEqual([]);
 });
+
+test('the Great Water Garden is on the palette, to be started from it', async ({ page }) => {
+  await page.goto('/?sandbox&water=1');
+  await expect(page.locator('#map-host canvas')).toBeVisible();
+  const palette = page.getByRole('group', { name: 'Buildings' });
+  await expect(palette.getByRole('button', { name: /Great Water Garden/ })).toHaveCount(1);
+});

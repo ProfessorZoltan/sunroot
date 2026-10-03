@@ -406,6 +406,8 @@ function pursueWonder(turn: Turn, profile: Profile): boolean {
     for (const loop of w.needsLoops) {
       if (state.loops.some((l) => l.combo === loop)) continue;
       if (loop === 'bathLoop') closeBathLoop(turn, profile);
+      // The coast's materials run short: save for the Kelp Loop while there is a place for it.
+      if (loop === 'kelpLoop') return closeKelpLoop(turn, profile);
       return false;
     }
     for (const [id, n] of Object.entries(w.needsBuildings) as [string, number][]) {
@@ -425,15 +427,16 @@ function pursueWonder(turn: Turn, profile: Profile): boolean {
 
 /**
  * The flower kept free for a wonder: of the sites it could take now (its
- * loops and era aside), the one with the least floodplain (kept for farms),
+ * loops and era aside), the one with the least floodplain (kept for farms) or mudflat,
  * then the first by position, so the choice holds from season to season.
  */
 function keptFlower(turn: Turn, def: BuildingDef): Hex | undefined {
   let best: { at: Hex; cost: number; key: string } | undefined;
   for (const t of Object.values(turn.state.map.tiles)) {
     if (wonderSiteProblem(turn.rules, turn.state, def, t)) continue;
-    const cost = flower(t).filter(
-      (h) => turn.state.map.tiles[hexKey(h)]?.type === 'floodplain',
+    // Floodplain kept for farms; on the coast, mudflat kept for the oyster reefs it needs.
+    const cost = flower(t).filter((h) =>
+      ['floodplain', 'mudflat'].includes(turn.state.map.tiles[hexKey(h)]?.type ?? ''),
     ).length;
     const key = hexKey(t);
     if (!best || cost < best.cost || (cost === best.cost && key < best.key))
@@ -495,6 +498,58 @@ function closeBathLoop(turn: Turn, profile: Profile): void {
     if (tryAt(site)) return;
     turn.restore(saved);
   }
+}
+
+/**
+ * A Kelp Loop (the coast's, for the Tidal Lagoon): a composter between a kelp farm and a croft.
+ * Tries the composters standing first, then new ones by the sea, keeping the first that the
+ * season ahead shows closing the loop (a free undo otherwise).
+ */
+function closeKelpLoop(turn: Turn, profile: Profile): boolean {
+  const closes = () =>
+    peekOr(turn, (p) => p.report.combos.some((h) => h.combo === 'kelpLoop'), false);
+  const beside = (id: string, at: Hex) =>
+    turn
+      .sites(id)
+      .filter((t) => hexDistance(t, at) === 1)
+      .sort((a, b) => siteScore(turn, id, b) - siteScore(turn, id, a));
+  const nextTo = (ids: readonly string[], at: Hex) =>
+    Object.values(turn.state.buildings).some(
+      (b) => ids.includes(b.type) && hexDistance(b.at, at) === 1,
+    );
+  const add = (ids: readonly string[], at: Hex): boolean => {
+    if (nextTo(ids, at)) return true;
+    for (const id of ids) {
+      const site = turn.canBuild(id, profile.reserve) ? beside(id, at)[0] : undefined;
+      if (site && turn.apply({ type: 'place', building: id, at: { q: site.q, r: site.r } }))
+        return true;
+    }
+    return false;
+  };
+  const tryAt = (heap: Hex): boolean => {
+    const saved = turn.save();
+    if (add(['croft', 'machairCroft'], heap) && add(['kelpFarm', 'kelpForest'], heap) && closes())
+      return true;
+    turn.restore(saved);
+    return false;
+  };
+  for (const b of Object.values(turn.state.buildings).filter((x) => x.type === 'composter'))
+    if (tryAt(b.at)) return false;
+  // Composter sites with room for a kelp farm beside them.
+  const sites = turn
+    .sites('composter')
+    .filter((t) => beside('kelpFarm', t).length > 0 && beside('croft', t).length > 0)
+    .slice(0, 4);
+  if (!turn.canBuild('composter', profile.reserve)) return sites.length > 0;
+  for (const site of sites) {
+    const saved = turn.save();
+    if (!turn.apply({ type: 'place', building: 'composter', at: { q: site.q, r: site.r } }))
+      continue;
+    if (tryAt(site)) return false;
+    turn.restore(saved);
+  }
+  // Not closed yet: save up for it while there is a place.
+  return sites.length > 0;
 }
 
 const isTaken = (turn: Turn, key: string) =>

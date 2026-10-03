@@ -136,3 +136,16 @@ test('a coast visit leaves the saved run and Root City as they were', async ({ p
   expect((await sunroot(page)).contentId).toBe('willowReach');
   expect(errors).toEqual([]);
 });
+
+test("the coast's wonder on the palette, and Kite Day held from its card", async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/?biome=windsweptCoast&sandbox');
+  await expect(page.locator('#map-host canvas')).toBeVisible();
+  await expect(page.locator('#palette .tool-name', { hasText: /^Tidal Lagoon$/ })).toHaveCount(1);
+  const card = page.getByRole('region', { name: 'Festival' });
+  await expect(card.getByRole('heading', { name: 'Kite Day' })).toBeVisible();
+  await card.getByRole('button', { name: /^Hold it/ }).click();
+  await expect(card.getByRole('button', { name: 'Call off' })).toBeVisible();
+  expect(errors).toEqual([]);
+});

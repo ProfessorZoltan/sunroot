@@ -374,7 +374,8 @@ function WonderProgress({ store, uid }: { store: GameStore; uid: string }) {
 export function paletteOrder(content: Content, unlocked: string[]): string[] {
   return unlocked.filter((id) => {
     const def = content.byId[id]!;
-    return def.starter || def.draftable;
+    // A wonder is never drafted: it joins the palette at the start of its era.
+    return def.starter || def.draftable || def.wonder !== undefined;
   });
 }
 

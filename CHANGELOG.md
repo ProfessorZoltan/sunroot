@@ -1,5 +1,18 @@
 # Changelog
 
+## The Windswept Coast: its wonder, animals and festivals
+
+- The coast's wonder, the **Tidal Lagoon**: from era 3, a flower of 7 tiles over the shore and
+  the sea, needing a closed Kelp Loop and 2 oyster reefs. Finished, it makes 2 energy by day and
+  by night, adds 60 to the score, raises the Graft a tier and meets the Bloom era's goal.
+- **Terns** (crofts by the dunes +1 food in summer), **seals** (kelp farms near them +1 food),
+  **puffins** (+1 wellbeing at a lighthouse) and **dolphins** (+1 wellbeing per pod) come to
+  the coast as Harmony rises.
+- Festivals: **Kite Day** (wind spires +1 that spring), the **Harvest of the Sea** and Lantern
+  Night.
+- Fixed: wonders now appear on the Build palette from their era, so the Great Water Garden can
+  be started from it.
+
 ## The Windswept Coast in Root City
 
 - From run 5, Root City's expeditions go to **either biome**, taking turns, each with its own

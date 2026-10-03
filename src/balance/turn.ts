@@ -309,6 +309,8 @@ export function siteScore(
       score +=
         (tile.type === 'meadow' ? 6 : tile.type === 'scrub' ? 3 : 0) +
         2 * touching('composter', 'apiary');
+      // The mudflat is for oyster reefs.
+      if (tile.type === 'mudflat') score -= 4;
       break;
     case 'oysterReef':
     case 'kelpFarm':

@@ -681,26 +681,31 @@ B1 to B6 (the proposal's build plan).
 | A first coast run | The first run in a biome other than the home one has a guided first year (the coast's own offers) and opens with what is new there (`intro`). Root City counts each biome's runs (`biomeRuns`). | `nextRunOptions` |
 | Tempest per biome | A Heartwood Graft unlocks the next Tempest level in the biome it was earned in (the home biome's levels stay in `tempestUnlocked`). The chosen level holds wherever it is unlocked; elsewhere a run plays the highest level its biome has. | `tempestUnlockedIn` |
 
-| The Tidal Lagoon (B6) | As the proposal: a 7-tile flower over mudflat, saltmarsh and sea that must include both mudflat and sea, from era 3, 60 materials and 30 biomass, 4 seasons, needing a closed Kelp Loop and 3 oyster reefs. Finished: 2 energy in each slot, +60 to the score, the Graft a tier higher, and the Bloom era's goal. A wonder now makes nothing until it is finished. | `wonder.mustInclude` |
+| The Tidal Lagoon (B6) | A 7-tile flower over the shore (mudflat, saltmarsh, dune) and the sea, which must include both mudflat and sea, from era 3, 60 materials and 30 biomass, 4 seasons, needing a closed Kelp Loop and **2** oyster reefs (the proposal said 3: coast maps have 3 or 4 mudflat tiles, so with 3 reefs and no dunes only 16 of 40 maps had room; with 2 reefs and dunes, 29). Finished: 2 energy in each slot, +60 to the score, the Graft a tier higher, and the Bloom era's goal. A wonder now makes nothing until it is finished. | `wonder.mustInclude` |
 | Coast animals | As the proposal: terns (Harmony 20, dunes: crofts next to 2 dunes +1 food in summer), seals (40, open mudflat beside an oyster reef: kelp farms within 2 +1 food), puffins (50, a lighthouse by the sea: +1 wellbeing per lighthouse, "colonies"), dolphins (70, open sea in waters of 6+ tiles: +1 wellbeing per "pod"). | `windswept-coast.json` |
 | Coast festivals | Kite Day (spring, 5 materials: +3 wellbeing, wind spires +1 in each slot that season), the Harvest of the Sea (autumn, 10 food: +5 wellbeing and a free reroll), Lantern Night (as the Reach's). | `festival.boosts` |
 
-The coast against the Reach: 20 seeds per row, water on.
+| Wonders on the palette | A wonder joins the palette at the start of its era. The palette had listed only starters and draftable blueprints, so the Great Water Garden (E5) could not be started from the interface; fixed for both wonders. | `paletteOrder` |
+| Bots and the Lagoon | The balanced bot closes a Kelp Loop (a composter between a croft and a kelp farm), saving for it while a place for it stands; keeps crofts off the mudflat and the wonder's flower away from it, for the reefs. It finishes the Lagoon in about 1 run in 4, as it does the Garden. | `src/balance/bots.ts` |
+The coast against the Reach: 20 seeds per row, water on. Each biome with its wonder (B6); the
+Reach without its garden for comparison.
 
 | Bot          | Biome                   | Median score | Heartwood | Collapsed | Source                     |
 | ------------ | ----------------------- | ------------ | --------- | --------- | -------------------------- |
 | balanced     | Willow Reach            | 377          | 85%       | 0 of 20   | `scripts/coast-balance.ts` |
 | balanced     | Willow Reach, no wonder | 350          | 50%       | 0 of 20   | `scripts/coast-balance.ts` |
-| balanced     | Windswept Coast         | 330          | 30%       | 0 of 20   | `scripts/coast-balance.ts` |
+| balanced     | Windswept Coast         | 350          | 55%       | 0 of 20   | `scripts/coast-balance.ts` |
 | greedyFood   | Willow Reach            | 337          | 40%       | 0 of 20   | `scripts/coast-balance.ts` |
-| greedyFood   | Willow Reach, no wonder | 337          | 40%       | 0 of 20   | `scripts/coast-balance.ts` |
-| greedyFood   | Windswept Coast         | 324          | 25%       | 0 of 20   | `scripts/coast-balance.ts` |
+| greedyFood   | Windswept Coast         | 336          | 25%       | 0 of 20   | `scripts/coast-balance.ts` |
 | greedyEnergy | Willow Reach            | 258          | 0%        | 0 of 20   | `scripts/coast-balance.ts` |
-| greedyEnergy | Willow Reach, no wonder | 258          | 0%        | 0 of 20   | `scripts/coast-balance.ts` |
-| greedyEnergy | Windswept Coast         | 338          | 45%       | 1 of 20   | `scripts/coast-balance.ts` |
+| greedyEnergy | Windswept Coast         | 341          | 45%       | 0 of 20   | `scripts/coast-balance.ts` |
 | All three    | Willow Reach            | —            | 42%       | —         | `scripts/coast-balance.ts` |
-| All three    | Willow Reach, no wonder | —            | 30%       | —         | `scripts/coast-balance.ts` |
-| All three    | Windswept Coast         | —            | 33%       | —         | `scripts/coast-balance.ts` |
+| All three    | Windswept Coast         | —            | 42%       | —         | `scripts/coast-balance.ts` |
+
+With both wonders the three bots reach Heartwood as often in either biome. The balanced bot is
+still short on the coast (55% against 85%): it finishes the Lagoon a little less often than the
+Garden, and the coast's +25 line was set before the Lagoon. Left for playtesting rather than
+tuned to one bot.
 
 ## Deferred to later milestones
 
