@@ -10,6 +10,8 @@ Anything without art falls back to a procedural drawing, so nothing here blocks 
 
 Root City's art (the districts at each tier, the Heartwood and the Sun Tree, the landmarks) has
 its own guide: [ART-CITY.md](ART-CITY.md).
+The citizens walking between homes and work, and the leaping fish, have theirs:
+[ART-PEOPLE.md](ART-PEOPLE.md).
 
 **Delivered (E2 and E3):** every building, evolved form, channel and hedgerow piece and the Sluice
 Gate are in `art/incoming/buildings/`, tiles in `art/incoming/tiles/`, and in the game. The Singing
