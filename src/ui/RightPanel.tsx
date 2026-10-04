@@ -15,7 +15,7 @@ import {
   repairCost,
   wonderNeeds,
   wonderOf,
-  wonderWarmthText,
+  wonderGivesText,
   wonderProgress,
   type Resource,
 } from '../sim';
@@ -365,8 +365,8 @@ function WonderProgress({ store, uid }: { store: GameStore; uid: string }) {
       </div>
       <div>
         {p.done
-          ? `Finished: ${wonderWarmthText(def)}+${w.score} to the score${lift}.`
-          : `${p.built} of ${p.seasons} seasons built; finished ${p.seasons - p.built === 1 ? 'as this season ends' : `when ${p.seasons - p.built} more seasons end, this one included`}. Then ${wonderWarmthText(def)}+${w.score} to the score${lift}.`}
+          ? `Finished: ${wonderGivesText(def)}+${w.score} to the score${lift}.`
+          : `${p.built} of ${p.seasons} seasons built; finished ${p.seasons - p.built === 1 ? 'as this season ends' : `when ${p.seasons - p.built} more seasons end, this one included`}. Then ${wonderGivesText(def)}+${w.score} to the score${lift}.`}
       </div>
     </div>
   );

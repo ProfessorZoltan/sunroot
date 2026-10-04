@@ -148,10 +148,21 @@ export function unlockWonders(content: Content, state: RunState): string[] {
   return added;
 }
 
-/** What a finished wonder does beyond its score (the Cloud Terraces' warmth), or ''. */
-export function wonderWarmthText(def: BuildingDef): string {
+/** What a finished wonder does beyond its score (warmth, energy, water), or ''. */
+export function wonderGivesText(def: BuildingDef): string {
+  const parts: string[] = [];
   const warms = def.wonder?.warms;
-  return warms ? `homes within ${warms.range} tiles need ${warms.heat} less heat each night, ` : '';
+  if (warms)
+    parts.push(`homes within ${warms.range} tiles need ${warms.heat} less heat each night`);
+  // Energy the same in every season (the Tidal Lagoon's, the Solar Oasis's).
+  const g = def.generation;
+  const even = (xs: number[]) => xs.every((x) => x === xs[0]);
+  if (g && even(g.day) && even(g.night) && g.day[0]! + g.night[0]! > 0)
+    parts.push(`${g.day[0]} energy by day and ${g.night[0]} by night`);
+  const feeds = def.water?.feeds;
+  if (feeds)
+    parts.push(`${feeds.amount} ${feeds.quality} water a season into the channel beside it`);
+  return parts.map((p) => `${p}, `).join('');
 }
 
 /** One line on what a wonder needs, costs and gives, for notices and the interface. */
@@ -172,5 +183,5 @@ export function wonderBrief(content: Content, id: string): string {
     w.graftTiers > 0
       ? ` and the Graft ${w.graftTiers > 1 ? `${w.graftTiers} tiers` : 'a tier'} higher`
       : '';
-  return `7 tiles, ${w.seasons} seasons to build, ${cost}${needs.length ? `; it needs ${needs.join(' and ')}` : ''}. Finished: ${wonderWarmthText(def)}+${w.score} to the score${lift}.`;
+  return `7 tiles, ${w.seasons} seasons to build, ${cost}${needs.length ? `; it needs ${needs.join(' and ')}` : ''}. Finished: ${wonderGivesText(def)}+${w.score} to the score${lift}.`;
 }

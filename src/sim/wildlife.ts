@@ -172,6 +172,27 @@ export function wildlifeWellbeing(ctx: SeasonContext): WellbeingLine[] {
   return lines;
 }
 
+/** Water the animals carry to the stores near them this season (the sandgrouse). */
+export function wildlifeWater(
+  content: Content,
+  state: RunState,
+): { uid: string; animal: string; amount: number }[] {
+  const out: { uid: string; animal: string; amount: number }[] = [];
+  const occ = occupancy(state);
+  for (const a of animals(content)) {
+    const e = a.effect;
+    if (e.kind !== 'waters' || !state.wildlife.includes(a.id)) continue;
+    const near = habitatOf(state, a, occ).tiles.map((k) => state.map.tiles[k]!);
+    for (const uid of state.priority) {
+      const b = state.buildings[uid]!;
+      if (!e.buildings.includes(b.type) || b.damage) continue;
+      if (!near.some((t) => hexDistance(t, b.at) <= e.range)) continue;
+      out.push({ uid, animal: a.name, amount: e.water });
+    }
+  }
+  return out;
+}
+
 /** The festival held this season, if one is. */
 export function festivalThisSeason(content: Content, state: RunState): Festival | undefined {
   return festivals(content).find(

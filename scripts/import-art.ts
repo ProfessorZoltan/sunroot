@@ -291,6 +291,10 @@ try {
     'dipper',
     'eagle',
     'marten',
+    'fennec',
+    'sandgrouse',
+    'falcon',
+    'oryx',
   ]);
   const festivals = new Set([
     ...biomes.flatMap((c) => c.festivals.map((f) => f.id)),

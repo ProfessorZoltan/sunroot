@@ -1182,6 +1182,44 @@
       "sourceType": "solarCanopy",
       "fogged": true,
       "heatDimmed": true
+    },
+    {
+      "id": "solarOasis",
+      "name": "Solar Oasis",
+      "cost": 60,
+      "workers": 0,
+      "kind": "energy",
+      "draftable": false,
+      "minEra": 3,
+      "requiresWater": true,
+      "floodTolerant": true,
+      "stormProof": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "floodplain"]
+      },
+      "generation": {
+        "day": [2, 2, 2, 2],
+        "night": [2, 2, 2, 2]
+      },
+      "water": {
+        "feeds": {
+          "quality": "clean",
+          "amount": 2
+        }
+      },
+      "wonder": {
+        "seasons": 4,
+        "alsoCosts": {
+          "food": 20
+        },
+        "needsLoops": ["greyWaterLoop"],
+        "needsBuildings": {
+          "concentratedSolarPlant": 2
+        },
+        "nearWater": true,
+        "score": 60,
+        "graftTiers": 1
+      }
     }
   ],
   "combos": [
@@ -2144,8 +2182,112 @@
       }
     }
   ],
-  "wildlife": [],
-  "festivals": [],
+  "wildlife": [
+    {
+      "id": "fennecs",
+      "name": "Fennec Foxes",
+      "text": "Fennec foxes come at Harmony 20 to open scrub and dunes. In summer, oasis gardens within 2 tiles of them make 1 more food: the foxes eat the pests.",
+      "harmony": 20,
+      "habitat": {
+        "kind": "tiles",
+        "tiles": ["scrub", "erg"],
+        "wild": true
+      },
+      "effect": {
+        "kind": "nearHabitat",
+        "buildings": ["oasisGarden", "threeLayerGarden"],
+        "range": 2,
+        "food": 1,
+        "seasons": ["summer"]
+      }
+    },
+    {
+      "id": "sandgrouse",
+      "name": "Sandgrouse",
+      "text": "Sandgrouse come at Harmony 40 to the oasis beside a fog net. Cisterns within 2 tiles of them gain 1 water each season, carried in their breast feathers.",
+      "harmony": 40,
+      "habitat": {
+        "kind": "tiles",
+        "tiles": ["oasis"],
+        "nextToBuildings": ["fogNet", "fogFence"]
+      },
+      "effect": {
+        "kind": "waters",
+        "buildings": ["cistern"],
+        "range": 2,
+        "water": 1
+      }
+    },
+    {
+      "id": "falcons",
+      "name": "Lanner Falcons",
+      "text": "Lanner falcons come at Harmony 50 to a wind tower on the rocks. Each tower they nest on gives 1 wellbeing every season.",
+      "harmony": 50,
+      "habitat": {
+        "kind": "building",
+        "buildings": ["windTower"],
+        "nextToTiles": ["rock"]
+      },
+      "effect": {
+        "kind": "wellbeing",
+        "perHerd": 1,
+        "group": "pair"
+      }
+    },
+    {
+      "id": "oryx",
+      "name": "Oryx",
+      "text": "Oryx come at Harmony 70 to open gravel plain of 6 or more tiles with nothing built on it. Each such plain gives 1 wellbeing every season.",
+      "harmony": 70,
+      "habitat": {
+        "kind": "tiles",
+        "tiles": ["reg"],
+        "wild": true,
+        "minGroup": 6
+      },
+      "effect": {
+        "kind": "wellbeing",
+        "perHerd": 1,
+        "group": "herd"
+      }
+    }
+  ],
+  "festivals": [
+    {
+      "id": "rainFeast",
+      "name": "Rain Feast",
+      "text": "Dancing in the first rain of spring. +3 wellbeing, and the flash flood fills every cistern to the brim.",
+      "season": "spring",
+      "cost": {
+        "food": 5
+      },
+      "wellbeing": 3,
+      "fillsCisterns": true
+    },
+    {
+      "id": "nightMarket",
+      "name": "Night Market",
+      "text": "A market by lantern light, after the heat of the day. +3 wellbeing, and homes need 1 less cooling this summer: the town lives by night.",
+      "season": "summer",
+      "cost": {
+        "materials": 5
+      },
+      "wellbeing": 3,
+      "coolingRelief": 1
+    },
+    {
+      "id": "starNight",
+      "name": "Star Night",
+      "text": "A winter night with the lights out, everyone on the roofs to see the stars. +3 wellbeing, and homes use 1 less energy at night this winter.",
+      "season": "winter",
+      "cost": {
+        "materials": 5
+      },
+      "wellbeing": 3,
+      "nightEnergyRelief": 1,
+      "showsWildlife": true
+    }
+  ],
   "twists": [
     {
       "id": "fairWeather",
@@ -2481,6 +2623,13 @@
       },
       "reward": {
         "knowledge": 3
+      },
+      "or": {
+        "text": "Or finish the Solar Oasis.",
+        "goal": {
+          "kind": "wonder",
+          "building": "solarOasis"
+        }
       }
     }
   ],

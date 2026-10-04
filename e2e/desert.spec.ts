@@ -167,3 +167,18 @@ test('a whole desert run, keyboard only, to the end screen', async ({ page }) =>
   expect((await win(page)).saved).toBe(-1);
   expect(errors).toEqual([]);
 });
+
+test("the desert's wonder on the palette, and the Rain Feast held from its card", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/?biome=sunDesert&sandbox');
+  await expect(page.locator('#map-host canvas')).toBeVisible();
+  await expect(page.locator('#palette .tool-name', { hasText: /^Solar Oasis$/ })).toHaveCount(1);
+  const card = page.getByRole('region', { name: 'Festival' });
+  await expect(card.getByRole('heading', { name: 'Rain Feast' })).toBeVisible();
+  await card.getByRole('button', { name: /^Hold it/ }).click();
+  await expect(card.getByRole('button', { name: 'Call off' })).toBeVisible();
+  expect(errors).toEqual([]);
+});

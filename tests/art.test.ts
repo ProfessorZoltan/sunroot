@@ -19,13 +19,15 @@ import { content } from './helpers';
 
 const COAST = biomeContent('windsweptCoast');
 const HIGH = biomeContent('highland');
+const DESERT = biomeContent('sunDesert');
 /** Buildings of every biome, each once. */
 const drawn = [
   ...content.buildings,
   ...COAST.buildings.filter((b) => !content.byId[b.id]),
   ...HIGH.buildings.filter((b) => !content.byId[b.id] && !COAST.byId[b.id]),
+  ...DESERT.buildings.filter((b) => !content.byId[b.id] && !COAST.byId[b.id] && !HIGH.byId[b.id]),
 ];
-const byId = { ...HIGH.byId, ...COAST.byId, ...content.byId };
+const byId = { ...DESERT.byId, ...HIGH.byId, ...COAST.byId, ...content.byId };
 
 const art = (path: string) => existsSync(new URL(`../src/art/${path}`, import.meta.url));
 const info = JSON.parse(readFileSync(new URL('../src/art/art.json', import.meta.url), 'utf8')) as {
@@ -38,11 +40,9 @@ const info = JSON.parse(readFileSync(new URL('../src/art/art.json', import.meta.
 
 describe('hand-made art', () => {
   it('covers every tile type, in summer (two ways) and winter', () => {
-    // The Sun Desert's tiles are drawn procedurally until their art comes (SD4).
-    const awaiting = ['oasis', 'reg', 'erg', 'rock', 'saltFlat'];
     // The coast's tiles came with one summer look (the sea with three).
     const coast = ['mudflat', 'saltmarsh', 'dune'];
-    for (const t of TILE_TYPES.filter((x) => !awaiting.includes(x))) {
+    for (const t of TILE_TYPES) {
       const second = coast.includes(t) ? [] : [`${t}-2.png`];
       for (const f of [`${t}.png`, ...second, `${t}.winter.png`])
         expect(art(`tiles/${f}`), f).toBe(true);
@@ -54,6 +54,25 @@ describe('hand-made art', () => {
     for (const f of ['hill.coast.png', 'hill.coast.winter.png'])
       expect(art(`tiles/${f}`), f).toBe(true);
     expect(COAST.land).toBe('coast');
+  });
+
+  it('gives the desert its own look for the shared tiles, a dry riverbed and a sandy canopy', () => {
+    expect(DESERT.land).toBe('desert');
+    for (const t of [
+      'floodplain',
+      'meadow',
+      'scrub',
+      'woodland',
+      'ruin',
+      'river',
+      'river.desert.dry',
+    ])
+      for (const season of ['', '.winter']) {
+        const f = t.includes('.') ? `${t}${season}.png` : `${t}.desert${season}.png`;
+        expect(art(`tiles/${f}`), f).toBe(true);
+      }
+    for (const f of ['solarCanopy.desert.png', 'solarCanopy.desert.winter.png'])
+      expect(art(`buildings/${f}`), f).toBe(true);
   });
 
   it('has every animal frame, and the festival cards and props (E4)', () => {
@@ -75,9 +94,26 @@ describe('hand-made art', () => {
       ...['tern.fly.1', 'tern.fly.2', 'tern.rest', 'seal.swim.1', 'seal.swim.2', 'seal.rest']
         .concat(['puffin.1', 'puffin.2', 'dolphin.1', 'dolphin.2', 'dolphin.3'])
         .flatMap((f) => [f, `${f}.winter`]),
+      // The Highland's (HL6) and the desert's fennecs and oryx (SD6), each with a winter dress.
+      ...['hare.run.1', 'hare.run.2', 'hare.sit', 'dipper.1', 'dipper.2', 'marten.1', 'marten.2']
+        .concat(['eagle.soar.1', 'eagle.soar.2', 'eagle.perch', 'fennec.run.1', 'fennec.run.2'])
+        .concat(['fennec.sit', 'oryx.walk.1', 'oryx.walk.2', 'oryx.walk.3', 'oryx.walk.4'])
+        .concat(['oryx.graze.1', 'oryx.graze.2'])
+        .flatMap((f) => [f, `${f}.winter`]),
+      // The sandgrouse and the falcons, the same all year.
+      'sandgrouse.1',
+      'sandgrouse.2',
+      'falcon.fly.1',
+      'falcon.fly.2',
+      'falcon.perch',
     ];
     for (const f of frames) expect(art(`wildlife/${f}.png`), f).toBe(true);
-    for (const f of [...content.festivals, ...COAST.festivals])
+    for (const f of [
+      ...content.festivals,
+      ...COAST.festivals,
+      ...HIGH.festivals,
+      ...DESERT.festivals,
+    ])
       expect(art(`festivals/${f.id}.card.webp`), f.id).toBe(true);
     for (const f of ['bunting', 'lantern', 'lantern.lit'])
       expect(art(`festivals/${f}.png`), f).toBe(true);
@@ -95,8 +131,6 @@ describe('hand-made art', () => {
     for (const b of drawn) {
       // Wonders have their own frame (above).
       if (b.wonder) continue;
-      // The Sun Desert's Fog Net, offered everywhere with the Sun Quarter, waits for its art.
-      if (b.id === 'fogNet') continue;
       // A building only on edges (the snow fence) comes as its 3 edge pieces.
       const pieces = ['e', 'ne', 'nw'].flatMap((d) => [
         `buildings/${b.id}.edge.${d}.png`,
@@ -127,6 +161,8 @@ describe('hand-made art', () => {
       'lighthouse',
       'bothy',
       'lookout',
+      'mudBrickHouse',
+      'concentratedSolarPlant',
     ])
       expect(art(`buildings/${lit}.windows.png`), lit).toBe(true);
     for (const id of [
@@ -142,25 +178,28 @@ describe('hand-made art', () => {
     }
   });
 
-  it('draws channels as a hub with an arm to each neighbour, with a sluice gate', () => {
-    for (const arm of ['e', 'ne', 'nw', 'w', 'sw', 'se'])
-      for (const season of ['', '.winter'])
-        expect(art(`buildings/irrigationChannel.${arm}${season}.png`), `${arm}${season}`).toBe(
-          true,
-        );
+  it('draws channels and qanats as a hub with an arm to each neighbour, with a sluice gate', () => {
+    for (const id of ['irrigationChannel', 'qanat'])
+      for (const arm of ['e', 'ne', 'nw', 'w', 'sw', 'se'])
+        for (const season of ['', '.winter'])
+          expect(art(`buildings/${id}.${arm}${season}.png`), `${id}.${arm}${season}`).toBe(true);
     expect(art('buildings/sluiceGate.png')).toBe(true);
   });
 
   it('draws hedges along the three sides a tile owns (DECISIONS.md, Hedgerows on edges)', () => {
-    for (const side of ['e', 'ne', 'nw'])
-      for (const season of ['', '.winter'])
-        expect(art(`buildings/hedgerow.edge.${side}${season}.png`), `${side}${season}`).toBe(true);
+    for (const id of ['hedgerow', 'palmWindbreak'])
+      for (const side of ['e', 'ne', 'nw'])
+        for (const season of ['', '.winter'])
+          expect(art(`buildings/${id}.edge.${side}${season}.png`), `${id} ${side}${season}`).toBe(
+            true,
+          );
   });
 
   it('marks only buildings that stand on one kind of tile, or fields, as carrying their own', () => {
     expect(info.ground).toEqual([
       'batRoost',
       'beaverDam',
+      'concentratedSolarPlant',
       'coppiceRegrowth',
       'coppiceWood',
       'croft',
@@ -170,15 +209,20 @@ describe('hand-made art', () => {
       'lighthouse',
       'lookout',
       'machairCroft',
+      'oasisGarden',
       'oldWorldArchive',
       'pumpedReservoir',
+      'restoredArray',
       'rewettedBog',
       'rewildedRuin',
       'riceFishPaddy',
       'rockPool',
+      'saltWorks',
       'salvageYard',
       'singingSpire',
       'terraceFarm',
+      'threeLayerGarden',
+      'wadiFarm',
       'weir',
       'windSpire',
     ]);

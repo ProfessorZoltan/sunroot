@@ -755,10 +755,12 @@ export class MapView {
     // to it, and at an end an arm into the water beside it (its intake, or where it rejoins).
     const ditch = this.content.rules.water.channelBuilding;
     const channelArt = hasArms(ditch);
-    const channelAt = new Set(
+    // Each channel tile and its kind: a qanat has its own hub and arms (shaft mounds), and links
+    // with the open channel beside it.
+    const channelAt = new Map(
       Object.values(state.buildings)
         .filter((b) => this.content.byId[b.type]?.water?.channel)
-        .map((b) => hexKey(b.at)),
+        .map((b) => [hexKey(b.at), hasArms(b.type) ? b.type : ditch]),
     );
     let procedural: Graphics | null = null;
     const dry = riverDry(this.content, state);
@@ -826,11 +828,12 @@ export class MapView {
             if (i >= 0) arms.push(i);
           }
         }
+        const kind = channelAt.get(key)!;
         for (const i of arms) {
-          const arm = armTexture(ditch, i, artSeason(ditch, state.season, this.content.land));
+          const arm = armTexture(kind, i, artSeason(kind, state.season, this.content.land));
           if (arm) this.tileLayer.addChild(artSprite(arm, c));
         }
-        const hub = buildingTexture(ditch, state.season, this.content.land);
+        const hub = buildingTexture(kind, state.season, this.content.land);
         if (hub) this.tileLayer.addChild(artSprite(hub, c));
         procedural = null;
       }
@@ -952,7 +955,11 @@ export class MapView {
       const c = hexToPixel(b.at);
       // Channels are ditches in the ground (drawn with the terrain); a canal-top solar's
       // panels stand over its ditch.
-      if (b.type === this.content.rules.water.channelBuilding) {
+      const ditchLike =
+        this.content.byId[b.type]?.water?.channel &&
+        hasArms(this.content.rules.water.channelBuilding) &&
+        hasArms(b.type);
+      if (b.type === this.content.rules.water.channelBuilding || ditchLike) {
         if (b.damage) drawCondition(g, c, 'damaged');
         continue;
       }

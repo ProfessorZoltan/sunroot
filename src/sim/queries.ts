@@ -8,6 +8,7 @@ import {
 } from './combos';
 import { edgeBuilding, hedged } from './edges';
 import { finishedProjects } from './projects';
+import { festivalThisSeason } from './wildlife';
 import type { Content } from './content/load';
 import type { BuildingDef, EventId, Events, Season, TileType } from './content/schema';
 import { SEASONS } from './content/schema';
@@ -92,7 +93,9 @@ export function coolDemand(
     slot === 'day' && isHome(def) && state.forecast.event === 'heatwave'
       ? (content.events.heatwave?.coolingAdd ?? 0)
       : 0;
-  const need = (def.demand?.cool[slot][si] ?? 0) + heatwave;
+  // A festival that takes the town out at night (the Night Market) eases the day's heat.
+  const relief = isHome(def) ? (festivalThisSeason(content, state)?.coolingRelief ?? 0) : 0;
+  const need = (def.demand?.cool[slot][si] ?? 0) + heatwave - relief;
   if (need <= 0) return 0;
   // A courtyard: the right neighbours keep it cool whatever the weather.
   if (def.coolingFreeNextTo && touches(state, b, def.coolingFreeNextTo)) return 0;

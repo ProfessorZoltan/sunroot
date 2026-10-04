@@ -473,6 +473,24 @@ export const BUILDING_ART: Record<string, Art> = {
     ] as const)
       g.ellipse(c.x + dx, c.y + dy, r, r * 0.45).fill({ color: 0xffffff, alpha: 0.55 });
   },
+  solarOasis(g, c) {
+    // A flower of mirrors round a tower, its cooling pool and garden at the foot.
+    for (let ring = 0; ring < 2; ring++) {
+      const r = 34 + ring * 26;
+      for (let i = 0; i < 12; i++) {
+        const a = (i / 12) * Math.PI * 2 + ring * 0.26;
+        const x = c.x + Math.cos(a) * r;
+        const y = c.y + Math.sin(a) * r * 0.6 + 6;
+        g.poly([x - 6, y + 2, x - 4, y - 3, x + 6, y - 3, x + 4, y + 2]).fill({
+          color: 0xbfd6e6,
+        });
+      }
+    }
+    g.ellipse(c.x, c.y + 14, 20, 8).fill({ color: COLORS.water });
+    for (const dx of [-24, 24]) palm(g, c.x + dx, c.y + 6);
+    g.rect(c.x - 4, c.y - 40, 8, 48).fill({ color: COLORS.stone });
+    g.circle(c.x, c.y - 42, 6).fill({ color: COLORS.sunGold });
+  },
   singingSpire(g, c) {
     BUILDING_ART.windSpire!(g, c);
     for (const [dx, dy] of [

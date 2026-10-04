@@ -6,7 +6,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { entryView, LAYER_NAMES } from '../game/almanac';
 import type { GameStore } from '../game/store';
-import { COMBO_LAYERS, eraGoal, wonderWarmthText, type Combo, type ComboLayer } from '../sim';
+import { COMBO_LAYERS, eraGoal, wonderGivesText, type Combo, type ComboLayer } from '../sim';
 
 /** Jewel colour per layer, from the stained-glass palette. */
 export const LAYER_JEWEL: Record<ComboLayer, string> = {
@@ -259,7 +259,7 @@ export function RevealCard({ store }: { store: GameStore }) {
         <span class="card-kind">Wonder finished</span>
         <h2 class="glass-title">{def.name}</h2>
         <p>
-          {wonderWarmthText(def).replace(/^h/, 'H')}+{w.score} to the score
+          {wonderGivesText(def).replace(/^./, (c) => c.toUpperCase())}+{w.score} to the score
           {w.graftTiers > 0
             ? `, and the Graft ${w.graftTiers > 1 ? `${w.graftTiers} tiers` : 'a tier'} higher than the score alone would make it`
             : ''}

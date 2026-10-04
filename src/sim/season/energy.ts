@@ -40,6 +40,7 @@ import {
   occupancy,
 } from '../queries';
 import type { BuildingState, HeatLink } from '../types';
+import { festivalThisSeason } from '../wildlife';
 import { addYield, explain, flow, type SeasonContext } from './context';
 
 type PerSlot = Record<Slot, number>;
@@ -178,8 +179,14 @@ export function resolveEnergy(ctx: SeasonContext): void {
   const gridCoolOf = (b: BuildingState, slot: Slot) =>
     cooling.gridCool ? (coolLeft[slot].get(b.uid) ?? 0) * cooling.gridCoolCost : 0;
 
-  const energyOf = (b: BuildingState, slot: Slot) =>
-    (defOf(content, b).demand?.energy[slot][si] ?? 0) + gridCoolOf(b, slot);
+  // Star Night: homes keep their lights out, using less at night.
+  const lightsOut = festivalThisSeason(content, state)?.nightEnergyRelief ?? 0;
+  const energyOf = (b: BuildingState, slot: Slot) => {
+    const def = defOf(content, b);
+    const own = def.demand?.energy[slot][si] ?? 0;
+    const relief = slot === 'night' && def.housing > 0 ? lightsOut : 0;
+    return Math.max(0, own - relief) + gridCoolOf(b, slot);
+  };
   const heatOf = (b: BuildingState, slot: Slot) => heatNeed(content, state, b, slot, si);
   const pumps = active.filter((b) => defOf(content, b).heatPump);
   const freeHeat = perSlot();

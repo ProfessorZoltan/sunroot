@@ -1534,6 +1534,18 @@ const WildlifeEffectSchema = z.discriminatedUnion('kind', [
     .strict(),
   /** Their arrival is what an evolution waits for (beavers and the Beaver Dam). */
   z.object({ kind: z.literal('evolution'), combo: z.string() }).strict(),
+  /**
+   * These stores within `range` tiles of the habitat gain `water` each season, up to what they
+   * hold (the sandgrouse, carrying it in their breast feathers to the cisterns).
+   */
+  z
+    .object({
+      kind: z.literal('waters'),
+      buildings: z.array(z.string()).min(1),
+      range: int.min(1),
+      water: int.min(1),
+    })
+    .strict(),
   /** Wellbeing every season for each herd (each group of habitat). */
   z
     .object({
@@ -1593,6 +1605,10 @@ export const FestivalSchema = z
       .optional(),
     /** Every cistern (and anything that stores water) fills at the start of the season (Snowmelt Fair). */
     fillsCisterns: z.boolean().default(false),
+    /** Homes need this much less cooling by day that season (the Night Market). */
+    coolingRelief: nonNeg.default(0),
+    /** Homes use this much less energy at night that season (Star Night: the lights out). */
+    nightEnergyRelief: nonNeg.default(0),
     requiresWater: z.boolean().default(true),
   })
   .strict();

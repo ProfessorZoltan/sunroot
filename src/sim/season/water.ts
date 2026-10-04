@@ -39,7 +39,7 @@ import {
   type Channel,
 } from '../water';
 import { explain, type SeasonContext } from './context';
-import { festivalThisSeason } from '../wildlife';
+import { festivalThisSeason, wildlifeWater } from '../wildlife';
 import { loopLift } from '../combos';
 
 const units = (): WaterUnits => ({ clean: 0, nutrient: 0, grey: 0 });
@@ -129,6 +129,17 @@ export function resolveWater(ctx: SeasonContext): void {
   }
   add(report.in, 'fog', caught);
 
+  // Animals carrying water to the stores near them (the sandgrouse).
+  for (const w of wildlifeWater(content, state)) {
+    const c = state.buildings[w.uid]!;
+    const cap = defOf(content, c).water?.stores ?? 0;
+    const gain = Math.min(w.amount, cap - (c.stored ?? 0));
+    if (gain <= 0) continue;
+    c.stored = (c.stored ?? 0) + gain;
+    add(report.in, w.animal.toLowerCase(), gain);
+    explain(ctx, c, `water: ${gain} carried in by ${w.animal.toLowerCase()}`);
+  }
+
   // 1. The spring flood fills lakes, and cisterns on flooded tiles.
   if (ctx.report.event === 'flood') {
     let filled = 0;
@@ -185,7 +196,13 @@ export function resolveWater(ctx: SeasonContext): void {
   const attachment = (b: BuildingState): Attachment | null => {
     let best: Attachment | null = null;
     const height = heightAt(state, b.at);
-    for (const n of hexNeighbors(b.at).map(hexKey)) {
+    // A wonder over 7 tiles touches a channel beside any of them.
+    const own = b.footprint ? [b.at, ...hexNeighbors(b.at)] : [b.at];
+    const ownKeys = new Set(own.map(hexKey));
+    const around = [...new Set(own.flatMap((h) => hexNeighbors(h).map(hexKey)))].filter(
+      (k) => !ownKeys.has(k),
+    );
+    for (const n of around) {
       if ((state.map.tiles[n]?.height ?? 0) < height) continue;
       const a = channelAt.get(n);
       if (
@@ -442,8 +459,13 @@ export function resolveWater(ctx: SeasonContext): void {
         r.fed += feeds.amount;
         inAt[p]! += feeds.amount;
         // A home's washing water (the Sun Desert's mud-brick houses), or a fish pond's.
-        const home = defOf(content, f.b).housing > 0;
-        add(report.in, home ? 'grey water from homes' : 'fed by ponds', feeds.amount);
+        const fdef = defOf(content, f.b);
+        const label = fdef.wonder
+          ? fdef.name
+          : fdef.housing > 0
+            ? 'grey water from homes'
+            : 'fed by ponds';
+        add(report.in, label, feeds.amount);
         explain(ctx, f.b, `water: feeds ${feeds.amount} ${feeds.quality} into its channel`);
       }
       for (const x of mine.filter((m) => m.p === p)) {

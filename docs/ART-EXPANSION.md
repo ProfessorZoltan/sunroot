@@ -21,8 +21,9 @@ saltmarsh and dune with one each), the headland (`hill.coast.png`, the coast's o
 hills), all 13 coast buildings and 3 evolutions, the Tide Turbine's rotor (its pivot, (256, 366),
 measured from its hub), the lighthouse's lantern, the 4 animals in summer and winter, Kite Day's
 and the Harvest of the Sea's cards, and the Tidal Lagoon finished, in winter and at its 3 stages;
-and the Well with its own icon (`well.icon.png`). All in the game. Still drawn in code: the
-Highland's tiles and buildings (their request comes with HL4).
+and the Well with its own icon (`well.icon.png`). All in the game.
+
+**Delivered (the Highland and the Sun Desert):** all of both, in the game (their sections below).
 
 ## Order
 
@@ -38,9 +39,9 @@ Highland's tiles and buildings (their request comes with HL4).
 | B6. The coast's wonder       | Yes        | The Tidal Lagoon, 4 animals, 2 festival cards                                                                                             | proposals/windswept-coast.md, Build plan    |
 | HL4. The Highland on screen  | Yes        | Its 2 tiles, then the Terrace Farm, Glen Farm, Hill Turbine and Bothy                                                                     | proposals/highland.md, Build plan           |
 | HL6. The Highland's wonder   | Yes (done) | The Cloud Terraces, 4 animals, 2 festival cards                                                                                           | proposals/highland.md, Build plan           |
-| SD4. The desert on screen    | Yes        | Its 5 tiles and the wadi bank's and old array's looks, then the Oasis Garden, Mud-brick House, Wind Tower and Solar Canopy's desert dress | proposals/sun-desert.md, Build plan         |
+| SD4. The desert on screen    | Yes (done) | Its 5 tiles and the wadi bank's and old array's looks, then the Oasis Garden, Mud-brick House, Wind Tower and Solar Canopy's desert dress | proposals/sun-desert.md, Build plan         |
 | SD5. The desert in Root City | Yes        | The Sun Quarter district and the Glassworks landmark ([ART-CITY.md](ART-CITY.md))                                                         | proposals/sun-desert.md, Build plan         |
-| SD6. The desert's wonder     | Yes        | The Solar Oasis, 4 animals, 3 festival cards                                                                                              | proposals/sun-desert.md, Build plan         |
+| SD6. The desert's wonder     | Yes (done) | The Solar Oasis, 4 animals, 3 festival cards                                                                                              | proposals/sun-desert.md, Build plan         |
 
 ## The standard frame (reminder)
 
@@ -306,7 +307,7 @@ lying on a building that is snowed under (a solar canopy high up in winter), lit
 
 ### With HL6: the wonder, animals and festivals
 
-In the game since HL6, drawn in code until their art comes; the importer takes them now. The
+In the game since HL6, with their art. The
 Cloud Terraces climb the slope (their tiles stand at 2 heights or more), so paint them as on
 level ground, as the other Highland art: the game raises each tile.
 
@@ -329,8 +330,13 @@ The fourth biome ([proposals/sun-desert.md](proposals/sun-desert.md)): a thin ri
 its wadi banks in spring and runs dry in summer, an oasis near the middle, flat gravel plain
 (reg), dunes (erg) along one side, rock at the edges, a salt flat, and the ruins of an old solar
 array. Everything here is drawn in code until its art comes, so any piece can arrive on its own.
-Same frame, light and file names as everything else: a summer `id.png` and a winter
-`id.winter.png`, delivered to the usual folders of `art/incoming/`.
+**Delivered and imported (all of it, SD6 included):** the desert's tiles with their second
+looks, its own look for the shared floodplain, meadow, scrub, woodland, ruin and river (and the
+dry riverbed), every desert building, evolution and edge piece, the qanat's hub and arms, the
+sandy solar canopy, the Solar Oasis at its 3 stages, the four animals and the three festival
+cards; the guide stays as the reference for changes. Same frame, light and file names as
+everything else: a summer `id.png` and a winter `id.winter.png`, delivered to the usual folders
+of `art/incoming/`.
 
 **The palette.** Bright and dry: warm sand (`#E8C98A`), pale gravel (`#D9C3A0`), rust rock
 (`#A8603F`), salt white, sky-blue water, and the deep green of date palms (`#2F5D3A`) as the one

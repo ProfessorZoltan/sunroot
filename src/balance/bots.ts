@@ -478,6 +478,9 @@ function pursueWonder(turn: Turn, profile: Profile): boolean {
       if (loop === 'kelpLoop') return closeKelpLoop(turn, profile);
       // The Highland's: save for the Carbon Loop while there is a place for it.
       if (loop === 'carbonLoop') return closeCarbonLoop(turn, profile);
+      // The desert's: save for the Grey Water Loop while there is a place for it.
+      if (loop === 'greyWaterLoop')
+        return closeGreyWaterLoop(turn, profile, state.era >= def.minEra);
       return false;
     }
     for (const [id, n] of Object.entries(w.needsBuildings) as [string, number][]) {
@@ -705,6 +708,113 @@ function closeCarbonLoop(turn: Turn, profile: Profile): boolean {
     if (!turn.apply({ type: 'place', building: 'workshop', at: { q: site.q, r: site.r } }))
       continue;
     if (withKiln()) return false;
+    turn.restore(saved);
+  }
+  return false;
+}
+
+/**
+ * A Grey Water Loop (the desert's, for the Solar Oasis): a mud-brick house, a reed bed beside it
+ * and an oasis garden beside that, along a channel. Along each channel tile standing, or a new
+ * one dug from the water, tries a few houses, reed beds and gardens (standing ones first),
+ * keeping the first that the season ahead shows closing the loop (a free undo otherwise). It saves
+ * up for it only from the wonder's own era.
+ */
+/** Land a house, a reed bed or a garden may stand on in the desert. */
+const LAND = ['reg', 'scrub', 'meadow', 'woodland', 'floodplain'];
+
+function closeGreyWaterLoop(turn: Turn, profile: Profile, saveUp: boolean): boolean {
+  const closes = () =>
+    peekOr(turn, (p) => p.report.combos.some((h) => h.combo === 'greyWaterLoop'), false);
+  const ditch = turn.rules.rules.water.channelBuilding;
+  const channelTiles = () =>
+    Object.values(turn.state.buildings)
+      .filter((b) => turn.content.byId[b.type]!.water?.channel)
+      .map((b) => b.at);
+  const onChannel = (t: Hex) => channelTiles().some((c) => hexDistance(c, t) === 1);
+  const put = (id: string, at: Hex) =>
+    turn.apply({ type: 'place', building: id, at: { q: at.q, r: at.r } });
+  /**
+   * Standing ones of `id` beside every anchor, then the best free sites: the house and the reed
+   * bed on the channel (grey water runs along it), the garden anywhere it gets clean water.
+   */
+  const options = (id: string, anchors: Hex[]): { at: Hex; stands: boolean }[] => {
+    const touches = (t: Hex) =>
+      anchors.every((a) => hexDistance(a, t) === 1) && (id === 'oasisGarden' || onChannel(t));
+    const stand = Object.values(turn.state.buildings)
+      .filter((b) => b.type === id && touches(b.at))
+      .map((b) => ({ at: b.at, stands: true }));
+    const free = turn
+      .sites(id)
+      .filter(touches)
+      .sort((x, y) => siteScore(turn, id, y) - siteScore(turn, id, x))
+      .map((t) => ({ at: { q: t.q, r: t.r }, stands: false }));
+    return [...stand, ...free].slice(0, 2);
+  };
+  let peeks = 10;
+  /** House, reed bed and garden along the channel at `c`. */
+  const along = (c: Hex): boolean => {
+    for (const h of options('mudBrickHouse', [c])) {
+      const s1 = turn.save();
+      if (h.stands || put('mudBrickHouse', h.at))
+        for (const r of options('reedBed', [h.at])) {
+          const s2 = turn.save();
+          if (r.stands || put('reedBed', r.at))
+            for (const g of options('oasisGarden', [r.at])) {
+              if (peeks-- <= 0) return false;
+              const s3 = turn.save();
+              if ((g.stands || put('oasisGarden', g.at)) && closes()) return true;
+              turn.restore(s3);
+            }
+          turn.restore(s2);
+        }
+      turn.restore(s1);
+    }
+    return false;
+  };
+  const byId = turn.content.byId;
+  // A garden that needs no water this season (winter) can't show the loop closing.
+  const season = SEASONS.indexOf(turn.state.season);
+  if ((byId.oasisGarden!.water?.needs[season] ?? 0) === 0) return false;
+  for (const c of channelTiles()) if (along(c)) return false;
+  if (!turn.unlocked('reedBed') || !turn.unlocked(ditch)) return false;
+  const cost =
+    byId[ditch]!.cost + byId.mudBrickHouse!.cost + byId.reedBed!.cost + byId.oasisGarden!.cost;
+  // A new channel from the oasis (gardens drink from it too) or the river, where there is the
+  // most free land around it.
+  const typeAt = (h: Hex) => turn.state.map.tiles[hexKey(h)]?.type ?? '';
+  const room = (t: Hex) =>
+    (hexNeighbors(t).some((n) => typeAt(n) === 'oasis') ? 10 : 0) +
+    hexNeighbors(t).filter((n) => {
+      const k = hexKey(n);
+      return LAND.includes(typeAt(n)) && !isTaken(turn, k) && !turn.reserved.has(k);
+    }).length;
+  const digs = turn
+    .sites(ditch)
+    .filter((t) => hexNeighbors(t).some((n) => ['oasis', 'river'].includes(typeAt(n))))
+    .map((t) => ({ t, room: room(t) }))
+    .filter((x) => x.room % 10 >= 3)
+    .sort((a, b) => b.room - a.room)
+    .slice(0, 3)
+    .map((x) => x.t);
+  if (turn.state.stores.materials < cost + profile.reserve) return saveUp && digs.length > 0;
+  // One tile, then a second beside it, from the oasis or the river.
+  const seconds = (first: Hex) =>
+    turn
+      .sites(ditch)
+      .filter((t) => hexDistance(t, first) === 1)
+      .slice(0, 2);
+  for (const site of digs) {
+    const saved = turn.save();
+    if (put(ditch, site)) {
+      if (along(site)) return false;
+      if (turn.state.stores.materials >= cost + profile.reserve)
+        for (const next of seconds(site)) {
+          const s2 = turn.save();
+          if (put(ditch, next) && (along(next) || along(site))) return false;
+          turn.restore(s2);
+        }
+    }
     turn.restore(saved);
   }
   return false;

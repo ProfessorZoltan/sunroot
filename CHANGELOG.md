@@ -1,5 +1,20 @@
 # Changelog
 
+## The Solar Oasis
+
+- The desert's wonder, the **Solar Oasis**: a flower of mirrors round a solar tower by the water,
+  from the third era, once a **Grey Water Loop** runs and two Concentrated Solar Plants stand.
+  Finished, it gives energy day and night, clean water into the channel beside it, +60 and a
+  higher Graft.
+- The desert's animals: **fennec foxes** in the scrub help the oasis gardens in summer,
+  **sandgrouse** at the oasis carry water to the cisterns, **lanner falcons** nest on wind
+  towers by the rocks, and **oryx** herds roam the open gravel.
+- Its festivals: the **Rain Feast** fills every cistern, the **Night Market** spares the homes
+  some cooling, and on **Star Night** the lights go out and homes use less energy.
+- The Sun Desert's **hand-made art** is in: every tile, building, animal and festival card, and
+  the Solar Oasis as it is built. Qanats show as lines of shaft mounds.
+- A wonder's details now say the energy and water it will give.
+
 ## The Sun Desert in Root City
 
 - Once **8 districts** stand, Root City sends expeditions to the **Sun Desert** too; the

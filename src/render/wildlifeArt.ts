@@ -29,7 +29,12 @@ export type ActorKind =
   | 'hare'
   | 'dipper'
   | 'eagle'
-  | 'marten';
+  | 'marten'
+  // The desert's (their art is delivered: no code drawing).
+  | 'fennec'
+  | 'sandgrouse'
+  | 'falcon'
+  | 'oryx';
 
 export interface Actor {
   kind: ActorKind;
@@ -53,6 +58,10 @@ const KIND: Record<string, ActorKind> = {
   dippers: 'dipper',
   eagles: 'eagle',
   martens: 'marten',
+  fennecs: 'fennec',
+  sandgrouse: 'sandgrouse',
+  falcons: 'falcon',
+  oryx: 'oryx',
 };
 
 /** How many of each animal show at most, and over how many tiles each moves. */
@@ -69,6 +78,10 @@ const SHOWN: Record<ActorKind, { count: number; steps: number }> = {
   dipper: { count: 2, steps: 2 },
   eagle: { count: 1, steps: 1 },
   marten: { count: 1, steps: 3 },
+  fennec: { count: 2, steps: 3 },
+  sandgrouse: { count: 3, steps: 2 },
+  falcon: { count: 1, steps: 1 },
+  oryx: { count: 3, steps: 4 },
 };
 
 /** Whether the animals are shown at all this season (bees keep in over winter, but come out on Lantern Night). */
@@ -129,6 +142,10 @@ const PACE: Record<ActorKind, { move: number; rest: number }> = {
   dipper: { move: 2000, rest: 4000 },
   eagle: { move: 9000, rest: 6000 },
   marten: { move: 4000, rest: 4000 },
+  fennec: { move: 2500, rest: 5000 },
+  sandgrouse: { move: 3000, rest: 4000 },
+  falcon: { move: 9000, rest: 6000 },
+  oryx: { move: 10000, rest: 5000 },
 };
 
 /** Where an animal is at a moment, and which frame it shows. With `still`, it keeps to its first tile. */
@@ -195,6 +212,21 @@ export function poseAt(actor: Actor, clock: number, still: boolean): Pose {
       break;
     case 'marten':
       frame = `marten.${(Math.floor(step / (moving ? 2 : 8)) % 2) + 1}`;
+      break;
+    // The desert's (ART-EXPANSION.md).
+    case 'fennec':
+      frame = moving ? `fennec.run.${(step % 2) + 1}` : 'fennec.sit';
+      break;
+    case 'sandgrouse':
+      frame = `sandgrouse.${(Math.floor(step / 3) % 2) + 1}`;
+      break;
+    case 'falcon':
+      frame = moving ? `falcon.fly.${(Math.floor(step / 3) % 2) + 1}` : 'falcon.perch';
+      break;
+    case 'oryx':
+      frame = moving
+        ? `oryx.walk.${(step % 4) + 1}`
+        : `oryx.graze.${(Math.floor(step / 6) % 2) + 1}`;
       break;
   }
   return { x, y, frame, flip };
