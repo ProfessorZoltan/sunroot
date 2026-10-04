@@ -14,6 +14,7 @@ import {
   applyCityCommand,
   districtAt,
   expeditionOffer,
+  scoutCost,
   biomeOf,
   openBiomes,
   tempestUnlockedIn,
@@ -671,6 +672,7 @@ export function CityScreen({
               content={content}
               city={city}
               onChoose={(index) => apply({ type: 'chooseExpedition', index })}
+              onScout={() => apply({ type: 'scoutExpeditions' })}
               onTempest={(level) => apply({ type: 'setTempest', level })}
               onSetOut={() => onSetOut(city)}
             />
@@ -849,12 +851,14 @@ function ExpeditionPanel({
   content,
   city,
   onChoose,
+  onScout,
   onTempest,
   onSetOut,
 }: {
   content: Content;
   city: CityState;
   onChoose: (index: number) => void;
+  onScout: () => void;
   onTempest: (level: number) => void;
   onSetOut: () => void;
 }) {
@@ -862,6 +866,7 @@ function ExpeditionPanel({
   const chosen = city.expedition ? offer.findIndex((o) => o.seed === city.expedition!.seed) : -1;
   const ready = !needsExpedition(content, city);
   const bonus = content.progression?.seeds.cityRequest ?? 0;
+  const scout = offer.length > 0 ? scoutCost(content, city) : null;
   return (
     <section class="panel" aria-label="Next expedition">
       <h2>{offer.length > 0 ? 'Choose the next expedition' : 'Set out'}</h2>
@@ -906,6 +911,16 @@ function ExpeditionPanel({
             );
           })}
         </div>
+      )}
+      {scout !== null && (
+        <p class="row scout">
+          <button type="button" class="button" disabled={city.seeds < scout} onClick={onScout}>
+            New expeditions for {scout} Seeds
+          </button>
+          <span class="small quiet">
+            Three other valleys. Each new set before this run costs more.
+          </span>
+        </p>
       )}
       <TempestPicker content={content} city={city} onTempest={onTempest} />
       <button type="button" class="button primary" disabled={!ready} onClick={onSetOut}>

@@ -996,6 +996,16 @@ are measured from their hubs.
 | The Heartwood's stages | Stage 1 for 0 to 4 districts, 2 from 5, 3 from 10, 4 from 15; the Sun Tree once it has grown.                                                                                                                                                                                                                                                                                                                                                 | `heartwoodStage`                               |
 | Dusk                   | Playtester, once the dusk art was made: coming back from a run (opening the city, not to look at it from a run), the city dims and cools, its lit windows glow, then day returns: 0.6 s, 2.5 s down, 7 s held, 2.5 s up. The Sun Tree's growing plays it again. Never with reduced motion. The code-drawn city dims too.                                                                                                                      | `duskAt`; `e2e/city-art.spec.ts`               |
 
+## More uses for Seeds
+
+Following [proposals/seed-uses.md](proposals/seed-uses.md). Keepsakes (cosmetics) are proposed
+and wait for review; new expeditions are in:
+
+| Topic           | Decision                                                                                                                                                                                                                                                         | Source                                       |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| New expeditions | Between runs, once the Graft is placed, a new set of 3 expeditions for 5 Seeds, then 10, then 15 before the same run; back to 5 after it. Rising, so it is a way out of a bad offer rather than a slot machine. The chosen expedition goes with the old set.     | `progression.scoutCost`; `scoutExpeditions`  |
+| What they are   | New valleys (map seeds), twists, regions and requests, drawn from the city's seed and the number of sets bought, so the same city always draws the same sets; with none bought the offer is exactly as before. With several biomes open another leads the offer. | `src/sim/city.ts`; `tests/seed-uses.test.ts` |
+
 ## Deferred to later milestones
 
 - The world map that heals as runs are completed, Tempest levels, and biome unlocks (Highland,

@@ -1439,6 +1439,11 @@ export const ProgressionSchema = z
     /** Expeditions offered between runs. */
     expeditionChoices: int.min(1).default(3),
     /**
+     * Seeds for a new set of expeditions before a run; each further set before the same run
+     * costs this much more (0: none on offer).
+     */
+    scoutCost: nonNeg.default(0),
+    /**
      * Biomes beyond the home one (the first biome's content), and the run from which
      * expeditions may go there (proposals/windswept-coast.md, Root City).
      */

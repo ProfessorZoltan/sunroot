@@ -520,6 +520,7 @@
     "compostShare": 0.5,
     "graftCost": 35,
     "expeditionChoices": 3,
+    "scoutCost": 5,
     "biomes": [
       {
         "id": "windsweptCoast",

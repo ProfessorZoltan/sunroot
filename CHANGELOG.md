@@ -1,5 +1,12 @@
 # Changelog
 
+## New expeditions for Seeds
+
+- Don't like the three expeditions on offer? In Root City, **New expeditions** shows three other
+  valleys for 5 Seeds, then 10, then 15 before the same run.
+- Proposed, for review: **keepsakes**, cosmetic things to spend Seeds on (the animals' young ones,
+  ornaments on the settlement and in Root City).
+
 ## The Solar Oasis
 
 - The desert's wonder, the **Solar Oasis**: a flower of mirrors round a solar tower by the water,

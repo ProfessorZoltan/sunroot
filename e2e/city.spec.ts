@@ -546,3 +546,26 @@ test('Start over forgets Root City and begins again at run 1', async ({ page }) 
     .toMatchObject({ guided: true });
   await expect.poll(() => cityNow(page).then((c) => c.runs)).toBe(0);
 });
+
+test('new expeditions for Seeds: three other valleys, dearer each time', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await seedCity(page, { ...city([]), runs: 2, seeds: 20 });
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Root City' })).toBeVisible();
+  const next = page.getByRole('region', { name: 'Next expedition' });
+  const seedsOf = () =>
+    next.locator('.card.expedition').evaluateAll((cards) => cards.map((c) => c.textContent));
+  const before = await seedsOf();
+  await next.locator('.card.expedition').first().click();
+  await next.getByRole('button', { name: 'New expeditions for 5 Seeds' }).click();
+  await expect(next.getByRole('button', { name: 'New expeditions for 10 Seeds' })).toBeVisible();
+  expect(await seedsOf()).not.toEqual(before);
+  // The chosen one went with the old set.
+  await expect(next.getByRole('button', { name: 'Choose an expedition first' })).toBeDisabled();
+  expect((await cityNow(page)).seeds).toBe(15);
+  await next.getByRole('button', { name: 'New expeditions for 10 Seeds' }).click();
+  // 5 Seeds left: the next set, at 15, can't be paid.
+  await expect(next.getByRole('button', { name: 'New expeditions for 15 Seeds' })).toBeDisabled();
+  expect(errors).toEqual([]);
+});

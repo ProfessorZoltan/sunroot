@@ -101,6 +101,8 @@ export interface CityState {
   tempest?: number;
   /** Every layer of the teaching ladder from the next run on, for experienced players. */
   fullValley?: boolean;
+  /** New sets of expeditions bought for the next run (missing: none). */
+  scouted?: number;
 }
 
 export type CityCommand =
@@ -109,6 +111,8 @@ export type CityCommand =
   | { type: 'release' }
   | { type: 'upgrade'; slot: number }
   | { type: 'chooseExpedition'; index: number }
+  /** A new set of expeditions for the next run, for Seeds. */
+  | { type: 'scoutExpeditions' }
   /** The Tempest level for the next runs, up to the highest unlocked. */
   | { type: 'setTempest'; level: number }
   /** Every layer (water, and later commuting and local heat) from the next run on, or not. */
@@ -344,7 +348,7 @@ export function expeditionOffer(content: Content, city: CityState): Expedition[]
   const biomes = openBiomes(content, city);
   if (biomes.length > 1) return mixedOffer(content, city, biomes);
   const count = content.progression?.expeditionChoices ?? 3;
-  const rng = createRng(`${city.seed}:expeditions:${city.runs}`);
+  const rng = createRng(offerKey(city));
   const twists = shuffled(
     rng,
     content.twists.map((t) => t.id),
@@ -360,16 +364,35 @@ export function expeditionOffer(content: Content, city: CityState): Expedition[]
   );
   const run = city.runs + 1;
   return Array.from({ length: count }, (_, i) => ({
-    seed: `${city.seed}-${run}-${String.fromCharCode(97 + i)}`,
+    seed: expeditionSeed(city, run, i),
     twist: twists[i % Math.max(1, twists.length)] ?? 'none',
     request: requests[i] ?? null,
     region: regions[i] ?? null,
   }));
 }
 
+/** The draw behind the next run's offer: a new one for each set bought (none: as it always was). */
+function offerKey(city: CityState): string {
+  const scouted = city.scouted ?? 0;
+  return `${city.seed}:expeditions:${city.runs}${scouted > 0 ? `:${scouted}` : ''}`;
+}
+
+/** An expedition's map seed: new valleys with each set bought. */
+function expeditionSeed(city: CityState, run: number, i: number): string {
+  const scouted = city.scouted ?? 0;
+  return `${city.seed}-${run}-${scouted > 0 ? scouted : ''}${String.fromCharCode(97 + i)}`;
+}
+
+/** Seeds for the next new set of expeditions (null: none on offer). */
+export function scoutCost(content: Content, city: CityState): number | null {
+  const base = content.progression?.scoutCost ?? 0;
+  if (base === 0 || city.runs === 0 || content.twists.length === 0) return null;
+  return base * ((city.scouted ?? 0) + 1);
+}
+
 function mixedOffer(content: Content, city: CityState, biomes: string[]): Expedition[] {
   const count = content.progression?.expeditionChoices ?? 3;
-  const rng = createRng(`${city.seed}:expeditions:${city.runs}`);
+  const rng = createRng(offerKey(city));
   const requests = shuffled(
     rng,
     content.requests.map((r) => r.id),
@@ -397,11 +420,11 @@ function mixedOffer(content: Content, city: CityState, biomes: string[]): Expedi
   const run = city.runs + 1;
   // Start from a different biome each time, so every biome comes up as the first offer.
   return Array.from({ length: count }, (_, i) => {
-    const biome = biomes[(i + city.runs) % biomes.length]!;
+    const biome = biomes[(i + city.runs + (city.scouted ?? 0)) % biomes.length]!;
     const d = draws.get(biome)!;
     const k = d.used++;
     return {
-      seed: `${city.seed}-${run}-${String.fromCharCode(97 + i)}`,
+      seed: expeditionSeed(city, run, i),
       twist: d.twists[k % Math.max(1, d.twists.length)] ?? 'none',
       request: requests[i] ?? null,
       region: d.regions[k] ?? null,
@@ -443,6 +466,7 @@ export function applyCityCommand(
       next.seeds += earned - spent;
       next.runs += 1;
       next.expedition = null;
+      delete next.scouted;
       const biome = command.result.biome ?? content.id;
       const home = biome === content.id;
       if (!home)
@@ -531,6 +555,17 @@ export function applyCityCommand(
       const offer = expeditionOffer(content, next)[command.index];
       if (!offer) return fail('no such expedition');
       next.expedition = offer;
+      break;
+    }
+    case 'scoutExpeditions': {
+      if (next.pending.length > 0) return fail('place the Graft first');
+      const cost = scoutCost(content, next);
+      if (cost === null) return fail('no new expeditions on offer');
+      if (next.seeds < cost) return fail(`a new set of expeditions costs ${cost} Seeds`);
+      next.seeds -= cost;
+      next.scouted = (next.scouted ?? 0) + 1;
+      // The one chosen from the old set is no longer offered.
+      next.expedition = null;
       break;
     }
     case 'embark': {

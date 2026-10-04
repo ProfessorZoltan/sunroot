@@ -86,6 +86,7 @@ export {
   createCity,
   districtAt,
   expeditionOffer,
+  scoutCost,
   isFull,
   makeCitySave,
   needsExpedition,
