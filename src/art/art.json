@@ -34,5 +34,10 @@
     "singingSpire": [128.5, 97.5],
     "tideTurbine": [128, 183],
     "windSpire": [127, 90.5]
+  },
+  "city": {
+    "tallFrame": [256, 512],
+    "tallTileCentre": [128, 378.75],
+    "pivots": {}
   }
 }

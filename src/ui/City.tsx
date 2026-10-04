@@ -6,6 +6,9 @@
  */
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { TILE_COLORS } from '../render/palette';
+import { HEX_RADIUS, HEX_SPACING, groundPixel, hexCorners } from '../render/layout';
+import { centreArt, duskAt, DUSK_LENGTH, type EdgeSide } from '../game/cityArt';
+import { artScaleAt, cityArtUrl, cityPivot, hasCityArt, placeArt } from './cityArt';
 import {
   effectiveContent,
   applyCityCommand,
@@ -15,6 +18,8 @@ import {
   openBiomes,
   tempestUnlockedIn,
   generateMap,
+  hexKey,
+  hexNeighbors,
   isFull,
   needsExpedition,
   neighborSlots,
@@ -54,6 +59,88 @@ const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 
 function toPixel(h: Hex, size = SIZE): { x: number; y: number } {
   return { x: size * SQRT3 * (h.q + h.r / 2), y: size * 1.5 * h.r };
+}
+
+/** A slot's centre in the city: the map's geometry (the art's), SIZE apart. */
+function cityPixel(h: Hex): { x: number; y: number } {
+  const p = groundPixel(h);
+  const k = SIZE / HEX_SPACING;
+  return { x: p.x * k, y: p.y * k };
+}
+
+/** A city hex's outline about its centre, as the map draws a tile (with the paper gap). */
+const CITY_HEX = (() => {
+  const c = hexCorners({ x: 0, y: 0 }, (HEX_RADIUS * SIZE) / HEX_SPACING);
+  const points: string[] = [];
+  for (let i = 0; i < c.length; i += 2) points.push(`${c[i]!.toFixed(1)},${c[i + 1]!.toFixed(1)}`);
+  return points.join(' ');
+})();
+
+const SIDES: readonly EdgeSide[] = ['e', 'ne', 'nw'];
+
+/** The city's bounds: its slots, and with art the tall Heartwood and the art above each row. */
+function cityView(
+  centres: { x: number; y: number }[],
+  art: boolean,
+): { x: number; y: number; w: number; h: number } {
+  const xs = [0, ...centres.map((c) => c.x)];
+  const ys = [0, ...centres.map((c) => c.y)];
+  const left = Math.min(...xs) - SIZE * 1.1;
+  const right = Math.max(...xs) + SIZE * 1.1;
+  const bottom = Math.max(...ys) + SIZE * 1.15;
+  const tops = art
+    ? [
+        placeArt(0, 0, SIZE, true)?.y ?? 0,
+        ...centres.map((c) => placeArt(c.x, c.y, SIZE)?.y ?? c.y),
+      ]
+    : ys.map((y) => y - SIZE * 1.15);
+  const top = Math.min(...tops) - 4;
+  return { x: left, y: top, w: right - left, h: bottom - top };
+}
+
+/** The dusk's colour: the light dims and cools, blue holding longest. */
+function duskMatrix(d: number): string {
+  const [r, g, b] = [1 - 0.55 * d, 1 - 0.5 * d, 1 - 0.3 * d];
+  return `${r} 0 0 0 ${0.02 * d}  0 ${g} 0 0 ${0.02 * d}  0 0 ${b} 0 ${0.05 * d}  0 0 0 1 0`;
+}
+
+/** One piece of the city's art on the hex centred at `at`: its turning part, and its lit windows at dusk. */
+function ArtPiece({
+  name,
+  at,
+  tall,
+  dusk,
+}: {
+  name: string;
+  at: { x: number; y: number };
+  tall: boolean;
+  dusk: number;
+}) {
+  const url = cityArtUrl(name);
+  const place = placeArt(at.x, at.y, SIZE, tall);
+  if (!url || !place) return null;
+  const rotor = cityArtUrl(`${name}.rotor`);
+  const pivot = cityPivot(name);
+  const windows = cityArtUrl(`${name}.windows`);
+  const k = artScaleAt(SIZE);
+  const filter = dusk > 0 ? 'url(#city-dusk)' : undefined;
+  return (
+    <>
+      <image href={url} {...place} filter={filter} data-art={name} />
+      {rotor && pivot && (
+        <image
+          href={rotor}
+          {...place}
+          class="city-rotor"
+          filter={filter}
+          style={{ transformOrigin: `${place.x + pivot[0] * k}px ${place.y + pivot[1] * k}px` }}
+        />
+      )}
+      {windows && dusk > 0 && (
+        <image href={windows} {...place} opacity={dusk} class="city-windows" />
+      )}
+    </>
+  );
 }
 
 function hexPoints(cx: number, cy: number, size: number): string {
@@ -125,7 +212,7 @@ function Heartwood({ growth, grown }: { growth: number; grown: boolean }) {
   return (
     <g aria-hidden="true">
       {grown && <circle r={SIZE * 0.95} fill="#F2C14E" opacity="0.35" />}
-      <polygon points={hexPoints(0, 0, SIZE - 3)} fill="#efe2bf" stroke="#cdbb92" />
+      <polygon points={CITY_HEX} fill="#efe2bf" stroke="#cdbb92" />
       <rect x="-3" y="2" width="6" height="16" fill="#7a4a2a" />
       <circle cy={-crown / 3} r={crown} fill={grown ? '#E0A33B' : '#5e8a55'} />
       <circle
@@ -186,9 +273,9 @@ function RegionThumb({
   );
 }
 
-/** Lines between districts that form a standing landmark. */
-function landmarkLinks(content: Content, city: CityState): [number, number][] {
-  const links: [number, number][] = [];
+/** Pairs of districts that form a standing landmark, with the landmark. */
+function landmarkLinks(content: Content, city: CityState): [number, number, string][] {
+  const links: [number, number, string][] = [];
   for (const id of standingLandmarks(content, city)) {
     const l = content.landmarks.find((x) => x.id === id)!;
     for (const d of city.districts.filter((x) => x.district === l.district)) {
@@ -197,7 +284,7 @@ function landmarkLinks(content: Content, city: CityState): [number, number][] {
         if (!n) continue;
         const green = content.districts.find((x) => x.id === n.district)?.green;
         if (l.nextTo.districts.includes(n.district) || (l.nextTo.green && green))
-          links.push([d.slot, s]);
+          links.push([d.slot, s, id]);
       }
     }
   }
@@ -213,9 +300,12 @@ export function CityScreen({
   onBack,
   onStartOver,
   audio,
+  duskOnOpen = false,
 }: {
   content: Content;
   initial: CityState;
+  /** Back from a run: the city settles into dusk, its windows lit, then day returns. */
+  duskOnOpen?: boolean;
   /** A run is in progress: the city can be looked at, not changed. */
   readOnly?: boolean;
   onSave: (city: CityState) => void;
@@ -232,6 +322,27 @@ export function CityScreen({
   const [events, setEvents] = useState<CityEvent[]>([]);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => heading.current?.focus(), []);
+  // Dusk: the light dims and the windows light, then day returns (never with reduced motion).
+  const [dusk, setDusk] = useState(0);
+  const duskRun = useRef(0);
+  const playDusk = () => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    const run = ++duskRun.current;
+    const start = performance.now();
+    const step = (now: number) => {
+      if (run !== duskRun.current) return;
+      const t = now - start;
+      setDusk(t >= DUSK_LENGTH ? 0 : duskAt(t));
+      if (t < DUSK_LENGTH) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+  useEffect(() => {
+    if (duskOnOpen) playDusk();
+    return () => {
+      duskRun.current++;
+    };
+  }, []);
   // The city's music fills out as its slots fill.
   useEffect(
     () => audio?.setLayers(1 + Math.floor((3 * initial.districts.length) / slotCount(content))),
@@ -258,6 +369,7 @@ export function CityScreen({
         audio.play(cue.cue, cue.notes);
       }
       for (const e of r.events) {
+        if (e.kind === 'sunTree') playDusk();
         if (e.kind === 'landmark' || e.kind === 'sunTree') {
           const cue = cityCue(e.kind);
           audio.play(cue.cue, cue.notes);
@@ -291,7 +403,25 @@ export function CityScreen({
     }
     setSelected(districtAt(city, slot) ? slot : null);
   };
-  const extent = SIZE * SQRT3 * 2.5 + SIZE;
+  const art = hasCityArt();
+  const centres = slots.map(cityPixel);
+  // Back to front: rows from the top, so each row of art stands in front of the one behind.
+  const drawOrder = [
+    { slot: null as number | null, c: { x: 0, y: 0 } },
+    ...centres.map((c, slot) => ({ slot: slot as number | null, c })),
+  ].sort((a, b) => a.c.y - b.c.y || a.c.x - b.c.x);
+  const centreDrawn = art && cityArtUrl(centreArt(progress.filled, city.sunTree !== null)) !== null;
+  // A landmark's piece lies along the edge its two districts share, drawn with the tile whose
+  // east, north-east or north-west edge that is (as the map's hedges).
+  const pieces = links.map(([a, b, id]) => {
+    const i = hexNeighbors(slots[a]!).findIndex((n) => hexKey(n) === hexKey(slots[b]!));
+    const [owner, side] = i < 3 ? [a, i] : [b, i - 3];
+    return { a, b, owner, name: `${id}.edge.${SIDES[side]!}` };
+  });
+  const paintedLinks = new Set(
+    pieces.filter((p) => art && cityArtUrl(p.name) !== null).map((p) => `${p.a}:${p.b}`),
+  );
+  const view = cityView(centres, art);
 
   return (
     <div class="screen city-screen">
@@ -334,22 +464,58 @@ export function CityScreen({
         )}
       </header>
       <div class="city-body">
-        <main class="city-map" aria-label="The city">
+        <main class="city-map" aria-label="The city" style={{ '--dusk': dusk }}>
           <svg
-            viewBox={`${-extent} ${-extent * 0.82} ${extent * 2} ${extent * 1.64}`}
+            viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`}
             role="group"
             aria-label="District slots around the Heartwood"
+            data-dusk={dusk.toFixed(2)}
           >
-            <Heartwood
-              growth={progress.filled / Math.max(1, progress.slots)}
-              grown={city.sunTree !== null}
-            />
+            <defs>
+              <filter id="city-dusk" color-interpolation-filters="sRGB">
+                <feColorMatrix type="matrix" values={duskMatrix(dusk)} />
+              </filter>
+            </defs>
+            {art && (
+              // The hand-made city, row by row so each row stands in front of the one behind.
+              <g class="city-art" aria-hidden="true">
+                {drawOrder.map((item) => {
+                  const name =
+                    item.slot === null
+                      ? centreArt(progress.filled, city.sunTree !== null)
+                      : (() => {
+                          const d = districtAt(city, item.slot);
+                          return d ? `${d.district}.${d.tier}` : 'slot';
+                        })();
+                  return (
+                    <>
+                      <ArtPiece name={name} at={item.c} tall={item.slot === null} dusk={dusk} />
+                      {pieces
+                        .filter((p) => p.owner === item.slot)
+                        .map((p) => (
+                          <ArtPiece name={p.name} at={item.c} tall={false} dusk={dusk} />
+                        ))}
+                    </>
+                  );
+                })}
+              </g>
+            )}
+            {!centreDrawn && (
+              <g filter={dusk > 0 ? 'url(#city-dusk)' : undefined}>
+                <Heartwood
+                  growth={progress.filled / Math.max(1, progress.slots)}
+                  grown={city.sunTree !== null}
+                />
+              </g>
+            )}
             {slots.map((h, slot) => {
-              const { x, y } = toPixel(h);
+              const { x, y } = centres[slot]!;
               const d = districtAt(city, slot);
               const look = d ? lookOf(d.district) : null;
               const tierIndex = d ? tiers.findIndex((t) => t.id === d.tier) : -1;
               const target = !readOnly && pending !== undefined && (!d || full);
+              // Its art, when there is some, stands in for the coloured hex and emblem.
+              const painted = art && cityArtUrl(d ? `${d.district}.${d.tier}` : 'slot') !== null;
               const label = d
                 ? `Slot ${slot + 1}: ${nameOf(content, d.district)}, ${tiers[tierIndex]?.name}${
                     d.tempest ? `, Tempest ${d.tempest}` : ''
@@ -359,11 +525,12 @@ export function CityScreen({
                 <g
                   class={`slot${d ? ' filled' : ''}${target ? ' target' : ''}${
                     selected === slot ? ' selected' : ''
-                  }`}
+                  }${painted ? ' painted' : ''}`}
                   role="button"
                   tabIndex={0}
                   aria-label={label}
                   aria-pressed={selected === slot}
+                  data-hex={hexKey(h)}
                   transform={`translate(${x.toFixed(1)},${y.toFixed(1)})`}
                   onClick={() => chooseSlot(slot)}
                   onKeyDown={(e) => {
@@ -374,17 +541,23 @@ export function CityScreen({
                   }}
                 >
                   <polygon
-                    points={hexPoints(0, 0, SIZE - 3)}
+                    points={CITY_HEX}
                     fill={look ? look.color : '#fbf5e6'}
                     stroke={look ? '#2f3b2e' : '#cdbb92'}
                     stroke-width={look ? 1.2 : 1.5}
                     stroke-dasharray={look ? undefined : '5 4'}
+                    filter={!painted && dusk > 0 ? 'url(#city-dusk)' : undefined}
                   />
                   {d && look && (
                     <>
-                      <g transform="translate(0,-6)">
-                        <Emblem id={d.district} ink={look.ink} />
-                      </g>
+                      {!painted && (
+                        <g
+                          transform="translate(0,-6)"
+                          filter={dusk > 0 ? 'url(#city-dusk)' : undefined}
+                        >
+                          <Emblem id={d.district} ink={look.ink} />
+                        </g>
+                      )}
                       <g aria-hidden="true">
                         {Array.from({ length: tierIndex + 1 }, (_, i) => (
                           <circle
@@ -416,9 +589,11 @@ export function CityScreen({
               );
             })}
             {links.map(([a, b]) => {
-              // A gold clasp across the shared edge of two districts that form a landmark.
-              const p = toPixel(slots[a]!);
-              const q = toPixel(slots[b]!);
+              // A gold clasp across the shared edge of two districts that form a landmark,
+              // unless the landmark's art is drawn there.
+              if (paintedLinks.has(`${a}:${b}`)) return null;
+              const p = centres[a]!;
+              const q = centres[b]!;
               const mx = (p.x + q.x) / 2;
               const my = (p.y + q.y) / 2;
               const dx = (q.x - p.x) * 0.22;

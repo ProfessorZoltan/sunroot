@@ -24,15 +24,20 @@
  * - wonders (`wonders/`, E5) at half size on their own larger frame (three
  *   standard frames wide, two tall), with an icon like a building's.
  *
- * It reads `tiles/`, `buildings/`, `wildlife/`, `festivals/` and `wonders/`.
+ * - Root City (`city/`, docs/ART-CITY.md): each district at each tier, the Heartwood's stages
+ *   and the Sun Tree on a tall frame (512 x 1024), the empty plot and the landmarks' edge
+ *   pieces, at half size; their lit windows alone and their rotors' pivots, as the map's.
+ *
+ * It reads `tiles/`, `buildings/`, `wildlife/`, `festivals/`, `wonders/` and `city/`.
  *
  *   npx tsx scripts/import-art.ts
  */
-import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { chromium } from '@playwright/test';
 import { BIOMES, biomeContent } from '../src/content';
 import { TILE_TYPES } from '../src/sim';
+import { isTall, parseCityArt } from '../src/game/cityArt';
 
 const IN = 'art/incoming';
 const OUT = 'src/art';
@@ -57,6 +62,11 @@ const tiles = new Set<string>(TILE_TYPES);
 /** Buildings, and pieces drawn with them: the sluice gate at a channel's intake. */
 const DECORATIONS = ['sluiceGate'];
 const buildings = new Set([...Object.keys(byId), ...DECORATIONS]);
+/** A PNG's width and height, from its header. */
+function pngSize(path: string): [number, number] {
+  const b = readFileSync(path);
+  return [b.readUInt32BE(16), b.readUInt32BE(20)];
+}
 const idOf = (file: string) => file.split('.')[0]!.replace(/-\d+$/, '');
 /** A biome's own look for a tile type: `hill.coast.png`, `hill.coast.winter.png`. */
 const lands = new Set(biomes.map((c) => c.land));
@@ -84,20 +94,26 @@ try {
     `data:image/png;base64,${readFileSync(join(IN, f)).toString('base64')}`;
 
   rmSync(OUT, { recursive: true, force: true });
-  for (const dir of ['tiles', 'buildings', 'icons', 'wildlife', 'festivals', 'wonders'])
+  for (const dir of ['tiles', 'buildings', 'icons', 'wildlife', 'festivals', 'wonders', 'city'])
     mkdirSync(join(OUT, dir), { recursive: true });
   const write = (path: string, dataUrl: string) =>
     writeFileSync(join(OUT, path), Buffer.from(dataUrl.split(',')[1]!, 'base64'));
 
-  const ground: string[] = [];
-  /** Each rotor's measured centre, in the full frame. */
-  const centres: Record<string, [number, number]> = {};
-  const delivered = files.filter(({ file }) => file.endsWith('.icon.png'));
-  for (const { dir, file } of files.filter((f) => !delivered.includes(f))) {
-    const id = idOf(file);
-    const isTile = dir === 'tiles';
-    const lit = file.endsWith('.lit.png');
-    const result = await page.evaluate(
+  interface FrameArgs {
+    src: string;
+    day: string | null;
+    fw: number;
+    fh: number;
+    scale: number;
+    band: number;
+    icon: number;
+    wantGround: boolean;
+    wantIcon: boolean;
+    wantCentre: boolean;
+  }
+  /** One frame at half size; its lit windows alone, its own-tile check, icon and rotor pivot. */
+  const processFrame = (args: FrameArgs) =>
+    page.evaluate(
       async ({ src, day, fw, fh, scale, band, icon, wantGround, wantIcon, wantCentre }) => {
         const load = async (s: string) => {
           const img = new Image();
@@ -202,24 +218,34 @@ try {
         }
         return { png: half.toDataURL('image/png'), hasGround, icon: iconUrl, centre };
       },
-      {
-        src: read(join(dir, file)),
-        day: lit ? read(join(dir, `${id}.png`)) : null,
-        fw,
-        fh,
-        scale: SCALE,
-        band: g.band_bottom,
-        icon: ICON,
-        wantGround: !isTile && file === `${id}.png`,
-        // An edge piece only (the snow fence): its icon from the east piece.
-        wantIcon:
-          !isTile &&
-          !DECORATIONS.includes(id) &&
-          (file === `${id}.png` ||
-            (file === `${id}.edge.e.png` && !files.some((f) => f.file === `${id}.png`))),
-        wantCentre: file === `${id}.rotor.png`,
-      },
+      args,
     );
+
+  const ground: string[] = [];
+  /** Each rotor's measured centre, in the full frame. */
+  const centres: Record<string, [number, number]> = {};
+  const delivered = files.filter(({ file }) => file.endsWith('.icon.png'));
+  for (const { dir, file } of files.filter((f) => !delivered.includes(f))) {
+    const id = idOf(file);
+    const isTile = dir === 'tiles';
+    const lit = file.endsWith('.lit.png');
+    const result = await processFrame({
+      src: read(join(dir, file)),
+      day: lit ? read(join(dir, `${id}.png`)) : null,
+      fw,
+      fh,
+      scale: SCALE,
+      band: g.band_bottom,
+      icon: ICON,
+      wantGround: !isTile && file === `${id}.png`,
+      // An edge piece only (the snow fence): its icon from the east piece.
+      wantIcon:
+        !isTile &&
+        !DECORATIONS.includes(id) &&
+        (file === `${id}.png` ||
+          (file === `${id}.edge.e.png` && !files.some((f) => f.file === `${id}.png`))),
+      wantCentre: file === `${id}.rotor.png`,
+    });
     const land = file.split('.')[1];
     if (isTile && land !== undefined && !['png', 'winter'].includes(land) && !lands.has(land))
       throw new Error(`not a biome's land: tiles/${file}`);
@@ -363,6 +389,59 @@ try {
     extras++;
   }
 
+  // Root City (docs/ART-CITY.md), on the standard frame; the Heartwood and the Sun Tree on a
+  // frame 384 px taller, their tile at the bottom.
+  const home = biomes[0]!;
+  const cityIds = {
+    districts: home.districts.map((d) => d.id),
+    tiers: home.rules.score.tiers.map((t) => t.id),
+    landmarks: home.landmarks.map((l) => l.id),
+  };
+  const TALL = 384;
+  const cityPivots: Record<string, [number, number]> = {};
+  const cityFiles = existsSync(join(IN, 'city'))
+    ? readdirSync(join(IN, 'city')).filter((f) => f.endsWith('.png'))
+    : [];
+  for (const file of cityFiles) {
+    const art = parseCityArt(file, cityIds);
+    if (!art) throw new Error(`not a Root City art name (docs/ART-CITY.md): city/${file}`);
+    const tall = isTall(art);
+    const size = pngSize(join(IN, 'city', file));
+    if (size[0] !== fw || size[1] !== fh + (tall ? TALL : 0))
+      throw new Error(`city/${file} is ${size.join(' x ')}, not ${fw} x ${fh + (tall ? TALL : 0)}`);
+    const part = 'part' in art ? art.part : 'day';
+    const base = file.replace(/\.(lit|rotor)\.png$/, '.png');
+    if (part !== 'day' && !cityFiles.includes(base))
+      throw new Error(`city/${file} has no ${base} to go with it`);
+    const result = await processFrame({
+      src: read(join('city', file)),
+      day: part === 'lit' ? read(join('city', base)) : null,
+      fw,
+      fh: fh + (tall ? TALL : 0),
+      scale: SCALE,
+      band: g.band_bottom,
+      icon: ICON,
+      wantGround: false,
+      // A district's icon, from its highest tier.
+      wantIcon: art.kind === 'district' && part === 'day' && art.tier === cityIds.tiers.at(-1),
+      wantCentre: part === 'rotor',
+    });
+    write(
+      join('city', part === 'lit' ? file.replace('.lit.png', '.windows.png') : file),
+      result.png,
+    );
+    if (result.icon && art.kind === 'district')
+      write(join('icons', `${art.district}.png`), result.icon);
+    if (part === 'rotor') {
+      if (!result.centre) throw new Error(`city/${file}: no orange hub to turn on`);
+      cityPivots[file.replace('.rotor.png', '')] = [
+        result.centre[0] * SCALE,
+        result.centre[1] * SCALE,
+      ];
+    }
+    extras++;
+  }
+
   const given = Object.fromEntries(
     manifest.assets
       .filter((a) => a.rotation_hub && !a.file.includes('.winter'))
@@ -388,6 +467,11 @@ try {
     tileWidth: g.tile_width * SCALE,
     ground: ground.sort(),
     pivots,
+    city: {
+      tallFrame: [fw * SCALE, (fh + TALL) * SCALE],
+      tallTileCentre: [g.tile_center[0] * SCALE, (g.tile_center[1] + TALL) * SCALE],
+      pivots: cityPivots,
+    },
   };
   writeFileSync(join(OUT, 'art.json'), `${JSON.stringify(art, null, 2)}\n`);
   console.log(

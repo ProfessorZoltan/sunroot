@@ -1026,6 +1026,41 @@ select:focus-visible {
   height: 100%;
   max-height: calc(100vh - 110px);
 }
+/* Dusk (docs/ART-CITY.md): the paper around the city dims with it. */
+.city-map {
+  background: color-mix(in srgb, #5b5f86 calc(var(--dusk, 0) * 75%), var(--paper));
+}
+/* Painted districts: the hex is only the hit area and the highlight. */
+.slot.painted polygon {
+  fill-opacity: 0;
+  stroke-opacity: 0;
+}
+.slot.painted:hover polygon,
+.slot.painted:focus-visible polygon,
+.slot.painted.selected polygon,
+.slot.painted.target polygon {
+  stroke-opacity: 1;
+}
+.slot.painted.target polygon {
+  fill-opacity: 0.3;
+}
+.city-art image {
+  pointer-events: none;
+}
+.city-rotor {
+  transform-box: view-box;
+  animation: city-turn 12s linear infinite;
+}
+@keyframes city-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .city-rotor {
+    animation: none;
+  }
+}
 .slot {
   cursor: pointer;
 }

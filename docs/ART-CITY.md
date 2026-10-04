@@ -6,11 +6,12 @@ follows the existing art spec ([ART.md](ART.md) and
 [`art/incoming/README.md`](../art/incoming/README.md)) unless a section says otherwise: the same
 papercraft style, the same light from the upper left, and the same 512 × 640 frame.
 
-Today the city is drawn in code (`src/ui/City.tsx`): flat coloured hexes with a small emblem, a dot
-per tier, a badge for a Tempest Graft and a gold clasp between districts that form a landmark.
-That drawing stays as the fallback for anything without art. When the art arrives, the importer
-takes a new folder, `art/incoming/city/`, and the city is drawn from it. Nothing here blocks the
-game.
+**Ready for the art.** The importer takes `art/incoming/city/` (`npx tsx scripts/import-art.ts`,
+which refuses a name or a frame size that isn't this guide's), and the city screen draws each
+piece it has: the city already stands on the map's hex geometry, so the tiles fit together as on
+the map. Anything without art is still drawn in code (`src/ui/City.tsx`): coloured hexes with a
+small emblem. The tier dots, the Tempest badge and the selection are drawn over the art either
+way, and a landmark's gold clasp gives way to its piece.
 
 ## What the city is
 
@@ -112,11 +113,12 @@ for the tile's east, north-east or north-west edge, on the standard frame, sitti
 paper gap. Keep each piece within about 60 px of its edge so it never covers a district's
 landmark shape. With art, a landmark replaces today's gold clasp.
 
-## Dusk, optional
+## Dusk
 
-The city is always shown in daylight today. With the art comes an optional dusk look: the light
-dims slowly and windows and lanterns glow, as homes do on the map at night. It plays when you
-return from a run, and when the Sun Tree grows. For it, give `id.tier.lit.png` (the same frame,
+Coming home from a run, the city settles into dusk: after a moment the light dims and cools over
+2.5 seconds, the windows and lanterns glow, and after 7 seconds day returns. The Sun Tree's growing
+brings a dusk too. With reduced motion there is none. The code-drawn city dims as well, so the
+look works before the art arrives. For the glow, give `id.tier.lit.png` (the same frame,
 windows and lanterns lit, a full image as the map's `.lit.png` files are) for each Sapling and
 Heartwood district, and for the last Heartwood stage and the Sun Tree. Seedlings stay dark.
 

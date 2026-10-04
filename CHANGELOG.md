@@ -1,5 +1,12 @@
 # Changelog
 
+## Root City at dusk
+
+- Coming home from a run, **Root City settles into dusk**, its windows lit, before day returns;
+  the Sun Tree's growing brings a dusk too (not with reduced motion).
+- The city is ready for its **hand-painted art**: districts at each tier, the Heartwood growing
+  to the Sun Tree, the landmarks. Its hexes now have the map's shape.
+
 ## The Highland's art
 
 - The Highland is **hand-painted** now: its crags and bogs, the glen's own meadow and scrub,

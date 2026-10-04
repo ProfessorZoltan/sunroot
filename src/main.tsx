@@ -157,6 +157,7 @@ async function start() {
                   .then(() => (location.href = location.pathname))
         }
         audio={audio}
+        duskOnOpen={!readOnly && city.runs > 0}
       />,
       root,
     );
