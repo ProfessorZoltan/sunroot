@@ -29,7 +29,10 @@
  *   and the Sun Tree on a tall frame (512 x 1024), the empty plot and the landmarks' edge
  *   pieces, at half size; their lit windows alone and their rotors' pivots, as the map's.
  *
- * It reads `tiles/`, `buildings/`, `wildlife/`, `festivals/`, `wonders/` and `city/`.
+ * - the citizens (`people/`, docs/ART-PEOPLE.md): each frame and its clothes layer at half size.
+ *
+ * It reads `tiles/`, `buildings/`, `wildlife/`, `festivals/`, `keepsakes/`, `people/`, `wonders/`
+ * and `city/`.
  *
  *   npx tsx scripts/import-art.ts
  */
@@ -102,6 +105,7 @@ try {
     'wildlife',
     'festivals',
     'keepsakes',
+    'people',
     'wonders',
     'city',
   ])
@@ -305,6 +309,8 @@ try {
     'sandgrouse',
     'falcon',
     'oryx',
+    // The leaping fish (docs/ART-PEOPLE.md): `fish.leap.1`, a land's own `fish.coast.leap.1`.
+    'fish',
   ]);
   const festivals = new Set([
     ...biomes.flatMap((c) => c.festivals.map((f) => f.id)),
@@ -340,6 +346,37 @@ try {
       write(join(dir, card ? file.replace(/\.png$/, '.webp') : file), out);
       extras++;
     }
+  }
+
+  // The citizens (docs/ART-PEOPLE.md): each frame and its clothes layer, at half size like the
+  // animals. The names are checked against the guide's cast and frames.
+  const PERSON =
+    /^citizen\.(\d+)\.(walk\.[1-4]|roll\.[12]|stand|work)(\.winter\.clothes|\.clothes)?\.png$/;
+  const people = existsSync(join(IN, 'people'))
+    ? readdirSync(join(IN, 'people')).filter((f) => f.endsWith('.png'))
+    : [];
+  for (const file of people) {
+    const m = PERSON.exec(file);
+    const n = m ? Number(m[1]) : 0;
+    if (!m || n < 1 || n > 12)
+      throw new Error(`not a citizen frame (docs/ART-PEOPLE.md): people/${file}`);
+    const out = await page.evaluate(
+      async ({ src, scale }) => {
+        const img = new Image();
+        img.src = src;
+        await img.decode();
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * scale);
+        c.height = Math.round(img.height * scale);
+        const g = c.getContext('2d')!;
+        g.imageSmoothingQuality = 'high';
+        g.drawImage(img, 0, 0, c.width, c.height);
+        return c.toDataURL('image/png');
+      },
+      { src: read(join('people', file)), scale: SCALE },
+    );
+    write(join('people', file), out);
+    extras++;
   }
 
   // Wonders: half size on their own frame, and an icon from the finished one.

@@ -1,5 +1,11 @@
 # Changelog
 
+## Ready for the citizens' and fishes' art
+
+- The game now draws the walking citizens and the leaping fish from hand-made art as soon as it
+  comes (docs/ART-PEOPLE.md): a cast of twelve in many clothing colours, resting at home and at
+  work between walks, and a fish for each land. Until then they stay drawn as before.
+
 ## New expeditions and keepsakes for Seeds
 
 - Don't like the three expeditions on offer? In Root City, **New expeditions** shows three other

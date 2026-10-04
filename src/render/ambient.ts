@@ -160,6 +160,8 @@ export function drawAmbient(
   bounds: Bounds,
   clock: number,
   still: boolean,
+  /** Drawn from hand-made art instead (docs/ART-PEOPLE.md): the fish's rings stay here. */
+  art: { walkers: boolean; fish: boolean } = { walkers: false, fish: false },
 ): void {
   const t = still ? 0 : clock;
 
@@ -215,6 +217,7 @@ export function drawAmbient(
 
   // Citizens on their way: a small figure walking there and back.
   a.walkers.forEach((w, i) => {
+    if (art.walkers) return;
     const p = still ? 0.5 : pingPong(t / 5200 + i * 0.37);
     const x = w.from.x + (w.to.x - w.from.x) * p;
     const y = w.from.y + (w.to.y - w.from.y) * p + 8;
@@ -255,6 +258,7 @@ export function drawAmbient(
       }
       return;
     }
+    if (art.fish) return;
     const x = c.x - 8 + cycle * 16;
     const y = c.y + 6 - Math.sin(Math.PI * cycle) * 12;
     const ang = (cycle - 0.5) * 1.6;

@@ -228,6 +228,21 @@ export function propTexture(name: string): Texture | null {
   return pick(`festivals/${name}.png`);
 }
 
+/** A citizen's frame (`people/citizen.2.walk.1.png`, its `.clothes`), once it comes (docs/ART-PEOPLE.md). */
+export function peopleTexture(name: string): Texture | null {
+  return pick(`people/${name}.png`);
+}
+
+/** Whether a citizen's frame has come. */
+export function hasPeopleArt(name: string): boolean {
+  return textures.has(`people/${name}.png`);
+}
+
+/** Whether a wildlife frame has come (the leaping fish's, `fish.leap.1`). */
+export function hasWildlifeArt(name: string): boolean {
+  return textures.has(`wildlife/${name}.png`);
+}
+
 /** A settlement keepsake's art (`keepsakes/banner.png`, `windowBox`, `birdBox`, `kite`), once it comes. */
 export function keepsakeTexture(name: string): Texture | null {
   return pick(`keepsakes/${name}.png`);

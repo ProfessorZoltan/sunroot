@@ -9,6 +9,7 @@ import { ColorMatrixFilter, Container, Graphics, Sprite, Text } from 'pixi.js';
 import type { Texture } from 'pixi.js';
 import { keepsakesIn, youngFrame } from '../game/keepsakes';
 import { drawKites, drawOrnament, keepsakeProps, kiteAnchors } from './keepsakeArt';
+import { castOf, fishName, fishPose, walkerLook, walkerPose, type WalkerLook } from './peopleArt';
 import type { PhaseName, Timeline } from '../game/timeline';
 import type { Content } from '../sim/content/load';
 import { hexKey, hexNeighbors, parseHexKey, type Hex } from '../sim/hex';
@@ -55,6 +56,9 @@ import {
   rotorTexture,
   propTexture,
   keepsakeTexture,
+  peopleTexture,
+  hasPeopleArt,
+  hasWildlifeArt,
   tileTexture,
   wildlifeTexture,
   wonderSprite,
@@ -138,6 +142,11 @@ export class MapView {
   private readonly wildlife = new Graphics();
   /** The valley's animals (E4) and a festival's props, as sprites. */
   private readonly animalLayer = new Container();
+  /** The citizens and the leaping fish, once their art comes (docs/ART-PEOPLE.md). */
+  private readonly peopleLayer = new Container();
+  private people: { body: Sprite; clothes: Sprite; look: WalkerLook; rolls: boolean }[] = [];
+  private fishArt: { sprite: Sprite; at: Point }[] = [];
+  private fishPrefix: string | null = null;
   private actors: { actor: Actor; sprite: Sprite }[] = [];
   /** Animals with no art yet (the coast's), drawn in code each frame. */
   private drawnActors: Actor[] = [];
@@ -187,6 +196,7 @@ export class MapView {
       this.marksOver,
       this.wildlife,
       this.animalLayer,
+      this.peopleLayer,
       this.overFx,
       this.overlay,
       this.edgeCursor,
@@ -325,6 +335,7 @@ export class MapView {
         this.animals = { ...this.animals, deer: [], otters: [] };
       this.placeAnimals(state);
       this.ambient = ambientFor(this.content, state);
+      this.placePeople();
       this.drawWildlife();
     }
   }
@@ -458,6 +469,9 @@ export class MapView {
     smoke: number;
     fish: number;
     walkers: number;
+    /** Walkers and fish drawn from hand-made art (docs/ART-PEOPLE.md). */
+    walkersArt: number;
+    fishArt: number;
     falling: string;
   } {
     const a = this.ambient;
@@ -474,6 +488,8 @@ export class MapView {
       smoke: a?.smoke.length ?? 0,
       fish: a?.fish.length ?? 0,
       walkers: a?.walkers.length ?? 0,
+      walkersArt: this.people.length,
+      fishArt: this.fishArt.length,
       falling: a?.falling ?? '',
     };
   }
@@ -558,12 +574,94 @@ export class MapView {
     }
   }
 
+  /** Sprites for the walkers and the fish whose art has come; the rest stay drawn in code. */
+  private placePeople(): void {
+    for (const child of this.peopleLayer.removeChildren()) child.destroy();
+    this.people = [];
+    this.fishArt = [];
+    const a = this.ambient;
+    if (!a) return;
+    const cast = castOf(hasPeopleArt);
+    a.walkers.forEach((_, i) => {
+      const look = walkerLook(i, cast);
+      if (!look) return;
+      const body = new Sprite();
+      const clothes = new Sprite();
+      for (const s of [body, clothes]) {
+        s.anchor.set(0.5, 120 / 128);
+        this.peopleLayer.addChild(s);
+      }
+      clothes.tint = look.color;
+      this.people.push({
+        body,
+        clothes,
+        look,
+        rolls: hasPeopleArt(`citizen.${look.citizen}.roll.1`),
+      });
+    });
+    this.fishPrefix = fishName(this.content.land, hasWildlifeArt);
+    if (this.fishPrefix)
+      for (const at of a.fish) {
+        const sprite = new Sprite();
+        sprite.anchor.set(0.5);
+        this.peopleLayer.addChild(sprite);
+        this.fishArt.push({ sprite, at });
+      }
+  }
+
+  private movePeople(): void {
+    const a = this.ambient;
+    if (!a) return;
+    const still = this.reducedMotion;
+    const k = artScale() * SHOW_SCALE;
+    const season = this.state?.season ?? 'spring';
+    // A green winter (the desert's) keeps the summer clothes.
+    const winter = season === 'winter' && this.content.land !== 'desert';
+    this.people.forEach(({ body, clothes, look, rolls }, i) => {
+      const w = a.walkers[i];
+      if (!w) return;
+      const pose = walkerPose(w, i, this.clock, still, rolls);
+      const id = `citizen.${look.citizen}`;
+      // A frame not delivered yet: the first walking one.
+      const frame = hasPeopleArt(`${id}.${pose.frame}`)
+        ? `${id}.${pose.frame}`
+        : `${id}.${rolls ? 'roll' : 'walk'}.1`;
+      const tex = peopleTexture(frame);
+      if (tex && body.texture !== tex) body.texture = tex;
+      const dress =
+        (winter && peopleTexture(`${frame}.winter.clothes`)) || peopleTexture(`${frame}.clothes`);
+      clothes.visible = dress !== null;
+      if (dress && clothes.texture !== dress) clothes.texture = dress;
+      const s = k * look.size;
+      for (const sprite of [body, clothes]) {
+        sprite.position.set(pose.x, pose.y);
+        sprite.scale.set(pose.flip ? -s : s, s);
+      }
+    });
+    const prefix = this.fishPrefix;
+    if (!prefix) return;
+    this.fishArt.forEach(({ sprite, at }, i) => {
+      const pose = fishPose(at, i, this.clock, still);
+      sprite.visible = pose !== null;
+      if (!pose) return;
+      const tex = wildlifeTexture(`${prefix}.${pose.frame}`, season);
+      if (tex && sprite.texture !== tex) sprite.texture = tex;
+      sprite.position.set(pose.x, pose.y);
+      sprite.scale.set(k);
+    });
+  }
+
   private drawWildlife(): void {
     this.moveAnimals();
     const g = this.wildlife.clear();
     const { birds, deer, otters } = this.animals;
     const still = this.reducedMotion;
-    if (this.ambient && this.bounds) drawAmbient(g, this.ambient, this.bounds, this.clock, still);
+    this.movePeople();
+    if (this.ambient && this.bounds)
+      drawAmbient(g, this.ambient, this.bounds, this.clock, still, {
+        walkers: this.people.length > 0,
+        fish: this.fishArt.length > 0,
+      });
     for (const d of deer) drawDeer(g, d);
     for (const actor of this.drawnActors)
       drawAnimal(g, actor.kind, poseAt(actor, this.clock, still), this.state?.season);

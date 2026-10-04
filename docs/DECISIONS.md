@@ -1012,6 +1012,19 @@ expeditions, and keepsakes to look at.
 | In Root City      | Lanterns at the middle of each edge two standing districts (or a district and the Heartwood) share, lit at dusk; fireflies at dusk; a fountain at the Heartwood's foot; kites in up to 3 districts' colours. Buying the lanterns or the fireflies brings a dusk, to see them. Drawn in code in the city's picture; no art asked.                                                                 | `CityOrnaments` in `src/ui/City.tsx`                              |
 | Art               | A guide in ART-EXPANSION.md, Keepsakes: each young one's frames named after its animal's with its own name after it (`deer.white.walk.1.png`), drawn at their own size; the banner (its flag white, for the game to tint), window box and bird box as props in `art/incoming/keepsakes/`. The importer takes them.                                                                               | `scripts/import-art.ts`                                           |
 
+## The citizens and the fish in art
+
+[ART-PEOPLE.md](ART-PEOPLE.md) asks for the last pieces still drawn in code; the game reads them as
+they come.
+
+| Topic          | Decision                                                                                                                                                                                                                                                                                                        | Source                                   |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| The cast       | 12 citizens of different ages, heights, builds and skin tones (six tones, each twice), one in a wheelchair. Each frame is the person and a grey clothes layer the game tints from 8 colours. Walkers step through the cast by 5 and the colours by 3, so neighbours differ; each is up to 5% taller or shorter. | `src/render/peopleArt.ts`                |
+| A day's walk   | With art, a walker rests at home (standing), walks to work, works there, and walks back: 1.8 seconds at each end, 5.2 each way. Still with reduced motion. The code-drawn walkers keep walking as before.                                                                                                       | `walkerPose`; `tests/people-art.test.ts` |
+| Winter clothes | An optional winter clothes layer, worn in winter except in the desert's green winter.                                                                                                                                                                                                                           | `MapView.movePeople`                     |
+| The fish       | Three frames of a leap, a fish for each land (the valley's for a land without its own); the rings on the water stay drawn in code.                                                                                                                                                                              | `fishName`, `fishPose`                   |
+| As they come   | One citizen's first walking frame is enough for the map to use the art; a frame not yet painted falls back to it. Checked in the game with test art run through the importer.                                                                                                                                   | `scripts/import-art.ts`                  |
+
 ## Deferred to later milestones
 
 - The world map that heals as runs are completed, Tempest levels, and biome unlocks (Highland,
