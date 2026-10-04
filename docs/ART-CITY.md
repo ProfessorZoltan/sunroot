@@ -1,13 +1,15 @@
 # Art for Root City
 
-What Root City needs drawn: the Heartwood at its centre and the Sun Tree it grows into, the six
-districts at each of their three tiers, the empty plots, and the four landmarks. Everything
+What Root City needs drawn: the Heartwood at its centre and the Sun Tree it grows into, the seven
+districts at each of their three tiers, the empty plots, and the five landmarks. Everything
 follows the existing art spec ([ART.md](ART.md) and
 [`art/incoming/README.md`](../art/incoming/README.md)) unless a section says otherwise: the same
 papercraft style, the same light from the upper left, and the same 512 × 640 frame.
 
-**Delivered and in the game:** all 54 files (the 36 asked for, the 14 lit versions and the 4
-rotors), delivered as `root-city/` and kept in `art/incoming/city/`. **How it gets in.** The importer takes `art/incoming/city/` (`npx tsx scripts/import-art.ts`,
+**Delivered and in the game:** all 54 files for the first six districts and four landmarks (the
+36 asked for, the 14 lit versions and the 4 rotors), delivered as `root-city/` and kept in
+`art/incoming/city/`. **Still to paint:** the Sun Quarter and the Glassworks, which came with the
+Sun Desert (SD5); their brief is [below](#the-sun-quarter-and-the-glassworks-sd5). **How it gets in.** The importer takes `art/incoming/city/` (`npx tsx scripts/import-art.ts`,
 which refuses a name or a frame size that isn't this guide's), and the city screen draws each
 piece it has: the city already stands on the map's hex geometry, so the tiles fit together as on
 the map. Anything without art is still drawn in code (`src/ui/City.tsx`): coloured hexes with a
@@ -44,7 +46,7 @@ way, and a landmark's gold clasp gives way to its piece.
   Then neighbours can line up when they happen to match.
 - **Readable small.** The city is seen whole, about 70 px a hex on a laptop, and its icons are 48
   px. Each district needs one landmark shape that reads at that size (a mill wheel, a cider barn,
-  a chimney pair, a lighthouse, a hill town, a bandstand). Keep that shape in the same place at
+  a chimney pair, a lighthouse, a hill town, a bandstand, a wind tower). Keep that shape in the same place at
   every tier, growing as the tier rises.
 
 ## The tiers: how built up, how complex, how alive
@@ -81,6 +83,91 @@ Key colours are the interface's (`src/ui/City.tsx`, `LOOK`). Each needs `id.seed
 | Tidal Quarter    | `tidalQuarter`    | `#2F5E63`  | The sea: a tidal basin on the hex, its quay and tide mill (coastal runs).                   | A wooden jetty into a little basin, a buoy, a net shed.                                         | A stone quay round the basin, a tide mill house, two small boats, teal-painted shutters.                                     | A harbour basin with a sea gate, a slim lighthouse tower at the back, a tide turbine in the gate, a fish market, boats with teal sails.                           | The tide turbine turns (`.rotor.png`); the lighthouse lamp and quay windows lit. | `root-city.json`; windswept-coast.md   |
 | Ridge Quarter    | `ridgeQuarter`    | `#6B5B4E`  | Heat and shelter: stone homes on a rise, each with its own stove (heat-led runs).           | One bothy on a low rise, a woodpile, a heat well's cover.                                       | A short terrace of stone houses stepping up the hex, a heat well, chimneys with cowls, slate roofs edged in umber.           | A hill town climbing to a hearth hall at the top, warm windows everywhere, heat-collector panels on the roofs, a bathhouse with steam, steps and a little square. | Nearly every window lit; chimney smoke is drawn in code.                         | `root-city.json`; highland.md          |
 | Sun Quarter      | `sunQuarter`      | `#C8743A`  | The sun: mud-brick courts under mirrors and canopies (sun-led runs; in the game since SD5). | A mud-brick hut with a solar canopy beside it, a wind tower stump, a water jar in the shade.    | A courtyard house round a little pool, a full wind tower, canopies over a lane, a few heliostat mirrors, burnt-orange doors. | A sun town: courts and wind towers, a slim solar tower with its mirror field at the back, a shaded market street of canopies, palms in every court, a glass dome. | The solar tower's receiver and lanterns in the courts lit.                       | proposals/sun-desert.md, Root City     |
+
+## The Sun Quarter and the Glassworks (SD5)
+
+The seventh district and the fifth landmark, in the game since SD5 and drawn in code until their
+art comes (a burnt-orange hex with a sun over a wind tower; a gold clasp on the shared edge). Same
+frame, style, tier ladder and file rules as everything above: 512 × 640, late summer, each tile
+carrying its own ground, no winter files. The importer already knows both names.
+
+### The Sun Quarter
+
+**What it is.** The district a sun-led run sends home: one whose energy came mostly from solar
+canopies, Concentrated Solar Plants, agrivoltaic fields and restored arrays. It makes solar
+canopies give more in the darker seasons, and it is the quarter that brought the **Fog Net** to
+every biome. It is the desert's way of living carried home: thick mud-brick walls, shade, courts
+round water, wind towers to pull the cool air down, and the sun put to work overhead.
+
+**Match the desert art.** The Mud-brick House, Wind Tower, Solar Canopy, Concentrated Solar Plant,
+Fog Net and Cistern you painted for the map are this district's buildings, grown into a town.
+Reuse their shapes, materials and proportions so a player who has been to the desert recognises
+them.
+
+**Its ground.** Root City is not a desert. Inside the hex paint packed earth and pale gravel
+courts with drought planting (lavender-grey shrubs, agave, a fig), and let the city's grass come
+back in a thin band at the rim so the tile sits with its green neighbours. A path meets the middle
+of at least two sides. No dunes, no sand drifts.
+
+**Colours.**
+
+| Use                                                         | Colour                                | Source                    |
+| ----------------------------------------------------------- | ------------------------------------- | ------------------------- |
+| Key colour: doors, shutters, awnings, canopy cloth, banners | Burnt orange `#C8743A`                | `src/ui/City.tsx` `LOOK`  |
+| Walls                                                       | Mud-brick sand `#E8C98A`, whitewashed | ART-EXPANSION.md, palette |
+| Courts and paths                                            | Pale gravel `#D9C3A0`                 | ART-EXPANSION.md, palette |
+| Palms, the one dark note                                    | Date-palm green `#2F5D3A`             | ART-EXPANSION.md, palette |
+| Water in the court pools                                    | Sky-blue water, as on the map         | ART-EXPANSION.md, palette |
+| Panels and mirrors                                          | The map's solar blue and bright glass | The Solar Canopy's art    |
+
+**Its landmark shape: the wind tower.** A square tower with open vents near its top, the shape
+that reads at 70 px. Keep it in the same place (the back left of the hex) at every tier, growing:
+a stump, then a finished tower, then the tallest of a cluster. The Heartwood tier's solar tower
+stands at the back right as its tall feature; it does not replace the wind tower.
+
+| Tier      | Built up                                                                                                                                                                        | Complexity                                                                                                                                                              | Alive                                                                                                                                          | Height       | Source                              |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ----------------------------------- |
+| Seedling  | About a third: one mud-brick hut, a solar canopy on poles beside it shading a bench, the wind tower's stump in scaffolding, a fog net on two poles at the rim over a water jar. | Plain and small: raw mud brick, cloth and timber, brick moulds drying in rows, a heap of straw.                                                                         | 1 figure laying bricks. No lit windows.                                                                                                        | Up to 50 px  | This guide; DESIGN.md, Grafts       |
+| Sapling   | About two thirds: a courtyard house round a small square pool, the wind tower finished over it, canopies shading the lane, three heliostat mirrors on a low terrace, a cistern. | The landmark finished in whitewashed mud brick, burnt-orange doors and shutters, a palm in the court, a fig tree, the fog net now over the cistern, water jars, a cart. | 2 or 3 figures: one at the pool, one tilting a mirror, one under the canopy. Some windows lit at dusk.                                         | Up to 110 px | This guide; DESIGN.md, Grafts       |
+| Heartwood | Nearly all, with the courtyard still open in the middle: courts and roof terraces at several heights, a shaded market street of canopies, a small glass dome over a garden.     | Layered: three wind towers, the first the tallest; at the back right a slim solar tower with a curved field of mirrors turned to it; palms in every court; bunting.     | 5 to 8 figures: market stalls, people on the roof terraces, a child at the pool. Most windows and the court lanterns lit at dusk. A feast day. | All 168 px   | This guide; proposals/sun-desert.md |
+
+The same place, grown: the Seedling's hut is still there at Heartwood as the oldest house, its
+canopy now a long shade over the market street, and its fog net still at the rim.
+
+**Lit at dusk** (optional, as the others): `sunQuarter.sapling.lit.png` (windows round the court)
+and `sunQuarter.heartwood.lit.png` (windows, the court lanterns, the market's lamps, and the solar
+tower's receiver glowing white-gold). **No rotors:** wind towers don't turn, and the mirrors are
+painted still; one of them may catch the light as a painted highlight.
+
+### The Glassworks
+
+**What it is.** The landmark where the Sun Quarter stands next to the Foundry District: sand and
+heat make solar glass, so greenhouses and solar canopies cost less in every biome. Its hint is
+"Where the sun meets the furnace."
+
+**What it shows.** Along the shared edge: a small domed glass furnace of rose-red brick (the
+Foundry's `#B85C6E`), its door glowing orange; racks of solar glass panes leaning beside it, their
+edges catching the light; a curved mirror on a stand; a burnt-orange awning (the Sun Quarter's
+`#C8743A`) over a glassblower's bench. Each piece is the whole landmark laid along that edge, the
+furnace at the edge's middle.
+
+**How it sits.** As the other landmarks: three pieces, one for the tile's east, north-east and
+north-west edge, on the standard frame, sitting across the paper gap and kept within about 60 px of
+the edge so neither district's landmark shape is covered. Either district may own the edge, so the
+piece must read from both sides. The furnace's glow is painted (no lit file); smoke is drawn in
+code.
+
+### Files
+
+| File                                                                            | Needed?  | Count | Source       |
+| ------------------------------------------------------------------------------- | -------- | ----- | ------------ |
+| `sunQuarter.seedling.png`, `sunQuarter.sapling.png`, `sunQuarter.heartwood.png` | Yes      | 3     | This guide   |
+| `glassworks.edge.e.png`, `glassworks.edge.ne.png`, `glassworks.edge.nw.png`     | Yes      | 3     | This guide   |
+| `sunQuarter.sapling.lit.png`, `sunQuarter.heartwood.lit.png`                    | Optional | 2     | Dusk (below) |
+
+6 images are needed and 2 more are optional, delivered to `art/incoming/city/` with the rest.
+Paint the Sapling first to settle the look, then the Seedling and the Heartwood from it, then the
+Glassworks.
 
 ## The Heartwood and the Sun Tree
 
@@ -144,14 +231,15 @@ the Tidal Quarter's tide turbine (Heartwood). Other wheels are painted still.
 
 | Kind                    | Files                                                                                                   | Count | Source |
 | ----------------------- | ------------------------------------------------------------------------------------------------------- | ----- | ------ |
-| Districts               | `id.seedling.png`, `id.sapling.png`, `id.heartwood.png` for the 6 districts                             | 18    | New    |
+| Districts               | `id.seedling.png`, `id.sapling.png`, `id.heartwood.png` for the 7 districts                             | 21    | New    |
 | Heartwood and Sun Tree  | `heartwood.1.png` … `heartwood.4.png`, `sunTree.png` (tall frame)                                       | 5     | New    |
 | Empty plot              | `slot.png`                                                                                              | 1     | New    |
-| Landmarks               | `id.edge.e.png`, `.edge.ne.png`, `.edge.nw.png` for the 4 landmarks                                     | 12    | New    |
-| Optional: dusk          | `id.sapling.lit.png`, `id.heartwood.lit.png`; `heartwood.4.lit.png`, `sunTree.lit.png`                  | 14    | New    |
+| Landmarks               | `id.edge.e.png`, `.edge.ne.png`, `.edge.nw.png` for the 5 landmarks                                     | 15    | New    |
+| Optional: dusk          | `id.sapling.lit.png`, `id.heartwood.lit.png`; `heartwood.4.lit.png`, `sunTree.lit.png`                  | 16    | New    |
 | Optional: turning parts | `millraceQuarter.seedling.rotor.png` (and `.sapling`, `.heartwood`), `tidalQuarter.heartwood.rotor.png` | 4     | New    |
 
-36 images are needed, and up to 18 more are optional. Deliver them to `art/incoming/city/`.
+42 images are needed, and up to 20 more are optional (all delivered but the Sun Quarter's and the
+Glassworks', above). Deliver them to `art/incoming/city/`.
 Icons for the interface are cropped from the Heartwood tier, so no icon files are needed.
 District cards and expedition art are not part of this request.
 
