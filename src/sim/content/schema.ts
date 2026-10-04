@@ -128,6 +128,18 @@ const BuildingWaterSchema = z
   .strict();
 export type BuildingWater = z.infer<typeof BuildingWaterSchema>;
 
+/** Next to at least `count` buildings of these types, or tiles of these types. */
+const NextTo = z
+  .object({
+    buildings: z.array(z.string()).optional(),
+    tiles: z.array(TileTypeSchema).optional(),
+    count: int.min(1).default(1),
+    /** Next to one of each of `buildings`, rather than `count` of any of them (the Courtyard). */
+    each: z.boolean().default(false),
+  })
+  .strict();
+export type NextToRule = z.infer<typeof NextTo>;
+
 export const BUILDING_KINDS = [
   'food',
   'industry',
@@ -212,6 +224,10 @@ export const BuildingSchema = z
     fogged: z.boolean().default(false),
     /** A heatwave dims it by day: too hot to work well (the Sun Desert's solar canopies). */
     heatDimmed: z.boolean().default(false),
+    /** Needs no cooling next to these neighbours (the Courtyard: a wind tower and a cistern). */
+    coolingFreeNextTo: NextTo.optional(),
+    /** Rests in these seasons: not staffed, does nothing (Siesta's workshops in summer). */
+    restsIn: PerSeasonFlags.default([false, false, false, false]),
     /** More heat on these nights at this height or above (a home high in the Highland). */
     heatAtHeight: z
       .object({ from: int.min(1), add: int.min(1), seasons: z.array(z.enum(SEASONS)).min(1) })
@@ -1051,15 +1067,6 @@ export type Tuning = z.infer<typeof TuningSchema>;
 export const CharterSchema = z.object({ ...CardText, modifiers: z.array(ModifierSchema).min(1) });
 export type Charter = z.infer<typeof CharterSchema>;
 
-/** Next to at least `count` buildings of these types, or tiles of these types. */
-const NextTo = z
-  .object({
-    buildings: z.array(z.string()).optional(),
-    tiles: z.array(TileTypeSchema).optional(),
-    count: int.min(1).default(1),
-  })
-  .strict();
-
 const ComboBase = {
   id: z.string().regex(/^[a-z][A-Za-z]*$/),
   name: z.string(),
@@ -1139,6 +1146,16 @@ export const ComboSchema = z.discriminatedUnion('layer', [
         z.object({ kind: z.literal('cluster'), buildings: z.array(z.string()).min(2).max(3) }),
         /** An unbroken run of at least `length` hedges along tile edges, joined end to end. */
         z.object({ kind: z.literal('hedgeRun'), length: int.min(2) }),
+        /**
+         * At least `length` tiles of `building` joined end to end (a qanat), with the buildings
+         * of `beside` touching them as members too (the Long Qanat's gardens).
+         */
+        z.object({
+          kind: z.literal('channelRun'),
+          building: z.string(),
+          length: int.min(2),
+          beside: z.array(z.string()).default([]),
+        }),
         /** Buildings in a straight line, in this order (either direction), on these tiles. */
         z.object({
           kind: z.literal('line'),
@@ -1163,6 +1180,8 @@ export const ComboSchema = z.discriminatedUnion('layer', [
           harmony: int.default(0),
           /** Extra energy per slot for members of `appliesTo`, in slots where they produce. */
           generation: int.default(0),
+          /** The slots that extra comes in (the Heliostat Line: by night). */
+          generationSlots: z.array(z.enum(SLOTS)).default(['day', 'night']),
           ignoresShade: z.boolean().default(false),
           /** Members of `appliesTo` run without energy. */
           freeRuns: z.boolean().default(false),

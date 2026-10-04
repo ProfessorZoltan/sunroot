@@ -733,7 +733,8 @@
         },
         "chargesFrom": ["day"],
         "carriesOver": false
-      }
+      },
+      "starter": true
     },
     {
       "id": "heatWell",
@@ -893,7 +894,13 @@
         },
         "besideRiver": true
       },
-      "shades": 1
+      "shades": 1,
+      "nextToTilesFood": {
+        "tiles": ["woodland"],
+        "count": 2,
+        "amount": 1,
+        "seasons": [false, true, true, false]
+      }
     },
     {
       "id": "wadiFarm",
@@ -945,6 +952,16 @@
       "wellbeing": {
         "nextToTiles": {
           "tiles": ["meadow", "woodland"],
+          "amount": 1
+        }
+      },
+      "coolingFreeNextTo": {
+        "buildings": ["windTower", "cistern"],
+        "each": true
+      },
+      "water": {
+        "feeds": {
+          "quality": "grey",
           "amount": 1
         }
       }
@@ -1094,6 +1111,77 @@
         "materials": [1, 1, 1, 1]
       },
       "foodStorage": 5
+    },
+    {
+      "id": "threeLayerGarden",
+      "name": "Three-Layer Garden",
+      "cost": 3,
+      "workers": 1,
+      "kind": "food",
+      "draftable": false,
+      "placeable": false,
+      "farmland": true,
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "yields": {
+        "food": [4, 5, 5, 3],
+        "biomass": [1, 1, 1, 0]
+      },
+      "water": {
+        "needs": [0, 0, 0, 0],
+        "accepts": ["nutrient", "clean"],
+        "besideRiver": true
+      },
+      "shades": 1,
+      "nextToTilesFood": {
+        "tiles": ["woodland"],
+        "count": 2,
+        "amount": 1,
+        "seasons": [false, true, true, false]
+      }
+    },
+    {
+      "id": "fogFence",
+      "name": "Fog Fence",
+      "cost": 2,
+      "workers": 0,
+      "kind": "water",
+      "draftable": false,
+      "placeable": false,
+      "requiresWater": true,
+      "floodTolerant": true,
+      "stormProof": true,
+      "drinkingWater": true,
+      "placement": {
+        "tiles": ["rock", "erg", "reg"],
+        "atEdge": true
+      },
+      "water": {
+        "stores": 4,
+        "fills": [false, false, false, false],
+        "collects": [2, 2, 2, 3]
+      }
+    },
+    {
+      "id": "restoredArray",
+      "name": "Restored Array",
+      "cost": 2,
+      "workers": 0,
+      "kind": "energy",
+      "draftable": false,
+      "placeable": false,
+      "placement": {
+        "tiles": ["ruin"]
+      },
+      "generation": {
+        "day": [2, 2, 2, 2],
+        "night": [0, 0, 0, 0]
+      },
+      "sourceType": "solarCanopy",
+      "fogged": true,
+      "heatDimmed": true
     }
   ],
   "combos": [
@@ -1292,6 +1380,155 @@
       "text": "A salvage yard whose ruin is empty, next to a Seedbank Library, may become an Old World Archive instead of a Rewilded Ruin: +2 knowledge each season, with 1 worker. You choose.",
       "hint": "Not everything worth keeping in a ruin is metal.",
       "requiresWater": true
+    },
+    {
+      "id": "greyWaterLoop",
+      "layer": "chain",
+      "name": "Grey Water Loop",
+      "requiresWater": true,
+      "links": [
+        {
+          "buildings": ["mudBrickHouse"],
+          "standing": true
+        },
+        {
+          "buildings": ["reedBed"],
+          "cleaned": true
+        },
+        {
+          "buildings": ["oasisGarden", "threeLayerGarden"],
+          "gotWater": "clean"
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "biomass"],
+      "text": "Mud-brick house → grey water → reed bed → clean water → oasis garden, in a chain of neighbours along a channel. It closes when the reed bed cleans the house’s grey water and the garden drinks clean water. Once it runs, the reed bed makes +1 biomass and the garden +1 food for as long as it stands.",
+      "hint": "A house’s washing water, cleaned by reeds, waters a garden: nothing wasted in the desert."
+    },
+    {
+      "id": "courtyard",
+      "layer": "adjacency",
+      "name": "Courtyard",
+      "building": "mudBrickHouse",
+      "nextTo": {
+        "buildings": ["windTower", "cistern"],
+        "count": 2,
+        "each": true
+      },
+      "text": "A mud-brick house next to a wind tower and a cistern needs no cooling, even in a heatwave: the tower draws the air down over the water.",
+      "hint": "Wind over water cools a courtyard."
+    },
+    {
+      "id": "dateShade",
+      "layer": "adjacency",
+      "name": "Date Shade",
+      "building": "oasisGarden",
+      "nextTo": {
+        "tiles": ["woodland"],
+        "count": 2
+      },
+      "seasons": [false, true, true, false],
+      "text": "An oasis garden next to 2 palm groves: +1 food in summer and autumn, under the dates.",
+      "hint": "Gardens grow best in the palms’ shade."
+    },
+    {
+      "id": "heliostatLine",
+      "layer": "formation",
+      "name": "Heliostat Line",
+      "shape": {
+        "kind": "line",
+        "sequence": ["concentratedSolarPlant", "concentratedSolarPlant", "concentratedSolarPlant"],
+        "tiles": ["reg"]
+      },
+      "effect": {
+        "generation": 1,
+        "generationSlots": ["night"],
+        "appliesTo": "concentratedSolarPlant"
+      },
+      "text": "3 Concentrated Solar Plants in a straight line on the reg share one tower and one tank: each makes +1 by night.",
+      "hint": "Mirrors in a row, a tank between them."
+    },
+    {
+      "id": "greenWall",
+      "layer": "formation",
+      "name": "Green Wall",
+      "shape": {
+        "kind": "hedgeRun",
+        "length": 4
+      },
+      "effect": {
+        "harmony": 1,
+        "shelterRadius": 2
+      },
+      "text": "4 palm windbreaks in an unbroken line: no dust storm buries anything within 2 tiles of it, and +1 Harmony.",
+      "hint": "A long line of palms holds back the sand."
+    },
+    {
+      "id": "longQanat",
+      "layer": "formation",
+      "name": "Long Qanat",
+      "requiresWater": true,
+      "shape": {
+        "kind": "channelRun",
+        "building": "qanat",
+        "length": 4,
+        "beside": ["oasisGarden", "threeLayerGarden"]
+      },
+      "effect": {
+        "yields": {
+          "food": 1
+        }
+      },
+      "text": "A qanat of 4 tiles or more: the gardens beside it make +1 food, watered cool from underground.",
+      "hint": "Cool water from deep underground, carried far."
+    },
+    {
+      "id": "threeLayerGarden",
+      "layer": "evolution",
+      "name": "Three-Layer Garden",
+      "from": "oasisGarden",
+      "into": "threeLayerGarden",
+      "when": {
+        "kind": "nextTo",
+        "nextTo": {
+          "buildings": ["oasisGarden", "threeLayerGarden"],
+          "count": 2
+        },
+        "also": {
+          "buildings": ["treeNursery"]
+        }
+      },
+      "text": "An oasis garden next to 2 other gardens and a tree nursery becomes a Three-Layer Garden: palms over fruit trees over crops, 1 more food every season and no water needed.",
+      "hint": "Palms, fruit trees and crops, each in the shade of the one above."
+    },
+    {
+      "id": "fogFence",
+      "layer": "evolution",
+      "name": "Fog Fence",
+      "requiresWater": true,
+      "from": "fogNet",
+      "into": "fogFence",
+      "when": {
+        "kind": "nextTo",
+        "nextTo": {
+          "buildings": ["fogNet", "fogFence"],
+          "count": 2
+        }
+      },
+      "text": "A fog net next to 2 fog nets becomes a Fog Fence: 2 water each season (3 in winter), holding 4.",
+      "hint": "Nets side by side comb more of the fog."
+    },
+    {
+      "id": "restoredArray",
+      "layer": "evolution",
+      "name": "Restored Array",
+      "from": "salvageYard",
+      "into": "restoredArray",
+      "when": {
+        "kind": "ruinExhausted"
+      },
+      "text": "A salvage yard that has emptied the old array becomes a Restored Array: its last panels mended, 2 energy by day, and its worker free.",
+      "hint": "What is left of the old array might still work."
     }
   ],
   "tunings": [
@@ -1505,6 +1742,140 @@
           "add": 1
         }
       ]
+    },
+    {
+      "id": "deeperCisterns",
+      "name": "Deeper Cisterns",
+      "text": "Cisterns hold 3 more water.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "cistern",
+          "path": "water.stores",
+          "add": 3
+        }
+      ]
+    },
+    {
+      "id": "whitewashedWalls",
+      "name": "Whitewashed Walls",
+      "text": "Homes reflect the sun: a heatwave asks no more cooling of them.",
+      "modifiers": [
+        {
+          "target": "event",
+          "id": "heatwave",
+          "path": "coolingAdd",
+          "set": 0
+        }
+      ]
+    },
+    {
+      "id": "cleanMirrors",
+      "name": "Clean Mirrors",
+      "text": "Panels and mirrors are swept after every storm: dust storms dim them no more.",
+      "modifiers": [
+        {
+          "target": "event",
+          "id": "storm",
+          "path": "solarPenalty",
+          "set": 0
+        }
+      ]
+    },
+    {
+      "id": "dateHarvest",
+      "name": "Date Harvest",
+      "text": "Oasis gardens make 1 more food in autumn.",
+      "refinement": true,
+      "building": "oasisGarden",
+      "max": 2,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "oasisGarden",
+          "path": "yields.food.2",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "threeLayerGarden",
+          "path": "yields.food.2",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "nightWatch",
+      "name": "Night Watch",
+      "text": "Concentrated Solar Plants keep their tanks hotter: 1 more energy every night.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "concentratedSolarPlant",
+          "path": "generation.night",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "saltTrade",
+      "name": "Salt Trade",
+      "text": "Salt works make 1 more materials a season.",
+      "refinement": true,
+      "building": "saltWorks",
+      "max": 2,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "saltWorks",
+          "path": "yields.materials",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "widerTowers",
+      "name": "Wider Towers",
+      "text": "Wind towers cool 1 more each day.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "windTower",
+          "path": "cooling.day",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "fogWeavers",
+      "name": "Fog Weavers",
+      "text": "Fog nets and fences catch 1 more water a season, and hold 1 more.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "fogNet",
+          "path": "water.collects",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "fogNet",
+          "path": "water.stores",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "fogFence",
+          "path": "water.collects",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "fogFence",
+          "path": "water.stores",
+          "add": 1
+        }
+      ]
     }
   ],
   "charters": [
@@ -1578,6 +1949,64 @@
           "id": "pollinatorMeadow",
           "path": "harmony",
           "add": 1
+        }
+      ]
+    },
+    {
+      "id": "waterKeepers",
+      "name": "Water Keepers",
+      "text": "Every channel is shaded and covered: channels lose nothing to the sun.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "water.evaporation.seasons.0",
+          "set": false
+        },
+        {
+          "target": "rules",
+          "path": "water.evaporation.seasons.1",
+          "set": false
+        },
+        {
+          "target": "rules",
+          "path": "water.evaporation.seasons.2",
+          "set": false
+        },
+        {
+          "target": "rules",
+          "path": "water.evaporation.seasons.3",
+          "set": false
+        }
+      ]
+    },
+    {
+      "id": "siesta",
+      "name": "Siesta",
+      "text": "The town rests through the heat: homes need no cooling, but workshops and salvage yards rest all summer.",
+      "modifiers": [
+        {
+          "target": "event",
+          "id": "heatwave",
+          "path": "coolingAdd",
+          "set": 0
+        },
+        {
+          "target": "building",
+          "id": "foundersCamp",
+          "path": "demand.cool.day.1",
+          "set": 0
+        },
+        {
+          "target": "building",
+          "id": "workshop",
+          "path": "restsIn.1",
+          "set": true
+        },
+        {
+          "target": "building",
+          "id": "salvageYard",
+          "path": "restsIn.1",
+          "set": true
         }
       ]
     }
@@ -1861,7 +2290,7 @@
   "guidedYear": [
     ["windTower", "apiary", "treeNursery"],
     ["fogNet", "mushroomCellar", "well"],
-    ["cellBank", "sandBattery", "commonsPlaza"],
+    ["sandBattery", "commonsPlaza", "windSpire"],
     ["absorptionChiller", "windSpire", "qanat"]
   ],
   "tempest": {

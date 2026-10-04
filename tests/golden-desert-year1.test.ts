@@ -84,7 +84,7 @@ export function desertYear(): RunState[] {
   const shop = find(s, 'workshop').at;
   s = build(s, 'solarCanopy', (h) => hexDistance(h, shop) === 1);
   s = act(s, { type: 'plantHedge', a: find(s, 'solarCanopy').at, b: shop });
-  s = end(s, 'cellBank');
+  s = end(s, 'sandBattery');
   seasons.push(s);
   // Winter: cold nights; a cell bank keeps the day for them.
   s = build(s, 'cellBank');

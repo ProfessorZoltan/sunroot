@@ -40,12 +40,17 @@ const combosOf = <L extends Combo['layer']>(content: Content, layer: L): ComboOf
   );
 
 /** Does `b` touch enough of the given buildings or tiles? */
-function touches(
+export function touches(
   state: RunState,
   b: BuildingState,
-  nextTo: { buildings?: string[]; tiles?: string[]; count: number },
+  nextTo: { buildings?: string[]; tiles?: string[]; count: number; each?: boolean },
   occ = occupancy(state),
 ): boolean {
+  // One of each of these buildings (the Courtyard: a wind tower and a cistern).
+  if (nextTo.each) {
+    const types = new Set(neighborBuildings(state, b, occ).map((x) => x.type));
+    return (nextTo.buildings ?? []).every((t) => types.has(t));
+  }
   let n = 0;
   if (nextTo.buildings) {
     n += neighborBuildings(state, b, occ).filter((x) => nextTo.buildings!.includes(x.type)).length;
@@ -140,6 +145,30 @@ export function findFormations(
     } else if (shape.kind === 'hedgeRun') {
       for (const run of hedgeRuns(state))
         if (run.length >= shape.length) hits.push({ combo: combo.id, members: [], edges: run });
+    } else if (shape.kind === 'channelRun') {
+      // Tiles of the building joined end to end, and what touches them.
+      const tiles = Object.values(state.buildings).filter((b) => b.type === shape.building);
+      const left = new Set(tiles.map((b) => hexKey(b.at)));
+      for (const start of tiles) {
+        if (!left.has(hexKey(start.at))) continue;
+        const run: BuildingState[] = [];
+        const queue = [start];
+        left.delete(hexKey(start.at));
+        while (queue.length > 0) {
+          const b = queue.pop()!;
+          run.push(b);
+          for (const n of hexNeighbors(b.at)) {
+            const x = occ.get(hexKey(n));
+            if (x && x.type === shape.building && left.delete(hexKey(n))) queue.push(x);
+          }
+        }
+        if (run.length < shape.length) continue;
+        const beside = new Set<string>();
+        for (const b of run)
+          for (const n of neighborBuildings(state, b, occ))
+            if (shape.beside.includes(n.type)) beside.add(n.uid);
+        hits.push({ combo: combo.id, members: [...run.map((b) => b.uid), ...beside] });
+      }
     } else {
       const strip = findStrip(state, shape.tiles, shape.gaps);
       if (strip) hits.push({ combo: combo.id, members: [], tiles: strip });
@@ -223,6 +252,7 @@ export function formationEffects(
       if (e.appliesTo && state.buildings[uid]?.type !== e.appliesTo) continue;
       const cur = effects.get(uid) ?? {
         generation: 0,
+        generationSlots: e.generationSlots,
         ignoresShade: false,
         freeRuns: false,
         outputMultiplier: 1,
@@ -230,6 +260,7 @@ export function formationEffects(
       effects.set(uid, {
         // A building in two terraces still gets the bonus once.
         generation: Math.max(cur.generation, e.generation),
+        generationSlots: e.generation >= cur.generation ? e.generationSlots : cur.generationSlots,
         ignoresShade: cur.ignoresShade || e.ignoresShade,
         freeRuns: cur.freeRuns || e.freeRuns,
         outputMultiplier: Math.max(cur.outputMultiplier, e.outputMultiplier),

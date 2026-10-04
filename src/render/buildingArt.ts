@@ -1074,6 +1074,25 @@ export const BUILDING_ART: Record<string, Art> = {
       .stroke({ width: 1.3, color: DARK });
     g.rect(c.x - 5, c.y - 4, 10, 3).fill({ color: COLORS.terracotta });
   },
+  threeLayerGarden(g, c) {
+    g.poly(hexCorners(c, 20)).fill({ color: 0x86a95a });
+    palm(g, c.x - 8, c.y - 4);
+    palm(g, c.x + 8, c.y - 5);
+    palm(g, c.x, c.y - 8);
+    tree(g, c.x - 4, c.y + 4, 3.5, true);
+    tree(g, c.x + 5, c.y + 4, 3.5, true);
+  },
+  fogFence(g, c) {
+    for (const x of [-14, -5, 5, 14]) g.moveTo(c.x + x, c.y + 8).lineTo(c.x + x, c.y - 10);
+    g.stroke({ width: 1.6, color: COLORS.wood });
+    g.rect(c.x - 14, c.y - 10, 28, 12).fill({ color: 0xf4f2ec, alpha: 0.7 });
+    g.ellipse(c.x, c.y + 7, 9, 3).fill({ color: COLORS.water });
+  },
+  restoredArray(g, c) {
+    shadow(g, c, 14);
+    panel(g, { x: c.x - 4, y: c.y - 2 }, 0x2f4f6f, 0x9fb6c8);
+    panel(g, { x: c.x + 6, y: c.y + 4 }, 0x2f4f6f, 0x9fb6c8);
+  },
   palmWindbreak(g, c) {
     palm(g, c.x - 7, c.y);
     palm(g, c.x + 6, c.y - 2);

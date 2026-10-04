@@ -441,7 +441,9 @@ export function resolveWater(ctx: SeasonContext): void {
         pool[feeds.quality] += feeds.amount;
         r.fed += feeds.amount;
         inAt[p]! += feeds.amount;
-        add(report.in, 'fed by ponds', feeds.amount);
+        // A home's washing water (the Sun Desert's mud-brick houses), or a fish pond's.
+        const home = defOf(content, f.b).housing > 0;
+        add(report.in, home ? 'grey water from homes' : 'fed by ponds', feeds.amount);
         explain(ctx, f.b, `water: feeds ${feeds.amount} ${feeds.quality} into its channel`);
       }
       for (const x of mine.filter((m) => m.p === p)) {

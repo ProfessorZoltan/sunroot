@@ -132,6 +132,9 @@ export function waterLedger(
     river: 'The river, from upstream',
     flood: 'The spring flood',
     'fed by ponds': 'Fish ponds',
+    'grey water from homes': 'Grey water from homes',
+    spring: 'The oasis spring',
+    fog: 'Fog nets',
     returned: 'Returned by buildings',
     'stored at the start': 'In store at the start',
   };

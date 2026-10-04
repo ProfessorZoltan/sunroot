@@ -1,5 +1,11 @@
 /** Read-only helpers over run state shared by commands and season resolution. */
-import { formationHarmony, loopHarmony, quietedByFormations, shelteredByFormation } from './combos';
+import {
+  formationHarmony,
+  loopHarmony,
+  quietedByFormations,
+  shelteredByFormation,
+  touches,
+} from './combos';
 import { edgeBuilding, hedged } from './edges';
 import { finishedProjects } from './projects';
 import type { Content } from './content/load';
@@ -88,6 +94,8 @@ export function coolDemand(
       : 0;
   const need = (def.demand?.cool[slot][si] ?? 0) + heatwave;
   if (need <= 0) return 0;
+  // A courtyard: the right neighbours keep it cool whatever the weather.
+  if (def.coolingFreeNextTo && touches(state, b, def.coolingFreeNextTo)) return 0;
   let shade = 0;
   for (const n of neighborBuildings(state, b)) shade = Math.max(shade, defOf(content, n).shades);
   const edge = edgeBuilding(content);

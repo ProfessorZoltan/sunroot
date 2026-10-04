@@ -1,5 +1,14 @@
 # Changelog
 
+## The Sun Desert's combos
+
+- Ten desert combos: the **Courtyard** (a mud-brick house by a wind tower and a cistern needs no
+  cooling), **Date Shade**, the **Grey Water Loop** (homes' washing water, cleaned by reeds,
+  waters a garden), the **Heliostat Line**, the **Green Wall**, the **Long Qanat**, and three
+  evolutions: the **Three-Layer Garden**, the **Fog Fence** and the **Restored Array**.
+- Eight desert tunings and two charters, **Water Keepers** and **Siesta**.
+- The Cell Bank is unlocked from the start of a desert run.
+
 ## The Sun Desert takes shape
 
 - The fourth biome's land and rules, not yet reached from Root City: a thin river that floods

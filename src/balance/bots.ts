@@ -25,7 +25,7 @@ import { lowGround, siteScore, type Turn } from './turn';
 import { edgeBuilding } from '../sim/edges';
 import { stormExposed } from '../sim/queries';
 import { wonderSiteProblem } from '../sim/wonder';
-import type { BuildingDef } from '../sim/content/schema';
+import { SEASONS, type BuildingDef } from '../sim/content/schema';
 import { coppiceProblem } from '../sim/combos';
 
 /**
@@ -109,7 +109,7 @@ const foodGap = (t: Turn) =>
   );
 
 /** The biome's farms (fields that want water) and orchards: those of these it has. */
-const FARMS = ['floodplainFarm', 'croft', 'glenFarm', 'terraceFarm'];
+const FARMS = ['floodplainFarm', 'croft', 'glenFarm', 'terraceFarm', 'oasisGarden', 'wadiFarm'];
 const ORCHARDS = ['orchard'];
 /** Whether one of these buildings could stand on the tile by its type and height. */
 const fitsAny = (turn: Turn, ids: readonly string[], t: Tile) =>
@@ -268,6 +268,49 @@ function tendHeat(turn: Turn, profile: Profile): void {
 }
 
 /**
+ * Cooling (the Sun Desert), for a bot that minds where heat is needed: before the hot days,
+ * a wind tower within reach of every home whose day cooling no tower covers, where it covers
+ * the most. A tower's share is its cooling on a hot day; a home's need, its hottest day's.
+ */
+function tendCooling(turn: Turn, profile: Profile): void {
+  const rules = turn.rules;
+  const range = rules.rules.cooling.range;
+  const tower = rules.byId.windTower;
+  if (!tower?.cooling || !turn.unlocked('windTower')) return;
+  const si = turn.state.season === 'spring' ? 1 : SEASONS.indexOf(turn.state.season);
+  const heatwave = rules.calendar.includes('heatwave')
+    ? (rules.events.heatwave?.coolingAdd ?? 0)
+    : 0;
+  const homes = Object.values(turn.state.buildings).filter((b) => rules.byId[b.type]!.housing > 0);
+  for (let i = 0; i < 2; i++) {
+    const towers = Object.values(turn.state.buildings).filter((b) => b.type === 'windTower');
+    const capacity = new Map(towers.map((t) => [t.uid, tower.cooling!.day[si] ?? 0]));
+    const left = new Map<string, number>();
+    for (const h of homes) {
+      const def = rules.byId[h.type]!;
+      let need = Math.max(...(def.demand?.cool.day ?? [0])) + heatwave;
+      for (const t of towers.filter((x) => hexDistance(x.at, h.at) <= range)) {
+        const take = Math.min(need, capacity.get(t.uid)!);
+        capacity.set(t.uid, capacity.get(t.uid)! - take);
+        need -= take;
+      }
+      if (need > 0) left.set(h.uid, need);
+    }
+    if (left.size === 0 || !turn.canBuild('windTower', Math.min(profile.reserve, 2))) return;
+    let best: { at: Hex; score: number } | null = null;
+    for (const t of turn.sites('windTower')) {
+      let covered = 0;
+      for (const [uid, n] of left)
+        if (hexDistance(turn.state.buildings[uid]!.at, t) <= range) covered += n;
+      if (covered < 2) continue;
+      const score = 10 * covered + siteScore(turn, 'windTower', t);
+      if (!best || score > best.score) best = { at: { q: t.q, r: t.r }, score };
+    }
+    if (!best || !turn.apply({ type: 'place', building: 'windTower', at: best.at })) return;
+  }
+}
+
+/**
  * Hedges along an edge of each building storms could damage (each shelters the tiles on both
  * its sides), until the valley has `max` segments.
  */
@@ -298,10 +341,18 @@ function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): v
   if (turn.waterOn) tendWater(turn, profile, water);
   // The heat layer: energy can't heat, so a heat-minding bot puts a pump by every home first.
   if (!turn.rules.rules.localHeat.gridHeat && turn.heatAware) tendHeat(turn, profile);
+  // Hot days (the Sun Desert): a wind tower by the homes before the heat, not grid cooling.
+  if (turn.heatAware && (turn.state.season === 'spring' || turn.state.season === 'summer'))
+    tendCooling(turn, profile);
   if (!turn.has('salvageYard')) turn.build('salvageYard');
   if (!turn.has('workshop')) turn.build('workshop');
   // On the coast, salvage from the strandline as well as the ruins: a beachcombing yard a workshop.
   if (turn.count('beachcombingYard') < turn.count('workshop')) turn.build('beachcombingYard');
+
+  // No farm yet: one before anything else, even when the stores see this season through (the
+  // desert's spring), or the money goes elsewhere and the summer starves.
+  if (!profile.food.some((id) => turn.has(id)))
+    for (const id of profile.food) if (turn.build(id)) break;
 
   for (let i = 0; i < 3 && shortfall('night')(turn) > 0; i++) {
     if (!buildFirstThatHelps(turn, profile.nightPower, shortfall('night'))) break;
@@ -670,7 +721,7 @@ function spend(turn: Turn, profile: Profile, options: readonly string[], limit =
 }
 
 /** Homes, in the order a bot builds them: the Highland's bothy where there are no cottages yet. */
-const HOMES = ['cottage', 'bothy'];
+const HOMES = ['cottage', 'mudBrickHouse', 'bothy'];
 const buildHome = (turn: Turn, reserve = 0) => HOMES.some((id) => turn.build(id, reserve));
 
 const growHousing = (turn: Turn) =>
@@ -688,9 +739,11 @@ const NIGHT = [
   'heatPump',
   'heatWell',
   'cellBank',
+  'sandBattery',
+  'concentratedSolarPlant',
   'biogasDigester',
 ];
-const DAY = ['solarCanopy', 'tideTurbine', 'hillTurbine', 'airSourceHeatPump'];
+const DAY = ['solarCanopy', 'tideTurbine', 'hillTurbine', 'airSourceHeatPump', 'windTower'];
 
 const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
   greedyFood: {
@@ -711,6 +764,10 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'hillTurbine',
       'shieling',
       'biocharKiln',
+      'windTower',
+      'fogNet',
+      'sandBattery',
+      'treeNursery',
     ],
     nightPower: NIGHT,
     dayPower: DAY,
@@ -719,6 +776,8 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'croft',
       'glenFarm',
       'terraceFarm',
+      'oasisGarden',
+      'wadiFarm',
       'shieling',
       'riceFishPaddy',
       'fishPond',
@@ -734,6 +793,8 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
         'croft',
         'glenFarm',
         'terraceFarm',
+        'oasisGarden',
+        'wadiFarm',
         'shieling',
         'fishPond',
         'kelpFarm',
@@ -772,6 +833,11 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'hillTurbine',
       'snowFence',
       'lookout',
+      'windTower',
+      'concentratedSolarPlant',
+      'sandBattery',
+      'absorptionChiller',
+      'palmWindbreak',
     ],
     nightPower: [
       'windSpire',
@@ -784,13 +850,25 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'biogasDigester',
       'cellBank',
       'heatWell',
+      'concentratedSolarPlant',
+      'sandBattery',
     ],
-    dayPower: ['solarCanopy', 'riverWheel', 'tideTurbine', 'hillTurbine', 'airSourceHeatPump'],
+    dayPower: [
+      'solarCanopy',
+      'riverWheel',
+      'tideTurbine',
+      'hillTurbine',
+      'airSourceHeatPump',
+      'windTower',
+      'concentratedSolarPlant',
+    ],
     food: [
       'floodplainFarm',
       'croft',
       'glenFarm',
       'terraceFarm',
+      'oasisGarden',
+      'wadiFarm',
       'fishPond',
       'kelpFarm',
       'greenhouse',
@@ -801,7 +879,7 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       const spare = turn.peek()?.report.energy.day.unused ?? 0;
       const options =
         spare >= 2
-          ? ['workshop', 'kiln']
+          ? ['workshop', 'kiln', 'saltWorks']
           : ['riverWheel', 'tideTurbine', 'hillTurbine', 'windSpire', 'waveBuoy', 'solarCanopy'];
       if (growHousing(turn)) options.unshift(...HOMES);
       spend(turn, profile, options, 2);
@@ -837,6 +915,12 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       // For the Cloud Terraces: a Carbon Loop and 2 pump stations.
       'biocharKiln',
       'pumpStation',
+      // The desert: cooling, water and shelter.
+      'windTower',
+      'qanat',
+      'fogNet',
+      'palmWindbreak',
+      'sandBattery',
     ],
     nightPower: NIGHT,
     dayPower: DAY,
@@ -845,6 +929,8 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'croft',
       'glenFarm',
       'terraceFarm',
+      'oasisGarden',
+      'wadiFarm',
       'shieling',
       'fishPond',
       'kelpFarm',
@@ -856,6 +942,8 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
     wonder: true,
     extras(turn, profile) {
       const options = ['pollinatorMeadow', 'treeNursery'];
+      // The desert's salt flat: a steady materials a season.
+      if (turn.count('saltWorks') < 2) options.unshift('saltWorks');
       if (growHousing(turn)) options.unshift(...HOMES);
       if (turn.state.citizens >= 10 && !turn.has('commonsPlaza')) options.push('commonsPlaza');
       // A bathhouse for wellbeing, and a reed bed to clean what it lets out.

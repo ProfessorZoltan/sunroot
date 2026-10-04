@@ -29,6 +29,11 @@ export function staff(ctx: SeasonContext): void {
   let workers = ctx.state.citizens;
   for (const b of byPriority(ctx.state)) {
     if (b.damage) continue;
+    // Resting this season (Siesta's summer): no work, no workers.
+    if (defOf(ctx.content, b).restsIn[ctx.si]) {
+      explain(ctx, b, `rests this ${ctx.state.season}`);
+      continue;
+    }
     // A wonder does nothing until it is finished.
     if (!wonderDone(ctx.content, ctx.state, b)) continue;
     const need = defOf(ctx.content, b).workers;
@@ -65,9 +70,14 @@ export function generate(ctx: SeasonContext): void {
     let adjust = 0;
     const notes: string[] = [];
     const effect = ctx.effects.get(b.uid);
+    /** A formation's extra, in the slots it comes in (to energy, for a source making both). */
+    const formed = (slot: Slot, makesHeat: boolean) =>
+      effect?.generation && effect.generationSlots.includes(slot) && !(makesHeat && def.generation)
+        ? effect.generation
+        : 0;
     if (effect?.generation) {
-      adjust += effect.generation;
-      notes.push(`in a formation +${effect.generation}`);
+      const when = effect.generationSlots.length === 1 ? ` by ${effect.generationSlots[0]}` : '';
+      notes.push(`in a formation +${effect.generation}${when}`);
     }
     const boost = festivalThisSeason(content, state)?.boosts;
     if (boost && boost.generation > 0 && boost.buildings.includes(b.type)) {
@@ -168,7 +178,7 @@ export function generate(ctx: SeasonContext): void {
           wheel !== undefined
             ? Math.ceil(wheel / content.rules.water.wheelFlowPerEnergy)
             : output[slot][si]!;
-        const change = adjust - (slot === 'day' ? hot : 0);
+        const change = adjust - (slot === 'day' ? hot : 0) + formed(slot, makesHeat);
         // Adjustments apply only to slots where the source runs at all.
         let amount = base > 0 && !snowed && !unfuelled ? Math.max(0, base + change) : 0;
         if (kept > 0 && slot === 'day' && base > 0)

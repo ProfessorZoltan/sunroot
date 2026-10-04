@@ -43,6 +43,8 @@ export interface SeasonContext {
 
 export interface FormationEffect {
   generation: number;
+  /** The slots the extra generation comes in. */
+  generationSlots: readonly ('day' | 'night')[];
   ignoresShade: boolean;
   freeRuns: boolean;
   /** Multiplies a composter's output (the Keyhole Garden). */

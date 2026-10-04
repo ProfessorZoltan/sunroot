@@ -293,6 +293,10 @@ export function siteScore(
     .map((h) => state.map.tiles[hexKey(h)])
     .filter((t) => t !== undefined);
   const touching = (...types: string[]) => neighbors.filter((b) => types.includes(b.type)).length;
+  const nearby = (type: string, range: number) =>
+    Object.values(state.buildings).filter(
+      (b) => b.type === type && hexDistance(b.at, tile) <= range,
+    ).length;
   let score = 0;
 
   // Keep the ground the flood reaches for things that survive it (and farm it).
@@ -331,6 +335,7 @@ export function siteScore(
       break;
     case 'composter':
       score += 3 * touching('floodplainFarm', 'orchard', 'fishPond', 'greenhouse', 'croft');
+      score += 3 * touching('oasisGarden', 'wadiFarm');
       score += 3 * touching('riceFishPaddy', 'mushroomCellar');
       break;
     // Willow Reach v2 (E3): next to what feeds them or what they feed.
@@ -356,7 +361,7 @@ export function siteScore(
       break;
     }
     case 'apiary':
-      score += 3 * touching('floodplainFarm', 'orchard', 'croft');
+      score += 3 * touching('floodplainFarm', 'orchard', 'croft', 'oasisGarden', 'wadiFarm');
       if (touching('windSpire') > 0) score -= 100;
       break;
     case 'solarCanopy':
@@ -376,7 +381,22 @@ export function siteScore(
       break;
     }
     case 'cottage':
+    case 'mudBrickHouse':
       if (neighborTiles.some((t) => t.type === 'meadow' || t.type === 'woodland')) score += 2;
+      // The desert: within a wind tower's reach, beside a garden's shade.
+      score += 3 * Math.min(1, nearby('windTower', 2)) + 2 * Math.min(1, touching('oasisGarden'));
+      break;
+    // The desert's farms: the wadi farm on the banks, the garden by palms and a composter.
+    case 'wadiFarm':
+      score += 2 * touching('composter', 'apiary');
+      break;
+    case 'oasisGarden':
+      score += 2 * touching('composter', 'apiary');
+      score += neighborTiles.filter((t) => t.type === 'woodland').length;
+      break;
+    case 'windTower':
+      score += 2 * neighbors.filter((b) => content.byId[b.type]!.housing > 0).length;
+      score += neighborTiles.some((t) => t.type === 'oasis') || touching('cistern') > 0 ? 2 : 0;
       break;
     case 'heatWell':
       score += 3 * touching('kiln');
@@ -388,7 +408,11 @@ export function siteScore(
       score += 3 * touching('weir');
       break;
     case 'treeNursery':
-      score += neighborTiles.filter((t) => ['barren', 'scrub', 'meadow'].includes(t.type)).length;
+      score += neighborTiles.filter((t) =>
+        ['barren', 'reg', 'scrub', 'meadow'].includes(t.type),
+      ).length;
+      // Among oasis gardens it grows a Three-Layer Garden.
+      score += 3 * touching('oasisGarden');
       break;
     case 'pollinatorMeadow':
       score +=
