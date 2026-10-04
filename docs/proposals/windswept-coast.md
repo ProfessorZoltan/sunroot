@@ -166,11 +166,11 @@ tests unchanged).
 
 The foundation (B1) should make these content plus a map generator each, with few new rules.
 
-| Biome         | Unlocks                  | Signature                                                                       | Reserved buildings                           | Source                                |
-| ------------- | ------------------------ | ------------------------------------------------------------------------------- | -------------------------------------------- | ------------------------------------- |
-| Highland      | After 4 districts        | Cold and steep: heat is the point; snow cuts solar; water must be pumped uphill | Pump Station, Biochar Kiln (the Carbon Loop) | DESIGN.md; EXPANSION.md               |
-| Sun Desert    | After 8 districts        | Too much sun, too little water: fog nets and oases; cooling, not heating        | Concentrated Solar Plant, Fog Net            | DESIGN.md; EXPANSION.md; DECISIONS.md |
-| Volcanic Isle | After the first landmark | Geothermal heat and power, fertile ash, an eruption that resets part of the map | (to design)                                  | DESIGN.md                             |
+| Biome                                  | Unlocks                  | Signature                                                                       | Reserved buildings                           | Source                                |
+| -------------------------------------- | ------------------------ | ------------------------------------------------------------------------------- | -------------------------------------------- | ------------------------------------- |
+| Highland                               | After 4 districts        | Cold and steep: heat is the point; snow cuts solar; water must be pumped uphill | Pump Station, Biochar Kiln (the Carbon Loop) | DESIGN.md; EXPANSION.md               |
+| Sun Desert ([proposal](sun-desert.md)) | After 8 districts        | Too much sun, too little water: fog nets and oases; cooling, not heating        | Concentrated Solar Plant, Fog Net            | DESIGN.md; EXPANSION.md; DECISIONS.md |
+| Volcanic Isle                          | After the first landmark | Geothermal heat and power, fertile ash, an eruption that resets part of the map | (to design)                                  | DESIGN.md                             |
 
 ## Decided in review
 
