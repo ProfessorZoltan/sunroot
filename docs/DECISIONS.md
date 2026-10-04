@@ -830,6 +830,18 @@ The Highland's hand-made art:
 | The snow fence's icon     | It came only as its 3 edge pieces, so its palette icon is cut from the east piece. Any building delivered only as edge pieces does the same.                                                                                                                                                                                                                                                                    | `scripts/import-art.ts` |
 | A wonder on a slope       | The Cloud Terraces always span 2 heights, but their art is one picture at the centre tile's height, which left a gap under its lower edge. Its 7 tiles are now drawn beneath it, cliffs and all, so it sits on the slope; on level ground the art covers them as before.                                                                                                                                        | `src/render/mapView.ts` |
 
+## The Sun Desert (Milestone 13)
+
+The fourth biome follows [proposals/sun-desert.md](proposals/sun-desert.md), reviewed by the
+playtester: cooling is a full rule, mostly mirroring heat (a need on homes by day, met by cooling
+within 2 tiles or by grid energy at 2 for 1, a hot home counted as a cold one); the desert has a
+thin river that dries up in summer, its banks flooded each spring, with an oasis spring, wells
+and fog nets; it joins once 8 districts stand in Root City; its wonder costs 60 materials and 20
+food; and a tile type is reused only where it is a perfect fit (the river, the floodplain as the
+wadi banks, the ruin as the old array, scrub, meadow and woodland, with desert looks), the oasis,
+reg, erg, rock and salt flat being new types. Built in steps SD1 to SD6 (the proposal's build
+plan).
+
 ## The energy mix
 
 | Topic          | Decision                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Source                             |

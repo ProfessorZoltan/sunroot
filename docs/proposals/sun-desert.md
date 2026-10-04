@@ -1,6 +1,6 @@
 # Proposal: the Sun Desert (Milestone 13)
 
-The fourth biome, for review before any code. DESIGN.md names it ("Sun Desert after 8
+The fourth biome, reviewed by the playtester (see Decided in review). DESIGN.md names it ("Sun Desert after 8
 districts") and gives its signature in the coast's sketch of later biomes: too much sun, too
 little water, fog nets and oases, cooling rather than heating. The water expansion reserved two
 of its buildings: the **Fog Net** (clean water with no river) and a solar heat building, which the
@@ -20,13 +20,13 @@ dry**. Its new rule is **cooling**: on hot days homes need cooling, as on cold n
 heat, and the cheapest cooling is built in (thick walls, wind towers, shade), not bought with
 energy.
 
-| Willow Reach                   | Sun Desert                                                                                                    | Source                    |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| A river all year               | No river: an oasis spring, a dry wadi that runs only in the spring flash flood, wells, and fog nets           | DESIGN.md; EXPANSION.md   |
-| Water reaches farms by channel | Channels lose water to the sun in every season but winter; a qanat (an underground channel) loses none        | EXPANSION.md (water); new |
-| Heat is a winter cost          | Cooling is a summer cost: homes need cooling on hot days, and heat only on winter nights (cold desert nights) | DESIGN.md; new            |
-| Solar is the first source      | Solar is strong and plentiful, but night energy is scarce: no river wheel, little biomass                     | DESIGN.md                 |
-| Storms damage buildings        | Dust storms dim the panels and mirrors and bury what they reach, unless a palm windbreak shelters it          | DESIGN.md (storms); new   |
+| Willow Reach                   | Sun Desert                                                                                                        | Source                              |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| A river all year               | A thin river that runs high in the spring flash flood and dries up in summer; an oasis spring, wells and fog nets | Playtester; DESIGN.md; EXPANSION.md |
+| Water reaches farms by channel | Channels lose water to the sun in every season but winter; a qanat (an underground channel) loses none            | EXPANSION.md (water); new           |
+| Heat is a winter cost          | Cooling is a summer cost: homes need cooling on hot days, and heat only on winter nights (cold desert nights)     | DESIGN.md; new                      |
+| Solar is the first source      | Solar is strong and plentiful, but night energy is scarce: no river wheel, little biomass                         | DESIGN.md                           |
+| Storms damage buildings        | Dust storms dim the panels and mirrors and bury what they reach, unless a palm windbreak shelters it              | DESIGN.md (storms); new             |
 
 The desert's signature choice: **sun by day, nothing by night**. Energy is easy at noon and
 scarce after dark, water is scarce always, so the run is about storing the day for the night
@@ -51,34 +51,35 @@ cooling sources within 2 tiles, or by grid energy at 2 for 1 (an air conditioner
 ## Map
 
 About 120 tiles, from a seed. An oasis of 3 or 4 pool tiles near the middle, ringed with scrub;
-a wadi (a dry riverbed) crossing the map, 2 tiles wide; flat gravel plain (reg) around; dunes
+a thin river crossing the map, its banks (wadi banks) flooded each spring; flat gravel plain (reg) around; dunes
 (erg) along one side; rock outcrops at the edges; a salt flat; and the ruins of an old solar
 array, the desert's mines.
 
-| Tile             | Like (elsewhere)    | Buildable                            | Notes                                                                                                             | Source             |
-| ---------------- | ------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | ------------------ |
-| Oasis            | Reservoir (lake)    | Water buildings only                 | A spring-fed pool: refills 2 a season per tile, never floods. Drawn with its own look (`reservoir.desert`).       | New                |
-| Wadi             | River, mostly dry   | Wadi farms; others flood each spring | Flows 10 in the spring flash flood and nothing the rest of the year. New tile type.                               | New                |
-| Reg (gravel)     | Barren              | Most land buildings                  | Flat and open: the mirrors' ground. Barren with a desert look (`barren.desert`); heals to scrub as usual.         | New                |
-| Erg (dunes)      | The coast's dune    | Fog nets and windbreaks only         | Drifting sand: not healable. The coast's `dune` type with a desert look.                                          | windswept-coast.md |
-| Rock             | The Highland's crag | Fog nets, wind towers, lookouts      | Outcrops at the edges; the fog's best catch. The `crag` type with a desert look.                                  | highland.md        |
-| Salt flat        | (none)              | Salt works only                      | A dry lakebed crusted white. New tile type. Not healable.                                                         | New                |
-| Old array (ruin) | Ruin                | Salvage yards                        | 3 to 4 ruins of an old solar farm, 30 salvage each: the desert's materials come from its ruins and its few palms. | New                |
-| Scrub, meadow    | The same            | The same                             | Scrub rings the oasis; meadow is rare (an oasis garden's ground turns to meadow as it matures).                   | DESIGN.md          |
+| Tile                      | Like (elsewhere)        | Buildable                       | Notes                                                                                                                             | Source                |
+| ------------------------- | ----------------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| Oasis                     | (none)                  | Water buildings only            | A spring-fed pool: refills 2 a season per tile, never floods. New tile type.                                                      | Playtester            |
+| River                     | The Reach's river       | As river                        | Thin and seasonal: flow 6 / 0 / 2 / 3, high in the flash flood, dry all summer. The `river` type: the same rules, a smaller flow. | Playtester            |
+| Wadi banks                | The Reach's floodplain  | Most land buildings; wadi farms | The low ground beside the river that the flash flood covers, leaving silt. The `floodplain` type with a desert look.              | Playtester            |
+| Reg (gravel)              | (none)                  | Most land buildings             | Flat gravel plain, the mirrors' ground; heals to scrub. New tile type.                                                            | Playtester            |
+| Erg (dunes)               | (none)                  | Fog nets and windbreaks only    | Drifting sand, not healable. New tile type (the coast's dunes take dune grass and stand still).                                   | Playtester            |
+| Rock                      | (none)                  | Fog nets, wind towers, lookouts | Outcrops at the edges; the fog's best catch. New tile type (the Highland's crag is the tops, exposed to gales).                   | Playtester            |
+| Salt flat                 | (none)                  | Salt works only                 | A dry lakebed crusted white. New tile type. Not healable.                                                                         | New                   |
+| Old array                 | Ruin                    | Salvage yards                   | 3 to 4 ruins of an old solar farm, 30 salvage each: the `ruin` type (the same rules) with a desert look.                          | Playtester            |
+| Scrub, meadow, palm grove | Scrub, meadow, woodland | The same                        | The land-health ladder, with desert looks; woodland is a palm grove. Meadow is rare until gardens mature.                         | Playtester; DESIGN.md |
 
-Land-health ladder: barren (reg) → scrub → meadow → woodland (palm grove). Erg, rock, salt flat,
-the wadi and the oasis aren't on it, so **Green the Desert** (the vision) counts only the land
+Land-health ladder: reg → scrub → meadow → woodland (palm grove). Erg, rock, salt flat, the
+river and the oasis aren't on it, so **Green the Desert** (the vision) counts only the land
 that can heal; its share is set with the bots once the map exists, as the coast's and the
 Highland's were.
 
 ## Seasonal events
 
-| Season | Event       | Effect                                                                                                                                                                                | Source                       |
-| ------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
-| Spring | Flash flood | The wadi runs for the season (flow 10): cisterns beside it fill, wadi farms get silt (as the Reach's floodplain), and anything else on the wadi floor is disabled for the season.     | DESIGN.md (floods); new      |
-| Summer | Heatwave    | Homes need 2 cooling by day; solar canopies make 1 less by day (too hot to work well); channels lose twice as much to the sun.                                                        | New                          |
-| Autumn | Dust storm  | Solar canopies and mirrors make 1 less in each slot (as the coast's sea fog); 2 exposed buildings (on the reg or erg, not sheltered by a palm windbreak) are disabled for the season. | DESIGN.md (storms); B2 (fog) |
-| Winter | Cold nights | Mild days, cold nights: homes need 1 heat at night; fog nets catch 2 a night instead of 1.                                                                                            | DESIGN.md                    |
+| Season | Event       | Effect                                                                                                                                                                                                        | Source                         |
+| ------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| Spring | Flash flood | The river runs high and floods the wadi banks beside it: silt for farms there (as the Reach's spring flood), cisterns there fill, and buildings there that aren't flood-tolerant are disabled for the season. | DESIGN.md (floods); playtester |
+| Summer | Heatwave    | The river runs dry (flow 0). Homes need 2 cooling by day; solar canopies make 1 less by day (too hot to work well); channels lose twice as much to the sun.                                                   | Playtester; new                |
+| Autumn | Dust storm  | Solar canopies and mirrors make 1 less in each slot (as the coast's sea fog); 2 exposed buildings (on the reg or erg, not sheltered by a palm windbreak) are disabled for the season.                         | DESIGN.md (storms); B2 (fog)   |
+| Winter | Cold nights | Mild days, cold nights: homes need 1 heat at night; fog nets catch 2 a night instead of 1.                                                                                                                    | DESIGN.md                      |
 
 ## Energy, cooling and heat
 
@@ -99,18 +100,18 @@ shade its crops: it needs 1 less water).
 
 ★ = unlocked at the start of every desert run.
 
-| Building                 | Cost | Workers | Placement                              | Output per season (spring to winter)                                                                     | Source       |
-| ------------------------ | ---- | ------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------ |
-| Oasis Garden ★           | 3    | 1       | Beside the oasis, a channel or a qanat | Food 2 / 3 / 4 / 1 under date palms; water 1 spring to autumn. Shades a home beside it (1 less cooling). | New          |
-| Wadi Farm                | 3    | 1       | The wadi floor                         | Food 3 / 2 / 3 / 0; watered by the flash flood in spring, by channel after; silt from the flood.         | New          |
-| Mud-brick House ★        | 3    | 0       | Anywhere                               | Houses 3; thick walls (see Cooling).                                                                     | New          |
-| Wind Tower               | 5    | 0       | Anywhere; rock or beside water best    | See Energy, cooling and heat.                                                                            | New          |
-| Fog Net                  | 2    | 0       | Rock, erg or reg at the map's edge     | 1 clean water each night (2 in winter), into the channel or cistern beside it, else held (up to 2).      | EXPANSION.md |
-| Qanat                    | 2    | 0       | From the oasis or a well, tile by tile | A channel underground: carries water as the irrigation channel does, but loses none to the sun.          | New          |
-| Concentrated Solar Plant | 12   | 1       | Reg                                    | See Energy, cooling and heat.                                                                            | DECISIONS.md |
-| Sand Battery             | 5    | 0       | Anywhere                               | See Energy, cooling and heat.                                                                            | New          |
-| Palm Windbreak           | 1    | 0       | An edge between tiles, as a hedge      | Shelters the tiles on both sides from dust storms; shades a home beside it (1 less cooling).             | New          |
-| Salt Works               | 4    | 1       | Salt flat                              | 1 materials a season, and food doesn't spoil over winter for 5 food (salted stores).                     | New          |
+| Building                 | Cost | Workers | Placement                              | Output per season (spring to winter)                                                                                                                        | Source       |
+| ------------------------ | ---- | ------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| Oasis Garden ★           | 3    | 1       | Beside the oasis, a channel or a qanat | Food 2 / 3 / 4 / 1 under date palms; water 1 spring to autumn. Shades a home beside it (1 less cooling).                                                    | New          |
+| Wadi Farm                | 3    | 1       | Wadi banks                             | Food 3 / 2 / 3 / 0; draws from the river beside it (as the Highland's glen farm), so it goes dry in summer without a cistern or qanat; silt from the flood. | New          |
+| Mud-brick House ★        | 3    | 0       | Anywhere                               | Houses 3; thick walls (see Cooling).                                                                                                                        | New          |
+| Wind Tower               | 5    | 0       | Anywhere; rock or beside water best    | See Energy, cooling and heat.                                                                                                                               | New          |
+| Fog Net                  | 2    | 0       | Rock, erg or reg at the map's edge     | 1 clean water each night (2 in winter), into the channel or cistern beside it, else held (up to 2).                                                         | EXPANSION.md |
+| Qanat                    | 2    | 0       | From the oasis or a well, tile by tile | A channel underground: carries water as the irrigation channel does, but loses none to the sun.                                                             | New          |
+| Concentrated Solar Plant | 12   | 1       | Reg                                    | See Energy, cooling and heat.                                                                                                                               | DECISIONS.md |
+| Sand Battery             | 5    | 0       | Anywhere                               | See Energy, cooling and heat.                                                                                                                               | New          |
+| Palm Windbreak           | 1    | 0       | An edge between tiles, as a hedge      | Shelters the tiles on both sides from dust storms; shades a home beside it (1 less cooling).                                                                | New          |
+| Salt Works               | 4    | 1       | Salt flat                              | 1 materials a season, and food doesn't spoil over winter for 5 food (salted stores).                                                                        | New          |
 
 Shared, as the Reach: Composter ★, Workshop ★, Salvage Yard ★, Cistern ★, Well, Irrigation
 Channel, Greenhouse, Apiary, Commons Plaza, Seedbank Library, Tree Nursery (palms), Pollinator
@@ -154,7 +155,7 @@ summer) join the shared pool.
 | First run   | Guided first year, opening with what is new: cooling, water without a river, the night's energy.                                                                                                                                                                                                                                                                                         | As the Highland |
 | Sun Quarter | A new district, earned by sun-led runs (energy from solar canopies, the Concentrated Solar Plant, agrivoltaic fields and restored arrays as a share of all energy; full at half). Perk: solar canopies make 1 more in winter (Seedling), also autumn (Sapling), also spring (Heartwood). Adds the **Fog Net** to every biome's drafts (water without a river, useful in any dry summer). | New             |
 | Glassworks  | A landmark: the Sun Quarter next to the Foundry District. Greenhouses and solar canopies cost 1 less in every biome.                                                                                                                                                                                                                                                                     | New             |
-| Regions     | The Oasis as it is; Wadi Country (two wadis, a bigger flash flood); The Erg (dunes over a third of the map, the sun stronger by 1; the Graft a tier higher); Salt Pan (a wide salt flat, salt works sites, little scrub); Old Array (7 ruins of the old solar farm, 36 salvage each).                                                                                                    | New             |
+| Regions     | The Oasis as it is; Wadi Country (a second river, wider banks, a bigger flash flood); The Erg (dunes over a third of the map, the sun stronger by 1; the Graft a tier higher); Salt Pan (a wide salt flat, salt works sites, little scrub); Old Array (7 ruins of the old solar farm, 36 salvage each).                                                                                  | New             |
 | Twists      | The shared ones that fit (Drought Year, Clear Skies, Lean Start, Big Families, Scavengers, Steady Winds), not Long Winter or Wild Storms; and three of its own: Haboob Year (dust storms in summer too), Rainy Year (a second flash flood in autumn; wadi farms +1), Scorching Year (homes need cooling on spring and autumn days too; the Graft a tier higher).                         | New             |
 | Tempest     | Per biome, as the coast and the Highland.                                                                                                                                                                                                                                                                                                                                                | DESIGN.md       |
 | Score tiers | Shared; the desert's bots should reach Heartwood about as often as the Reach's (a desert score line if not, as the coast's and the Highland's).                                                                                                                                                                                                                                          | As the Highland |
@@ -165,34 +166,34 @@ A proposal to check against the simulation once it exists, reviewed before it be
 reference, as the coast's and the Highland's were. The Highland's first proposal didn't fit the
 numbers; this one is checked in SD2 before it is proposed as a golden test.
 
-| Season | Build                                                                                   | What it teaches                                                                                 | Source |
-| ------ | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------ |
-| Spring | Oasis Garden by the oasis, Salvage Yard on the old array, Workshop, Cistern by the wadi | The oasis is the water; the flash flood fills the cistern once, so keep it                      | New    |
-| Summer | Mud-brick House, Wind Tower beside it                                                   | The heatwave: homes need cooling, and the cheapest cooling uses no energy                       | New    |
-| Autumn | Fog Net, Palm Windbreak by the solar canopy                                             | The dust storm dims the panels and buries what it reaches; the fog brings water without a river | New    |
-| Winter | Cell Bank                                                                               | Bright days, cold nights: store the day for the night; the mud-brick walls keep the houses warm | New    |
+| Season | Build                                                                                        | What it teaches                                                                                      | Source |
+| ------ | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------ |
+| Spring | Oasis Garden by the oasis, Salvage Yard on the old array, Workshop, Cistern on the wadi bank | The oasis is the water; the flash flood fills the cistern, and the river dries in summer, so keep it | New    |
+| Summer | Mud-brick House, Wind Tower beside it                                                        | The heatwave: homes need cooling, and the cheapest cooling uses no energy                            | New    |
+| Autumn | Fog Net, Palm Windbreak by the solar canopy                                                  | The dust storm dims the panels and buries what it reaches; the fog brings water without a river      | New    |
+| Winter | Cell Bank                                                                                    | Bright days, cold nights: store the day for the night; the mud-brick walls keep the houses warm      | New    |
 
 ## Build plan
 
 Each step ends with tests and a commit; Willow Reach, the coast and the Highland play exactly as
 before throughout (their golden tests unchanged).
 
-| Step | What                                                                                                                                                                                                                                                                        | Done when                                                                                                 | Source          |
-| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | --------------- |
-| SD1  | **Cooling and dry water.** The cooling need, cooling sources and grid cooling (heat's machinery, in day slots); water without a river: a wadi that flows only in its flood, an oasis spring, evaporation in every season but winter, the qanat. Inert for the other biomes. | Every new rule has a unit test; the other biomes' golden tests are unchanged.                             | DESIGN.md       |
-| SD2  | **Desert simulation.** Its map generator, tiles, events, buildings, the Concentrated Solar Plant's tank, the sand battery, fog nets.                                                                                                                                        | Every new rule has a unit test; the Year 1 walkthrough fits the numbers and is proposed as a golden test. | As the Highland |
-| SD3  | **Combos and balance.** Its combos, tunings, charters, the Almanac; bots that cool, store and save water.                                                                                                                                                                   | Every combo triggers in a unit test; the bots' Heartwood share is within 10 points of the Reach's.        | As the Highland |
-| SD4  | **On screen.** Heat shimmer, dust, the wadi running and drying, the oasis, mirrors catching the light; cooling in tooltips and the season report; an art guide.                                                                                                             | A desert run plays to the end with mouse and keyboard.                                                    | As the Highland |
-| SD5  | **In Root City.** Joins after 8 districts; the Sun Quarter, the Glassworks, regions, twists, the guided first run.                                                                                                                                                          | Runs move between the four biomes with progression kept (an e2e).                                         | DESIGN.md       |
-| SD6  | **Wonder, wildlife, festivals.** The Solar Oasis, the desert's animals and festivals.                                                                                                                                                                                       | As the Highland's HL6.                                                                                    | EXPANSION.md    |
+| Step | What                                                                                                                                                                                                                                                          | Done when                                                                                                 | Source          |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | --------------- |
+| SD1  | **Cooling and dry water.** The cooling need, cooling sources and grid cooling (heat's machinery, in day slots); dry water: a thin river that dries in summer, an oasis spring, evaporation in every season but winter, the qanat. Inert for the other biomes. | Every new rule has a unit test; the other biomes' golden tests are unchanged.                             | DESIGN.md       |
+| SD2  | **Desert simulation.** Its map generator, tiles, events, buildings, the Concentrated Solar Plant's tank, the sand battery, fog nets.                                                                                                                          | Every new rule has a unit test; the Year 1 walkthrough fits the numbers and is proposed as a golden test. | As the Highland |
+| SD3  | **Combos and balance.** Its combos, tunings, charters, the Almanac; bots that cool, store and save water.                                                                                                                                                     | Every combo triggers in a unit test; the bots' Heartwood share is within 10 points of the Reach's.        | As the Highland |
+| SD4  | **On screen.** Heat shimmer, dust, the river running high and drying, the oasis, mirrors catching the light; cooling in tooltips and the season report; an art guide.                                                                                         | A desert run plays to the end with mouse and keyboard.                                                    | As the Highland |
+| SD5  | **In Root City.** Joins after 8 districts; the Sun Quarter, the Glassworks, regions, twists, the guided first run.                                                                                                                                            | Runs move between the four biomes with progression kept (an e2e).                                         | DESIGN.md       |
+| SD6  | **Wonder, wildlife, festivals.** The Solar Oasis, the desert's animals and festivals.                                                                                                                                                                         | As the Highland's HL6.                                                                                    | EXPANSION.md    |
 
-## For review
+## Decided in review
 
-| Question          | Proposal                                                                                                                                                          | Source            |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| Cooling           | A real rule mirroring heat (local, within 2 tiles, grid cooling at 2 for 1, a hot home counted as a cold one), or something lighter, such as shade alone?         | New               |
-| Water             | No river at all: an oasis spring, a wadi that flows only in the spring flash flood, fog nets and wells. Or a thin river that dries up in summer?                  | DESIGN.md         |
-| When it joins     | After 8 districts, as DESIGN.md says. The Volcanic Isle's "after the first landmark" can come much sooner (2 districts), so it may need moving to keep the order. | DESIGN.md         |
-| The wonder's cost | 60 materials and 20 food rather than 30 biomass, since biomass is scarce here.                                                                                    | HL6 (biomass 20)  |
-| Tiles             | Reuse the dune, crag, barren and reservoir types with desert looks (as the coast's headland reuses the hill), and add only the wadi and the salt flat.            | B4 (`hill.coast`) |
-| Art               | Procedural first, with a hand-art request written alongside SD4, as the Highland.                                                                                 | highland.md       |
+| Question          | Decision                                                                                                                                                                                                              | Source      |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| Cooling           | A full rule, mostly mirroring heat: a need on homes by day, cooling sources within 2 tiles, grid cooling at 2 for 1, a hot home counted as a cold one.                                                                | Playtester  |
+| Water             | A thin river that dries up in summer (flow 6 / 0 / 2 / 3), its banks flooded each spring; with the oasis spring, wells and fog nets.                                                                                  | Playtester  |
+| When it joins     | After 8 districts, as DESIGN.md says. (The Volcanic Isle's "after the first landmark" is for its own review.)                                                                                                         | Playtester  |
+| The wonder's cost | 60 materials and 20 food, as proposed.                                                                                                                                                                                | Playtester  |
+| Tiles             | Reuse a tile type only where it is a perfect fit: the river, the floodplain (wadi banks), the ruin (old array), scrub, meadow and woodland, with desert looks. New types for the oasis, reg, erg, rock and salt flat. | Playtester  |
+| Art               | Procedural first, with a hand-art request written alongside SD4, as the Highland.                                                                                                                                     | highland.md |
