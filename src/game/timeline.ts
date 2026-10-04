@@ -4,6 +4,7 @@
  * report, so every pop and every flow of light is something the rules did.
  * Pure data; src/render/resolution.ts plays it.
  */
+import { lanternTiles } from './keepsakes';
 import {
   SEASONS,
   type Content,
@@ -81,6 +82,8 @@ export interface Timeline {
   /** Homes lit at night (and what each is); blacked-out buildings go dark. */
   lit: Hex[];
   litTypes: string[];
+  /** Channel lanterns (a keepsake), lit at night. */
+  lanterns: Hex[];
   dark: Hex[];
   damaged: Hex[];
   /** Everything tall enough to cast a shadow: tall buildings and woodland. */
@@ -356,6 +359,7 @@ export function buildTimeline(
     flood,
     lit,
     litTypes: litHomes.map((b) => b.type),
+    lanterns: lanternTiles(content, after),
     dark,
     damaged: report.damaged.map(at).filter((h): h is Hex => h !== undefined),
     casters,

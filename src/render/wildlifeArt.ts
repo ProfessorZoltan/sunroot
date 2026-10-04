@@ -13,6 +13,7 @@ import { hexDistance, hexKey } from '../sim/hex';
 import { defOf, isHome } from '../sim/queries';
 import type { RunState } from '../sim/types';
 import { animals, festivalThisSeason, habitatOf } from '../sim/wildlife';
+import { keepsakesIn, YOUNG, type Young } from '../game/keepsakes';
 import { hexToPixel, tileRandom, type Point } from './layout';
 
 export type ActorKind =
@@ -42,7 +43,15 @@ export interface Actor {
   path: Point[];
   /** Where in its round it starts (0 to 1), so animals don't move in step. */
   phase: number;
+  /** A young one (a keepsake) beside the animal: drawn smaller, or whitened, until its art comes. */
+  young?: Young;
 }
+
+/** Where each young one keeps beside its parent, in px. */
+const BESIDE: Point[] = [
+  { x: -9, y: 5 },
+  { x: 10, y: 6 },
+];
 
 /** Which art each animal uses. */
 const KIND: Record<string, ActorKind> = {
@@ -93,7 +102,9 @@ function hidden(content: Content, state: RunState, kind: ActorKind): boolean {
 /** The animals on screen: none until wildlife is on (the procedural deer and otters stand in). */
 export function wildlifeActors(content: Content, state: RunState): Actor[] {
   const actors: Actor[] = [];
+  const kept = keepsakesIn(state);
   for (const a of animals(content)) {
+    const first = actors.length;
     if (!state.wildlife.includes(a.id)) continue;
     const kind = KIND[a.id];
     if (!kind || hidden(content, state, kind)) continue;
@@ -115,6 +126,21 @@ export function wildlifeActors(content: Content, state: RunState): Actor[] {
       if (path.length === 1) path.push({ x: path[0]!.x + 14, y: path[0]!.y + 4 });
       actors.push({ kind, path, phase: (rank + i * 0.37) % 1 });
     });
+    // Its young ones, beside the first of them: a step behind, or (the eagles' mate) apart.
+    const parent = actors[first];
+    for (const young of YOUNG) {
+      if (!parent || young.animal !== a.id || !kept.has(young.keepsake)) continue;
+      for (let i = 0; i < young.count; i++) {
+        const by = young.keepsake === 'eaglePair' ? { x: 18, y: -8 } : BESIDE[i % BESIDE.length]!;
+        actors.push({
+          kind,
+          path: parent.path.map((p) => ({ x: p.x + by.x, y: p.y + by.y })),
+          phase:
+            (parent.phase + 0.985 - i * 0.012 + (young.keepsake === 'eaglePair' ? 0.3 : 0)) % 1,
+          young,
+        });
+      }
+    }
   }
   return actors;
 }
@@ -150,6 +176,8 @@ const PACE: Record<ActorKind, { move: number; rest: number }> = {
 
 /** Where an animal is at a moment, and which frame it shows. With `still`, it keeps to its first tile. */
 export function poseAt(actor: Actor, clock: number, still: boolean): Pose {
+  // Chicks on the ledge and a pup hauled out keep still, in their resting frame.
+  if (actor.young?.rests) still = true;
   const { kind, path } = actor;
   // There and back: 0 → n-1 → 0.
   const stops = [...path, ...path.slice(1, -1).reverse()];
@@ -333,17 +361,23 @@ export function drawAnimal(g: Graphics, kind: ActorKind, pose: Pose, season = 's
 }
 
 export interface Prop {
-  kind: 'bunting' | 'lantern';
+  /** A festival's bunting and lanterns, and the settlement's keepsakes (keepsakeArt.ts). */
+  kind: 'bunting' | 'lantern' | 'banner' | 'windowBox' | 'birdBox';
   at: Point;
   /** Bunting: the far end of its string. */
   to?: Point;
   lit?: boolean;
+  /** The banner's colour. */
+  color?: string;
 }
 
-/** A festival's props this season: bunting from the camp to its neighbours; lanterns at homes. */
+/**
+ * A festival's props this season: bunting from the camp to its neighbours; lanterns at homes.
+ * The Bunting keepsake keeps the bunting up all year.
+ */
 export function festivalProps(content: Content, state: RunState): Prop[] {
   const f = festivalThisSeason(content, state);
-  if (!f) return [];
+  if (!f && !keepsakesIn(state).has('bunting')) return [];
   const props: Prop[] = [];
   const camp = Object.values(state.buildings).find((b) => b.type === content.campBuilding);
   if (camp) {
@@ -360,7 +394,7 @@ export function festivalProps(content: Content, state: RunState): Prop[] {
       props.push({ kind: 'bunting', at: { x: c.x, y: c.y - 14 }, to: { x: p.x, y: p.y - 14 } });
     }
   }
-  if (f.showsWildlife) {
+  if (f?.showsWildlife) {
     const homes = state.priority
       .map((uid) => state.buildings[uid]!)
       .filter((b) => isHome(defOf(content, b)))

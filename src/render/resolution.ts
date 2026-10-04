@@ -4,6 +4,7 @@
  * flowing as light into buildings, night with lit windows, and number pops.
  * It reads the timeline only; skipping jumps straight to the end.
  */
+import { lanternAt } from './keepsakeArt';
 import { Container, Graphics, Text } from 'pixi.js';
 import type { PhaseName, Pop, Timeline } from '../game/timeline';
 import { parseHexKey } from '../sim/hex';
@@ -527,6 +528,12 @@ export class ResolutionPlayer {
       l.rect(c.x - 5, c.y - 6, 3, 3).fill({ color: 0xffe08a, alpha: depth });
       l.rect(c.x + 2, c.y - 6, 3, 3).fill({ color: 0xffe08a, alpha: depth });
     });
+    // Channel lanterns (a keepsake) glow along the water.
+    for (const h of this.timeline.lanterns) {
+      const p = lanternAt(h);
+      l.circle(p.x, p.y + 3, 6).fill({ color: COLORS.sunGold, alpha: 0.3 * depth * pulse });
+      l.circle(p.x, p.y + 3, 1.6).fill({ color: 0xffe08a, alpha: depth });
+    }
     if (night > 0.15) for (const h of this.timeline.dark) drawCondition(l, hexToPixel(h), 'dark');
   }
 

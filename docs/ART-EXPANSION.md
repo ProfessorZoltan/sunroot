@@ -421,6 +421,53 @@ the rest) keep the Reach's art.
 Animals follow the wildlife frame above (128 × 128, bottom-centre anchor, facing right). The
 desert's festivals use the Reach's bunting and lanterns.
 
+## Keepsakes (Seeds)
+
+Keepsakes are bought in Root City with Seeds ([proposals/seed-uses.md](proposals/seed-uses.md))
+and are only to look at. **In the game, drawn in code**: each young one uses its parent's frames,
+smaller or whitened, and each ornament is a small code drawing. Any piece can arrive on its own,
+and the importer takes them now. Same light and style as the rest.
+
+### The young ones
+
+Each is an extra figure beside its animal: one or two young ones walking a step behind a parent,
+or keeping still near it. Their frames are the parent's names with the young one's name after
+the animal's (`deer.walk.1.png` becomes `deer.white.walk.1.png`), on the same 128 × 128 frame,
+anchored bottom centre and facing right. **Paint them at their own size** on that frame: the game
+draws a young one's own art as it is, without scaling it. Where the parent has winter frames, give
+the young one winter frames too. Deliver them to `art/incoming/wildlife/` with the animals.
+
+| Keepsake          | Files                                                                                  | Notes                                                                       | Source                 |
+| ----------------- | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ---------------------- |
+| Bumblebees        | `wildBees.bumble.1.png` … `.3.png`                                                     | Fat, furry, banded bees, a few, bigger than the wild bees and easy to spot. | proposals/seed-uses.md |
+| Otter cubs        | `otter.cub.swim.1.png`, `.swim.2.png`, `otter.cub.rest.png`                            | About half the otter's size.                                                | proposals/seed-uses.md |
+| Beaver kit        | `beaver.kit.swim.1.png`, `.swim.2.png`, `beaver.kit.carry.png`                         | About half the beaver's size; "carry" is the kit sitting by the water.      | proposals/seed-uses.md |
+| The white hart    | `deer.white.walk.1.png` … `.4.png`, `deer.white.graze.1.png`, `.2.png`, each `.winter` | A full-grown pale white stag with antlers, a touch larger than the deer.    | proposals/seed-uses.md |
+| Tern chicks       | `tern.chick.rest.png`, `.winter`                                                       | Speckled chicks in a scrape on the dune; they keep still.                   | proposals/seed-uses.md |
+| Seal pup          | `seal.pup.rest.png`, `.winter`                                                         | A white-coated pup hauled out; it keeps still.                              | proposals/seed-uses.md |
+| Puffin with fish  | `puffin.fish.1.png`, `.2.png`, each `.winter`                                          | A puffin like the others, its beak full of silver sand eels.                | proposals/seed-uses.md |
+| Dolphin calf      | `dolphin.calf.1.png` … `.3.png`, each `.winter`                                        | About half the dolphin's size.                                              | proposals/seed-uses.md |
+| Leverets          | `hare.young.run.1.png`, `.run.2.png`, `hare.young.sit.png`, each `.winter`             | Small hares, brown in summer, white in winter like the adults.              | proposals/seed-uses.md |
+| Dipper fledgling  | `dipper.young.1.png`, `.2.png`, each `.winter`                                         | Grey and speckled, without the white bib yet.                               | proposals/seed-uses.md |
+| Eagle pair        | None                                                                                   | The second eagle uses the eagle's own frames.                               | proposals/seed-uses.md |
+| Marten kits       | `marten.kit.1.png`, `.2.png`, each `.winter`                                           | About half the marten's size.                                               | proposals/seed-uses.md |
+| Fennec cubs       | `fennec.cub.run.1.png`, `.run.2.png`, `fennec.cub.sit.png`, each `.winter`             | Big-eared cubs, about half the fox's size.                                  | proposals/seed-uses.md |
+| Sandgrouse chicks | `sandgrouse.chick.1.png`, `.2.png`                                                     | Small, mottled chicks running.                                              | proposals/seed-uses.md |
+| Falcon chicks     | `falcon.chick.perch.png`                                                               | White, downy chicks on a ledge; they keep still.                            | proposals/seed-uses.md |
+| Oryx calf         | `oryx.calf.walk.1.png` … `.4.png`, `oryx.calf.graze.1.png`, `.2.png`, each `.winter`   | Sandy, without the long horns yet.                                          | proposals/seed-uses.md |
+
+### Ornaments on the settlement
+
+Props on the 128 × 128 frame, at tile scale, delivered to `art/incoming/keepsakes/`. The bunting
+and the channel lanterns use the festivals' bunting and lantern art, and the kites stay drawn in
+code, so only three pieces are asked for.
+
+| Keepsake          | File            | Notes                                                                                                                                                                           | Source                 |
+| ----------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| The city's banner | `banner.png`    | A pole with a swallow-tailed flag, standing on the ground (bottom centre at (64, 120)). Paint the flag **white**: the game tints it to the colour of the city's first district. | proposals/seed-uses.md |
+| Window boxes      | `windowBox.png` | A small wooden box of mixed flowers, hung from its top centre (64, 8) like the lantern; small, to sit under a window.                                                           | proposals/seed-uses.md |
+| Bird boxes        | `birdBox.png`   | A bird box with a round hole and a pitched roof, hung from its top centre (64, 8), as if nailed high on a trunk.                                                                | proposals/seed-uses.md |
+
 ## Optional: interface marks
 
 The game draws these in code. Paint them only if you want them in the art style; 128 × 128 px,

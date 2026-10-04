@@ -228,6 +228,11 @@ export function propTexture(name: string): Texture | null {
   return pick(`festivals/${name}.png`);
 }
 
+/** A settlement keepsake's art (`keepsakes/banner.png`, `windowBox`, `birdBox`, `kite`), once it comes. */
+export function keepsakeTexture(name: string): Texture | null {
+  return pick(`keepsakes/${name}.png`);
+}
+
 /** A wonder's art: a construction stage (1 to 3) while it is built, else finished, in winter dress. */
 export function wonderTexture(id: string, stage: number | null, season: Season): Texture | null {
   if (stage !== null) return pick(`wonders/${id}.stage${stage}.png`);

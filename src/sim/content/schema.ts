@@ -1619,6 +1619,25 @@ export const FestivalSchema = z
   .strict();
 export type Festival = z.infer<typeof FestivalSchema>;
 
+/**
+ * A keepsake (proposals/seed-uses.md): something bought once in Root City with Seeds and kept,
+ * purely to look at. Nothing in the simulation reads them.
+ */
+export const KeepsakeSchema = z
+  .object({
+    ...CardText,
+    /** An animal's young (or rare look) beside it; an ornament on each settlement; or in Root City. */
+    kind: z.enum(['wildlife', 'settlement', 'city']),
+    cost: int.min(1),
+    /** The animal it joins (wildlife keepsakes). */
+    animal: z.string().optional(),
+  })
+  .strict()
+  .refine((k) => (k.kind === 'wildlife') === (k.animal !== undefined), {
+    message: 'a wildlife keepsake names its animal, and only it',
+  });
+export type Keepsake = z.infer<typeof KeepsakeSchema>;
+
 export const ContentSchema = z
   .object({
     id: z.string(),
@@ -1648,6 +1667,7 @@ export const ContentSchema = z
     regions: z.array(RegionSchema).default([]),
     tempest: TempestSchema.default({ seedsPerLevel: 0, levels: [] }),
     requests: z.array(RequestSchema).default([]),
+    keepsakes: z.array(KeepsakeSchema).default([]),
     progression: ProgressionSchema.optional(),
     /** Fixed draft offers for the guided first year, spring to winter. */
     guidedYear: z.tuple([

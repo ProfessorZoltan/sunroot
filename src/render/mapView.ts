@@ -5,13 +5,17 @@
  * river flow, buildings, then the overlay (hover, ghost, preview numbers).
  */
 import type { Application } from 'pixi.js';
-import { Container, Graphics, Sprite, Text } from 'pixi.js';
+import { ColorMatrixFilter, Container, Graphics, Sprite, Text } from 'pixi.js';
+import type { Texture } from 'pixi.js';
+import { keepsakesIn, youngFrame } from '../game/keepsakes';
+import { drawKites, drawOrnament, keepsakeProps, kiteAnchors } from './keepsakeArt';
 import type { PhaseName, Timeline } from '../game/timeline';
 import type { Content } from '../sim/content/load';
 import { hexKey, hexNeighbors, parseHexKey, type Hex } from '../sim/hex';
 import { edgeEnds, edgeTiles } from '../sim/edges';
 import type { PlacementPreview, PreviewKey } from '../sim/preview';
 import type { RunState, WaterReport } from '../sim/types';
+import type { Season } from '../sim/content/schema';
 import { channels, waterOn } from '../sim/water';
 import { SEASONS } from '../sim/content/schema';
 import { drawDitches, drawWater, waterBeside, waterView, type WaterView } from './waterArt';
@@ -50,6 +54,7 @@ import {
   rotorSprite,
   rotorTexture,
   propTexture,
+  keepsakeTexture,
   tileTexture,
   wildlifeTexture,
   wonderSprite,
@@ -139,6 +144,8 @@ export class MapView {
   /** Wonders drawn with their art over their 7 tiles (for tests). */
   private wondersDrawn = 0;
   private props: Prop[] = [];
+  /** Where the Kites keepsake flies them this season. */
+  private kites: Point[] = [];
   private readonly overFx = new Container();
   private readonly overlay = new Graphics();
   /** The edge the hedge tool aims at. */
@@ -477,12 +484,32 @@ export class MapView {
     const k = artScale() * SHOW_SCALE;
     // The run's own rules: wildlife comes with the water system, a run option.
     const rules = effectiveContent(this.content, state);
-    this.props = festivalProps(rules, state);
+    this.props = [...festivalProps(rules, state), ...keepsakeProps(rules, state)];
+    this.kites = kiteAnchors(rules, state);
+    let ornaments: Graphics | null = null;
     for (const p of this.props) {
-      const tex = propTexture(
-        p.kind === 'lantern' ? (p.lit ? 'lantern.lit' : 'lantern') : 'bunting',
-      );
-      if (!tex) continue;
+      const tex =
+        p.kind === 'lantern'
+          ? propTexture(p.lit ? 'lantern.lit' : 'lantern')
+          : p.kind === 'bunting'
+            ? propTexture('bunting')
+            : keepsakeTexture(p.kind);
+      if (!tex) {
+        // A keepsake whose art hasn't come: drawn in code.
+        if (!ornaments) this.animalLayer.addChild((ornaments = new Graphics()));
+        drawOrnament(ornaments, p);
+        continue;
+      }
+      if (p.kind === 'banner') {
+        // Its own art, its white flag tinted to the city's colour.
+        const s = new Sprite(tex);
+        s.tint = Number.parseInt((p.color ?? '#9e9280').slice(1), 16);
+        s.anchor.set(0.5, 120 / 128);
+        s.position.set(p.at.x, p.at.y);
+        s.scale.set(k);
+        this.animalLayer.addChild(s);
+        continue;
+      }
       const s = new Sprite(tex);
       s.position.set(p.at.x, p.at.y);
       if (p.kind === 'bunting' && p.to) {
@@ -500,14 +527,17 @@ export class MapView {
     this.actors = [];
     this.drawnActors = [];
     for (const actor of wildlifeActors(rules, state)) {
-      const tex = wildlifeTexture(poseAt(actor, 0, true).frame, state.season);
+      const { tex, own } = actorTexture(actor, poseAt(actor, 0, true).frame, state.season);
       if (!tex) {
-        this.drawnActors.push(actor);
+        if (!actor.young) this.drawnActors.push(actor);
         continue;
       }
       const sprite = new Sprite(tex);
       // Bottom centre (64, 120), where it meets the ground or water; the bees at their centre.
       sprite.anchor.set(0.5, actor.kind === 'wildBees' ? 0.5 : 120 / 128);
+      // A young one without its own art: its parent's figure, whitened or greyed.
+      const look = !own && actor.young?.look;
+      if (look) sprite.filters = [lookFilter(look)];
       this.animalLayer.addChild(sprite);
       this.actors.push({ actor, sprite });
     }
@@ -519,10 +549,12 @@ export class MapView {
     const k = artScale() * SHOW_SCALE;
     for (const { actor, sprite } of this.actors) {
       const pose = poseAt(actor, this.clock, this.reducedMotion);
-      const tex = wildlifeTexture(pose.frame, season);
+      const { tex, own } = actorTexture(actor, pose.frame, season);
       if (tex && sprite.texture !== tex) sprite.texture = tex;
       sprite.position.set(pose.x, pose.y);
-      sprite.scale.set(pose.flip ? -k : k, k);
+      // A young one drawn from its parent's frames is smaller (the bumblebees bigger).
+      const s = k * (actor.young && !own ? actor.young.scale : 1);
+      sprite.scale.set(pose.flip ? -s : s, s);
     }
   }
 
@@ -535,12 +567,15 @@ export class MapView {
     for (const d of deer) drawDeer(g, d);
     for (const actor of this.drawnActors)
       drawAnimal(g, actor.kind, poseAt(actor, this.clock, still), this.state?.season);
+    drawKites(g, this.kites, this.clock, still);
     otters.forEach((o, i) => drawOtter(g, o, still ? 0 : Math.sin(this.clock / 400 + i) * 1.2));
     if (birds && this.bounds) {
       const { minX, maxX, minY } = this.bounds;
       const span = maxX - minX + 200;
       const lead = still ? span * 0.4 : ((this.clock / 40) % span) - 100;
-      for (let i = 0; i < 4; i++) {
+      // Bird boxes bring a few more.
+      const flock = this.state && keepsakesIn(this.state).has('birdBoxes') ? 7 : 4;
+      for (let i = 0; i < flock; i++) {
         const p = { x: maxX - lead + i * 16, y: minY + 70 + (i % 2) * 9 + i * 3 };
         drawBird(g, p, still ? 0.5 : (Math.sin(this.clock / 120 + i) + 1) / 2);
       }
@@ -1185,6 +1220,30 @@ function nearestSide(h: Hex, p: Point): number {
  * scale is a quarter of a tile long).
  */
 const SHOW_SCALE = 1.5;
+
+/** An animal's frame, or a young one's own art if it has come (else its parent's frame). */
+function actorTexture(
+  actor: Actor,
+  frame: string,
+  season: Season,
+): { tex: Texture | null; own: boolean } {
+  const variant = actor.young?.variant;
+  const own = variant ? wildlifeTexture(youngFrame(frame, variant), season) : null;
+  return own ? { tex: own, own: true } : { tex: wildlifeTexture(frame, season), own: false };
+}
+
+const LOOKS: Partial<Record<'white' | 'grey', ColorMatrixFilter>> = {};
+/** A whitened (the white hart, a seal pup, downy chicks) or greyed (a fledgling) figure. */
+function lookFilter(look: 'white' | 'grey'): ColorMatrixFilter {
+  let f = LOOKS[look];
+  if (!f) {
+    f = new ColorMatrixFilter();
+    f.desaturate();
+    if (look === 'white') f.brightness(1.9, true);
+    LOOKS[look] = f;
+  }
+  return f;
+}
 
 function count(kinds: string[]): Record<string, number> {
   const out: Record<string, number> = {};

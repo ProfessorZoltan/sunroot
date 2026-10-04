@@ -503,6 +503,206 @@
       }
     }
   ],
+  "keepsakes": [
+    {
+      "id": "bumblebees",
+      "name": "Bumblebees",
+      "text": "Fat, furry bumblebees bumble about the meadows with the wild bees.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "wildBees"
+    },
+    {
+      "id": "otterCubs",
+      "name": "Otter cubs",
+      "text": "Two cubs swim after the otters.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "otters"
+    },
+    {
+      "id": "beaverKit",
+      "name": "Beaver kit",
+      "text": "A kit paddles beside the beavers.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "beavers"
+    },
+    {
+      "id": "whiteHart",
+      "name": "The white hart",
+      "text": "A pale white stag walks with the deer.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "deer"
+    },
+    {
+      "id": "ternChicks",
+      "name": "Tern chicks",
+      "text": "Speckled chicks wait on the dunes for the terns.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "terns"
+    },
+    {
+      "id": "sealPup",
+      "name": "Seal pup",
+      "text": "A white-coated pup hauls out beside the seals.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "seals"
+    },
+    {
+      "id": "puffinFish",
+      "name": "Puffin with fish",
+      "text": "A puffin comes home with a beak full of sand eels.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "puffins"
+    },
+    {
+      "id": "dolphinCalf",
+      "name": "Dolphin calf",
+      "text": "A calf leaps beside the dolphins.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "dolphins"
+    },
+    {
+      "id": "leverets",
+      "name": "Leverets",
+      "text": "Two leverets hide in the grass near the hares.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "hares"
+    },
+    {
+      "id": "dipperFledgling",
+      "name": "Dipper fledgling",
+      "text": "A grey, speckled young dipper bobs on the next stone.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "dippers"
+    },
+    {
+      "id": "eaglePair",
+      "name": "Eagle pair",
+      "text": "A second golden eagle soars with the first.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "eagles"
+    },
+    {
+      "id": "martenKits",
+      "name": "Marten kits",
+      "text": "Two kits tumble after the pine martens.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "martens"
+    },
+    {
+      "id": "fennecCubs",
+      "name": "Fennec cubs",
+      "text": "Big-eared cubs play by the fennec foxes' den.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "fennecs"
+    },
+    {
+      "id": "sandgrouseChicks",
+      "name": "Sandgrouse chicks",
+      "text": "Chicks run after the sandgrouse that carry water to them.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "sandgrouse"
+    },
+    {
+      "id": "falconChicks",
+      "name": "Falcon chicks",
+      "text": "Downy chicks wait on the falcons' ledge.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "falcons"
+    },
+    {
+      "id": "oryxCalf",
+      "name": "Oryx calf",
+      "text": "A sandy calf keeps close to the oryx herd.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "oryx"
+    },
+    {
+      "id": "cityBanner",
+      "name": "The city's banner",
+      "text": "A banner over the Founders' Camp in the colour of Root City's first district.",
+      "kind": "settlement",
+      "cost": 30
+    },
+    {
+      "id": "bunting",
+      "name": "Bunting",
+      "text": "Festival bunting round the camp all year, not only on festival days.",
+      "kind": "settlement",
+      "cost": 30
+    },
+    {
+      "id": "windowBoxes",
+      "name": "Window boxes",
+      "text": "Flowers under the windows of every home, spring to autumn.",
+      "kind": "settlement",
+      "cost": 40
+    },
+    {
+      "id": "channelLanterns",
+      "name": "Channel lanterns",
+      "text": "Small lanterns along the channels, lit at night.",
+      "kind": "settlement",
+      "cost": 40
+    },
+    {
+      "id": "birdBoxes",
+      "name": "Bird boxes",
+      "text": "Bird boxes on the trees beside the homes, and a few more birds about.",
+      "kind": "settlement",
+      "cost": 30
+    },
+    {
+      "id": "kites",
+      "name": "Kites",
+      "text": "Kites over the settlement in the windy seasons, spring and autumn.",
+      "kind": "settlement",
+      "cost": 40
+    },
+    {
+      "id": "lanternPaths",
+      "name": "Lantern paths",
+      "text": "Lanterns along the paths between neighbouring districts, lit at dusk.",
+      "kind": "city",
+      "cost": 50
+    },
+    {
+      "id": "fireflies",
+      "name": "Fireflies",
+      "text": "Fireflies drift over the city at dusk.",
+      "kind": "city",
+      "cost": 40
+    },
+    {
+      "id": "fountain",
+      "name": "The fountain",
+      "text": "A fountain on the green at the Heartwood's foot.",
+      "kind": "city",
+      "cost": 60
+    },
+    {
+      "id": "cityKites",
+      "name": "Kites over the city",
+      "text": "Kites in the districts' colours over Root City.",
+      "kind": "city",
+      "cost": 40
+    }
+  ],
   "progression": {
     "seeds": {
       "base": 10,

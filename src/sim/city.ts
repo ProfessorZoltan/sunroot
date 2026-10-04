@@ -103,6 +103,9 @@ export interface CityState {
   fullValley?: boolean;
   /** New sets of expeditions bought for the next run (missing: none). */
   scouted?: number;
+  /** Keepsakes bought, in order (missing: none), and those switched off. */
+  keepsakes?: string[];
+  keepsakesOff?: string[];
 }
 
 export type CityCommand =
@@ -113,6 +116,10 @@ export type CityCommand =
   | { type: 'chooseExpedition'; index: number }
   /** A new set of expeditions for the next run, for Seeds. */
   | { type: 'scoutExpeditions' }
+  /** A keepsake, bought once with Seeds and kept. */
+  | { type: 'buyKeepsake'; id: string }
+  /** A keepsake bought, switched on or off. */
+  | { type: 'setKeepsake'; id: string; on: boolean }
   /** The Tempest level for the next runs, up to the highest unlocked. */
   | { type: 'setTempest'; level: number }
   /** Every layer (water, and later commuting and local heat) from the next run on, or not. */
@@ -216,7 +223,21 @@ export function bestTiers(content: Content, city: CityState): Record<string, str
 }
 
 export function runCity(content: Content, city: CityState): RunCity {
-  return { districts: bestTiers(content, city), landmarks: standingLandmarks(content, city) };
+  const base = { districts: bestTiers(content, city), landmarks: standingLandmarks(content, city) };
+  const keepsakes = keepsakesOn(city);
+  if (keepsakes.length === 0) return base;
+  const first = [...city.districts].sort((a, b) => a.run - b.run || a.slot - b.slot)[0];
+  return {
+    ...base,
+    keepsakes,
+    ...(keepsakes.includes('cityBanner') && first ? { banner: first.district } : {}),
+  };
+}
+
+/** The keepsakes bought and switched on. */
+export function keepsakesOn(city: CityState): string[] {
+  const off = new Set(city.keepsakesOff ?? []);
+  return (city.keepsakes ?? []).filter((id) => !off.has(id));
 }
 
 export interface Teaching {
@@ -566,6 +587,23 @@ export function applyCityCommand(
       next.scouted = (next.scouted ?? 0) + 1;
       // The one chosen from the old set is no longer offered.
       next.expedition = null;
+      break;
+    }
+    case 'buyKeepsake': {
+      const k = content.keepsakes.find((x) => x.id === command.id);
+      if (!k) return fail(`unknown keepsake ${command.id}`);
+      if (next.keepsakes?.includes(k.id)) return fail(`${k.name} is already the city's`);
+      if (next.seeds < k.cost) return fail(`${k.name} costs ${k.cost} Seeds`);
+      next.seeds -= k.cost;
+      next.keepsakes = [...(next.keepsakes ?? []), k.id];
+      break;
+    }
+    case 'setKeepsake': {
+      if (!next.keepsakes?.includes(command.id)) return fail('buy the keepsake first');
+      const off = (next.keepsakesOff ?? []).filter((id) => id !== command.id);
+      if (!command.on) off.push(command.id);
+      if (off.length > 0) next.keepsakesOff = off;
+      else delete next.keepsakesOff;
       break;
     }
     case 'embark': {

@@ -18,7 +18,8 @@
  * - a delivered icon, `id.icon.png`, in place of the one cropped from the art.
  *
  * - wildlife and festival props (`wildlife/`, `festivals/`), off the standard
- *   frame, at half size like the rest (a 128 px frame becomes 64);
+ *   frame, at half size like the rest (a 128 px frame becomes 64); the animals' young ones
+ *   (keepsakes) among the animals' frames, and the settlement's keepsakes (`keepsakes/`);
  * - festival cards (`id.card.png`) as WebP at full size, for the interface only.
  *
  * - wonders (`wonders/`, E5) at half size on their own larger frame (three
@@ -94,7 +95,16 @@ try {
     `data:image/png;base64,${readFileSync(join(IN, f)).toString('base64')}`;
 
   rmSync(OUT, { recursive: true, force: true });
-  for (const dir of ['tiles', 'buildings', 'icons', 'wildlife', 'festivals', 'wonders', 'city'])
+  for (const dir of [
+    'tiles',
+    'buildings',
+    'icons',
+    'wildlife',
+    'festivals',
+    'keepsakes',
+    'wonders',
+    'city',
+  ])
     mkdirSync(join(OUT, dir), { recursive: true });
   const write = (path: string, dataUrl: string) =>
     writeFileSync(join(OUT, path), Buffer.from(dataUrl.split(',')[1]!, 'base64'));
@@ -301,12 +311,16 @@ try {
     'bunting',
     'lantern',
   ]);
+  // The settlement's keepsakes (proposals/seed-uses.md): props like the festivals'. An animal's
+  // young ones come with its frames, named after it (`deer.white.walk.1.png`).
+  const ornaments = new Set(['banner', 'windowBox', 'birdBox']);
+  const known = { wildlife: animals, festivals, keepsakes: ornaments };
   let extras = 0;
-  for (const dir of ['wildlife', 'festivals'] as const) {
+  for (const dir of ['wildlife', 'festivals', 'keepsakes'] as const) {
+    if (!existsSync(join(IN, dir))) continue;
     for (const file of readdirSync(join(IN, dir)).filter((f) => f.endsWith('.png'))) {
       const id = idOf(file);
-      if (!(dir === 'wildlife' ? animals : festivals).has(id))
-        throw new Error(`not a known ${dir} id: ${dir}/${file}`);
+      if (!known[dir].has(id)) throw new Error(`not a known ${dir} id: ${dir}/${file}`);
       const card = file.endsWith('.card.png');
       const out = await page.evaluate(
         async ({ src, scale, card }) => {

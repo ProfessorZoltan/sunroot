@@ -169,6 +169,13 @@ code.
 Paint the Sapling first to settle the look, then the Seedling and the Heartwood from it, then the
 Glassworks.
 
+## Keepsakes in the city
+
+Root City's keepsakes ([proposals/seed-uses.md](proposals/seed-uses.md)): lanterns on the paths
+between neighbouring districts (lit at dusk), fireflies at dusk, a fountain at the Heartwood's
+foot, and kites in the districts' colours. They are small and drawn in code over the city, so no
+art is asked for them.
+
 ## The Heartwood and the Sun Tree
 
 The centre hex grows through four stages as the slots fill, then becomes the Sun Tree. It is the

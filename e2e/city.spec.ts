@@ -569,3 +569,54 @@ test('new expeditions for Seeds: three other valleys, dearer each time', async (
   await expect(next.getByRole('button', { name: 'New expeditions for 15 Seeds' })).toBeDisabled();
   expect(errors).toEqual([]);
 });
+
+test('keepsakes: bought by mouse, drawn in the city, carried into the next run', async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  const c = city([
+    { type: 'sendHome', result: { graft: graft('orchardWard'), earned: 135, spent: 35 } },
+    { type: 'place', slot: 0 },
+  ]);
+  await seedCity(page, c);
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Root City' })).toBeVisible();
+  const panel = page.getByRole('region', { name: 'Keepsakes' });
+  await panel.locator('summary').click();
+  await expect(panel).toContainText('0 of 26');
+  await panel.getByRole('button', { name: 'The fountain for 60 Seeds' }).click();
+  await panel.getByRole('button', { name: "The city's banner for 30 Seeds" }).click();
+  await expect.poll(async () => (await cityNow(page)).seeds).toBe(10);
+  // 10 Seeds left: the white hart, at 20, can't be paid.
+  await expect(panel.getByRole('button', { name: 'The white hart for 20 Seeds' })).toBeDisabled();
+  await expect(page.locator('.city-ornaments .fountain')).toHaveCount(1);
+  // Switched off, it goes; on again, it comes back.
+  const fountain = panel.locator('li', { hasText: 'The fountain' }).getByRole('checkbox');
+  await fountain.uncheck();
+  await expect(page.locator('.city-ornaments .fountain')).toHaveCount(0);
+  await fountain.check();
+  await expect(page.locator('.city-ornaments .fountain')).toHaveCount(1);
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/keepsakes-city.png` });
+
+  // Into the next run: the banner flies over the camp.
+  const next = page.getByRole('region', { name: 'Next expedition' });
+  await next.locator('.card.expedition').first().click();
+  await next.getByRole('button', { name: 'Set out on run 2' }).click();
+  await expect(page.locator('#map-host canvas')).toBeVisible({ timeout: 15_000 });
+  const run = () =>
+    page.evaluate(() => {
+      const w = (window as unknown as Win).sunroot as unknown as {
+        store: { state: { options: { city: { keepsakes?: string[]; banner?: string } } } };
+        view: { scenery: { props: Record<string, number> } } | null;
+      };
+      return { city: w.store.state.options.city, props: w.view?.scenery.props ?? {} };
+    });
+  expect((await run()).city).toMatchObject({
+    keepsakes: ['fountain', 'cityBanner'],
+    banner: 'orchardWard',
+  });
+  await expect.poll(async () => (await run()).props.banner).toBe(1);
+  expect(errors).toEqual([]);
+});

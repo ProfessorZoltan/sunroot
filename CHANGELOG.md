@@ -1,11 +1,13 @@
 # Changelog
 
-## New expeditions for Seeds
+## New expeditions and keepsakes for Seeds
 
 - Don't like the three expeditions on offer? In Root City, **New expeditions** shows three other
   valleys for 5 Seeds, then 10, then 15 before the same run.
-- Proposed, for review: **keepsakes**, cosmetic things to spend Seeds on (the animals' young ones,
-  ornaments on the settlement and in Root City).
+- **Keepsakes**, things to spend Seeds on just to look at, in a new panel in Root City: the
+  animals' young ones (otter cubs, a seal pup, fennec cubs, the white hart and a dozen more), and
+  ornaments for every settlement (the city's banner, bunting all year, window boxes, channel
+  lanterns, bird boxes, kites) and for Root City (lantern paths, fireflies, a fountain, kites).
 
 ## The Solar Oasis
 

@@ -124,6 +124,10 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     'landmark',
   );
   unique(
+    data.keepsakes.map((k) => k.id),
+    'keepsake',
+  );
+  unique(
     data.projects.map((p) => p.id),
     'project',
   );
@@ -279,7 +283,13 @@ function checkCombo(c: Combo, known: (id: string, where: string) => void): void 
 }
 
 /** Root City's parts of the content, shared by every biome (DECISIONS.md, The Windswept Coast). */
-export const WORLD_KEYS = ['districts', 'landmarks', 'requests', 'progression'] as const;
+export const WORLD_KEYS = [
+  'districts',
+  'landmarks',
+  'requests',
+  'keepsakes',
+  'progression',
+] as const;
 
 /**
  * A biome's raw content with Root City's shared parts (districts, landmarks,

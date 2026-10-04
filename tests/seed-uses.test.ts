@@ -1,17 +1,23 @@
 /**
  * Other uses for Seeds (proposals/seed-uses.md): a new set of expeditions before
- * a run, for Seeds that rise with each set.
+ * a run, for Seeds that rise with each set; and keepsakes, bought once and kept,
+ * only to look at.
  */
 import { describe, expect, it } from 'vitest';
-import { biomeContent } from '../src/content';
+import { BIOMES, biomeContent } from '../src/content';
 import {
   applyCityCommand,
   createCity,
+  createRun,
   expeditionOffer,
+  keepsakesOn,
+  nextRunOptions,
+  runCity,
   scoutCost,
   type CityCommand,
   type CityState,
 } from '../src/sim';
+import { endSeason } from './helpers';
 
 const REACH = biomeContent('willowReach');
 const after = (runs: number, seeds: number): CityState => ({
@@ -90,5 +96,90 @@ describe('a new set of expeditions', () => {
     });
     expect(c.scouted).toBeUndefined();
     expect(scoutCost(REACH, c)).toBe(5);
+  });
+});
+
+describe('keepsakes', () => {
+  const buy = (city: CityState, id: string) => apply(city, { type: 'buyKeepsake', id });
+  const price = (id: string) => REACH.keepsakes.find((k) => k.id === id)!.cost;
+
+  it('16 young ones at 20 Seeds; 6 settlement ornaments at 30 or 40; 4 city ones at 40 to 60', () => {
+    const of = (kind: string) => REACH.keepsakes.filter((k) => k.kind === kind);
+    expect(of('wildlife')).toHaveLength(16);
+    expect(of('wildlife').every((k) => k.cost === 20)).toBe(true);
+    expect(of('settlement').map((k) => k.cost)).toEqual([30, 30, 40, 40, 30, 40]);
+    expect(of('city').map((k) => k.cost)).toEqual([50, 40, 60, 40]);
+  });
+
+  it("each young one joins an animal of some biome, every biome's animals one each", () => {
+    const animals = Object.keys(BIOMES).flatMap((id) => biomeContent(id).wildlife.map((a) => a.id));
+    const joined = REACH.keepsakes.filter((k) => k.kind === 'wildlife').map((k) => k.animal);
+    expect([...joined].sort()).toEqual([...animals].sort());
+  });
+
+  it('is bought once, for its price, open from the start', () => {
+    let c = after(0, 50);
+    c = buy(c, 'whiteHart');
+    expect(c.seeds).toBe(50 - price('whiteHart'));
+    expect(c.keepsakes).toEqual(['whiteHart']);
+    expect(refuses(c, { type: 'buyKeepsake', id: 'whiteHart' })).toBe(
+      "The white hart is already the city's",
+    );
+    expect(refuses(after(0, 10), { type: 'buyKeepsake', id: 'fountain' })).toBe(
+      'The fountain costs 60 Seeds',
+    );
+    expect(refuses(c, { type: 'buyKeepsake', id: 'unicorn' })).toBe('unknown keepsake unicorn');
+  });
+
+  it('switches off and on again for free', () => {
+    let c = buy(buy(after(1, 100), 'bunting'), 'fireflies');
+    c = apply(c, { type: 'setKeepsake', id: 'bunting', on: false });
+    expect(keepsakesOn(c)).toEqual(['fireflies']);
+    c = apply(c, { type: 'setKeepsake', id: 'bunting', on: true });
+    expect(keepsakesOn(c)).toEqual(['bunting', 'fireflies']);
+    expect(c.keepsakesOff).toBeUndefined();
+    expect(refuses(c, { type: 'setKeepsake', id: 'kites', on: true })).toBe(
+      'buy the keepsake first',
+    );
+  });
+
+  it("goes with every run: those on, and the banner in the first district's colour", () => {
+    let c: CityState = {
+      ...after(2, 100),
+      districts: [
+        { slot: 3, district: 'orchardWard', tier: 'seedling', invested: 0, run: 2 },
+        { slot: 0, district: 'foundryDistrict', tier: 'seedling', invested: 0, run: 1 },
+      ],
+    };
+    expect(runCity(REACH, c).keepsakes).toBeUndefined();
+    c = buy(buy(c, 'cityBanner'), 'otterCubs');
+    expect(runCity(REACH, c)).toMatchObject({
+      keepsakes: ['cityBanner', 'otterCubs'],
+      banner: 'foundryDistrict',
+    });
+    c = apply(c, { type: 'setKeepsake', id: 'cityBanner', on: false });
+    expect(runCity(REACH, c).banner).toBeUndefined();
+    const s = createRun(REACH, nextRunOptions(REACH, c));
+    expect(s.options.city.keepsakes).toEqual(['otterCubs']);
+  });
+
+  it('changes nothing in how a run plays', () => {
+    const plain = createRun(REACH, { seed: 'keep', water: true });
+    const dressed = createRun(REACH, {
+      seed: 'keep',
+      water: true,
+      city: { districts: {}, landmarks: [], keepsakes: REACH.keepsakes.map((k) => k.id) },
+    });
+    let a = plain;
+    let b = dressed;
+    for (let i = 0; i < 8 && a.status === 'active'; i++) {
+      a = endSeason(a, REACH);
+      b = endSeason(b, REACH);
+    }
+    expect(a.turn).toBeGreaterThan(1);
+    // Everything but the keepsakes themselves (in the options, and the season's starting copy).
+    const plainOf = (x: unknown) =>
+      JSON.stringify(x, (k: string, v: unknown) => (k === 'keepsakes' ? undefined : v));
+    expect(plainOf(b)).toBe(plainOf(a));
   });
 });

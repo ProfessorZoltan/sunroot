@@ -14,6 +14,7 @@ import {
   applyCityCommand,
   districtAt,
   expeditionOffer,
+  keepsakesOn,
   scoutCost,
   biomeOf,
   openBiomes,
@@ -37,6 +38,7 @@ import {
   type Expedition,
   type Hex,
 } from '../sim';
+import { districtLook } from '../game/districtLook';
 import { cityCue } from '../audio/director';
 import type { AudioEngine } from '../audio/engine';
 import { cardLabel } from './RunUi';
@@ -46,16 +48,7 @@ const SIZE = 44;
 const SQRT3 = Math.sqrt(3);
 
 /** Each district's colour and emblem, drawn in code like everything else. */
-const LOOK: Record<string, { color: string; ink: string }> = {
-  millraceQuarter: { color: '#3A6EA5', ink: '#e8f1fa' },
-  orchardWard: { color: '#E0A33B', ink: '#4a3410' },
-  mendedCommons: { color: '#2E8B6A', ink: '#eaf6ef' },
-  foundryDistrict: { color: '#B85C6E', ink: '#fbecef' },
-  tidalQuarter: { color: '#2F5E63', ink: '#e6f2f2' },
-  ridgeQuarter: { color: '#6B5B4E', ink: '#f4ece2' },
-  sunQuarter: { color: '#C8743A', ink: '#fff4e6' },
-};
-const lookOf = (id: string) => LOOK[id] ?? { color: '#9e9280', ink: '#fffbf0' };
+const lookOf = districtLook;
 
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 
@@ -641,6 +634,14 @@ export function CityScreen({
                 </g>
               );
             })}
+            <CityOrnaments
+              shown={keepsakesOn(city)}
+              city={city}
+              slots={slots}
+              centres={centres}
+              view={view}
+              dusk={dusk}
+            />
           </svg>
         </main>
         <aside class="city-side" aria-label="Between runs">
@@ -701,6 +702,20 @@ export function CityScreen({
               </label>
             )}
           </section>
+          <KeepsakePanel
+            content={content}
+            city={city}
+            readOnly={readOnly}
+            onBuy={(id) => {
+              // Lanterns and fireflies come out at dusk: show them at once.
+              if (
+                apply({ type: 'buyKeepsake', id }) &&
+                (id === 'lanternPaths' || id === 'fireflies')
+              )
+                playDusk();
+            }}
+            onSet={(id, on) => apply({ type: 'setKeepsake', id, on })}
+          />
           <LandmarkPanel content={content} city={city} />
           <DistrictGuide content={content} />
         </aside>
@@ -926,6 +941,211 @@ function ExpeditionPanel({
       <button type="button" class="button primary" disabled={!ready} onClick={onSetOut}>
         {ready ? `Set out on run ${city.runs + 1}` : 'Choose an expedition first'}
       </button>
+    </section>
+  );
+}
+
+/** Deterministic spots for the fireflies, in the city's own units about its centre. */
+const FIREFLIES = Array.from({ length: 16 }, (_, i) => ({
+  x: Math.sin(i * 12.9898) * 0.5,
+  y: Math.cos(i * 78.233) * 0.5,
+  delay: (i * 0.37) % 3,
+}));
+
+/**
+ * Root City's keepsakes (proposals/seed-uses.md), drawn in code: lanterns on the paths between
+ * neighbouring districts, lit at dusk; fireflies at dusk; a fountain at the Heartwood's foot;
+ * kites in the districts' colours.
+ */
+function CityOrnaments({
+  shown,
+  city,
+  slots,
+  centres,
+  view,
+  dusk,
+}: {
+  shown: string[];
+  city: CityState;
+  slots: Hex[];
+  centres: { x: number; y: number }[];
+  view: { x: number; y: number; w: number; h: number };
+  dusk: number;
+}) {
+  if (shown.length === 0) return null;
+  const on = new Set(shown);
+  const centre = cityPixel({ q: 0, r: 0 });
+  // The Heartwood's hex and every slot, and which hold a district.
+  const spots = [{ h: { q: 0, r: 0 }, c: centre, filled: true }].concat(
+    slots.map((h, i) => ({ h, c: centres[i]!, filled: districtAt(city, i) !== undefined })),
+  );
+  const paths: { x: number; y: number }[] = [];
+  if (on.has('lanternPaths'))
+    spots.forEach((a, i) =>
+      spots.slice(i + 1).forEach((b) => {
+        if (!a.filled || !b.filled) return;
+        const d =
+          Math.abs(a.h.q - b.h.q) +
+          Math.abs(a.h.r - b.h.r) +
+          Math.abs(a.h.q + a.h.r - b.h.q - b.h.r);
+        if (d === 2) paths.push({ x: (a.c.x + b.c.x) / 2, y: (a.c.y + b.c.y) / 2 });
+      }),
+    );
+  const own = [...new Set(city.districts.map((d) => lookOf(d.district).color))];
+  const colours = (own.length > 0 ? own : ['#d9543c', '#3a6ea5', '#f2c14e']).slice(0, 3);
+  return (
+    <g class="city-ornaments" aria-hidden="true">
+      {on.has('fountain') && (
+        <g class="fountain" transform={`translate(${centre.x},${centre.y + SIZE * 0.52})`}>
+          <ellipse rx="11" ry="4" fill="#9fb8c4" stroke="#7b6a52" stroke-width="1.6" />
+          <ellipse rx="7" ry="2.2" cy="-0.5" fill="#cfe7f0" />
+          <rect x="-1.2" y="-9" width="2.4" height="8" fill="#7b6a52" />
+          <path
+            class="fountain-water"
+            d="M0,-9 Q-5,-14 -8,-2 M0,-9 Q5,-14 8,-2"
+            fill="none"
+            stroke="#cfe7f0"
+            stroke-width="1.4"
+          />
+        </g>
+      )}
+      {paths.map((p) => (
+        <g transform={`translate(${p.x.toFixed(1)},${p.y.toFixed(1)})`}>
+          <line y1="0" y2="-9" stroke="#5b4a38" stroke-width="1.2" />
+          <circle
+            cy="-10"
+            r="2.2"
+            fill={dusk > 0 ? '#ffe08a' : '#c9b48a'}
+            stroke="#5b4a38"
+            stroke-width="0.6"
+          />
+          {dusk > 0 && <circle cy="-10" r="8" fill="#F2C14E" opacity={0.35 * dusk} />}
+        </g>
+      ))}
+      {on.has('fireflies') &&
+        dusk > 0 &&
+        FIREFLIES.map((f) => (
+          <circle
+            class="firefly"
+            cx={(view.x + view.w * (0.5 + f.x)).toFixed(1)}
+            cy={(view.y + view.h * (0.5 + f.y)).toFixed(1)}
+            r="1.6"
+            fill="#f6f2a0"
+            opacity={dusk}
+            style={{ animationDelay: `${f.delay}s` }}
+          />
+        ))}
+      {on.has('cityKites') &&
+        colours.map((colour, i) => {
+          const x = view.x + view.w * (0.25 + i * 0.25);
+          const y = view.y + view.h * 0.1 + (i % 2) * 14;
+          return (
+            <g class="city-kite" style={{ animationDelay: `${i * 0.8}s` }}>
+              <path
+                d={`M${x},${y + 9} Q${x - 10},${y + 40} ${x - 20},${y + 80}`}
+                fill="none"
+                stroke="#f4f0e8"
+                stroke-width="0.6"
+              />
+              <path
+                d={`M${x},${y - 9} L${x + 7},${y} L${x},${y + 9} L${x - 7},${y} Z`}
+                fill={colour}
+                stroke="#2f3b2e"
+                stroke-width="0.8"
+              />
+              <path
+                d={`M${x},${y + 9} q-3,6 0,10 q3,4 -1,9`}
+                fill="none"
+                stroke={colour}
+                stroke-width="1.2"
+              />
+            </g>
+          );
+        })}
+    </g>
+  );
+}
+
+const KEEPSAKE_GROUPS = [
+  { kind: 'wildlife', title: 'Young ones', note: 'Beside the animals, wherever they live.' },
+  { kind: 'settlement', title: 'On every settlement', note: 'In every run from the next.' },
+  { kind: 'city', title: 'In Root City', note: 'Here, at once.' },
+] as const;
+
+/** Keepsakes (proposals/seed-uses.md): bought once with Seeds and kept, only to look at. */
+function KeepsakePanel({
+  content,
+  city,
+  readOnly,
+  onBuy,
+  onSet,
+}: {
+  content: Content;
+  city: CityState;
+  readOnly: boolean;
+  onBuy: (id: string) => void;
+  onSet: (id: string, on: boolean) => void;
+}) {
+  if (content.keepsakes.length === 0) return null;
+  const owned = new Set(city.keepsakes ?? []);
+  const on = new Set(keepsakesOn(city));
+  // The biome each animal lives in, for the young ones' cards.
+  const biomes = [content, ...Object.values(content.atlas ?? {})];
+  const homeOf = (animal: string | undefined) =>
+    biomes.find((b) => b.wildlife.some((a) => a.id === animal))?.name;
+  return (
+    <section class="panel keepsakes" aria-label="Keepsakes">
+      <details>
+        <summary>
+          <h2>Keepsakes</h2>{' '}
+          <span class="small quiet">
+            {owned.size} of {content.keepsakes.length}
+          </span>
+        </summary>
+        <p class="small quiet">
+          Bought once with Seeds and kept: only to look at, they change nothing in a run. Switch any
+          off and on again for free.
+        </p>
+        {KEEPSAKE_GROUPS.map((g) => (
+          <>
+            <h3>{g.title}</h3>
+            <p class="small quiet">{g.note}</p>
+            <ul class="plain keepsake-list">
+              {content.keepsakes
+                .filter((k) => k.kind === g.kind)
+                .map((k) => (
+                  <li class={owned.has(k.id) ? 'owned' : ''}>
+                    <strong>{k.name}</strong>
+                    {k.animal && <span class="small quiet"> · {homeOf(k.animal)}</span>}
+                    <div class="small">{k.text}</div>
+                    {owned.has(k.id) ? (
+                      <label class="small">
+                        <input
+                          type="checkbox"
+                          checked={on.has(k.id)}
+                          disabled={readOnly}
+                          onChange={(e) => onSet(k.id, (e.target as HTMLInputElement).checked)}
+                        />{' '}
+                        Shown
+                      </label>
+                    ) : (
+                      !readOnly && (
+                        <button
+                          type="button"
+                          class="button small"
+                          disabled={city.seeds < k.cost}
+                          onClick={() => onBuy(k.id)}
+                        >
+                          {k.name} for {k.cost} Seeds
+                        </button>
+                      )
+                    )}
+                  </li>
+                ))}
+            </ul>
+          </>
+        ))}
+      </details>
     </section>
   );
 }

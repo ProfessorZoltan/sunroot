@@ -90,6 +90,10 @@ export interface RunCity {
   /** The best tier of each district type in the city, by district id. */
   districts: Record<string, string>;
   landmarks: string[];
+  /** Keepsakes switched on (proposals/seed-uses.md): only drawn, never read by the season. */
+  keepsakes?: string[];
+  /** The city's first district, whose colour the city's banner flies. */
+  banner?: string;
 }
 
 export interface RunExpedition {
