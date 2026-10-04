@@ -48,7 +48,10 @@ function isChannelAt(content: Content, state: RunState): Map<string, Hex> {
 export function waterBeside(state: RunState, h: Hex, riverIndex?: number): Tile | undefined {
   const tiles = hexNeighbors(h)
     .map((n) => state.map.tiles[hexKey(n)])
-    .filter((t): t is Tile => t !== undefined && (t.type === 'river' || t.type === 'reservoir'));
+    .filter(
+      (t): t is Tile =>
+        t !== undefined && (t.type === 'river' || t.type === 'reservoir' || t.type === 'oasis'),
+    );
   if (riverIndex !== undefined) return tiles.find((t) => t.riverIndex === riverIndex);
   return tiles[0];
 }

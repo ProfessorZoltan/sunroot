@@ -10,6 +10,8 @@ export interface TileColors {
 export const TILE_COLORS: Record<TileType, TileColors> = {
   river: { top: 0x8fc3d1, side: 0x6c9fae, detail: 0xcfe7ee },
   reservoir: { top: 0x74acc0, side: 0x548899, detail: 0xcfe7ee },
+  // The Sun Desert's spring-fed pool: clearer than a lake, palms at its rim.
+  oasis: { top: 0x5fb6b2, side: 0x3f8a86, detail: 0x5e8a55 },
   floodplain: { top: 0xc9da8c, side: 0x9fb066, detail: 0xf2d46b },
   hill: { top: 0xc8bf96, side: 0xa0976e, detail: 0xa59c72 },
   ruin: { top: 0xd2c4aa, side: 0xa99a7e, detail: 0x9e9280 },

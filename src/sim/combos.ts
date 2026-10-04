@@ -167,7 +167,7 @@ function findStrip(state: RunState, types: readonly string[], gaps = 0): string[
     const r = rows.get(row)!;
     return col === r.min || col === r.max;
   };
-  const WATER = ['river', 'reservoir'];
+  const WATER = ['river', 'reservoir', 'oasis'];
   /** 0 for a strip tile, 1 for a gap (other land), null if it can't be crossed. */
   const step = (key: string): number | null => {
     const type = tiles[key]?.type;

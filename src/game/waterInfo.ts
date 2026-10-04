@@ -101,7 +101,11 @@ export function waterAt(
     const flow = report.flowAt[tile.riverIndex] ?? 0;
     lines.push(`River: ${flow} flowing on past here (${report.riverFlow} came in at the top).`);
   }
-  if (!b && tile?.type === 'reservoir' && tile.riverIndex === undefined) {
+  if (
+    !b &&
+    (tile?.type === 'reservoir' || tile?.type === 'oasis') &&
+    tile.riverIndex === undefined
+  ) {
     lines.push(`Lake: holds ${tile.water ?? 0} (the spring flood fills it).`);
   }
   return lines;

@@ -67,6 +67,27 @@ export function wonderWarmth(content: Content, state: RunState, at: Hex): number
   return warmth;
 }
 
+/**
+ * Cooling a building needs in a slot (the Sun Desert, proposals/sun-desert.md): its own need,
+ * less the shade beside it (a building that shades next to it, or a shading edge building
+ * along one of its edges; the deepest shade counts, never below 0).
+ */
+export function coolDemand(
+  content: Content,
+  state: RunState,
+  b: BuildingState,
+  slot: 'day' | 'night',
+  si: number,
+): number {
+  const need = defOf(content, b).demand?.cool[slot][si] ?? 0;
+  if (need <= 0) return 0;
+  let shade = 0;
+  for (const n of neighborBuildings(state, b)) shade = Math.max(shade, defOf(content, n).shades);
+  const edge = edgeBuilding(content);
+  if (edge && edge.shades > 0 && hedged(state, b.at)) shade = Math.max(shade, edge.shades);
+  return Math.max(0, need - shade);
+}
+
 const occupancyCache = new WeakMap<object, { size: number; map: Map<string, BuildingState> }>();
 
 /**
@@ -199,8 +220,9 @@ export function standsOn(type: TileType | undefined): string {
   return (type && places[type]) ?? 'in the open';
 }
 
+/** Open water: the river, a lake (or reservoir), or a desert oasis. */
 export function isWaterTile(type: TileType): boolean {
-  return type === 'river' || type === 'reservoir';
+  return type === 'river' || type === 'reservoir' || type === 'oasis';
 }
 
 /** Distance from a hex to the nearest river, reservoir or pond. */

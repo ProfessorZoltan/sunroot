@@ -203,6 +203,13 @@ function drawDetails(g: Graphics, tile: Tile, c: Point, rand: () => number): voi
         g.circle(p.x, p.y, 1.5).fill({ color: 0xf4f2ec });
       }
       break;
+    case 'oasis':
+      // Palms leaning in at the rim.
+      for (let i = 0; i < 2; i++) {
+        const p = spot(rand, c);
+        g.circle(p.x, p.y, 3).fill({ color: TILE_COLORS.oasis.detail });
+      }
+      break;
     case 'river':
     case 'reservoir':
       break;

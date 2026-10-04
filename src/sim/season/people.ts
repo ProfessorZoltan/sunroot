@@ -99,6 +99,12 @@ export function feedAndGrow(ctx: SeasonContext): void {
   const cold = unpowered.filter((b) => ctx.report.cold.includes(b.uid));
   const coldHomes = cold.length;
   const coldBeds = cold.reduce((n, b) => n + defOf(content, b).housing, 0);
+  // Without grid cooling, a home nothing cools is shut off hot: counted as a cold one is.
+  const hot = unpowered.filter(
+    (b) => !ctx.report.cold.includes(b.uid) && (ctx.report.hot ?? []).includes(b.uid),
+  );
+  const hotHomes = hot.length;
+  const hotBeds = hot.reduce((n, b) => n + defOf(content, b).housing, 0);
   if (unfed === 0 && unpoweredHomes === 0 && damagedHomes === 0) {
     lines.push({ kind: 'needsMet', reason: 'every need met', amount: wb.allNeedsMet });
   }
@@ -109,11 +115,18 @@ export function feedAndGrow(ctx: SeasonContext): void {
       amount: unfed * wb.perUnfedCitizen,
     });
   }
-  if (unpoweredHomes - coldHomes > 0) {
+  if (unpoweredHomes - coldHomes - hotHomes > 0) {
     lines.push({
       kind: 'unpowered',
-      reason: `${unpoweredHomes - coldHomes} unpowered homes`,
-      amount: (unpoweredHomes - coldHomes) * wb.perUnpoweredHome,
+      reason: `${unpoweredHomes - coldHomes - hotHomes} unpowered homes`,
+      amount: (unpoweredHomes - coldHomes - hotHomes) * wb.perUnpoweredHome,
+    });
+  }
+  if (hotHomes > 0) {
+    lines.push({
+      kind: 'unpowered',
+      reason: `${hotHomes} hot home${hotHomes > 1 ? 's' : ''}: nothing cools ${hotHomes > 1 ? 'them' : 'it'}`,
+      amount: hotHomes * wb.perUnpoweredHome - hotBeds * rules.localHeat.coldPerBed,
     });
   }
   if (coldHomes > 0) {

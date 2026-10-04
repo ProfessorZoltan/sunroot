@@ -294,6 +294,19 @@ export interface HeatReport {
   cold: number;
 }
 
+/** Cooling in a slot (the Sun Desert): needed, given by cooling sources, paid by the grid. */
+export interface CoolReport {
+  demand: number;
+  /** Cooling given by cooling sources (wind towers), by building type. */
+  bySource: Record<string, number>;
+  free: number;
+  /** Cooling paid by the grid, and the energy it took. */
+  grid: number;
+  gridEnergy: number;
+  /** Cooling nothing paid, without grid cooling: its buildings were shut off, hot. */
+  hot: number;
+}
+
 export interface SlotReport {
   /** Energy generated, by source building type. */
   bySource: Record<string, number>;
@@ -308,6 +321,8 @@ export interface SlotReport {
    */
   demand: number;
   heat: HeatReport;
+  /** Cooling (the Sun Desert): how it was paid (missing in older saves). */
+  cool?: CoolReport;
   /** Day energy set aside to charge storage that will cover a known shortfall. */
   reserved: number;
   /** Energy used by flexible consumers (workshop and kiln runs). */
@@ -507,6 +522,8 @@ export interface SeasonReport {
   neighborHeat: HeatLink[];
   /** Buildings shut off cold this season (no grid heat, and no source reached them). */
   cold: string[];
+  /** Buildings shut off hot this season (no grid cooling, and nothing cooled them). */
+  hot?: string[];
   /** The valley's animals this season and what they did, while wildlife is on. */
   wildlife: WildlifeReport | null;
   /** The festival held as this season ended, and whether it got its wellbeing (Lantern Night's lit). */

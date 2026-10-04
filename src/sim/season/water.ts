@@ -2,7 +2,8 @@
  * The season's water (EXPANSION.md, Water system), resolved after staffing
  * and before generation and production, in a fixed order:
  *
- *  1. The spring flood fills lakes and the cisterns it reaches.
+ *  1. The spring flood fills lakes and the cisterns it reaches; an oasis's spring fills it
+ *     every season.
  *  2. Lakes, then channels with no intake, serve their users.
  *  3. The river runs from the top of the map down. At each position, water
  *     returned there joins it, a weir releases what it held; then buildings
@@ -25,7 +26,7 @@
 import type { BuildingDef, WaterQuality } from '../content/schema';
 import { SEASONS, WATER_QUALITIES } from '../content/schema';
 import { hexKey, hexNeighbors } from '../hex';
-import { byPriority, defOf, heightAt, neighborBuildings, tileAt } from '../queries';
+import { byPriority, defOf, heightAt, isWaterTile, neighborBuildings, tileAt } from '../queries';
 import type { BuildingState, ChannelReport, WaterReport, WaterUnits, WaterUse } from '../types';
 import {
   channels as findChannels,
@@ -103,6 +104,17 @@ export function resolveWater(ctx: SeasonContext): void {
   add(report.in, 'stored at the start', stored());
   add(report.in, 'river', report.riverFlow);
 
+  // An oasis (the Sun Desert): its spring fills each of its tiles again every season.
+  let sprung = 0;
+  for (const tiles of lakes.values())
+    for (const t of tiles) {
+      if (t.type !== 'oasis') continue;
+      const before = t.water ?? 0;
+      t.water = Math.max(before, rules.oasisPerTile);
+      sprung += t.water - before;
+    }
+  add(report.in, 'spring', sprung);
+
   // 1. The spring flood fills lakes, and cisterns on flooded tiles.
   if (ctx.report.event === 'flood') {
     let filled = 0;
@@ -145,7 +157,7 @@ export function resolveWater(ctx: SeasonContext): void {
     const first = tiles(ch.keys[0]!);
     const water = hexNeighbors(first)
       .map((n) => state.map.tiles[hexKey(n)])
-      .filter((t) => t && (t.type === 'river' || t.type === 'reservoir'));
+      .filter((t) => t && isWaterTile(t.type));
     return water.length > 0 ? Math.min(...water.map((t) => t!.height ?? 0)) : 0;
   };
   const channelAt = new Map<string, Attachment>();
@@ -314,8 +326,12 @@ export function resolveWater(ctx: SeasonContext): void {
     const covered = ch.uids.some(
       (uid) => defOf(content, state.buildings[uid]!).water?.noEvaporation,
     );
+    // An underground channel (the Qanat) loses nothing on its own tiles.
+    const open = ch.uids.filter(
+      (uid) => !defOf(content, state.buildings[uid]!).water?.underground,
+    ).length;
     const evaporation =
-      evaporating && !covered ? Math.floor(ch.keys.length / rules.evaporation.tilesPerUnit) : 0;
+      evaporating && !covered ? Math.floor(open / rules.evaporation.tilesPerUnit) : 0;
     let room = rules.channelCapacity;
     // Rises along the channel (the Highland): water crosses one only as far as the working pump
     // stations beside it lift it; a rise of more than a step, or with no pump, carries nothing.

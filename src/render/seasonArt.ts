@@ -41,7 +41,7 @@ const LAND_SPECKS: Record<string, { colors: number[]; per: number; on: string[] 
 };
 
 /** Water the seasons don't wash over. */
-const OPEN_WATER = ['river', 'reservoir', 'sea'];
+const OPEN_WATER = ['river', 'reservoir', 'oasis', 'sea'];
 
 const WASH: Record<string, { color: number; alpha: number } | null> = {
   spring: null,

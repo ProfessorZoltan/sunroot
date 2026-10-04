@@ -122,6 +122,7 @@ export function wonderSiteProblem(
         return (
           t?.type === 'river' ||
           t?.type === 'reservoir' ||
+          t?.type === 'oasis' ||
           (b !== undefined && isChannel(defOf(content, b)))
         );
       }),

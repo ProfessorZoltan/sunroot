@@ -30,6 +30,8 @@ export const TILE_TYPES = [
   // The Highland (Milestone 12).
   'crag',
   'bog',
+  // The Sun Desert (Milestone 13).
+  'oasis',
 ] as const;
 export const TileTypeSchema = z.enum(TILE_TYPES);
 export type TileType = z.infer<typeof TileTypeSchema>;
@@ -107,6 +109,8 @@ const BuildingWaterSchema = z
       .optional(),
     /** A channel with a tile of this loses no water to summer evaporation (Canal-top Solar). */
     noEvaporation: z.boolean().default(false),
+    /** Underground (the Qanat): its own tiles of channel lose nothing to the sun. */
+    underground: z.boolean().default(false),
     /**
      * Takes a neighbouring fish pond's water instead of a channel's (the Aquaponics Hall):
      * the pond feeds it instead of its channel.
@@ -330,8 +334,31 @@ export const BuildingSchema = z
       .object({
         energy: SlotSeason.default({ day: zero4, night: zero4 }),
         heat: SlotSeason.default({ day: zero4, night: zero4 }),
+        /** Cooling it needs on hot days (the Sun Desert's homes; proposals/sun-desert.md). */
+        cool: SlotSeason.default({ day: zero4, night: zero4 }),
       })
       .optional(),
+    /**
+     * Cooling it gives the buildings within `rules.cooling.range` (the Wind Tower), more by
+     * `besideBonus` next to one of these tiles or buildings (water to cool the air).
+     */
+    cooling: z
+      .object({
+        day: PerSeason,
+        night: PerSeason.default([0, 0, 0, 0]),
+        besideBonus: z
+          .object({
+            amount: int.min(1),
+            tiles: z.array(TileTypeSchema).default([]),
+            buildings: z.array(z.string()).default([]),
+          })
+          .strict()
+          .optional(),
+      })
+      .strict()
+      .optional(),
+    /** Shade: a home next to it (or along it, for an edge building) needs this much less cooling. */
+    shades: nonNeg.default(0),
     recipes: z
       .object({
         maxRuns: int.min(1),
@@ -586,6 +613,8 @@ const WaterRulesSchema = z
     greyHarmonyPerUnit: nonNeg,
     /** Water each lake tile (still water off the river) holds; the spring flood fills it. */
     lakePerTile: nonNeg,
+    /** Water each oasis tile holds: its spring fills it again at the start of every season. */
+    oasisPerTile: nonNeg.default(2),
     /** River wheels make 1 energy per slot for every this many units of flow, rounded up. */
     wheelFlowPerEnergy: int.min(1),
     /** Tiles of channel the Founders' Camp starts with. */
@@ -625,6 +654,19 @@ export type CommuteRules = z.infer<typeof CommuteRulesSchema>;
  * heat pumps, heat wells) reach only buildings within `range` tiles; heat
  * paid with energy from the grid still reaches anywhere.
  */
+/**
+ * Cooling (the Sun Desert, proposals/sun-desert.md), heat's mirror: buildings with a cooling
+ * need are cooled by cooling sources within `range`, nearest first, then by the grid at
+ * `gridCoolCost` energy each. Without grid cooling, a home nothing cools is shut off, hot.
+ */
+const CoolingRulesSchema = z
+  .object({
+    range: int.min(1).default(2),
+    gridCool: z.boolean().default(true),
+    gridCoolCost: int.min(1).default(2),
+  })
+  .strict();
+
 const LocalHeatRulesSchema = z
   .object({
     enabled: z.boolean().default(false),
@@ -791,6 +833,7 @@ export const RulesSchema = z
     /** The water system (EXPANSION.md, Water system). Off unless `enabled`. */
     water: WaterRulesSchema,
     commute: CommuteRulesSchema.default({ enabled: false, freeDistance: 3, tilesPerWellbeing: 4 }),
+    cooling: CoolingRulesSchema.default({ range: 2, gridCool: true, gridCoolCost: 2 }),
     localHeat: LocalHeatRulesSchema.default({
       enabled: false,
       range: 2,

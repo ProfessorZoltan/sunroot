@@ -168,7 +168,8 @@ export class Turn {
     return hexNeighbors(h).some((n) => {
       const key = hexKey(n);
       const tile = this.state.map.tiles[key];
-      if (tile && (tile.type === 'river' || tile.type === 'reservoir')) return besideRiver;
+      if (tile && (tile.type === 'river' || tile.type === 'reservoir' || tile.type === 'oasis'))
+        return besideRiver;
       const b = occ.get(key);
       return (
         b !== undefined &&

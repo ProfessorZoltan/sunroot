@@ -17,7 +17,7 @@
  *     over homes, cost 1 wellbeing for every `toWater.tilesPerWellbeing`.
  */
 import { hexDistance } from '../hex';
-import { byPriority, defOf, isHome } from '../queries';
+import { byPriority, defOf, isHome, isWaterTile } from '../queries';
 import type { CommuteReport, RunState, Walk, WaterWalkReport } from '../types';
 import type { Content } from '../content/load';
 import { walksToWater } from '../water';
@@ -94,7 +94,7 @@ export function drinkingSources(
 ): { at: { q: number; r: number }; source: string }[] {
   const sources: { at: { q: number; r: number }; source: string }[] = [];
   for (const t of Object.values(state.map.tiles))
-    if (t.type === 'river' || t.type === 'reservoir') sources.push({ at: t, source: t.type });
+    if (isWaterTile(t.type)) sources.push({ at: t, source: t.type });
   for (const b of Object.values(state.buildings))
     if (defOf(content, b).drinkingWater && !b.damage) sources.push({ at: b.at, source: b.type });
   return sources;

@@ -7,7 +7,7 @@
 import type { Content } from './content/load';
 import type { BuildingDef } from './content/schema';
 import { hexDistance, hexKey, hexNeighbors, type Hex } from './hex';
-import { defOf, occupancy, tileAt } from './queries';
+import { defOf, isWaterTile, occupancy, tileAt } from './queries';
 import type { BuildingState, RunState, Tile } from './types';
 
 /** Whether the water system is on (EXPANSION.md: off in the game until it can be seen, E2). */
@@ -36,7 +36,7 @@ export function walksToWater(content: Content): boolean {
 /** A lake: still water off the river (an oxbow lake), named by its first tile's key. */
 export function lakeTiles(state: RunState): Map<string, Tile[]> {
   const isLake = (t: Tile | undefined) =>
-    t !== undefined && t.type === 'reservoir' && t.riverIndex === undefined;
+    t !== undefined && (t.type === 'reservoir' || t.type === 'oasis') && t.riverIndex === undefined;
   const lakes = new Map<string, Tile[]>();
   const seen = new Set<string>();
   const keys = Object.keys(state.map.tiles)
@@ -196,7 +196,7 @@ export function channelSiteProblem(content: Content, state: RunState, at: Hex): 
   if (touching.length === 0) {
     const water = hexNeighbors(at).some((n) => {
       const type = tileAt(state, n)?.type;
-      return type === 'river' || type === 'reservoir';
+      return type !== undefined && isWaterTile(type);
     });
     return water ? null : 'a new channel must start next to the river or a reservoir';
   }
@@ -232,7 +232,7 @@ export function campChannelPath(
   const aboveWater = (t: Tile) =>
     hexNeighbors(t).some((n) => {
       const w = tileAt(state, n);
-      return (w?.type === 'river' || w?.type === 'reservoir') && (w.height ?? 0) < (t.height ?? 0);
+      return w !== undefined && isWaterTile(w.type) && (w.height ?? 0) < (t.height ?? 0);
     });
   const starts = Object.values(state.map.tiles)
     .filter((t) => free(t) && riverIndexesNear(state, t).length > 0 && !aboveWater(t))

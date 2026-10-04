@@ -33,6 +33,7 @@ import { hexDistance } from '../hex';
 import {
   byPriority,
   defOf,
+  coolDemand as coolNeed,
   heatDemand as heatNeed,
   neighborBuildings,
   neighborTiles,
@@ -74,8 +75,51 @@ export function resolveEnergy(ctx: SeasonContext): void {
   };
   const active = byPriority(state).filter((b) => ctx.active.has(b.uid));
 
+  // Cooling (the Sun Desert, heat's mirror): cooling sources within range pay the buildings
+  // that need it, in priority order, nearest source first. The grid pays the rest at its cost
+  // in energy, as part of each building's demand; without grid cooling, the building is hot.
+  const cooling = content.rules.cooling;
+  const coolers = active.filter((b) => defOf(content, b).cooling);
+  /** Cooling each building still needs once the cooling sources have given what they can. */
+  const coolLeft: Record<Slot, Map<string, number>> = { day: new Map(), night: new Map() };
+  const coolOutput = (c: BuildingState, slot: Slot): number => {
+    const def = defOf(content, c).cooling!;
+    const base = def[slot][si]!;
+    const bonus = def.besideBonus;
+    if (base <= 0 || !bonus) return base;
+    const beside =
+      neighborTiles(state, c.at).some((t) => bonus.tiles.includes(t.type)) ||
+      neighborBuildings(state, c).some((n) => bonus.buildings.includes(n.type));
+    return base + (beside ? bonus.amount : 0);
+  };
+  for (const slot of SLOTS) {
+    const r = report.energy[slot].cool!;
+    const left = new Map(coolers.map((c) => [c.uid, coolOutput(c, slot)]));
+    for (const b of active) {
+      let need = coolNeed(content, state, b, slot, si);
+      if (need <= 0) continue;
+      r.demand += need;
+      const reach = coolers
+        .filter((c) => hexDistance(c.at, b.at) <= cooling.range)
+        .sort((x, y) => hexDistance(x.at, b.at) - hexDistance(y.at, b.at));
+      for (const c of reach) {
+        const t = Math.min(need, left.get(c.uid)!);
+        if (t <= 0) continue;
+        left.set(c.uid, left.get(c.uid)! - t);
+        need -= t;
+        r.free += t;
+        r.bySource[c.type] = (r.bySource[c.type] ?? 0) + t;
+        explain(ctx, b, `${slot}: ${t} cooling from the ${defOf(content, c).name}`);
+      }
+      if (need > 0) coolLeft[slot].set(b.uid, need);
+    }
+  }
+  /** Energy the grid spends cooling a building in a slot. */
+  const gridCoolOf = (b: BuildingState, slot: Slot) =>
+    cooling.gridCool ? (coolLeft[slot].get(b.uid) ?? 0) * cooling.gridCoolCost : 0;
+
   const energyOf = (b: BuildingState, slot: Slot) =>
-    defOf(content, b).demand?.energy[slot][si] ?? 0;
+    (defOf(content, b).demand?.energy[slot][si] ?? 0) + gridCoolOf(b, slot);
   const heatOf = (b: BuildingState, slot: Slot) => heatNeed(content, state, b, slot, si);
   const pumps = active.filter((b) => defOf(content, b).heatPump);
   const freeHeat = perSlot();
@@ -586,6 +630,19 @@ export function resolveEnergy(ctx: SeasonContext): void {
       }
     }
   }
+  // Without grid cooling, a building nothing cooled is hot: shut off first, as a cold one.
+  if (!cooling.gridCool) {
+    for (const slot of SLOTS) {
+      for (const [uid, n] of coolLeft[slot]) {
+        report.energy[slot].cool!.hot += n;
+        if (off.has(uid)) continue;
+        off.add(uid);
+        report.blackouts.push(uid);
+        (report.hot ??= []).push(uid);
+        explain(ctx, state.buildings[uid]!, `hot: shut off, nothing cools it by ${slot}`);
+      }
+    }
+  }
   for (const slot of SLOTS) {
     const r = report.energy[slot];
     r.shortfall = short[slot];
@@ -605,6 +662,20 @@ export function resolveEnergy(ctx: SeasonContext): void {
     }
   }
   for (const b of active) if (!off.has(b.uid)) ctx.powered.add(b.uid);
+  // The grid's cooling, for the buildings it kept on.
+  if (cooling.gridCool)
+    for (const slot of SLOTS)
+      for (const [uid, n] of coolLeft[slot]) {
+        if (off.has(uid)) continue;
+        const r = report.energy[slot].cool!;
+        r.grid += n;
+        r.gridEnergy += n * cooling.gridCoolCost;
+        explain(
+          ctx,
+          state.buildings[uid]!,
+          `${slot}: ${n} cooling from the grid (${n * cooling.gridCoolCost} energy)`,
+        );
+      }
 
   // With local heat on, who heated whom: free heat and pumps for the buildings still on, the
   // wells' heat, and the rest from the grid.

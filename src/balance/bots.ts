@@ -162,7 +162,9 @@ function bestChannelSite(turn: Turn, policy: WaterPolicy): Tile | undefined {
     // Never dug uphill from what feeds it: water wouldn't climb into it (the Highland).
     const feeds = hexNeighbors(t).filter((n) => {
       const type = turn.state.map.tiles[hexKey(n)]?.type;
-      return channelAt.has(hexKey(n)) || type === 'river' || type === 'reservoir';
+      return (
+        channelAt.has(hexKey(n)) || type === 'river' || type === 'reservoir' || type === 'oasis'
+      );
     });
     if (feeds.length > 0 && Math.max(...feeds.map(heightOf)) < heightOf(t)) continue;
     let score = lowGround(t) ? -1 : 0;

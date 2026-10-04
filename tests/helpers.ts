@@ -75,6 +75,7 @@ const TOKENS: Record<string, TileType> = {
   ':': 'dune',
   A: 'crag',
   b: 'bog',
+  O: 'oasis',
 };
 
 export function mapFromAscii(rows: string[]): { map: MapState; camp: Hex } {
