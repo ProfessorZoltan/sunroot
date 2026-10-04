@@ -297,7 +297,9 @@ export interface HeatReport {
 /** Cooling in a slot (the Sun Desert): needed, given by cooling sources, paid by the grid. */
 export interface CoolReport {
   demand: number;
-  /** Cooling given by cooling sources (wind towers), by building type. */
+  /** Heat the absorption chillers turned into cooling (missing in older saves). */
+  fromHeat?: number;
+  /** Cooling given by cooling sources (wind towers, chillers), by building type. */
   bySource: Record<string, number>;
   free: number;
   /** Cooling paid by the grid, and the energy it took. */

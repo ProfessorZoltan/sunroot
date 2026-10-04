@@ -357,6 +357,15 @@ export const BuildingSchema = z
       })
       .strict()
       .optional(),
+    /**
+     * An absorption chiller: it turns heat from the heat sources within `rules.cooling.range`
+     * into cooling for the buildings in reach, `coolPerHeat` for each heat, up to
+     * `maxCoolPerSlot` a slot; only heat no building needs for warmth that slot.
+     */
+    chiller: z
+      .object({ coolPerHeat: int.min(1).default(1), maxCoolPerSlot: int.min(1) })
+      .strict()
+      .optional(),
     /** Shade: a home next to it (or along it, for an edge building) needs this much less cooling. */
     shades: nonNeg.default(0),
     recipes: z

@@ -80,6 +80,14 @@ export function resolveEnergy(ctx: SeasonContext): void {
   // in energy, as part of each building's demand; without grid cooling, the building is hot.
   const cooling = content.rules.cooling;
   const coolers = active.filter((b) => defOf(content, b).cooling);
+  // Absorption chillers turn heat into cooling: heat from the heat sources within range, only
+  // what no building needs for warmth that slot, and only as much as the homes they reach need.
+  const chillers = active.filter((b) => defOf(content, b).chiller);
+  const heatSources = active.filter((b) => defOf(content, b).heatGeneration);
+  const genHeat = (b: BuildingState, slot: Slot) => report.generated[b.uid]?.heat[slot] ?? 0;
+  /** Heat each source gave the chillers, by slot: not there for warming anyone. */
+  const chilled: Record<Slot, Map<string, number>> = { day: new Map(), night: new Map() };
+  const chilledBy = (b: BuildingState, slot: Slot) => chilled[slot].get(b.uid) ?? 0;
   /** Cooling each building still needs once the cooling sources have given what they can. */
   const coolLeft: Record<Slot, Map<string, number>> = { day: new Map(), night: new Map() };
   const coolOutput = (c: BuildingState, slot: Slot): number => {
@@ -95,6 +103,38 @@ export function resolveEnergy(ctx: SeasonContext): void {
   for (const slot of SLOTS) {
     const r = report.energy[slot].cool!;
     const left = new Map(coolers.map((c) => [c.uid, coolOutput(c, slot)]));
+    // Heat the buildings won't need for warmth this slot: the most the chillers may take.
+    let spareForChillers = Math.max(
+      0,
+      heatSources.reduce((n, h) => n + genHeat(h, slot), 0) -
+        active.reduce((n, h) => n + heatNeed(content, state, h, slot, si), 0),
+    );
+    /** Cooling each chiller can still make this slot. */
+    const chillLeft = new Map(
+      chillers.map((c) => [c.uid, defOf(content, c).chiller!.maxCoolPerSlot]),
+    );
+    /** A chiller makes up to `want` cooling from the heat within its reach; returns what it made. */
+    const chill = (c: BuildingState, want: number): number => {
+      const spec = defOf(content, c).chiller!;
+      let made = 0;
+      const sources = heatSources
+        .filter((h) => hexDistance(h.at, c.at) <= cooling.range)
+        .sort((x, y) => hexDistance(x.at, c.at) - hexDistance(y.at, c.at));
+      for (const h of sources) {
+        const heatWanted = Math.ceil(
+          (Math.min(want, chillLeft.get(c.uid)!) - made) / spec.coolPerHeat,
+        );
+        const take = Math.min(heatWanted, genHeat(h, slot) - chilledBy(h, slot), spareForChillers);
+        if (take <= 0) continue;
+        chilled[slot].set(h.uid, chilledBy(h, slot) + take);
+        spareForChillers -= take;
+        made += take * spec.coolPerHeat;
+        r.fromHeat = (r.fromHeat ?? 0) + take;
+      }
+      made = Math.min(made, want, chillLeft.get(c.uid)!);
+      chillLeft.set(c.uid, chillLeft.get(c.uid)! - made);
+      return made;
+    };
     for (const b of active) {
       let need = coolNeed(content, state, b, slot, si);
       if (need <= 0) continue;
@@ -111,6 +151,18 @@ export function resolveEnergy(ctx: SeasonContext): void {
         r.bySource[c.type] = (r.bySource[c.type] ?? 0) + t;
         explain(ctx, b, `${slot}: ${t} cooling from the ${defOf(content, c).name}`);
       }
+      // Then the absorption chillers within reach, on spare heat.
+      for (const c of chillers
+        .filter((x) => hexDistance(x.at, b.at) <= cooling.range)
+        .sort((x, y) => hexDistance(x.at, b.at) - hexDistance(y.at, b.at))) {
+        if (need <= 0) break;
+        const t = chill(c, need);
+        if (t <= 0) continue;
+        need -= t;
+        r.free += t;
+        r.bySource[c.type] = (r.bySource[c.type] ?? 0) + t;
+        explain(ctx, b, `${slot}: ${t} cooling from the ${defOf(content, c).name}, made from heat`);
+      }
       if (need > 0) coolLeft[slot].set(b.uid, need);
     }
   }
@@ -124,7 +176,9 @@ export function resolveEnergy(ctx: SeasonContext): void {
   const pumps = active.filter((b) => defOf(content, b).heatPump);
   const freeHeat = perSlot();
   for (const slot of SLOTS) {
-    freeHeat[slot] = Object.values(report.energy[slot].heat.bySource).reduce((a, b) => a + b, 0);
+    freeHeat[slot] =
+      Object.values(report.energy[slot].heat.bySource).reduce((a, b) => a + b, 0) -
+      [...chilled[slot].values()].reduce((a, b) => a + b, 0);
   }
 
   // Demolition work this season: demand that can't be shut off.
@@ -200,7 +254,8 @@ export function resolveEnergy(ctx: SeasonContext): void {
   /** Heat a building still needs once its neighbours have given what they can. */
   const owedOf = (b: BuildingState, slot: Slot) =>
     heatOf(b, slot) - (fromNeighbor[slot].get(b.uid) ?? 0);
-  const freeOf = (b: BuildingState, slot: Slot) => report.generated[b.uid]?.heat[slot] ?? 0;
+  const freeOf = (b: BuildingState, slot: Slot) =>
+    (report.generated[b.uid]?.heat[slot] ?? 0) - chilledBy(b, slot);
 
   /** What the buildings that are still on need in a slot. `links` records who heated whom. */
   const settle = (slot: Slot, off: Set<string>, links?: HeatLink[]): Settlement => {

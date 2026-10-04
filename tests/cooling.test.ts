@@ -42,7 +42,21 @@ function desertish(gridCool = true): Content {
         name: 'Qanat',
         water: { channel: true, underground: true },
       });
-      raw.buildings.push(hut as never, tower as never, garden as never, qanat as never);
+      const chiller = structuredClone(find(raw, 'well')) as Record<string, unknown>;
+      Object.assign(chiller, {
+        id: 'absorptionChiller',
+        name: 'Absorption Chiller',
+        drinkingWater: false,
+        requiresWalks: false,
+        chiller: { coolPerHeat: 1, maxCoolPerSlot: 2 },
+      });
+      raw.buildings.push(
+        hut as never,
+        tower as never,
+        garden as never,
+        qanat as never,
+        chiller as never,
+      );
       (raw.rules as Record<string, unknown>).cooling = { range: 2, gridCool, gridCoolCost: 2 };
     },
   });
@@ -118,6 +132,49 @@ describe('cooling', () => {
     let t = build(start('summer', H), 'hut', [[1, 0]], H);
     t = endSeason(build(t, 'windTower', [[2, 0]], H), H);
     expect(t.lastReport!.hot).toEqual([]);
+  });
+});
+
+describe('absorption chillers', () => {
+  // A solar thermal collector makes 3 heat on summer days.
+  it('turn heat from a heat source within 2 into cooling, 1 for 1', () => {
+    let s = build(start(), 'solarThermalCollector', [[3, 0]]);
+    s = build(s, 'absorptionChiller', [[4, 0]]);
+    s = build(s, 'hut', [[5, 0]]);
+    s = endSeason(s, D);
+    expect(cool(s)).toMatchObject({ demand: 1, free: 1, grid: 0, fromHeat: 1 });
+    expect(cool(s).bySource).toEqual({ absorptionChiller: 1 });
+  });
+
+  it('make 2 cooling a slot at most, from 2 heat', () => {
+    let s = build(start(), 'solarThermalCollector', [[3, 0]]);
+    s = build(s, 'absorptionChiller', [[4, 0]]);
+    s = build(s, 'hut', [
+      [5, 0],
+      [4, 1],
+      [5, 1],
+    ]);
+    s = endSeason(s, D);
+    expect(cool(s)).toMatchObject({ demand: 3, free: 2, grid: 1, fromHeat: 2 });
+  });
+
+  it('make nothing with no heat source in reach', () => {
+    let s = build(start(), 'absorptionChiller', [[4, 0]]);
+    s = build(s, 'hut', [[5, 0]]);
+    s = endSeason(s, D);
+    expect(cool(s)).toMatchObject({ demand: 1, free: 0, grid: 1 });
+  });
+
+  it('take only heat no building needs for warmth that slot', () => {
+    // A greenhouse that needs 3 heat on summer days takes all the collector's heat.
+    const warm = desertish();
+    warm.byId.greenhouse!.demand!.heat.day = [0, 3, 0, 1];
+    let s = build(start('summer', warm), 'solarThermalCollector', [[3, 0]], warm);
+    s = build(s, 'greenhouse', [[2, 0]], warm);
+    s = build(s, 'absorptionChiller', [[4, 0]], warm);
+    s = build(s, 'hut', [[5, 0]], warm);
+    s = endSeason(s, warm);
+    expect(cool(s)).toMatchObject({ demand: 1, free: 0, grid: 1 });
   });
 });
 
