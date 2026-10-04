@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { waterAt } from '../game/waterInfo';
 import { commuteAt } from '../game/commuteInfo';
 import { heatAt } from '../game/heatInfo';
+import { coolAt } from '../game/coolInfo';
 import { edgesAround } from '../sim/edges';
 import type { AudioEngine } from '../audio/engine';
 import { logToCsv, type PlayLog } from '../game/playlog';
@@ -66,6 +67,7 @@ export function MapTip({ store, view }: { store: GameStore; view: MapView | null
   const hedgeSides = edgesAround(store.hover).filter((e) => state.hedges.includes(e)).length;
   const walks = commuteAt(store.rules, state, store.commuteForecast, store.hover);
   const heat = heatAt(store.rules, state, store.heatForecast, store.hover, store.coldForecast);
+  const cool = coolAt(store.rules, state, store.coolForecast, store.hover, store.hotForecast);
   const gauge = b ? store.storageOf(b.uid) : null;
   const math = (b ? (store.insight.now.math[b.uid] ?? []) : []).filter(
     (l) => water.length === 0 || !l.startsWith('water:'),
@@ -103,6 +105,9 @@ export function MapTip({ store, view }: { store: GameStore; view: MapView | null
       ))}
       {walks.map((l) => (
         <div class="small walk-line">{l}</div>
+      ))}
+      {cool.map((l) => (
+        <div class="small cool-line">{l}</div>
       ))}
       {heat.map((l) => (
         <div class="small heat-line">{l}</div>

@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { waterLedger, waterNotes } from '../game/waterInfo';
 import { commuteNotes, waterWalkNotes } from '../game/commuteInfo';
 import { heatNotes } from '../game/heatInfo';
+import { coolNotes } from '../game/coolInfo';
 import type { GameStore } from '../game/store';
 import {
   energyLedger,
@@ -173,6 +174,7 @@ function Energy({ content, report }: { content: Content; report: SeasonReport })
           {e.shortfall > 0 ? `Short by ${e.shortfall}` : `${e.unused} unused`}
         </div>
         {e.heat.demand > 0 && <HeatColumn e={e} name={name} />}
+        {(e.cool?.demand ?? 0) > 0 && <CoolColumn e={e} name={name} />}
       </td>
     );
   };
@@ -191,6 +193,47 @@ function Energy({ content, report }: { content: Content; report: SeasonReport })
         </tr>
       </tbody>
     </table>
+  );
+}
+
+/** Cooling (the Sun Desert): what needed it and what paid it. */
+function CoolColumn({
+  e,
+  name,
+}: {
+  e: SeasonReport['energy']['day'];
+  name: (id: string) => string;
+}) {
+  const c = e.cool!;
+  const chilled = c.bySource.absorptionChiller ?? 0;
+  const paid: [string, number][] = [
+    ...Object.entries(c.bySource).map(([id, n]): [string, number] => [
+      id === 'absorptionChiller' ? `${name(id)} (from ${c.fromHeat ?? chilled} heat)` : name(id),
+      n,
+    ]),
+    [`The grid (for ${c.gridEnergy} energy)`, c.grid],
+  ];
+  return (
+    <div class="heat-column cool-column">
+      <div class="small strong">Cooling needed {c.demand}</div>
+      <div class="small strong">Paid by</div>
+      <ul class="plain flow">
+        {paid
+          .filter(([, n]) => n > 0)
+          .map(([label, n]) => (
+            <li>
+              <span>{label}</span>
+              <strong>{n}</strong>
+            </li>
+          ))}
+        {c.hot > 0 && (
+          <li class="bad">
+            <span>Nothing: hot</span>
+            <strong>{c.hot}</strong>
+          </li>
+        )}
+      </ul>
+    </div>
   );
 }
 
@@ -456,6 +499,18 @@ export function SeasonReportDialog({
                     <h3>Heat kept close</h3>
                     <ul class="plain small heat-notes">
                       {heatNotes(store.rules, store.state, report.heat, report.cold ?? []).map(
+                        (l) => (
+                          <li>{l}</li>
+                        ),
+                      )}
+                    </ul>
+                  </>
+                )}
+                {report.cool && (
+                  <>
+                    <h3>Kept cool</h3>
+                    <ul class="plain small heat-notes">
+                      {coolNotes(store.rules, store.state, report.cool, report.hot ?? []).map(
                         (l) => (
                           <li>{l}</li>
                         ),

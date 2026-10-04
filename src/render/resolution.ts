@@ -244,14 +244,23 @@ export class ResolutionPlayer {
     const tl = this.timeline;
     const evP = this.progress('event');
 
-    // The river itself: sandbars when it runs low, ice when it freezes.
-    if (tl.event === 'lowRiver' || tl.event === 'freeze') {
+    // The river itself: sandbars when it runs low, ice when it freezes, and in a heatwave (the
+    // Sun Desert) it dries to its bed. The desert's cold nights don't freeze it.
+    const desert = tl.land === 'desert';
+    const dries = tl.event === 'heatwave';
+    if (tl.event === 'lowRiver' || dries || (tl.event === 'freeze' && !desert)) {
       tl.river.forEach((h, i) => {
         const c = hexToPixel(h);
         const reach = clamp01(evP * 1.6 - (i / Math.max(1, tl.river.length)) * 0.6);
         if (reach <= 0) return;
         const a = reach * strength;
-        if (tl.event === 'lowRiver') {
+        if (dries) {
+          ground.poly(hexCorners(c, HEX_RADIUS - 2)).fill({ color: 0xe3cfa4, alpha: 0.85 * a });
+          for (let k = 0; k < 4; k++)
+            ground
+              .ellipse(c.x + (hash(k, i, 3) - 0.5) * 30, c.y + (hash(k, i, 4) - 0.5) * 20, 3, 2)
+              .fill({ color: 0xa89c86, alpha: a });
+        } else if (tl.event === 'lowRiver') {
           ground.poly(hexCorners(c, HEX_RADIUS - 6)).fill({ color: 0xd9c08f, alpha: 0.45 * a });
           ellipse(ground, c.x - 6, c.y + 3, 11, 4, -0.3);
           ground.fill({ color: 0xe8d3a3, alpha: 0.9 * a });
@@ -344,6 +353,33 @@ export class ResolutionPlayer {
             .arc(c.x, c.y + 6, 24, Math.PI, 0)
             .fill({ color: 0x9dbb79, alpha: 0.14 * a });
           break;
+        case 'cooled': {
+          // A cool breeze curls down over the home.
+          const turn = this.reducedMotion ? 0 : age / 260;
+          for (let k = 0; k < 2; k++)
+            g.arc(c.x, c.y - 6, 10 + k * 5, turn + k, turn + k + 1.6).stroke({
+              width: 2,
+              color: 0x6fb3c9,
+              alpha: 0.75 * a,
+              cap: 'round',
+            });
+          break;
+        }
+        case 'hot': {
+          // Heat wavering up off the roof.
+          for (let k = 0; k < 3; k++) {
+            const x = c.x - 8 + k * 8;
+            const lift = this.reducedMotion ? 0 : (age / 40 + k * 7) % 10;
+            g.moveTo(x, c.y - 8 - lift)
+              .quadraticCurveTo(x + 3, c.y - 13 - lift, x, c.y - 18 - lift)
+              .quadraticCurveTo(x - 3, c.y - 23 - lift, x, c.y - 28 - lift)
+              .stroke({ width: 1.8, color: 0xd9662b, alpha: 0.7 * a, cap: 'round' });
+          }
+          break;
+        }
+        case 'dusted':
+          ground.poly(corners).fill({ color: 0xc9a46a, alpha: 0.4 * a });
+          break;
         case 'chilled': {
           const grow = this.reducedMotion ? 1 : clamp01(age / 450);
           ground.poly(corners).fill({ color: 0xdcebf5, alpha: 0.4 * a * grow });
@@ -360,10 +396,35 @@ export class ResolutionPlayer {
     const strength = this.eventStrength();
     const event = this.timeline.event;
     if (strength <= 0 || this.reducedMotion) return;
-    if (event !== 'storm' && event !== 'flood' && event !== 'freeze') return;
+    const desert = this.timeline.land === 'desert';
     const b = this.bounds;
     const w = b.maxX - b.minX;
     const h = b.maxY - b.minY;
+    // The Sun Desert: dust blowing across in a dust storm, the air shimmering in a heatwave.
+    if (desert && event === 'storm') {
+      for (let i = 0; i < 140; i++) {
+        const y = b.minY + hash(i, 5, 6) * h + Math.sin(this.t / 300 + i) * 4;
+        const x = b.minX + ((hash(i, 1, 2) * w + this.t * (0.5 + hash(i, 3, 4) * 0.4)) % w);
+        g.moveTo(x, y)
+          .lineTo(x + 10 + hash(i, 7, 8) * 14, y + 1)
+          .stroke({ width: 1.4, color: 0xc9a46a, alpha: 0.55 * strength });
+      }
+      return;
+    }
+    if (event === 'heatwave') {
+      for (let i = 0; i < 40; i++) {
+        const x = b.minX + hash(i, 1, 2) * w;
+        const p = (this.t / 1500 + hash(i, 3, 4)) % 1;
+        const y = b.minY + hash(i, 5, 6) * h - p * 30;
+        g.moveTo(x, y);
+        for (let s = 1; s <= 5; s++) g.lineTo(x + s * 4, y + Math.sin(this.t / 120 + s + i) * 2);
+        g.stroke({ width: 1.3, color: 0xfff1d0, alpha: 0.5 * strength * Math.sin(Math.PI * p) });
+      }
+      return;
+    }
+    if (event !== 'storm' && event !== 'flood' && event !== 'freeze') return;
+    // The desert's cold nights are clear: no snow.
+    if (desert && event === 'freeze') return;
     const n = event === 'flood' ? 70 : 110;
     for (let i = 0; i < n; i++) {
       const x0 = b.minX + hash(i, 1, 2) * w;
@@ -428,8 +489,12 @@ export class ResolutionPlayer {
     let color = 0;
     let alpha = 0;
     if (current === 'event' && this.timeline.event === 'storm') {
-      color = 0x5b6770;
+      // A dust storm's sky is ochre, not grey.
+      color = this.timeline.land === 'desert' ? 0xc9a46a : 0x5b6770;
       alpha = 0.22;
+    } else if (current === 'event' && this.timeline.event === 'heatwave') {
+      color = 0xf2a65a;
+      alpha = 0.16;
     } else if (current === 'event' && this.timeline.event === 'freeze') {
       color = 0xcfe3ef;
       alpha = 0.2;

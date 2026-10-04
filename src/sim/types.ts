@@ -518,6 +518,11 @@ export interface SeasonReport {
   commute: CommuteReport | null;
   /** Which source heated which building, while local heat is on. */
   heat: HeatLink[] | null;
+  /**
+   * Which source cooled which building (a wind tower, an absorption chiller, or `grid` for
+   * energy at the cooling rule's cost), when any building needed cooling (the Sun Desert).
+   */
+  cool: HeatLink[] | null;
   /** Heat a neighbouring kiln or heat well gave to a building that takes it (the Bathhouse). */
   /** Per store of energy or heat (by uid), the stores that charged or gave anything. */
   storage: Record<string, StorageTrace>;

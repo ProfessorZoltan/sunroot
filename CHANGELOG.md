@@ -1,5 +1,14 @@
 # Changelog
 
+## The Sun Desert on screen
+
+- **Cooling** in the tooltips, the inspector and the season report: which wind tower or chiller
+  cools which home, and what the grid pays for the rest.
+- The river **runs dry** in summer; the **heatwave** shimmers and dries it as it plays out, and
+  the **dust storm** blows sand across and dims the panels.
+- Heat shimmer over the sand, **glints on mirrors and panels**, and a green winter: no snow in
+  the desert.
+
 ## The Sun Desert's combos
 
 - Ten desert combos: the **Courtyard** (a mud-brick house by a wind tower and a cistern needs no

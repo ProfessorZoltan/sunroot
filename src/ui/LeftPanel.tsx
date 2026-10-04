@@ -173,13 +173,21 @@ function WaterRow({ store }: { store: GameStore }) {
         </span>
         <span class="delta-num" />
       </div>
-      {teach && (
-        <div class="small water-hint">
-          Farms, orchards and greenhouses drink from channels: build them beside the camp&rsquo;s
-          channel. To dig more, choose Irrigation Channel and click from a channel&rsquo;s end, or
-          beside the river. Hover a channel to see its water.
-        </div>
-      )}
+      {teach &&
+        (store.rules.rules.water.campChannel > 0 ? (
+          <div class="small water-hint">
+            Farms, orchards and greenhouses drink from channels: build them beside the camp&rsquo;s
+            channel. To dig more, choose Irrigation Channel and click from a channel&rsquo;s end, or
+            beside the river. Hover a channel to see its water.
+          </div>
+        ) : (
+          <div class="small water-hint">
+            The camp has no channel: gardens beside the{' '}
+            {store.rules.land === 'desert' ? 'oasis' : 'water'} drink from it. To bring water
+            further, choose Irrigation Channel and click beside the water, then from the
+            channel&rsquo;s end. Hover a channel to see its water.
+          </div>
+        ))}
     </>
   );
 }

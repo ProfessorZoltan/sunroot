@@ -3,7 +3,9 @@
  * in playtesting): butterflies over pollinator meadows, bees round apiaries,
  * smoke from kilns and workshops that ran and from homes kept warm, fish
  * leaping in ponds and the river, citizens walking to work, petals, seeds,
- * leaves or snow on the wind, and clouds' shadows drifting over. Where each
+ * leaves or snow on the wind, and clouds' shadows drifting over; in the Sun
+ * Desert, heat shimmer over the open sand and gravel in summer, sun glinting
+ * on mirrors and panels, and sand on the wind instead of snow. Where each
  * lives is plain data from the run (tested); drawing it is a function of the
  * clock, and it holds still when the player prefers reduced motion.
  */
@@ -14,7 +16,7 @@ import type { RunState } from '../sim/types';
 import { heatDemand } from '../sim/queries';
 import { hexToPixel, tileRandom, type Bounds, type Point } from './layout';
 
-export type FallingKind = 'petal' | 'fluff' | 'leaf' | 'snow';
+export type FallingKind = 'petal' | 'fluff' | 'leaf' | 'snow' | 'sand';
 
 export interface Ambient {
   butterflies: Point[];
@@ -22,6 +24,10 @@ export interface Ambient {
   smoke: Point[];
   fish: Point[];
   walkers: { from: Point; to: Point }[];
+  /** Heat shimmer over open ground (the Sun Desert's summer). */
+  shimmer: Point[];
+  /** Sun glinting on mirrors and panels (the Sun Desert). */
+  glints: Point[];
   falling: FallingKind;
   clouds: number;
 }
@@ -34,7 +40,18 @@ const FALLING: Record<string, FallingKind> = {
 };
 
 /** At most this many of each, so the map stays calm and cheap to draw. */
-export const AMBIENT_CAPS = { butterflies: 10, bees: 12, smoke: 10, fish: 6, walkers: 6 };
+export const AMBIENT_CAPS = {
+  butterflies: 10,
+  bees: 12,
+  smoke: 10,
+  fish: 6,
+  walkers: 6,
+  shimmer: 8,
+  glints: 8,
+};
+
+/** Sources whose mirrors or panels catch the light in the desert. */
+const GLINTING = ['concentratedSolarPlant', 'solarCanopy', 'restoredArray', 'agrivoltaicField'];
 
 export function ambientFor(content: Content, state: RunState): Ambient {
   const tiers = content.rules.harmony.tiers;
@@ -96,13 +113,27 @@ export function ambientFor(content: Content, state: RunState): Ambient {
     }
   }
 
+  const desert = content.land === 'desert';
+  const shimmer = desert && state.season === 'summer' ? wild(['reg', 'erg'], 8, 'shimmer') : [];
+  const glints = desert
+    ? buildings.filter((b) => GLINTING.includes(b.type)).map((b) => hexToPixel(b.at))
+    : [];
+  // No snow in the desert: sand on the wind, and in its green winter, seeds.
+  const falling: FallingKind = desert
+    ? winter
+      ? 'fluff'
+      : 'sand'
+    : (FALLING[state.season] ?? 'petal');
+
   return {
     butterflies: butterflies.slice(0, AMBIENT_CAPS.butterflies),
     bees: bees.slice(0, AMBIENT_CAPS.bees),
     smoke: smoke.slice(0, AMBIENT_CAPS.smoke),
     fish: fish.slice(0, AMBIENT_CAPS.fish),
     walkers,
-    falling: FALLING[state.season] ?? 'petal',
+    shimmer: shimmer.slice(0, AMBIENT_CAPS.shimmer),
+    glints: glints.slice(0, AMBIENT_CAPS.glints),
+    falling,
     clouds: 2,
   };
 }
@@ -152,6 +183,35 @@ export function drawAmbient(
         g.ellipse(x + dx, y + dy, r * 1.4, r * 0.62).fill({ color: 0x2f3b2e, alpha: 0.04 * edge });
     }
   }
+
+  // Heat shimmer: faint wavering lines rising off the open ground.
+  if (!still)
+    a.shimmer.forEach((c, i) => {
+      for (let k = 0; k < 3; k++) {
+        const p = (t / 1800 + k / 3 + i * 0.29) % 1;
+        const y = c.y + 6 - p * 26;
+        const x = c.x - 12 + k * 9;
+        g.moveTo(x, y);
+        for (let s = 1; s <= 4; s++) g.lineTo(x + s * 3, y + wave(t / 160 + s + i + k) * 1.6);
+        g.stroke({ width: 1.2, color: 0xfff4dc, alpha: 0.45 * Math.sin(Math.PI * p) });
+      }
+    });
+
+  // Sun glints on mirrors and panels: a brief star now and then.
+  a.glints.forEach((c, i) => {
+    const p = still ? 0 : (t / 2600 + i * 0.37) % 1;
+    const flash = still ? 0 : Math.max(0, 1 - Math.abs(p - 0.1) * 12);
+    if (flash <= 0) return;
+    const x = c.x - 4 + (i % 3) * 4;
+    const y = c.y - 6;
+    const r = 5 * flash;
+    g.moveTo(x - r, y)
+      .lineTo(x + r, y)
+      .moveTo(x, y - r)
+      .lineTo(x, y + r)
+      .stroke({ width: 1.4, color: 0xffffff, alpha: 0.9 * flash });
+    g.circle(x, y, 1.6 * flash).fill({ color: 0xfff7d6, alpha: flash });
+  });
 
   // Citizens on their way: a small figure walking there and back.
   a.walkers.forEach((w, i) => {
@@ -253,6 +313,9 @@ export function drawAmbient(
           break;
         case 'snow':
           g.circle(x, y, 1.3 + r() * 0.8).fill({ color: 0xffffff, alpha: 0.9 });
+          break;
+        case 'sand':
+          g.circle(x, y, 0.9 + r() * 0.6).fill({ color: 0xd9b98a, alpha: 0.75 });
           break;
       }
     }

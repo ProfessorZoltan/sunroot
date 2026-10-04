@@ -100,6 +100,8 @@ export function resolveEnergy(ctx: SeasonContext): void {
       neighborBuildings(state, c).some((n) => bonus.buildings.includes(n.type));
     return base + (beside ? bonus.amount : 0);
   };
+  /** Who cooled whom, for the interface. */
+  const coolLinks: HeatLink[] = [];
   for (const slot of SLOTS) {
     const r = report.energy[slot].cool!;
     const left = new Map(coolers.map((c) => [c.uid, coolOutput(c, slot)]));
@@ -149,6 +151,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
         need -= t;
         r.free += t;
         r.bySource[c.type] = (r.bySource[c.type] ?? 0) + t;
+        coolLinks.push({ slot, from: c.uid, to: b.uid, amount: t });
         explain(ctx, b, `${slot}: ${t} cooling from the ${defOf(content, c).name}`);
       }
       // Then the absorption chillers within reach, on spare heat.
@@ -161,11 +164,16 @@ export function resolveEnergy(ctx: SeasonContext): void {
         need -= t;
         r.free += t;
         r.bySource[c.type] = (r.bySource[c.type] ?? 0) + t;
+        coolLinks.push({ slot, from: c.uid, to: b.uid, amount: t });
         explain(ctx, b, `${slot}: ${t} cooling from the ${defOf(content, c).name}, made from heat`);
       }
-      if (need > 0) coolLeft[slot].set(b.uid, need);
+      if (need > 0) {
+        coolLeft[slot].set(b.uid, need);
+        if (cooling.gridCool) coolLinks.push({ slot, from: 'grid', to: b.uid, amount: need });
+      }
     }
   }
+  if (coolLinks.length > 0 || coolLeft.day.size + coolLeft.night.size > 0) report.cool = coolLinks;
   /** Energy the grid spends cooling a building in a slot. */
   const gridCoolOf = (b: BuildingState, slot: Slot) =>
     cooling.gridCool ? (coolLeft[slot].get(b.uid) ?? 0) * cooling.gridCoolCost : 0;

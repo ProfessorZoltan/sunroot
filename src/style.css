@@ -1381,6 +1381,10 @@ ul.projects {
 .heat-line {
   color: #a5532a;
 }
+/* Cooling (the Sun Desert): lines in the map tooltip and the inspector. */
+.cool-line {
+  color: #2d6676;
+}
 
 /* Walks to work: the left panel's row, and lines in the map tooltip and the inspector. */
 .walks-row .strong,

@@ -18,7 +18,8 @@ interface ArtInfo {
   pivots: Record<string, [number, number]>;
 }
 
-const urls = import.meta.glob('../art/**/*.png', {
+// The map's art: Root City's has its own loader (src/ui/cityArt.ts).
+const urls = import.meta.glob(['../art/**/*.png', '!../art/city/**'], {
   eager: true,
   query: '?url',
   import: 'default',
@@ -60,17 +61,54 @@ const pick = (...paths: string[]): Texture | null => {
  * one. A biome's land may have its own look for a shared type (the coast's headlands,
  * `hill.coast.png`), which it takes in place of the shared one.
  */
+/**
+ * Lands whose winter is green, not white (the Sun Desert's): the shared art's winter dress has
+ * snow, so there a shared tile or building keeps its summer look in winter. The land's own looks
+ * (`id.land.winter.png`) and its own tiles' and buildings' winter art are used as delivered.
+ */
+const GREEN_WINTER: Record<string, readonly string[]> = {
+  desert: [
+    'oasis',
+    'reg',
+    'erg',
+    'rock',
+    'saltFlat',
+    'oasisGarden',
+    'wadiFarm',
+    'mudBrickHouse',
+    'windTower',
+    'absorptionChiller',
+    'fogNet',
+    'qanat',
+    'concentratedSolarPlant',
+    'sandBattery',
+    'palmWindbreak',
+    'saltWorks',
+    'threeLayerGarden',
+    'fogFence',
+    'restoredArray',
+    'solarOasis',
+  ],
+};
+
+/** The season whose art a shared tile or building wears in this land (no snow in the desert). */
+export function artSeason(id: string, season: Season, land?: string): Season {
+  const own = land ? GREEN_WINTER[land] : undefined;
+  return season === 'winter' && own && !own.includes(id) ? 'summer' : season;
+}
+
 export function tileTexture(
   type: string,
   key: string,
-  season: Season,
+  shown: Season,
   land?: string,
 ): Texture | null {
   if (land && textures.has(`tiles/${type}.${land}.png`)) {
-    return season === 'winter'
+    return shown === 'winter'
       ? pick(`tiles/${type}.${land}.winter.png`, `tiles/${type}.${land}.png`)
       : pick(`tiles/${type}.${land}.png`);
   }
+  const season = artSeason(type, shown, land);
   const variants = [`tiles/${type}.png`, `tiles/${type}-2.png`, `tiles/${type}-3.png`].filter((p) =>
     textures.has(p),
   );
@@ -83,7 +121,18 @@ export function tileTexture(
   return textures.get(variants[i]!)!;
 }
 
-export function buildingTexture(id: string, season: Season): Texture | null {
+/** The land's dry riverbed (`river.desert.dry.png`), if it has one. */
+export function dryRiverTexture(land: string): Texture | null {
+  return pick(`tiles/river.${land}.dry.png`);
+}
+
+export function buildingTexture(id: string, shown: Season, land?: string): Texture | null {
+  // A biome's own dress for a shared building (the desert's sandy canopy), if it has one.
+  if (land && textures.has(`buildings/${id}.${land}.png`))
+    return shown === 'winter'
+      ? pick(`buildings/${id}.${land}.winter.png`, `buildings/${id}.${land}.png`)
+      : pick(`buildings/${id}.${land}.png`);
+  const season = artSeason(id, shown, land);
   return season === 'winter'
     ? pick(`buildings/${id}.winter.png`, `buildings/${id}.png`)
     : pick(`buildings/${id}.png`);

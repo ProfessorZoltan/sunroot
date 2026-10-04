@@ -16,6 +16,7 @@ import {
 } from '../sim';
 import { axialToOffset, parseHexKey } from '../sim/hex';
 import { heatDemand } from '../sim/queries';
+import { gridCooling } from './coolInfo';
 
 export type PhaseName = 'event' | 'day' | 'night' | 'settle';
 
@@ -52,7 +53,12 @@ export type EventFxKind =
   | 'struck'
   | 'exposed'
   | 'calm'
-  | 'chilled';
+  | 'chilled'
+  /** The Sun Desert: a home cooled for free (a wind tower, a chiller), or one hot or grid-cooled. */
+  | 'cooled'
+  | 'hot'
+  /** Dust on a solar canopy's or a mirror's glass in a dust storm. */
+  | 'dusted';
 
 export interface EventFx {
   kind: EventFxKind;
@@ -64,6 +70,8 @@ export interface EventFx {
 export interface Timeline {
   season: Season;
   event: EventId;
+  /** The biome's land (the desert's dust storm is dust, not rain; its cold nights bring no snow). */
+  land: string;
   duration: number;
   phases: Phase[];
   pops: Pop[];
@@ -186,6 +194,8 @@ export function buildTimeline(
 
   // Energy flows: each consumer draws from the nearest sources with energy left.
   const flows: Flow[] = [];
+  // The grid's energy spent cooling homes (the Sun Desert) flows to them too.
+  const coolEnergy = gridCooling(content, report.cool ?? null);
   for (const slot of ['day', 'night'] as const) {
     const window = slot === 'day' ? phase('day') : night;
     const sources = Object.entries(report.generated)
@@ -198,7 +208,8 @@ export function buildTimeline(
       const need =
         (def?.demand?.energy[slot][si] ?? 0) +
         (def ? heatDemand(content, after, b, slot, si) : 0) +
-        (report.runs[b.uid]?.energy[slot] ?? 0);
+        (report.runs[b.uid]?.energy[slot] ?? 0) +
+        (coolEnergy.get(b.uid)?.[slot] ?? 0);
       if (need > 0) sinks.push({ at: b.at, need });
     }
     sinks.forEach((sink, i) => {
@@ -284,6 +295,26 @@ export function buildTimeline(
     }
     if (sheltered && camp) fx('calm', camp, ev.start + 200, 'Mixed Grid: no damage', 'good');
   }
+  // Hot days (the Sun Desert): homes cooled for free, or bought cooling from the grid, or hot.
+  if (report.cool) {
+    const free = new Set(report.cool.filter((l) => l.from !== 'grid').map((l) => l.to));
+    const grid = new Set(report.cool.filter((l) => l.from === 'grid').map((l) => l.to));
+    for (const uid of new Set([...free, ...grid])) {
+      const h = at(uid);
+      if (grid.has(uid)) fx('hot', h, across(h ?? { q: 0, r: 0 }));
+      else fx('cooled', h, across(h ?? { q: 0, r: 0 }));
+    }
+  }
+  for (const uid of report.hot ?? [])
+    fx('hot', at(uid), across(at(uid) ?? { q: 0, r: 0 }), 'too hot', 'bad');
+  // Dust on the glass: canopies and mirrors make less in a dust storm.
+  if (report.event === 'storm' && (content.events.storm?.solarPenalty ?? 0) > 0) {
+    const dimmed = Object.values(after.buildings).filter(
+      (b) => content.byId[b.type]?.fogged && report.generated[b.uid],
+    );
+    for (const b of dimmed)
+      fx('dusted', b.at, across(b.at), `dust −${content.events.storm!.solarPenalty}`, 'bad');
+  }
   if (report.event === 'freeze') {
     for (const b of Object.values(after.buildings)) {
       const heat = content.byId[b.type] ? heatDemand(content, after, b, 'night', si) : 0;
@@ -317,6 +348,7 @@ export function buildTimeline(
   return {
     season: report.season,
     event: report.event,
+    land: content.land,
     duration: t,
     phases,
     pops: pops.sort((a, b) => a.t - b.t),

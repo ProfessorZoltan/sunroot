@@ -18,6 +18,30 @@ export function drawTile(g: Graphics, tile: Tile, center: Point, key: string): v
 }
 
 /**
+ * A river with no water in it (the Sun Desert's in summer): a pale sandy bed with rounded
+ * stones, ripple marks, and a damp line down the middle where the water was.
+ */
+export function drawDryRiver(g: Graphics, center: Point, key: string): void {
+  const rand = tileRandom(`${key}:dry`);
+  g.poly(hexCorners({ x: center.x, y: center.y + TILE_DEPTH })).fill({ color: 0xbfa77e });
+  g.poly(hexCorners(center)).fill({ color: 0xe3cfa4 }).stroke({ width: 1.6, color: COLORS.gap });
+  g.moveTo(center.x - 3, center.y - 22)
+    .quadraticCurveTo(center.x + 5, center.y, center.x - 2, center.y + 22)
+    .stroke({ width: 3, color: 0xc4ac83, alpha: 0.8 });
+  for (let i = 0; i < 3; i++) {
+    const y = center.y - 12 + i * 10;
+    g.moveTo(center.x - 18, y)
+      .quadraticCurveTo(center.x - 12, y - 3, center.x - 6, y)
+      .stroke({ width: 1, color: 0xcdb68c });
+  }
+  for (let i = 0; i < 6; i++) {
+    const x = center.x + (rand() - 0.5) * 40;
+    const y = center.y + (rand() - 0.5) * 30;
+    g.ellipse(x, y, 2.5 + rand() * 2, 1.8 + rand()).fill({ color: 0xa89c86 });
+  }
+}
+
+/**
  * The cliff under a raised tile (the Highland): from its raised outline down to the ground it
  * stands on, banded a step at a time. Drawn before the tile, so the tile covers its top.
  */

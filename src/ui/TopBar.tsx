@@ -282,6 +282,7 @@ function EnergyTip({
   if (intoHeat) demand.push({ label: 'Turned into heat, 1 for 1', amount: -intoHeat });
   if (r.heat.pumpEnergy) demand.push({ label: 'Heat pumps', amount: -r.heat.pumpEnergy });
   const heat = heatRows(r, name);
+  const cool = coolRows(r, name);
   const other: Row[] = [];
   if (r.reserved) other.push({ label: 'Set aside for the night', amount: -r.reserved });
   if (r.sponges) other.push({ label: 'Workshop and kiln runs', amount: -r.sponges });
@@ -299,6 +300,7 @@ function EnergyTip({
       <TipTable rows={demand} total={{ label: 'Demand', amount: -r.demand }} />
       {other.length > 0 && <TipTable rows={other} />}
       {heat && <TipTable title="Heat" rows={heat.rows} total={heat.total} />}
+      {cool && <TipTable title="Cooling" rows={cool.rows} total={cool.total} />}
       {r.shortfall > 0 && (
         <div class="tip-row total bad">
           <span>
@@ -309,6 +311,24 @@ function EnergyTip({
       )}
     </div>
   );
+}
+
+/** Cooling needed in a slot (the Sun Desert), and what paid it. */
+function coolRows(
+  r: SeasonReport['energy'][Slot],
+  name: (id: string) => string,
+): { rows: Row[]; total: Row } | null {
+  const c = r.cool;
+  if (!c || c.demand === 0) return null;
+  const rows: Row[] = Object.entries(c.bySource).map(([id, n]) => ({
+    label: `Paid by the ${name(id).toLowerCase()}`,
+    amount: -n,
+    tone: 'good' as const,
+  }));
+  if (c.grid > 0)
+    rows.push({ label: `Paid by the grid (${c.gridEnergy} energy)`, amount: -c.grid });
+  if (c.hot > 0) rows.push({ label: 'Nothing paid it: hot', amount: -c.hot, tone: 'bad' });
+  return { rows, total: { label: 'Cooling needed', amount: c.demand } };
 }
 
 /** Heat needed in a slot, by building type, and what paid it: kept apart from energy. */

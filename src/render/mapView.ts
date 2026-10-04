@@ -12,7 +12,8 @@ import { hexKey, hexNeighbors, parseHexKey, type Hex } from '../sim/hex';
 import { edgeEnds, edgeTiles } from '../sim/edges';
 import type { PlacementPreview, PreviewKey } from '../sim/preview';
 import type { RunState, WaterReport } from '../sim/types';
-import { channels } from '../sim/water';
+import { channels, waterOn } from '../sim/water';
+import { SEASONS } from '../sim/content/schema';
 import { drawDitches, drawWater, waterBeside, waterView, type WaterView } from './waterArt';
 import type { WalkLine } from '../game/commuteInfo';
 import type { HeatLine } from '../game/heatInfo';
@@ -35,12 +36,14 @@ import type { Mark } from '../game/marks';
 import { drawLift, drawMarkBadges, drawMarkTiles, drawSnowCap } from './markArt';
 import { ambientFor, drawAmbient, type Ambient } from './ambient';
 import { drawBird, drawDeer, drawOtter, drawSeason, wildlifeFor, type Wildlife } from './seasonArt';
-import { dashedLine, drawCliff, drawFogTile, drawTile } from './tileArt';
+import { dashedLine, drawCliff, drawDryRiver, drawFogTile, drawTile } from './tileArt';
 import {
   artScale,
   artSprite,
   armTexture,
   buildingTexture,
+  artSeason,
+  dryRiverTexture,
   edgeTexture,
   hasArms,
   hasGround,
@@ -62,7 +65,7 @@ import {
   type Prop,
 } from './wildlifeArt';
 import { animals as wildlifeOf } from '../sim/wildlife';
-import { effectiveContent } from '../sim/content/modifiers';
+import { contentFor, effectiveContent } from '../sim/content/modifiers';
 
 export interface MapViewEvents {
   /** The tile under the pointer, and which of its sides the pointer is nearest (for hedges). */
@@ -270,6 +273,8 @@ export class MapView {
     const terrainSignature = [
       signature,
       state.season === 'winter',
+      // A river that runs dry (the Sun Desert's summer) shows its bed.
+      riverDry(this.content, state),
       ...Object.values(state.buildings)
         .filter((b) => this.content.byId[b.type]?.water?.channel)
         .map((b) => `~${hexKey(b.at)}`)
@@ -756,6 +761,7 @@ export class MapView {
         .map((b) => hexKey(b.at)),
     );
     let procedural: Graphics | null = null;
+    const dry = riverDry(this.content, state);
     for (const [key, tile] of tiles) {
       const c = hexToPixel(tile);
       if (wonderAt.has(key)) {
@@ -788,8 +794,20 @@ export class MapView {
         drawCliff(procedural, c, lift);
       }
       const own = grounded.get(key);
+      // A river that runs dry this season (the Sun Desert's summer) shows its empty bed.
+      if (!own && tile.type === 'river' && dry) {
+        const bed = dryRiverTexture(this.content.land);
+        if (bed) {
+          this.tileLayer.addChild(artSprite(bed, c));
+          procedural = null;
+        } else {
+          if (!procedural) this.tileLayer.addChild((procedural = new Graphics()));
+          drawDryRiver(procedural, c, key);
+        }
+        continue;
+      }
       const texture = own
-        ? buildingTexture(own, state.season)
+        ? buildingTexture(own, state.season, this.content.land)
         : tileTexture(tile.type, key, state.season, this.content.land);
       if (texture) {
         this.tileLayer.addChild(artSprite(texture, c));
@@ -809,10 +827,10 @@ export class MapView {
           }
         }
         for (const i of arms) {
-          const arm = armTexture(ditch, i, state.season);
+          const arm = armTexture(ditch, i, artSeason(ditch, state.season, this.content.land));
           if (arm) this.tileLayer.addChild(artSprite(arm, c));
         }
-        const hub = buildingTexture(ditch, state.season);
+        const hub = buildingTexture(ditch, state.season, this.content.land);
         if (hub) this.tileLayer.addChild(artSprite(hub, c));
         procedural = null;
       }
@@ -820,7 +838,7 @@ export class MapView {
     const ditches = this.ditches.clear();
     if (!channelArt) drawDitches(ditches, this.content, state);
     // A sluice gate where each channel leaves the river, at the edge of its first tile.
-    const gate = buildingTexture('sluiceGate', state.season);
+    const gate = buildingTexture('sluiceGate', state.season, this.content.land);
     if (gate && channelArt) {
       for (const ch of channels(this.content, state)) {
         if (!ch.intake || !('river' in ch.intake)) continue;
@@ -836,7 +854,7 @@ export class MapView {
     // The river's flow line runs through tile centres and on into the fog.
     const f = this.flow.clear();
     const centres = state.map.river.map((k) => hexToPixel(state.map.tiles[k]!));
-    if (centres.length >= 2) {
+    if (centres.length >= 2 && !dry) {
       const extend = (a: Point, b: Point): Point => ({
         x: b.x + (b.x - a.x),
         y: b.y + (b.y - a.y),
@@ -908,7 +926,13 @@ export class MapView {
         const h = hedges[nextHedge]!;
         if (at && (h.owner.r > at.r || (h.owner.r === at.r && h.owner.q > at.q))) return;
         nextHedge++;
-        const texture = hedgeDef ? edgeTexture(hedgeDef.id, h.side, state.season) : null;
+        const texture = hedgeDef
+          ? edgeTexture(
+              hedgeDef.id,
+              h.side,
+              artSeason(hedgeDef.id, state.season, this.content.land),
+            )
+          : null;
         if (texture) {
           this.buildingLayer.addChild(artSprite(texture, hexToPixel(h.owner)));
           procedural = null;
@@ -936,14 +960,14 @@ export class MapView {
       if (hasArms(b.type)) {
         hexNeighbors(b.at).forEach((n, i) => {
           if (state.buildings[occupant.get(hexKey(n)) ?? '']?.type !== b.type) return;
-          const arm = armTexture(b.type, i, state.season);
+          const arm = armTexture(b.type, i, artSeason(b.type, state.season, this.content.land));
           if (arm) this.buildingLayer.addChild(artSprite(arm, c));
         });
         procedural = null;
       }
       // A wonder with its art is part of the terrain.
       if (b.footprint && wonderTexture(b.type, null, state.season)) continue;
-      const texture = buildingTexture(b.type, state.season);
+      const texture = buildingTexture(b.type, state.season, this.content.land);
       // Buildings drawn with their own tile are part of the terrain.
       if (texture && !hasGround(b.type)) {
         this.buildingLayer.addChild(artSprite(texture, c));
@@ -995,7 +1019,7 @@ export class MapView {
       this.labels.addChild(sprite);
       return;
     }
-    const texture = buildingTexture(building, this.state?.season ?? 'spring');
+    const texture = buildingTexture(building, this.state?.season ?? 'spring', this.content.land);
     if (texture) {
       const sprite = artSprite(texture, c);
       sprite.alpha = alpha;
@@ -1159,4 +1183,11 @@ function count(kinds: string[]): Record<string, number> {
   const out: Record<string, number> = {};
   for (const k of kinds) out[k] = (out[k] ?? 0) + 1;
   return out;
+}
+
+/** Whether the river runs dry this season (no flow: the Sun Desert's summer). */
+export function riverDry(content: Content, state: RunState): boolean {
+  // The run's own rules: water is a run option (the content's is off until a run turns it on).
+  const rules = contentFor(content, state);
+  return waterOn(rules) && rules.rules.water.riverFlow[SEASONS.indexOf(state.season)] === 0;
 }

@@ -58,8 +58,10 @@ export function drawSeason(
   hasArt: (key: string) => boolean = () => false,
 ): void {
   g.clear();
-  const wash = WASH[state.season];
-  const specks = LAND_SPECKS[state.season]!;
+  // The Sun Desert's winter is green, not white: no snow or frost wash there.
+  const green = content.land === 'desert' && state.season === 'winter';
+  const wash = green ? null : WASH[state.season];
+  const specks = green ? LAND_SPECKS.spring! : LAND_SPECKS[state.season]!;
   const occupied = new Set(Object.values(state.buildings).map((b) => hexKey(b.at)));
   for (const [key, tile] of Object.entries(state.map.tiles)) {
     if (hasArt(key)) continue;
@@ -74,11 +76,11 @@ export function drawSeason(
       const a = rand() * Math.PI * 2;
       const d = 6 + rand() * 16;
       const color = specks.colors[Math.floor(rand() * specks.colors.length)]!;
-      const size = state.season === 'winter' ? 1.6 + rand() * 1.2 : 1.4 + rand();
+      const size = state.season === 'winter' && !green ? 1.6 + rand() * 1.2 : 1.4 + rand();
       g.circle(c.x + Math.cos(a) * d, c.y + Math.sin(a) * d * 0.8, size).fill({ color });
     }
   }
-  if (state.season === 'winter') {
+  if (state.season === 'winter' && !green) {
     // Frost along the river's banks.
     for (const key of state.map.river) {
       if (hasArt(key)) continue;

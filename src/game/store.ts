@@ -221,6 +221,16 @@ export class GameStore {
     return this.asIs().lastReport?.heat ?? null;
   }
 
+  /** This season's cooling as it stands (who cools whom), or null when nothing needs it. */
+  get coolForecast(): HeatLink[] | null {
+    return this.asIs().lastReport?.cool ?? null;
+  }
+
+  /** Homes going hot this season as it stands (no grid cooling). */
+  get hotForecast(): string[] {
+    return this.asIs().lastReport?.hot ?? [];
+  }
+
   /** The heat to draw, for the building in focus. */
   get heatLines(): HeatLine[] {
     return this.resolution ? [] : heatLines(this.state, this.heatForecast, this.focus);
