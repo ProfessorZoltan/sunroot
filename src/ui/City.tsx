@@ -52,6 +52,7 @@ const LOOK: Record<string, { color: string; ink: string }> = {
   foundryDistrict: { color: '#B85C6E', ink: '#fbecef' },
   tidalQuarter: { color: '#2F5E63', ink: '#e6f2f2' },
   ridgeQuarter: { color: '#6B5B4E', ink: '#f4ece2' },
+  sunQuarter: { color: '#C8743A', ink: '#fff4e6' },
 };
 const lookOf = (id: string) => LOOK[id] ?? { color: '#9e9280', ink: '#fffbf0' };
 
@@ -199,6 +200,25 @@ function Emblem({ id, ink }: { id: string; ink: string }) {
         <g>
           <path d="M-12,8 L-4,-8 L1,-1 L5,-6 L12,8 Z" fill={ink} />
           <circle cy="4" r="3" fill="#E0A33B" />
+        </g>
+      );
+    case 'sunQuarter':
+      // The sun over a wind tower.
+      return (
+        <g>
+          <circle cx="4" cy="-5" r="5" fill="#F2C14E" />
+          {[0, 60, 120, 180, 240, 300].map((a) => (
+            <line
+              x1={4 + 7 * Math.cos((a * Math.PI) / 180)}
+              y1={-5 + 7 * Math.sin((a * Math.PI) / 180)}
+              x2={4 + 9.5 * Math.cos((a * Math.PI) / 180)}
+              y2={-5 + 9.5 * Math.sin((a * Math.PI) / 180)}
+              stroke="#F2C14E"
+              stroke-width="1.6"
+            />
+          ))}
+          <rect x="-10" y="-6" width="7" height="17" fill={ink} />
+          <rect x="-9" y="-4" width="5" height="2" fill="#C8743A" />
         </g>
       );
     default:

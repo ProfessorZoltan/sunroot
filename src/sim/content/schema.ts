@@ -1308,6 +1308,8 @@ export const DistrictSchema = z
       .min(1),
     /** The card (blueprint, tuning or charter) it adds to future drafts; no run offers it otherwise. */
     adds: z.string(),
+    /** Biomes whose own card it is (the Fog Net's desert): offered there as any other card. */
+    nativeTo: z.array(z.string()).default([]),
     /** Counts as green for landmarks such as Heartwood Grove. */
     green: z.boolean().default(false),
   })

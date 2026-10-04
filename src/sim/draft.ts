@@ -7,10 +7,10 @@ import type { RunState } from './types';
 
 /**
  * Cards a Root City district adds to future drafts are offered only in runs
- * whose city has that district.
+ * whose city has that district, except in a biome the card is native to.
  */
 export function cardAllowed(content: Content, state: RunState, card: string): boolean {
-  const from = content.districts.filter((d) => d.adds === card);
+  const from = content.districts.filter((d) => d.adds === card && !d.nativeTo.includes(content.id));
   if (from.length === 0) return true;
   const districts = state.options.city?.districts ?? {};
   return from.some((d) => districts[d.id] !== undefined);

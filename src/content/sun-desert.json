@@ -2233,6 +2233,133 @@
           "set": -2
         }
       ]
+    },
+    {
+      "id": "droughtYear",
+      "name": "Drought Year",
+      "text": "The river runs half as high all year (3 in the flash flood, 1 in autumn and winter), and the oasis spring fills 1 a tile, not 2. The Graft is one tier higher.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "water.riverFlow.0",
+          "set": 3
+        },
+        {
+          "target": "rules",
+          "path": "water.riverFlow.2",
+          "set": 1
+        },
+        {
+          "target": "rules",
+          "path": "water.riverFlow.3",
+          "set": 1
+        },
+        {
+          "target": "rules",
+          "path": "water.oasisPerTile",
+          "set": 1
+        }
+      ],
+      "graftTierBonus": 1
+    },
+    {
+      "id": "clearSkies",
+      "name": "Clear Skies",
+      "text": "Solar canopies make 1 more energy by day, but wind spires make 1 less, day and night.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "solarCanopy",
+          "path": "generation.day",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "windSpire",
+          "path": "generation.day",
+          "add": -1
+        },
+        {
+          "target": "building",
+          "id": "windSpire",
+          "path": "generation.night",
+          "add": -1
+        }
+      ]
+    },
+    {
+      "id": "haboobYear",
+      "name": "Haboob Year",
+      "text": "A wall of dust in summer as well as autumn: the summer brings a dust storm, not a heatwave (the river still runs dry).",
+      "modifiers": [
+        {
+          "target": "calendar",
+          "path": "1",
+          "set": "storm"
+        }
+      ]
+    },
+    {
+      "id": "rainyYear",
+      "name": "Rainy Year",
+      "text": "A second flash flood in autumn instead of the dust storm, and wadi farms make 1 more food every season.",
+      "modifiers": [
+        {
+          "target": "calendar",
+          "path": "2",
+          "set": "flood"
+        },
+        {
+          "target": "building",
+          "id": "wadiFarm",
+          "path": "yields.food",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "scorchingYear",
+      "name": "Scorching Year",
+      "text": "Homes need 1 cooling on spring and autumn days too. The Graft is one tier higher.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "foundersCamp",
+          "path": "demand.cool.day.0",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "foundersCamp",
+          "path": "demand.cool.day.2",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "mudBrickHouse",
+          "path": "demand.cool.day.0",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "mudBrickHouse",
+          "path": "demand.cool.day.2",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "treehouseCommons",
+          "path": "demand.cool.day.0",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "treehouseCommons",
+          "path": "demand.cool.day.2",
+          "add": 1
+        }
+      ],
+      "graftTierBonus": 1
     }
   ],
   "regions": [
@@ -2240,6 +2367,76 @@
       "id": "theOasis",
       "name": "The Oasis",
       "text": "The desert as it is: a thin river down one side, an oasis near the middle, gravel plain around, dunes along the far side, rock at the edges, a salt flat and the ruins of an old solar array."
+    },
+    {
+      "id": "wadiCountry",
+      "name": "Wadi Country",
+      "text": "A broad wadi: banks on both sides of the river all the way down, and a bigger flash flood (the river runs 10 in spring, not 6).",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "bankChance",
+          "set": 1
+        },
+        {
+          "target": "rules",
+          "path": "water.riverFlow.0",
+          "set": 10
+        }
+      ]
+    },
+    {
+      "id": "theErg",
+      "name": "The Erg",
+      "text": "Dunes over a third of the desert, and the sun stronger: solar canopies make 1 more by day. The Graft is one tier higher.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "ergColumns",
+          "set": 4
+        },
+        {
+          "target": "building",
+          "id": "solarCanopy",
+          "path": "generation.day",
+          "add": 1
+        }
+      ],
+      "graftTierBonus": 1
+    },
+    {
+      "id": "saltPan",
+      "name": "Salt Pan",
+      "text": "A wide salt flat of 8 tiles, with room for salt works, and little scrub: most of the open land is gravel.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "saltFlat",
+          "set": 8
+        },
+        {
+          "target": "map",
+          "path": "regChance",
+          "set": 0.85
+        }
+      ]
+    },
+    {
+      "id": "oldArray",
+      "name": "Old Array",
+      "text": "The old solar farm stood here: 7 of its ruins, and fuller (36 salvage each).",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "ruins",
+          "set": 7
+        },
+        {
+          "target": "map",
+          "path": "ruinSalvage",
+          "set": 36
+        }
+      ]
     }
   ],
   "eraGoals": [

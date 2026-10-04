@@ -281,7 +281,74 @@
           ]
         }
       ],
-      "adds": "bothy"
+      "adds": "bothy",
+      "nativeTo": ["highland"]
+    },
+    {
+      "id": "sunQuarter",
+      "name": "Sun Quarter",
+      "earnedBy": "Sun-led runs",
+      "signature": {
+        "metric": "energyShare",
+        "full": 0.5,
+        "sources": ["solarCanopy", "concentratedSolarPlant", "agrivoltaicField", "restoredArray"]
+      },
+      "green": false,
+      "perks": [
+        {
+          "text": "Solar canopies make 1 more in winter",
+          "modifiers": [
+            {
+              "target": "building",
+              "id": "solarCanopy",
+              "path": "generation.day.3",
+              "add": 1
+            }
+          ]
+        },
+        {
+          "text": "Solar canopies make 1 more in autumn and winter",
+          "modifiers": [
+            {
+              "target": "building",
+              "id": "solarCanopy",
+              "path": "generation.day.2",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "solarCanopy",
+              "path": "generation.day.3",
+              "add": 1
+            }
+          ]
+        },
+        {
+          "text": "Solar canopies make 1 more in spring, autumn and winter",
+          "modifiers": [
+            {
+              "target": "building",
+              "id": "solarCanopy",
+              "path": "generation.day.0",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "solarCanopy",
+              "path": "generation.day.2",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "solarCanopy",
+              "path": "generation.day.3",
+              "add": 1
+            }
+          ]
+        }
+      ],
+      "adds": "fogNet",
+      "nativeTo": ["sunDesert"]
     }
   ],
   "landmarks": [
@@ -366,6 +433,31 @@
           "add": 1
         }
       ]
+    },
+    {
+      "id": "glassworks",
+      "name": "Glassworks",
+      "district": "sunQuarter",
+      "nextTo": {
+        "districts": ["foundryDistrict"],
+        "count": 1
+      },
+      "text": "The Sun Quarter next to the Foundry District: greenhouses and solar canopies cost 1 less, in every biome.",
+      "hint": "Where the sun meets the furnace.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "greenhouse",
+          "path": "cost",
+          "add": -1
+        },
+        {
+          "target": "building",
+          "id": "solarCanopy",
+          "path": "cost",
+          "add": -1
+        }
+      ]
     }
   ],
   "requests": [
@@ -436,6 +528,10 @@
       {
         "id": "highland",
         "fromDistricts": 4
+      },
+      {
+        "id": "sunDesert",
+        "fromDistricts": 8
       }
     ],
     "teaching": {

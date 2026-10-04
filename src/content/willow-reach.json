@@ -1366,6 +1366,26 @@
       },
       "harmonyAsTile": "meadow",
       "revertsAfterSeasons": 2
+    },
+    {
+      "id": "fogNet",
+      "name": "Fog Net",
+      "cost": 2,
+      "workers": 0,
+      "kind": "water",
+      "requiresWater": true,
+      "floodTolerant": true,
+      "stormProof": true,
+      "drinkingWater": true,
+      "placement": {
+        "tiles": ["barren", "scrub", "hill"],
+        "atEdge": true
+      },
+      "water": {
+        "stores": 2,
+        "fills": [false, false, false, false],
+        "collects": [1, 1, 1, 2]
+      }
     }
   ],
   "combos": [

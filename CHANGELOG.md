@@ -1,5 +1,15 @@
 # Changelog
 
+## The Sun Desert in Root City
+
+- Once **8 districts** stand, Root City sends expeditions to the **Sun Desert** too; the
+  first one is guided.
+- The **Sun Quarter**, earned by sun-led runs: solar canopies make more in the darker seasons,
+  and it brings the **Fog Net** to every biome. With the Foundry District beside it, the
+  **Glassworks** makes greenhouses and canopies cheaper everywhere.
+- Five desert regions (the Oasis, Wadi Country, the Erg, Salt Pan, Old Array) and its own
+  twists: **Haboob Year**, **Rainy Year** and **Scorching Year**.
+
 ## The Sun Desert on screen
 
 - **Cooling** in the tooltips, the inspector and the season report: which wind tower or chiller
