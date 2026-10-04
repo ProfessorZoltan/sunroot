@@ -192,6 +192,43 @@ function drawDetails(g: Graphics, tile: Tile, c: Point, rand: () => number): voi
         });
       }
       break;
+    // The Sun Desert.
+    case 'reg':
+      // Gravel: scattered pebbles.
+      for (let i = 0; i < 5; i++) {
+        const p = spot(rand, c);
+        g.circle(p.x, p.y, 1.2).fill({ color: detail });
+      }
+      break;
+    case 'erg':
+      // Dune ridges, sharp-crested.
+      for (let i = 0; i < 2; i++) {
+        const y = c.y - 4 + i * 8 + (rand() - 0.5) * 3;
+        const x = c.x + (rand() - 0.5) * 6;
+        g.moveTo(x - 13, y + 4)
+          .quadraticCurveTo(x - 3, y - 6, x + 13, y + 1)
+          .stroke({ width: 1.4, color: TILE_COLORS.erg.side, cap: 'round' });
+      }
+      break;
+    case 'rock':
+      // A red outcrop.
+      for (let i = 0; i < 2; i++) {
+        const p = spot(rand, c, HEX_RADIUS * 0.4);
+        g.poly([p.x - 6, p.y + 3, p.x - 3, p.y - 5, p.x + 4, p.y - 6, p.x + 6, p.y + 3]).fill({
+          color: i === 0 ? 0xc49a78 : detail,
+        });
+      }
+      break;
+    case 'saltFlat':
+      // A crust cracked into plates.
+      for (let i = 0; i < 3; i++) {
+        const p = spot(rand, c, HEX_RADIUS * 0.5);
+        g.moveTo(p.x - 6, p.y)
+          .lineTo(p.x, p.y + 2)
+          .lineTo(p.x + 5, p.y - 2)
+          .stroke({ width: 0.9, color: detail });
+      }
+      break;
     case 'bog':
       // Dark pools among cotton grass.
       for (let i = 0; i < 2; i++) {

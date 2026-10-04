@@ -115,6 +115,20 @@ export function resolveWater(ctx: SeasonContext): void {
     }
   add(report.in, 'spring', sprung);
 
+  // Fog nets (the Sun Desert): what they catch each season goes into their own store, up to
+  // what it holds, and is given out as a cistern's is.
+  let caught = 0;
+  for (const c of cisterns) {
+    const w = defOf(content, c).water!;
+    const catchNow = works(c) ? w.collects[si]! : 0;
+    if (catchNow <= 0) continue;
+    const gain = Math.min(catchNow, w.stores - (c.stored ?? 0));
+    c.stored = (c.stored ?? 0) + gain;
+    caught += gain;
+    explain(ctx, c, `water: caught ${gain} from the fog, holds ${c.stored} of ${w.stores}`);
+  }
+  add(report.in, 'fog', caught);
+
   // 1. The spring flood fills lakes, and cisterns on flooded tiles.
   if (ctx.report.event === 'flood') {
     let filled = 0;
@@ -330,8 +344,11 @@ export function resolveWater(ctx: SeasonContext): void {
     const open = ch.uids.filter(
       (uid) => !defOf(content, state.buildings[uid]!).water?.underground,
     ).length;
+    // A heatwave (the Sun Desert's summer) takes more.
+    const factor =
+      ctx.report.event === 'heatwave' ? (content.events.heatwave?.evaporationFactor ?? 1) : 1;
     const evaporation =
-      evaporating && !covered ? Math.floor(open / rules.evaporation.tilesPerUnit) : 0;
+      evaporating && !covered ? Math.floor(open / rules.evaporation.tilesPerUnit) * factor : 0;
     let room = rules.channelCapacity;
     // Rises along the channel (the Highland): water crosses one only as far as the working pump
     // stations beside it lift it; a rise of more than a step, or with no pump, carries nothing.

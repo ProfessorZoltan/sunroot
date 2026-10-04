@@ -8,8 +8,9 @@ import rootCity from './root-city.json';
 import willowReach from './willow-reach.json';
 import windsweptCoast from './windswept-coast.json';
 import highland from './highland.json';
+import sunDesert from './sun-desert.json';
 
-export { rootCity, willowReach, windsweptCoast, highland };
+export { rootCity, willowReach, windsweptCoast, highland, sunDesert };
 
 /** A biome's raw content (its own file, or a changed copy of one) loaded with Root City's. */
 export function loadBiome(
@@ -21,7 +22,7 @@ export function loadBiome(
 }
 
 /** Every biome's raw content, by id. */
-export const BIOMES: Record<string, unknown> = { willowReach, windsweptCoast, highland };
+export const BIOMES: Record<string, unknown> = { willowReach, windsweptCoast, highland, sunDesert };
 
 /** The biome a run starts in until there is a choice (DECISIONS.md, The Windswept Coast). */
 export const HOME_BIOME = 'willowReach';

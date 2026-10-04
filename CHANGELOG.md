@@ -1,5 +1,19 @@
 # Changelog
 
+## The Sun Desert takes shape
+
+- The fourth biome's land and rules, not yet reached from Root City: a thin river that floods
+  its wadi banks in the spring **flash flood** and runs dry in the summer **heatwave**, an oasis
+  whose spring refills it every season, gravel plain, dunes, rock, a salt flat and the ruins of
+  an old solar array.
+- On hot days homes need **cooling**: wind towers and shade give it free, **absorption
+  chillers** make it from spare heat, and the grid pays 2 energy for each. Mud-brick walls need
+  none but in a heatwave, and no heat on cold nights.
+- **Dust storms** dim the panels and mirrors and bury what they reach, unless a **palm
+  windbreak** shelters it. **Fog nets** catch water with no river; **qanats** carry it
+  underground, losing none to the sun; the **Concentrated Solar Plant** keeps some of the day
+  for the night; the **sand battery** stores spare day energy as heat for cold nights.
+
 ## Root City at dusk
 
 - Coming home from a run, **Root City settles into dusk**, its windows lit, before day returns;

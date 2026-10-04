@@ -32,6 +32,10 @@ export const TILE_TYPES = [
   'bog',
   // The Sun Desert (Milestone 13).
   'oasis',
+  'reg',
+  'erg',
+  'rock',
+  'saltFlat',
 ] as const;
 export const TileTypeSchema = z.enum(TILE_TYPES);
 export type TileType = z.infer<typeof TileTypeSchema>;
@@ -95,6 +99,8 @@ const BuildingWaterSchema = z
      */
     stores: nonNeg.default(0),
     fills: PerSeasonFlags.default([true, true, true, true]),
+    /** Water it gathers into its store each season, with no river (the Fog Net's catch). */
+    collects: PerSeason.default([0, 0, 0, 0]),
     /** Drinks from the river beside it even where buildings otherwise draw by channel (a glen farm). */
     besideRiver: z.boolean().default(false),
     /** Fed by the river beside it: puts this water into a neighbouring channel each season (Fish Pond). */
@@ -195,13 +201,17 @@ export const BuildingSchema = z
       awayFrom: z.array(TileTypeSchema).optional(),
       /** Only at these heights, lowest and highest (the Highland: a terrace on the slopes). */
       heights: z.tuple([int.min(0), int.min(0)]).optional(),
+      /** Only at the map's edge, where the open land meets what lies beyond (a fog net). */
+      atEdge: z.boolean().default(false),
     }),
     housing: nonNeg.default(0),
     foodStorage: nonNeg.default(0),
     /** The king tide's salt doesn't touch it (the Machair Croft). */
     saltProof: z.boolean().default(false),
-    /** Sea fog dims it (the coast's solar). */
+    /** Sea fog dims it (the coast's solar), and dust on its panels (the Sun Desert's dust storm). */
     fogged: z.boolean().default(false),
+    /** A heatwave dims it by day: too hot to work well (the Sun Desert's solar canopies). */
+    heatDimmed: z.boolean().default(false),
     /** More heat on these nights at this height or above (a home high in the Highland). */
     heatAtHeight: z
       .object({ from: int.min(1), add: int.min(1), seasons: z.array(z.enum(SEASONS)).min(1) })
@@ -578,12 +588,24 @@ export const EventsSchema = z
       exposedAnywhereOn: z.array(TileTypeSchema).default([]),
       /** Buildings at this height or above are exposed too, on any tile (the Highland's tops). */
       exposedFromHeight: int.min(1).optional(),
+      /** Dust on the panels (the Sun Desert's dust storm): `fogged` sources make this much less. */
+      solarPenalty: nonNeg.default(0),
     }).optional(),
     freeze: EventBase.optional(),
+    /**
+     * A heatwave (the Sun Desert's summer): homes need `coolingAdd` more cooling by day,
+     * `fogged` sources make `solarPenalty` less by day (too hot to work well), and channels
+     * lose `evaporationFactor` times as much to the sun.
+     */
+    heatwave: EventBase.extend({
+      coolingAdd: nonNeg,
+      solarPenalty: nonNeg.default(0),
+      evaporationFactor: int.min(1).default(1),
+    }).optional(),
   })
   .strict();
 export type Events = z.infer<typeof EventsSchema>;
-export const EVENT_IDS = ['flood', 'lowRiver', 'fog', 'storm', 'freeze'] as const;
+export const EVENT_IDS = ['flood', 'lowRiver', 'fog', 'storm', 'freeze', 'heatwave'] as const;
 export type EventId = (typeof EVENT_IDS)[number];
 
 export const ModifierSchema = z
@@ -961,7 +983,44 @@ const HighlandMapSchema = z
   })
   .strict();
 
-export const MapGenSchema = z.union([CoastMapSchema, HighlandMapSchema, ValleyMapSchema]);
+/**
+ * The Sun Desert (proposals/sun-desert.md): a thin river down the map with wadi banks
+ * (floodplain) beside it, an oasis, gravel plain (reg), dunes (erg) along one side, rock at the
+ * edges, a salt flat, and the ruins of an old solar array.
+ */
+const DesertMapSchema = z
+  .object({
+    kind: z.literal('desert'),
+    width: int.min(8),
+    height: int.min(6),
+    /** Columns where the river may start at the top edge. */
+    riverColumns: z.tuple([nonNeg, nonNeg]),
+    /** Tiles of wadi bank (floodplain) on each side of the river, by this chance each. */
+    bankChance: z.number().min(0).max(1),
+    oasisTiles: int.min(1),
+    /** Columns of dunes along the far side from the river. */
+    ergColumns: nonNeg,
+    /** At the map's edge (outside the dunes), a tile is rock by this chance. */
+    rockChance: z.number().min(0).max(1),
+    saltFlat: nonNeg,
+    ruins: nonNeg,
+    ruinSalvage: int.min(1),
+    /** Away from the river and oasis, a tile is reg (else scrub) by this chance. */
+    regChance: z.number().min(0).max(1),
+    woodlands: nonNeg,
+    startingHarmony: nonNeg,
+    /** Tiles from the oasis where the camp may stand. */
+    campOasisDistance: z.tuple([int.min(1), int.min(1)]),
+  })
+  .strict();
+
+export const MapGenSchema = z.union([
+  CoastMapSchema,
+  HighlandMapSchema,
+  DesertMapSchema,
+  ValleyMapSchema,
+]);
+export type DesertMapGen = z.infer<typeof DesertMapSchema>;
 export type HighlandMapGen = z.infer<typeof HighlandMapSchema>;
 export type MapGen = z.infer<typeof MapGenSchema>;
 export type ValleyMapGen = z.infer<typeof ValleyMapSchema>;

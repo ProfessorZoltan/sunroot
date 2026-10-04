@@ -1,0 +1,2028 @@
+{
+  "id": "sunDesert",
+  "name": "Sun Desert",
+  "rules": {
+    "yearsPerRun": 12,
+    "yearsPerEra": 3,
+    "eras": ["Settle", "Mend", "Flourish", "Bloom"],
+    "start": {
+      "materials": 20,
+      "food": 12,
+      "citizens": 6,
+      "wellbeing": 60
+    },
+    "foodPerCitizen": 1,
+    "rotsInto": "biomass",
+    "citizensPerScrap": 3,
+    "landHealth": ["reg", "scrub", "meadow", "woodland"],
+    "harmony": {
+      "perTile": {
+        "meadow": 1,
+        "woodland": 2
+      },
+      "perClutter": -1,
+      "tiers": [
+        {
+          "min": 0,
+          "multiplier": 1
+        },
+        {
+          "min": 20,
+          "multiplier": 1.1
+        },
+        {
+          "min": 40,
+          "multiplier": 1.2
+        },
+        {
+          "min": 70,
+          "multiplier": 1.3
+        }
+      ],
+      "multiplies": ["food", "biomass", "knowledge"]
+    },
+    "wellbeing": {
+      "min": 0,
+      "max": 100,
+      "allNeedsMet": 1,
+      "perUnfedCitizen": -3,
+      "perUnpoweredHome": -2,
+      "clutterStep": 5,
+      "perClutterStep": -1
+    },
+    "population": {
+      "growAt": 60,
+      "boomAt": 80,
+      "growth": 1,
+      "boomGrowth": 2,
+      "minSpareFood": 2,
+      "leaveBelow": 20,
+      "leaving": 1
+    },
+    "compostPerTileStep": 2,
+    "knowledge": {
+      "reroll": 2,
+      "extraCard": 3,
+      "hint": 5
+    },
+    "draftCards": 3,
+    "maxTunings": 12,
+    "water": {
+      "enabled": false,
+      "riverFlow": [6, 0, 2, 3],
+      "drawBesideRiver": false,
+      "channelCapacity": 4,
+      "evaporation": {
+        "tilesPerUnit": 4,
+        "seasons": [true, true, true, false]
+      },
+      "shortfallFactor": 0.5,
+      "greyHarmonyPerUnit": 1,
+      "lakePerTile": 2,
+      "wheelFlowPerEnergy": 4,
+      "campChannel": 0,
+      "channelBuilding": "irrigationChannel",
+      "oasisPerTile": 2
+    },
+    "commute": {
+      "enabled": false,
+      "freeDistance": 2,
+      "tilesPerWellbeing": 3,
+      "toWater": {
+        "freeDistance": 2,
+        "tilesPerWellbeing": 3
+      }
+    },
+    "localHeat": {
+      "enabled": true,
+      "range": 2,
+      "coldPerBed": 1,
+      "gridHeat": true,
+      "gridHeatCost": 2
+    },
+    "mixedGrid": {
+      "minSourceTypes": 3,
+      "minShare": 0.15,
+      "excludeSources": ["foundersCamp"],
+      "bonusPerSlot": 1
+    },
+    "demolition": {
+      "energy": 2,
+      "slot": "day",
+      "rubbleShare": 0.5,
+      "salvagedBy": ["salvageYard"],
+      "tileBecomes": "reg",
+      "keeps": ["floodplain", "river", "reservoir", "ruin", "oasis", "erg", "rock", "saltFlat"]
+    },
+    "expectations": {
+      "fromEra": 3,
+      "base": 20,
+      "perBuilding": {
+        "commonsPlaza": 15,
+        "seedbankLibrary": 10
+      },
+      "perUnserved": 10
+    },
+    "eraModifiers": [
+      {
+        "era": 3,
+        "text": "Wilder weather: flash-flood repairs cost 3 materials, and a dust storm can bury 3 exposed buildings.",
+        "modifiers": [
+          {
+            "target": "event",
+            "id": "flood",
+            "path": "repairCost",
+            "add": 1
+          },
+          {
+            "target": "event",
+            "id": "storm",
+            "path": "disableCount",
+            "add": 1
+          }
+        ]
+      },
+      {
+        "era": 4,
+        "text": "Hotter summers: homes need 1 more cooling on summer days.",
+        "modifiers": [
+          {
+            "target": "building",
+            "id": "foundersCamp",
+            "path": "demand.cool.day.1",
+            "add": 1
+          },
+          {
+            "target": "building",
+            "id": "mudBrickHouse",
+            "path": "demand.cool.day.1",
+            "add": 1
+          },
+          {
+            "target": "building",
+            "id": "treehouseCommons",
+            "path": "demand.cool.day.1",
+            "add": 1
+          }
+        ]
+      }
+    ],
+    "charterEras": [2, 3, 4],
+    "charterChoices": 3,
+    "score": {
+      "perSeasonSurvived": 1,
+      "perCitizen": 2,
+      "perHarmony": 1,
+      "wellbeingStep": 10,
+      "perWellbeingStep": 1,
+      "completeBonus": 20,
+      "perLoop": 5,
+      "perDiscovery": 5,
+      "visionBonus": 40,
+      "layers": {
+        "water": 12,
+        "commute": 5,
+        "localHeat": 1
+      },
+      "tiers": [
+        {
+          "id": "seedling",
+          "name": "Seedling",
+          "min": 0
+        },
+        {
+          "id": "sapling",
+          "name": "Sapling",
+          "min": 215
+        },
+        {
+          "id": "heartwood",
+          "name": "Heartwood",
+          "min": 345
+        }
+      ]
+    },
+    "visionChoices": 2,
+    "cooling": {
+      "range": 2,
+      "gridCool": true,
+      "gridCoolCost": 2
+    }
+  },
+  "map": {
+    "kind": "desert",
+    "width": 12,
+    "height": 10,
+    "riverColumns": [2, 4],
+    "bankChance": 0.6,
+    "oasisTiles": 3,
+    "ergColumns": 2,
+    "rockChance": 0.4,
+    "saltFlat": 4,
+    "ruins": 4,
+    "ruinSalvage": 30,
+    "regChance": 0.6,
+    "woodlands": 2,
+    "startingHarmony": 12,
+    "campOasisDistance": [2, 3]
+  },
+  "calendar": ["flood", "heatwave", "storm", "freeze"],
+  "events": {
+    "flood": {
+      "name": "Flash flood",
+      "summary": "the river runs high and floods the wadi banks; farms there gain silt",
+      "description": "Spring rain in the hills: the river runs high and floods the wadi banks beside it. Farms there gain silt (+50% food in summer and autumn), cisterns there fill, and buildings there that aren’t flood-tolerant are disabled for the season and cost 2 materials to repair.",
+      "siltBonus": 0.5,
+      "siltSeasons": ["summer", "autumn"],
+      "repairCost": 2
+    },
+    "heatwave": {
+      "name": "Heatwave",
+      "summary": "the river runs dry; homes need more cooling; panels make less by day",
+      "description": "The river runs dry. Every home needs 1 more cooling by day, solar canopies make 1 less by day (too hot to work well), and channels lose twice as much to the sun.",
+      "coolingAdd": 1,
+      "solarPenalty": 1,
+      "evaporationFactor": 2
+    },
+    "storm": {
+      "name": "Dust storm",
+      "summary": "dust dims the panels and mirrors; two exposed buildings may be buried",
+      "description": "Dust on the wind: solar canopies and mirrors make 1 less in each slot, and two exposed buildings (on the reg or the erg) are buried for the season unless a palm windbreak or a palm grove beside them shelters them.",
+      "disableCount": 2,
+      "exposedOn": ["reg", "erg"],
+      "mixedGridShelters": false,
+      "solarPenalty": 1
+    },
+    "freeze": {
+      "name": "Cold nights",
+      "summary": "mild days, cold nights; homes need heat at night",
+      "description": "Mild days and cold nights: homes need heat at night (mud-brick walls keep the day’s warmth), and fog nets catch twice as much."
+    }
+  },
+  "campBuilding": "foundersCamp",
+  "buildings": [
+    {
+      "id": "foundersCamp",
+      "name": "Founders' Camp",
+      "cost": 0,
+      "workers": 0,
+      "kind": "home",
+      "draftable": false,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland"]
+      },
+      "housing": 6,
+      "foodStorage": 40,
+      "forage": 2,
+      "generation": {
+        "day": [4, 4, 4, 4],
+        "night": [1, 1, 1, 1]
+      },
+      "demand": {
+        "heat": {
+          "night": [0, 0, 0, 2]
+        },
+        "cool": {
+          "day": [0, 1, 0, 0]
+        }
+      }
+    },
+    {
+      "id": "apiary",
+      "name": "Apiary",
+      "cost": 3,
+      "workers": 1,
+      "kind": "food",
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "neighborFoodBonus": {
+        "amount": 1,
+        "targets": ["oasisGarden", "wadiFarm"],
+        "maxTargets": 3,
+        "seasons": [true, true, true, false],
+        "disabledNextTo": ["windSpire"]
+      }
+    },
+    {
+      "id": "greenhouse",
+      "name": "Greenhouse",
+      "cost": 7,
+      "workers": 1,
+      "kind": "food",
+      "requiresPower": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "yields": {
+        "food": [3, 3, 3, 3]
+      },
+      "demand": {
+        "energy": {
+          "day": [2, 2, 2, 2]
+        },
+        "heat": {
+          "day": [0, 0, 0, 1]
+        }
+      },
+      "water": {
+        "needs": [1, 1, 1, 1]
+      },
+      "heatFromNeighbors": ["bathhouse"]
+    },
+    {
+      "id": "composter",
+      "name": "Composter",
+      "cost": 3,
+      "workers": 1,
+      "kind": "industry",
+      "starter": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "composter": {
+        "inputs": ["scraps", "biomass"],
+        "maxInput": 3,
+        "output": "compost",
+        "outputPerFullRun": 2
+      },
+      "neighborFoodBonus": {
+        "amount": 1,
+        "costs": {
+          "resource": "compost",
+          "amount": 1
+        }
+      }
+    },
+    {
+      "id": "salvageYard",
+      "name": "Salvage Yard",
+      "cost": 2,
+      "workers": 1,
+      "kind": "industry",
+      "starter": true,
+      "placement": {
+        "tiles": ["ruin"]
+      },
+      "drawsFromRuin": true,
+      "yields": {
+        "salvage": [3, 3, 3, 3]
+      },
+      "demand": {
+        "energy": {
+          "day": [1, 1, 1, 1]
+        }
+      }
+    },
+    {
+      "id": "workshop",
+      "name": "Workshop",
+      "cost": 5,
+      "workers": 1,
+      "kind": "industry",
+      "starter": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "recipes": {
+        "maxRuns": 2,
+        "energyPerRun": 2,
+        "runSlots": ["day"],
+        "defaultRecipe": "auto",
+        "options": [
+          {
+            "id": "salvage",
+            "inputs": {
+              "salvage": 2
+            },
+            "outputs": {
+              "materials": 3
+            }
+          },
+          {
+            "id": "clutter",
+            "inputs": {
+              "clutter": 2
+            },
+            "outputs": {
+              "materials": 1
+            },
+            "autoAtLeast": {
+              "clutter": 5
+            }
+          }
+        ]
+      },
+      "demand": {
+        "energy": {
+          "day": [1, 1, 1, 1]
+        }
+      }
+    },
+    {
+      "id": "commonsPlaza",
+      "name": "Commons Plaza",
+      "cost": 8,
+      "workers": 1,
+      "kind": "civic",
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "demand": {
+        "energy": {
+          "night": [1, 1, 1, 1]
+        }
+      },
+      "wellbeing": {
+        "whenPowered": 3
+      }
+    },
+    {
+      "id": "seedbankLibrary",
+      "name": "Seedbank Library",
+      "cost": 6,
+      "workers": 1,
+      "kind": "civic",
+      "tall": true,
+      "requiresPower": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "yields": {
+        "knowledge": [1, 1, 1, 1]
+      },
+      "demand": {
+        "energy": {
+          "day": [1, 1, 1, 1]
+        }
+      }
+    },
+    {
+      "id": "treeNursery",
+      "name": "Tree Nursery",
+      "cost": 4,
+      "workers": 1,
+      "kind": "nature",
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "improvesNeighborSteps": 1
+    },
+    {
+      "id": "pollinatorMeadow",
+      "name": "Pollinator Meadow",
+      "cost": 1,
+      "workers": 0,
+      "kind": "nature",
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "setsTile": "meadow",
+      "harmony": 1
+    },
+    {
+      "id": "irrigationChannel",
+      "name": "Irrigation Channel",
+      "cost": 1,
+      "workers": 0,
+      "kind": "water",
+      "starter": true,
+      "draftable": false,
+      "requiresWater": true,
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "water": {
+        "channel": true
+      },
+      "drinkingWater": true,
+      "stormProof": true
+    },
+    {
+      "id": "well",
+      "name": "Well",
+      "cost": 3,
+      "workers": 0,
+      "kind": "water",
+      "starter": true,
+      "draftable": false,
+      "requiresWater": true,
+      "requiresWalks": true,
+      "drinkingWater": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      }
+    },
+    {
+      "id": "cistern",
+      "name": "Cistern",
+      "cost": 5,
+      "workers": 0,
+      "kind": "water",
+      "requiresWater": true,
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"],
+        "adjacentTo": ["river", "reservoir", "oasis"],
+        "adjacentToBuildings": ["irrigationChannel", "qanat"]
+      },
+      "water": {
+        "stores": 6,
+        "fills": [true, false, true, true]
+      },
+      "drinkingWater": true,
+      "starter": true
+    },
+    {
+      "id": "reedBed",
+      "name": "Reed Bed",
+      "cost": 3,
+      "workers": 0,
+      "kind": "water",
+      "requiresWater": true,
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"],
+        "adjacentTo": ["river", "oasis"],
+        "adjacentToBuildings": ["irrigationChannel", "qanat"]
+      },
+      "yields": {
+        "biomass": [1, 1, 1, 0]
+      },
+      "harmony": 1,
+      "water": {
+        "cleans": 3
+      }
+    },
+    {
+      "id": "bathhouse",
+      "name": "Bathhouse",
+      "cost": 8,
+      "workers": 1,
+      "kind": "civic",
+      "requiresWater": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"],
+        "adjacentTo": [],
+        "adjacentToBuildings": ["irrigationChannel", "qanat"]
+      },
+      "heatFromNeighbors": ["heatWell", "sandBattery"],
+      "demand": {
+        "heat": {
+          "night": [1, 1, 1, 1]
+        }
+      },
+      "wellbeing": {
+        "whenPowered": 3
+      },
+      "water": {
+        "needs": [1, 1, 1, 1],
+        "accepts": ["clean"],
+        "returns": {
+          "quality": "grey",
+          "amount": 1
+        }
+      }
+    },
+    {
+      "id": "mushroomCellar",
+      "name": "Mushroom Cellar",
+      "cost": 5,
+      "workers": 1,
+      "kind": "food",
+      "requiresWater": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "recipes": {
+        "maxRuns": 1,
+        "energyPerRun": 0,
+        "defaultRecipe": "grow",
+        "options": [
+          {
+            "id": "grow",
+            "inputs": {
+              "biomass": 2
+            },
+            "outputs": {
+              "food": 2,
+              "compost": 1
+            },
+            "bonusNextTo": {
+              "tiles": ["woodland"],
+              "tall": true,
+              "outputs": {
+                "food": 1
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "solarCanopy",
+      "name": "Solar Canopy",
+      "cost": 4,
+      "workers": 0,
+      "kind": "energy",
+      "starter": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "generation": {
+        "day": [4, 5, 4, 3],
+        "night": [0, 0, 0, 0]
+      },
+      "shading": {
+        "penaltyPerSlot": 1
+      },
+      "fogged": true,
+      "heatDimmed": true
+    },
+    {
+      "id": "windSpire",
+      "name": "Wind Spire",
+      "cost": 8,
+      "workers": 0,
+      "kind": "energy",
+      "tall": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "floodplain"]
+      },
+      "generation": {
+        "day": [2, 2, 3, 2],
+        "night": [3, 2, 3, 3]
+      },
+      "spacing": {
+        "radius": 2,
+        "penaltyPerSlot": 1
+      },
+      "harmonyPenalty": {
+        "amount": 2,
+        "cancelledByNeighbor": ["pollinatorMeadow"]
+      }
+    },
+    {
+      "id": "biogasDigester",
+      "name": "Biogas Digester",
+      "cost": 8,
+      "workers": 0,
+      "kind": "energy",
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "digester": {
+        "inputs": ["scraps", "biomass"],
+        "inputPerRun": 2,
+        "maxRuns": 2,
+        "energyPerRun": 3,
+        "compostPerRun": 1,
+        "defaultSlot": "night"
+      }
+    },
+    {
+      "id": "airSourceHeatPump",
+      "name": "Air-source Heat Pump",
+      "cost": 5,
+      "workers": 0,
+      "kind": "energy",
+      "requiresHeatLayer": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "heatPump": {
+        "heatPerEnergy": 2,
+        "maxHeatPerSlot": 4
+      },
+      "starter": true
+    },
+    {
+      "id": "solarThermalCollector",
+      "name": "Solar Thermal Collector",
+      "cost": 4,
+      "workers": 0,
+      "kind": "energy",
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "heatGeneration": {
+        "day": [2, 3, 3, 2],
+        "night": [0, 0, 0, 0]
+      },
+      "shading": {
+        "penaltyPerSlot": 1
+      }
+    },
+    {
+      "id": "cellBank",
+      "name": "Cell Bank",
+      "cost": 5,
+      "workers": 0,
+      "kind": "storage",
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "storage": {
+        "holds": "energy",
+        "capacity": 4,
+        "returns": {
+          "numerator": 3,
+          "denominator": 4
+        },
+        "chargesFrom": ["day"],
+        "carriesOver": false
+      }
+    },
+    {
+      "id": "heatWell",
+      "name": "Heat Well",
+      "cost": 6,
+      "workers": 0,
+      "kind": "storage",
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "storage": {
+        "holds": "heat",
+        "capacity": 6,
+        "chargesFrom": ["day", "night"],
+        "decayPerSeason": 1,
+        "carriesOver": true
+      }
+    },
+    {
+      "id": "treehouseCommons",
+      "name": "Treehouse Commons",
+      "cost": 4,
+      "workers": 0,
+      "kind": "home",
+      "draftable": false,
+      "placeable": false,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "housing": 3,
+      "foodStorage": 5,
+      "demand": {
+        "energy": {
+          "night": [1, 1, 1, 1]
+        },
+        "heat": {
+          "night": [0, 0, 0, 0]
+        },
+        "cool": {
+          "day": [0, 0, 0, 0]
+        }
+      },
+      "wellbeing": {
+        "nextToTiles": {
+          "tiles": ["meadow", "woodland"],
+          "amount": 2
+        }
+      }
+    },
+    {
+      "draftable": false,
+      "placeable": false,
+      "requiresWater": true,
+      "id": "aquaponicsHall",
+      "name": "Aquaponics Hall",
+      "cost": 7,
+      "workers": 1,
+      "kind": "food",
+      "requiresPower": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "yields": {
+        "food": [4, 4, 4, 4]
+      },
+      "demand": {
+        "energy": {
+          "day": [2, 2, 2, 2]
+        },
+        "heat": {
+          "day": [0, 0, 0, 1]
+        }
+      },
+      "water": {
+        "needs": [1, 1, 1, 1],
+        "accepts": ["nutrient"],
+        "fromPond": true
+      },
+      "heatFromNeighbors": ["bathhouse"]
+    },
+    {
+      "draftable": false,
+      "placeable": false,
+      "requiresWater": true,
+      "id": "oldWorldArchive",
+      "name": "Old World Archive",
+      "cost": 2,
+      "workers": 1,
+      "kind": "civic",
+      "placement": {
+        "tiles": ["ruin"]
+      },
+      "yields": {
+        "knowledge": [2, 2, 2, 2]
+      }
+    },
+    {
+      "id": "agrivoltaicField",
+      "name": "Agrivoltaic Field",
+      "cost": 7,
+      "workers": 1,
+      "kind": "food",
+      "draftable": false,
+      "placeable": false,
+      "floodTolerant": true,
+      "farmland": true,
+      "ignoresLowRiver": true,
+      "placement": {
+        "tiles": ["floodplain", "meadow"]
+      },
+      "tileFoodModifier": {
+        "meadow": -1
+      },
+      "yields": {
+        "food": [1, 3, 4, 0],
+        "biomass": [1, 1, 1, 0]
+      },
+      "generation": {
+        "day": [4, 5, 4, 3]
+      },
+      "shading": {
+        "penaltyPerSlot": 1
+      },
+      "sourceType": "solarCanopy",
+      "water": {
+        "needs": [0, 0, 0, 0],
+        "accepts": ["nutrient", "clean"],
+        "nutrientBonus": {
+          "food": 1
+        }
+      },
+      "fogged": true
+    },
+    {
+      "id": "oasisGarden",
+      "name": "Oasis Garden",
+      "cost": 3,
+      "workers": 1,
+      "kind": "food",
+      "starter": true,
+      "farmland": true,
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"],
+        "adjacentTo": ["oasis"],
+        "adjacentToBuildings": ["irrigationChannel", "qanat"]
+      },
+      "yields": {
+        "food": [3, 4, 4, 2],
+        "biomass": [1, 1, 1, 0]
+      },
+      "water": {
+        "needs": [1, 1, 1, 0],
+        "accepts": ["nutrient", "clean"],
+        "nutrientBonus": {
+          "food": 1
+        },
+        "besideRiver": true
+      },
+      "shades": 1
+    },
+    {
+      "id": "wadiFarm",
+      "name": "Wadi Farm",
+      "cost": 3,
+      "workers": 1,
+      "kind": "food",
+      "farmland": true,
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["floodplain"]
+      },
+      "yields": {
+        "food": [3, 2, 3, 0],
+        "biomass": [1, 1, 1, 0]
+      },
+      "water": {
+        "needs": [1, 1, 1, 0],
+        "accepts": ["nutrient", "clean"],
+        "nutrientBonus": {
+          "food": 1
+        },
+        "besideRiver": true
+      }
+    },
+    {
+      "id": "mudBrickHouse",
+      "name": "Mud-brick House",
+      "cost": 3,
+      "workers": 0,
+      "kind": "home",
+      "starter": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "housing": 3,
+      "foodStorage": 5,
+      "demand": {
+        "energy": {
+          "night": [1, 1, 1, 1]
+        },
+        "heat": {
+          "night": [0, 0, 0, 0]
+        },
+        "cool": {
+          "day": [0, 0, 0, 0]
+        }
+      },
+      "wellbeing": {
+        "nextToTiles": {
+          "tiles": ["meadow", "woodland"],
+          "amount": 1
+        }
+      }
+    },
+    {
+      "id": "windTower",
+      "name": "Wind Tower",
+      "cost": 5,
+      "workers": 0,
+      "kind": "energy",
+      "tall": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain", "rock"]
+      },
+      "cooling": {
+        "day": [2, 2, 2, 2],
+        "besideBonus": {
+          "amount": 1,
+          "tiles": ["oasis"],
+          "buildings": ["cistern"]
+        }
+      }
+    },
+    {
+      "id": "absorptionChiller",
+      "name": "Absorption Chiller",
+      "cost": 6,
+      "workers": 0,
+      "kind": "energy",
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "chiller": {
+        "coolPerHeat": 1,
+        "maxCoolPerSlot": 2
+      }
+    },
+    {
+      "id": "fogNet",
+      "name": "Fog Net",
+      "cost": 2,
+      "workers": 0,
+      "kind": "water",
+      "requiresWater": true,
+      "floodTolerant": true,
+      "stormProof": true,
+      "drinkingWater": true,
+      "placement": {
+        "tiles": ["rock", "erg", "reg"],
+        "atEdge": true
+      },
+      "water": {
+        "stores": 2,
+        "fills": [false, false, false, false],
+        "collects": [1, 1, 1, 2]
+      }
+    },
+    {
+      "id": "qanat",
+      "name": "Qanat",
+      "cost": 2,
+      "workers": 0,
+      "kind": "water",
+      "requiresWater": true,
+      "floodTolerant": true,
+      "stormProof": true,
+      "drinkingWater": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain"]
+      },
+      "water": {
+        "channel": true,
+        "underground": true
+      }
+    },
+    {
+      "id": "concentratedSolarPlant",
+      "name": "Concentrated Solar Plant",
+      "cost": 12,
+      "workers": 1,
+      "kind": "energy",
+      "tall": true,
+      "placement": {
+        "tiles": ["reg"]
+      },
+      "generation": {
+        "day": [3, 4, 3, 2],
+        "night": [2, 2, 2, 2]
+      },
+      "heatGeneration": {
+        "day": [2, 2, 2, 2],
+        "night": [0, 0, 0, 2]
+      },
+      "fogged": true
+    },
+    {
+      "id": "sandBattery",
+      "name": "Sand Battery",
+      "cost": 5,
+      "workers": 0,
+      "kind": "storage",
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain", "erg"]
+      },
+      "storage": {
+        "holds": "heat",
+        "capacity": 4,
+        "chargesFrom": ["day"],
+        "carriesOver": true
+      }
+    },
+    {
+      "id": "palmWindbreak",
+      "name": "Palm Windbreak",
+      "cost": 1,
+      "workers": 0,
+      "kind": "nature",
+      "placement": {
+        "tiles": [
+          "reg",
+          "scrub",
+          "meadow",
+          "woodland",
+          "floodplain",
+          "erg",
+          "rock",
+          "ruin",
+          "saltFlat"
+        ]
+      },
+      "edge": {
+        "harmonyPer": 4
+      },
+      "shades": 1,
+      "starter": true
+    },
+    {
+      "id": "saltWorks",
+      "name": "Salt Works",
+      "cost": 4,
+      "workers": 1,
+      "kind": "industry",
+      "placement": {
+        "tiles": ["saltFlat"]
+      },
+      "yields": {
+        "materials": [1, 1, 1, 1]
+      },
+      "foodStorage": 5
+    }
+  ],
+  "combos": [
+    {
+      "id": "busyBees",
+      "layer": "adjacency",
+      "name": "Busy Bees",
+      "building": "apiary",
+      "nextTo": {
+        "buildings": ["oasisGarden", "wadiFarm"]
+      },
+      "notNextTo": ["windSpire"],
+      "seasons": [true, true, true, false],
+      "text": "An apiary next to oasis gardens or wadi farms: +1 food on each of up to 3, spring to autumn. A wind spire next door scares the bees off.",
+      "hint": "Bees work the fields around them."
+    },
+    {
+      "id": "quietSpire",
+      "layer": "adjacency",
+      "name": "Quiet Spire",
+      "building": "pollinatorMeadow",
+      "nextTo": {
+        "buildings": ["windSpire"]
+      },
+      "text": "A pollinator meadow next to a wind spire cancels the spire's Harmony penalty.",
+      "hint": "Flowers soften the hum of the wind spires."
+    },
+    {
+      "id": "greenDoorstep",
+      "layer": "adjacency",
+      "name": "Green Doorstep",
+      "building": "mudBrickHouse",
+      "nextTo": {
+        "tiles": ["meadow", "woodland"]
+      },
+      "text": "A mud-brick house next to meadow or woodland: +1 wellbeing each season.",
+      "hint": "People like to live near green land."
+    },
+    {
+      "id": "kitchenLoop",
+      "layer": "chain",
+      "name": "Kitchen Loop",
+      "links": [
+        {
+          "buildings": ["composter"]
+        },
+        {
+          "buildings": ["oasisGarden", "wadiFarm"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "compost"],
+      "text": "Farm → scraps and biomass → composter → compost → farm. Once it runs, every building in the loop makes +1 (farms food, the composter compost) for as long as it stands.",
+      "hint": "Put a composter among working farms."
+    },
+    {
+      "id": "gasLoop",
+      "layer": "chain",
+      "name": "Gas Loop",
+      "links": [
+        {
+          "buildings": ["biogasDigester"],
+          "slot": "night"
+        },
+        {
+          "buildings": ["oasisGarden", "wadiFarm"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "compost"],
+      "text": "Farm biomass → digester → night power, digestate back to the farms. Once it runs, every building in the loop makes +1 (farms food, the digester compost) for as long as it stands.",
+      "hint": "A digester feeding the night, among working farms."
+    },
+    {
+      "id": "bathLoop",
+      "layer": "chain",
+      "name": "Bath Loop",
+      "requiresWater": true,
+      "links": [
+        {
+          "buildings": ["heatWell", "sandBattery"]
+        },
+        {
+          "buildings": ["bathhouse"],
+          "heatFrom": true
+        },
+        {
+          "buildings": ["reedBed"],
+          "cleaned": true
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["materials", "biomass"],
+      "text": "Heat well or sand battery → heat → bathhouse → grey water → reed bed, in a chain of neighbours. It closes when the bathhouse takes its heat from the well or battery next to it and the reed bed next to it cleans grey water. Once it runs, the reed bed makes +1 biomass for as long as it stands.",
+      "hint": "Warm the bath with a neighbour's spare heat; let reeds clean what it lets out."
+    },
+    {
+      "id": "heatCascade",
+      "layer": "chain",
+      "name": "Heat Cascade",
+      "requiresWater": true,
+      "links": [
+        {
+          "buildings": ["heatWell", "sandBattery"]
+        },
+        {
+          "buildings": ["bathhouse"],
+          "heatFrom": true
+        },
+        {
+          "buildings": ["greenhouse", "aquaponicsHall"],
+          "heatFrom": true
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "materials"],
+      "text": "Heat runs from hot to warm, losing some at each step: a heat well or sand battery warms the bathhouse next to it, and the bathhouse's warm water heats the greenhouse next to it (up to 1 heat a slot). It closes the first winter the greenhouse is warmed that way. Once it runs, the greenhouse makes +1 food for as long as it stands.",
+      "hint": "Spare heat from a hot neighbour can warm two buildings, not one."
+    },
+    {
+      "id": "mushroomLoop",
+      "layer": "chain",
+      "name": "Mushroom Loop",
+      "requiresWater": true,
+      "links": [
+        {
+          "buildings": ["oasisGarden", "wadiFarm"]
+        },
+        {
+          "buildings": ["mushroomCellar"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "compost"],
+      "text": "Farm → biomass → mushroom cellar → spent substrate (compost) → farm. It closes when a working cellar stands next to a working farm. Once it runs, both make +1 food for as long as it stands.",
+      "hint": "What a farm leaves, mushrooms eat; what mushrooms leave, a farm eats."
+    },
+    {
+      "id": "villageGreen",
+      "layer": "formation",
+      "name": "Village Green",
+      "shape": {
+        "kind": "ring",
+        "center": "commonsPlaza",
+        "size": 6,
+        "minTypes": 3
+      },
+      "effect": {
+        "wellbeing": 2
+      },
+      "text": "A Commons Plaza ringed by 6 buildings of at least 3 kinds: +2 wellbeing each season.",
+      "hint": "A gathering place, surrounded on every side by a varied neighbourhood."
+    },
+    {
+      "id": "wildway",
+      "layer": "formation",
+      "name": "Wildway",
+      "shape": {
+        "kind": "strip",
+        "tiles": ["meadow", "woodland"]
+      },
+      "effect": {
+        "harmony": 10
+      },
+      "text": "An unbroken strip of meadow and woodland from the river to the valley's edge: +10 Harmony, and animals return.",
+      "hint": "A green corridor from the water to the hills."
+    },
+    {
+      "id": "treehouseCommons",
+      "layer": "evolution",
+      "name": "Treehouse Commons",
+      "from": "mudBrickHouse",
+      "into": "treehouseCommons",
+      "when": {
+        "kind": "nextTo",
+        "nextTo": {
+          "tiles": ["woodland"],
+          "count": 2
+        }
+      },
+      "text": "A mud-brick house next to 2 woodland tiles becomes a Treehouse Commons: +2 wellbeing each season instead of +1.",
+      "hint": "A home among the trees."
+    },
+    {
+      "id": "oldWorldArchive",
+      "layer": "evolution",
+      "name": "Old World Archive",
+      "from": "salvageYard",
+      "into": "oldWorldArchive",
+      "when": {
+        "kind": "ruinExhausted",
+        "nextTo": {
+          "buildings": ["seedbankLibrary"]
+        }
+      },
+      "text": "A salvage yard whose ruin is empty, next to a Seedbank Library, may become an Old World Archive instead of a Rewilded Ruin: +2 knowledge each season, with 1 worker. You choose.",
+      "hint": "Not everything worth keeping in a ruin is metal.",
+      "requiresWater": true
+    }
+  ],
+  "tunings": [
+    {
+      "id": "mirrorFilm",
+      "name": "Mirror Film",
+      "text": "Solar canopies make +1 energy in winter.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "solarCanopy",
+          "path": "generation.day.3",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "nightShift",
+      "name": "Night Shift",
+      "text": "Workshops get a 3rd run, on night energy only.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "workshop",
+          "path": "recipes.nightOnlyRuns",
+          "set": 1
+        }
+      ]
+    },
+    {
+      "id": "hiveMind",
+      "name": "Hive Mind",
+      "text": "Apiaries reach 2 tiles.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "apiary",
+          "path": "neighborFoodBonus.radius",
+          "set": 2
+        }
+      ]
+    },
+    {
+      "id": "brighterPanels",
+      "name": "Brighter Panels",
+      "text": "Solar canopies make +1 day energy in spring and summer.",
+      "refinement": true,
+      "building": "solarCanopy",
+      "max": 2,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "solarCanopy",
+          "path": "generation.day.0",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "solarCanopy",
+          "path": "generation.day.1",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "balancedBlades",
+      "name": "Balanced Blades",
+      "text": "Wind spires make +1 energy by day and night in summer.",
+      "refinement": true,
+      "building": "windSpire",
+      "max": 1,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "windSpire",
+          "path": "generation.day.1",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "windSpire",
+          "path": "generation.night.1",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "biggerLarders",
+      "name": "Bigger Larders",
+      "text": "Mud-brick houses store 5 more food.",
+      "refinement": true,
+      "building": "mudBrickHouse",
+      "max": 2,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "mudBrickHouse",
+          "path": "foodStorage",
+          "add": 5
+        }
+      ]
+    },
+    {
+      "id": "loftRooms",
+      "name": "Loft Rooms",
+      "text": "Mud-brick houses house 1 more citizen.",
+      "refinement": true,
+      "building": "mudBrickHouse",
+      "max": 2,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "mudBrickHouse",
+          "path": "housing",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "leanWorkshops",
+      "name": "Lean Workshops",
+      "text": "Each workshop run needs 1 energy instead of 2.",
+      "refinement": true,
+      "building": "workshop",
+      "max": 1,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "workshop",
+          "path": "recipes.energyPerRun",
+          "set": 1
+        }
+      ]
+    },
+    {
+      "id": "deepCells",
+      "name": "Deep Cells",
+      "text": "Cell banks hold 2 more energy.",
+      "refinement": true,
+      "building": "cellBank",
+      "max": 2,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "cellBank",
+          "path": "storage.capacity",
+          "add": 2
+        }
+      ]
+    },
+    {
+      "id": "hotCompost",
+      "name": "Hot Compost",
+      "text": "A full composter makes 3 compost instead of 2.",
+      "refinement": true,
+      "building": "composter",
+      "max": 1,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "composter",
+          "path": "composter.outputPerFullRun",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "readingRooms",
+      "name": "Reading Rooms",
+      "text": "Seedbank libraries make +1 knowledge every season.",
+      "refinement": true,
+      "building": "seedbankLibrary",
+      "max": 2,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "seedbankLibrary",
+          "path": "yields.knowledge",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "busyBees",
+      "name": "Busy Bees",
+      "text": "Each apiary helps 1 more neighbouring farm or orchard.",
+      "refinement": true,
+      "building": "apiary",
+      "max": 1,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "apiary",
+          "path": "neighborFoodBonus.maxTargets",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "festivalNights",
+      "name": "Festival Nights",
+      "text": "A powered Commons Plaza gives +1 more wellbeing.",
+      "refinement": true,
+      "building": "commonsPlaza",
+      "max": 2,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "commonsPlaza",
+          "path": "wellbeing.whenPowered",
+          "add": 1
+        }
+      ]
+    }
+  ],
+  "charters": [
+    {
+      "id": "repairCulture",
+      "name": "Repair Culture",
+      "text": "Salvage ×2: each salvage yard makes 6 a season from the same ruin. Workshops turn 2 clutter into 2 materials.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "ruinSalvageFactor",
+          "set": 2
+        },
+        {
+          "target": "building",
+          "id": "workshop",
+          "path": "recipes.options.1.outputs.materials",
+          "set": 2
+        }
+      ]
+    },
+    {
+      "id": "nightMarket",
+      "name": "Night Market",
+      "text": "+2 wellbeing each season the night slot is fully powered.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "wellbeing.nightPowered",
+          "set": 2
+        }
+      ]
+    },
+    {
+      "id": "seedSavers",
+      "name": "Seed Savers",
+      "text": "4 draft cards instead of 3.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "draftCards",
+          "set": 4
+        }
+      ]
+    },
+    {
+      "id": "slowPower",
+      "name": "Slow Power",
+      "text": "Workshops and kilns make 50% more.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "flexibleOutputFactor",
+          "set": 1.5
+        }
+      ]
+    },
+    {
+      "id": "rewilders",
+      "name": "Rewilders",
+      "text": "Tree nurseries improve a neighbouring tile 2 steps a season; pollinator meadows give +1 more Harmony.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "treeNursery",
+          "path": "improvesNeighborSteps",
+          "set": 2
+        },
+        {
+          "target": "building",
+          "id": "pollinatorMeadow",
+          "path": "harmony",
+          "add": 1
+        }
+      ]
+    }
+  ],
+  "visions": [
+    {
+      "id": "restoreTheReach",
+      "name": "Green the Desert",
+      "text": "Make 40% of the desert's healable land meadow or woodland.",
+      "goal": {
+        "kind": "greenLand",
+        "share": 0.4
+      }
+    },
+    {
+      "id": "lanternOfTheValley",
+      "name": "Lantern of the Desert",
+      "text": "Go a full year, spring to winter, with 30 or more citizens and no shortfall in any slot.",
+      "goal": {
+        "kind": "noShortfallYear",
+        "minCitizens": 30
+      }
+    },
+    {
+      "id": "thrivingCommons",
+      "name": "Thriving Commons",
+      "text": "Reach 50 citizens with wellbeing 70 or more.",
+      "goal": {
+        "kind": "citizens",
+        "citizens": 50,
+        "wellbeing": 70
+      }
+    }
+  ],
+  "projects": [
+    {
+      "id": "greenTerraces",
+      "name": "Green Ground",
+      "text": "Compost worked into the worst ground: when finished, the 8 least healthy tiles of land each improve one step.",
+      "era": 3,
+      "cost": {
+        "compost": 60,
+        "materials": 15
+      },
+      "seasons": 2,
+      "effect": {
+        "heal": 8
+      }
+    },
+    {
+      "id": "biocharBeds",
+      "name": "Biochar Beds",
+      "text": "Biomass buried as charcoal feeds the soil for good: +6 Harmony from then on.",
+      "era": 3,
+      "cost": {
+        "biomass": 80,
+        "materials": 10
+      },
+      "seasons": 2,
+      "effect": {
+        "harmony": 6
+      }
+    },
+    {
+      "id": "seedVault",
+      "name": "Seed Vault",
+      "text": "The desert's seeds, catalogued and kept: +25 to the run's score.",
+      "era": 3,
+      "cost": {
+        "knowledge": 20,
+        "materials": 25
+      },
+      "seasons": 2,
+      "effect": {
+        "score": 25
+      }
+    },
+    {
+      "id": "festivalGrounds",
+      "name": "Festival Grounds",
+      "text": "A meadow stage for the turning seasons: +2 wellbeing every season from then on.",
+      "era": 4,
+      "cost": {
+        "materials": 60,
+        "food": 20
+      },
+      "seasons": 2,
+      "effect": {
+        "wellbeing": 2
+      }
+    },
+    {
+      "id": "longBridge",
+      "name": "The Long Shade",
+      "text": "A shaded walk of palms across the whole desert: +40 to the run’s score.",
+      "era": 4,
+      "cost": {
+        "materials": 100,
+        "compost": 40
+      },
+      "seasons": 3,
+      "effect": {
+        "score": 40
+      }
+    },
+    {
+      "id": "skyGarden",
+      "name": "Hanging Gardens",
+      "text": "Gardens climbing the old array’s frames: +12 Harmony and +1 wellbeing every season from then on.",
+      "era": 4,
+      "cost": {
+        "materials": 80,
+        "compost": 120,
+        "knowledge": 15
+      },
+      "seasons": 3,
+      "effect": {
+        "harmony": 12,
+        "wellbeing": 1
+      }
+    },
+    {
+      "id": "rootCityGift",
+      "name": "Gift to Root City",
+      "text": "Seed stock, tools and stories sent ahead: +6 Seeds when the run is sent home.",
+      "era": 4,
+      "cost": {
+        "materials": 60,
+        "compost": 60,
+        "knowledge": 10
+      },
+      "seasons": 2,
+      "effect": {
+        "seeds": 6
+      }
+    }
+  ],
+  "wildlife": [],
+  "festivals": [],
+  "twists": [
+    {
+      "id": "fairWeather",
+      "name": "Fair Weather",
+      "text": "No twist: the seasons as usual."
+    },
+    {
+      "id": "steadyWinds",
+      "name": "Steady Winds",
+      "text": "Wind spires make 1 more energy by day and night, but storms can damage 2 exposed buildings.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "windSpire",
+          "path": "generation.day",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "windSpire",
+          "path": "generation.night",
+          "add": 1
+        },
+        {
+          "target": "event",
+          "id": "storm",
+          "path": "disableCount",
+          "set": 2
+        }
+      ]
+    },
+    {
+      "id": "leanStart",
+      "name": "Lean Start",
+      "text": "The Sprout sets out with 5 materials, 4 food and 4 citizens. The Graft is one tier higher.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "start.materials",
+          "set": 5
+        },
+        {
+          "target": "rules",
+          "path": "start.food",
+          "set": 4
+        },
+        {
+          "target": "rules",
+          "path": "start.citizens",
+          "set": 4
+        }
+      ],
+      "graftTierBonus": 1
+    },
+    {
+      "id": "bigFamilies",
+      "name": "Big Families",
+      "text": "Citizens arrive two at a time, but only when a season's harvest leaves 4 food spare after eating (usually 2).",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "population.growth",
+          "add": 1
+        },
+        {
+          "target": "rules",
+          "path": "population.minSpareFood",
+          "add": 2
+        }
+      ]
+    },
+    {
+      "id": "scavengers",
+      "name": "Scavengers' Desert",
+      "text": "The old array hold 12 more salvage each (42 instead of 30), but every clutter costs 2 Harmony.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "ruinSalvage",
+          "add": 12
+        },
+        {
+          "target": "rules",
+          "path": "harmony.perClutter",
+          "set": -2
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "id": "theOasis",
+      "name": "The Oasis",
+      "text": "The desert as it is: a thin river down one side, an oasis near the middle, gravel plain around, dunes along the far side, rock at the edges, a salt flat and the ruins of an old solar array."
+    }
+  ],
+  "eraGoals": [
+    {
+      "era": 1,
+      "text": "House 10 citizens.",
+      "goal": {
+        "kind": "citizens",
+        "citizens": 10
+      },
+      "reward": {
+        "knowledge": 3
+      }
+    },
+    {
+      "era": 2,
+      "text": "Close 2 loops.",
+      "goal": {
+        "kind": "loops",
+        "count": 2
+      },
+      "reward": {
+        "knowledge": 3
+      }
+    },
+    {
+      "era": 3,
+      "text": "Reach Harmony 40.",
+      "goal": {
+        "kind": "harmony",
+        "harmony": 40
+      },
+      "reward": {
+        "knowledge": 3
+      }
+    },
+    {
+      "era": 4,
+      "text": "Go a full year, spring to winter, with no energy shortfall.",
+      "goal": {
+        "kind": "noShortfallYear"
+      },
+      "reward": {
+        "knowledge": 3
+      }
+    }
+  ],
+  "guidedYear": [
+    ["windTower", "apiary", "treeNursery"],
+    ["fogNet", "mushroomCellar", "well"],
+    ["cellBank", "sandBattery", "commonsPlaza"],
+    ["absorptionChiller", "windSpire", "qanat"]
+  ],
+  "tempest": {
+    "seedsPerLevel": 2,
+    "levels": [
+      {
+        "id": "tempestScorchingDays",
+        "name": "Scorching Days",
+        "text": "Homes need 1 more cooling on summer days.",
+        "modifiers": [
+          {
+            "target": "building",
+            "id": "foundersCamp",
+            "path": "demand.cool.day.1",
+            "add": 1
+          },
+          {
+            "target": "building",
+            "id": "mudBrickHouse",
+            "path": "demand.cool.day.1",
+            "add": 1
+          },
+          {
+            "target": "building",
+            "id": "treehouseCommons",
+            "path": "demand.cool.day.1",
+            "add": 1
+          }
+        ]
+      },
+      {
+        "id": "tempestThinDrafts",
+        "name": "Thin Drafts",
+        "text": "Drafts offer 2 cards instead of 3.",
+        "modifiers": [
+          {
+            "target": "rules",
+            "path": "draftCards",
+            "add": -1
+          }
+        ]
+      },
+      {
+        "id": "tempestQuickClutter",
+        "name": "Quick Clutter",
+        "text": "Citizens make scraps faster: one for every 2 citizens instead of 3.",
+        "modifiers": [
+          {
+            "target": "rules",
+            "path": "citizensPerScrap",
+            "add": -1
+          }
+        ]
+      },
+      {
+        "id": "tempestSlowHealing",
+        "name": "Slow Healing",
+        "text": "Spreading compost takes 4 compost per step of healing instead of 2.",
+        "modifiers": [
+          {
+            "target": "rules",
+            "path": "compostPerTileStep",
+            "add": 2
+          }
+        ]
+      },
+      {
+        "id": "tempestRestless",
+        "name": "Restless People",
+        "text": "The population grows only at wellbeing 70 or more, instead of 60.",
+        "modifiers": [
+          {
+            "target": "rules",
+            "path": "population.growAt",
+            "add": 10
+          }
+        ]
+      },
+      {
+        "id": "tempestHotAutumns",
+        "name": "Hot Autumns",
+        "text": "Homes need 1 more cooling on autumn days.",
+        "modifiers": [
+          {
+            "target": "building",
+            "id": "foundersCamp",
+            "path": "demand.cool.day.2",
+            "add": 1
+          },
+          {
+            "target": "building",
+            "id": "mudBrickHouse",
+            "path": "demand.cool.day.2",
+            "add": 1
+          },
+          {
+            "target": "building",
+            "id": "treehouseCommons",
+            "path": "demand.cool.day.2",
+            "add": 1
+          }
+        ]
+      },
+      {
+        "id": "tempestRoughSeasons",
+        "name": "Rough Seasons",
+        "text": "Flood repairs cost 2 more materials, and storms can damage one more exposed building.",
+        "modifiers": [
+          {
+            "target": "event",
+            "id": "flood",
+            "path": "repairCost",
+            "add": 2
+          },
+          {
+            "target": "event",
+            "id": "storm",
+            "path": "disableCount",
+            "add": 1
+          }
+        ]
+      },
+      {
+        "id": "tempestWearyPeople",
+        "name": "Weary People",
+        "text": "Meeting every need no longer lifts wellbeing.",
+        "modifiers": [
+          {
+            "target": "rules",
+            "path": "wellbeing.allNeedsMet",
+            "set": 0
+          }
+        ]
+      },
+      {
+        "id": "tempestHighHopes",
+        "name": "High Hopes",
+        "text": "Civic life serves 10 fewer citizens before expectations cost wellbeing.",
+        "modifiers": [
+          {
+            "target": "rules",
+            "path": "expectations.base",
+            "add": -10
+          }
+        ]
+      },
+      {
+        "id": "tempestCrampedHomes",
+        "name": "Cramped Homes",
+        "text": "Cottages house 2 citizens instead of 3.",
+        "modifiers": [
+          {
+            "target": "building",
+            "id": "mudBrickHouse",
+            "path": "housing",
+            "add": -1
+          }
+        ]
+      }
+    ]
+  },
+  "land": "desert",
+  "intro": "New: the Sun Desert. Bright and dry: the thin river runs high in the spring flash flood and dries up in summer, and the oasis spring refills every season. On hot days homes need cooling: wind towers and shade give it free, absorption chillers make it from spare heat, and the grid pays 2 energy for each. Channels lose water to the sun in every season but winter; a qanat loses none. Sun by day, little by night: store the day for the night."
+}

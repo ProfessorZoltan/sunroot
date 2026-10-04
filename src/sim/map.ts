@@ -5,7 +5,13 @@
  * placed so the valley starts at exactly the biome's starting Harmony.
  */
 import type { Content } from './content/load';
-import type { CoastMapGen, HighlandMapGen, TileType, ValleyMapGen } from './content/schema';
+import type {
+  CoastMapGen,
+  DesertMapGen,
+  HighlandMapGen,
+  TileType,
+  ValleyMapGen,
+} from './content/schema';
 import { hexDistance, hexKey, hexNeighbors, offsetToAxial, type Hex } from './hex';
 import { chance, createRng, nextInt, shuffled, type RngState } from './rng';
 import type { MapState, Tile } from './types';
@@ -19,6 +25,7 @@ export function generateMap(content: Content, seed: string): GeneratedMap {
   const gen = content.map;
   if (gen.kind === 'coast') return generateCoast(content, gen, seed);
   if (gen.kind === 'highland') return generateHighland(content, gen, seed);
+  if (gen.kind === 'desert') return generateDesert(content, gen, seed);
   return generateValley(content, gen, seed);
 }
 
@@ -156,6 +163,176 @@ function generateHighland(content: Content, gen: HighlandMapGen, seed: string): 
   return {
     map: { width: gen.width, height: gen.height, tiles, river, floodOrder },
     camp: { q: camp.q, r: camp.r },
+  };
+}
+
+/**
+ * The Sun Desert (proposals/sun-desert.md): a thin river from the top edge down the map, wadi
+ * banks (floodplain) beside it; dunes along the far side; rock at the edges; an oasis ringed
+ * with scrub and palm groves; a salt flat; the old array's ruins; gravel plain (reg) and scrub
+ * elsewhere. The camp stands a short walk from the oasis; the flash flood covers the banks.
+ */
+function generateDesert(content: Content, gen: DesertMapGen, seed: string): GeneratedMap {
+  const rng = createRng(`${seed}:map`);
+  const tiles: Record<string, Tile> = {};
+  const order: string[] = [];
+  const at = (col: number, row: number) => tiles[hexKey(offsetToAxial(col, row))];
+  const colOf = (t: Tile) => t.q + Math.floor(t.r / 2);
+  for (let row = 0; row < gen.height; row++)
+    for (let col = 0; col < gen.width; col++) {
+      const h = offsetToAxial(col, row);
+      tiles[hexKey(h)] = { ...h, type: 'reg' };
+      order.push(hexKey(h));
+    }
+  const tile = (h: Hex) => tiles[hexKey(h)];
+  const type = (h: Hex) => tile(h)?.type;
+
+  // The river, from the top edge down, wandering a column now and then; its banks beside it.
+  const [minCol, maxCol] = gen.riverColumns;
+  let col = minCol + nextInt(rng, maxCol - minCol + 1);
+  const river: string[] = [];
+  for (let row = 0; row < gen.height; row++) {
+    if (row > 0 && chance(rng, 0.3))
+      col = Math.max(1, Math.min(gen.width - 2, col + (chance(rng, 0.5) ? 1 : -1)));
+    const t = at(col, row)!;
+    t.type = 'river';
+    t.riverIndex = river.length;
+    river.push(hexKey(t));
+  }
+  const stream = river.map((k) => tiles[k]!);
+  const riverDistance = (t: Hex) => Math.min(...stream.map((s) => hexDistance(s, t)));
+  for (const key of order) {
+    const t = tiles[key]!;
+    if (t.type === 'reg' && riverDistance(t) === 1 && chance(rng, gen.bankChance))
+      t.type = 'floodplain';
+  }
+
+  // Dunes along the side farther from the river.
+  const riverLeft = colOf(stream[Math.floor(stream.length / 2)]!) < gen.width / 2;
+  const inErg = (t: Tile) =>
+    riverLeft ? colOf(t) >= gen.width - gen.ergColumns : colOf(t) < gen.ergColumns;
+  for (const key of order) {
+    const t = tiles[key]!;
+    if (t.type === 'reg' && inErg(t) && riverDistance(t) > 2) t.type = 'erg';
+  }
+  // Rock at the edges, outside the dunes.
+  for (const key of order) {
+    const t = tiles[key]!;
+    const edge =
+      t.r === 0 || t.r === gen.height - 1 || colOf(t) === 0 || colOf(t) === gen.width - 1;
+    if (t.type === 'reg' && edge && chance(rng, gen.rockChance)) t.type = 'rock';
+  }
+
+  /** Open reg at least `d` tiles from the river, not at the edge. */
+  const open = (t: Tile, d: number) =>
+    t.type === 'reg' &&
+    riverDistance(t) >= d &&
+    t.r > 0 &&
+    t.r < gen.height - 1 &&
+    colOf(t) > 0 &&
+    colOf(t) < gen.width - 1;
+  /** A connected patch of `size` tiles grown from a seed that `fits`. */
+  const patch = (size: number, fits: (t: Tile) => boolean): Tile[] => {
+    for (const key of shuffled(rng, order)) {
+      const start = tiles[key]!;
+      if (!fits(start)) continue;
+      const group = [start];
+      while (group.length < size) {
+        const next = group
+          .flatMap((g) => hexNeighbors(g).map(tile))
+          .filter((n): n is Tile => n !== undefined && fits(n) && !group.includes(n))
+          .sort((a, b) => hexKey(a).localeCompare(hexKey(b)));
+        if (next.length === 0) break;
+        group.push(next[nextInt(rng, next.length)]!);
+      }
+      if (group.length === size) return group;
+    }
+    return [];
+  };
+
+  // The oasis, ringed with scrub.
+  const oasis = patch(gen.oasisTiles, (t) => open(t, 3));
+  if (oasis.length === 0) throw new Error('map has no room for the oasis');
+  for (const t of oasis) t.type = 'oasis';
+  for (const t of oasis)
+    for (const n of hexNeighbors(t).map(tile))
+      if (n && (n.type === 'reg' || n.type === 'erg')) n.type = 'scrub';
+  const oasisDistance = (t: Hex) => Math.min(...oasis.map((o) => hexDistance(o, t)));
+
+  // The salt flat, away from the river and the oasis.
+  if (gen.saltFlat > 0)
+    for (const t of patch(gen.saltFlat, (x) => open(x, 3) && oasisDistance(x) >= 3))
+      t.type = 'saltFlat';
+
+  // The old array's ruins on the reg, never touching each other or water.
+  let ruinsLeft = gen.ruins;
+  for (const key of shuffled(rng, order)) {
+    if (ruinsLeft === 0) break;
+    const t = tiles[key]!;
+    if (!open(t, 2) || oasisDistance(t) < 2) continue;
+    if (hexNeighbors(t).some((n) => type(n) === 'ruin')) continue;
+    t.type = 'ruin';
+    t.salvage = gen.ruinSalvage;
+    ruinsLeft--;
+  }
+
+  // Away from the water, reg or scrub.
+  for (const key of order) {
+    const t = tiles[key]!;
+    if (t.type === 'reg' && !chance(rng, gen.regChance)) t.type = 'scrub';
+  }
+
+  // The camp: plain land a short walk from the oasis, not on the wadi banks.
+  const [nearestCamp, farthestCamp] = gen.campOasisDistance;
+  const campOptions = order.filter((key) => {
+    const t = tiles[key]!;
+    const d = oasisDistance(t);
+    return (t.type === 'reg' || t.type === 'scrub') && d >= nearestCamp && d <= farthestCamp;
+  });
+  if (campOptions.length === 0) throw new Error('map has no site for the Founders Camp');
+  const campKey = campOptions[nextInt(rng, campOptions.length)]!;
+  tiles[campKey]!.type = 'scrub';
+
+  // Palm groves beside the oasis, and meadow near them, summing to the starting Harmony.
+  const perTile = content.rules.harmony.perTile;
+  const woodValue = perTile.woodland ?? 0;
+  const meadowValue = perTile.meadow ?? 0;
+  let remaining = gen.startingHarmony;
+  const ring = () =>
+    order.filter(
+      (k) => k !== campKey && tiles[k]!.type === 'scrub' && oasisDistance(tiles[k]!) === 1,
+    );
+  for (let i = 0; i < gen.woodlands && remaining >= woodValue && woodValue > 0; i++) {
+    const options = ring();
+    if (options.length === 0) break;
+    tiles[options[nextInt(rng, options.length)]!]!.type = 'woodland';
+    remaining -= woodValue;
+  }
+  if (meadowValue <= 0 || remaining % meadowValue !== 0)
+    throw new Error('starting Harmony cannot be reached with meadow tiles');
+  for (let m = remaining / meadowValue; m > 0; m--) {
+    const options = order
+      .filter((k) => k !== campKey && ['scrub', 'reg'].includes(tiles[k]!.type))
+      .sort((a, b) => oasisDistance(tiles[a]!) - oasisDistance(tiles[b]!));
+    if (options.length === 0) throw new Error('not enough land for starting meadows');
+    // Near the oasis: among the closest few.
+    const pool = options.slice(0, Math.min(options.length, 6));
+    tiles[pool[nextInt(rng, pool.length)]!]!.type = 'meadow';
+  }
+
+  // The flash flood covers the wadi banks, upstream first.
+  const floodOrder = order
+    .filter((k) => tiles[k]!.type === 'floodplain')
+    .sort(
+      (a, b) =>
+        Math.min(...stream.map((s) => (hexDistance(s, tiles[a]!) === 1 ? s.riverIndex! : 99))) -
+          Math.min(...stream.map((s) => (hexDistance(s, tiles[b]!) === 1 ? s.riverIndex! : 99))) ||
+        order.indexOf(a) - order.indexOf(b),
+    );
+
+  return {
+    map: { width: gen.width, height: gen.height, tiles, river, floodOrder },
+    camp: { q: tiles[campKey]!.q, r: tiles[campKey]!.r },
   };
 }
 

@@ -79,7 +79,14 @@ export function coolDemand(
   slot: 'day' | 'night',
   si: number,
 ): number {
-  const need = defOf(content, b).demand?.cool[slot][si] ?? 0;
+  const def = defOf(content, b);
+  // A heatwave (the Sun Desert's summer): every home needs more cooling by day, even one whose
+  // thick walls need none otherwise.
+  const heatwave =
+    slot === 'day' && isHome(def) && state.forecast.event === 'heatwave'
+      ? (content.events.heatwave?.coolingAdd ?? 0)
+      : 0;
+  const need = (def.demand?.cool[slot][si] ?? 0) + heatwave;
   if (need <= 0) return 0;
   let shade = 0;
   for (const n of neighborBuildings(state, b)) shade = Math.max(shade, defOf(content, n).shades);

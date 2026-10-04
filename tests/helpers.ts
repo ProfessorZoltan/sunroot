@@ -7,6 +7,7 @@
  *   . barren  , scrub       m meadow       W woodland   C camp (on scrub)
  *   L lake (a reservoir off the river: still water, no river position)
  *   The Windswept Coast: = sea   _ mudflat   " saltmarsh   : dune
+ *   The Sun Desert: O oasis   g reg (gravel)   E erg (dunes)   K rock   s salt flat
  */
 import { expect } from 'vitest';
 import {
@@ -76,6 +77,10 @@ const TOKENS: Record<string, TileType> = {
   A: 'crag',
   b: 'bog',
   O: 'oasis',
+  g: 'reg',
+  E: 'erg',
+  K: 'rock',
+  s: 'saltFlat',
 };
 
 export function mapFromAscii(rows: string[]): { map: MapState; camp: Hex } {

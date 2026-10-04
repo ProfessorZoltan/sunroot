@@ -60,6 +60,8 @@ export function canPlace(
             : `${def.name} goes at heights ${heights[0]} to ${heights[1]}`,
       };
   }
+  if (def.placement.atEdge && neighborTiles(state, at).length === 6)
+    return { ok: false, reason: `${def.name} goes at the edge of the map` };
   if (tile.type === 'ruin' && (tile.salvage ?? 0) <= 0) {
     return { ok: false, reason: 'the ruin is empty' };
   }

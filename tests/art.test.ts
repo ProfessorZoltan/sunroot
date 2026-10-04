@@ -39,7 +39,7 @@ const info = JSON.parse(readFileSync(new URL('../src/art/art.json', import.meta.
 describe('hand-made art', () => {
   it('covers every tile type, in summer (two ways) and winter', () => {
     // The Sun Desert's tiles are drawn procedurally until their art comes (SD4).
-    const awaiting = ['oasis'];
+    const awaiting = ['oasis', 'reg', 'erg', 'rock', 'saltFlat'];
     // The coast's tiles came with one summer look (the sea with three).
     const coast = ['mudflat', 'saltmarsh', 'dune'];
     for (const t of TILE_TYPES.filter((x) => !awaiting.includes(x))) {

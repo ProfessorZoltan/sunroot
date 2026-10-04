@@ -33,6 +33,23 @@ function tree(g: Graphics, x: number, y: number, r = 5, fruit = false): void {
   }
 }
 
+const MUD = 0xc79f72;
+
+function palm(g: Graphics, x: number, y: number): void {
+  g.moveTo(x, y + 8)
+    .quadraticCurveTo(x + 1, y + 2, x, y - 4)
+    .stroke({ width: 1.8, color: COLORS.wood });
+  for (const [dx, dy] of [
+    [-6, -2],
+    [6, -2],
+    [-4, -7],
+    [4, -7],
+  ] as const)
+    g.moveTo(x, y - 4)
+      .quadraticCurveTo(x + dx / 2, y - 7, x + dx, y - 4 + dy / 2)
+      .stroke({ width: 2, color: COLORS.treeDark, cap: 'round' });
+}
+
 function panel(g: Graphics, c: Point, fill: number, line: number): void {
   g.poly([c.x - 12, c.y + 6, c.x - 7, c.y - 6, c.x + 12, c.y - 6, c.x + 7, c.y + 6]).fill({
     color: fill,
@@ -976,6 +993,101 @@ export const BUILDING_ART: Record<string, Art> = {
       .quadraticCurveTo(c.x + 2, c.y, c.x + 1, c.y - 3)
       .stroke({ width: 1.4, color: 0x6d7a3c, cap: 'round' });
     g.circle(c.x + 7, c.y + 3, 1.6).fill({ color: COLORS.terracotta });
+  },
+  // The Sun Desert (SD2), drawn simply until its art comes (SD4).
+  oasisGarden(g, c) {
+    g.poly(hexCorners(c, 20)).fill({ color: 0x9db86a });
+    palm(g, c.x - 7, c.y - 2);
+    palm(g, c.x + 7, c.y - 4);
+    g.circle(c.x, c.y + 6, 2).fill({ color: COLORS.treeLight });
+  },
+  wadiFarm(g, c) {
+    g.poly(hexCorners(c, 21)).fill({ color: COLORS.field }).stroke({ width: 1.5, color: MUD });
+    for (let i = -2; i <= 2; i++) g.moveTo(c.x - 14, c.y + i * 5).lineTo(c.x + 14, c.y + i * 5);
+    g.stroke({ width: 1.1, color: COLORS.furrow });
+  },
+  mudBrickHouse(g, c) {
+    shadow(g, c, 12);
+    g.rect(c.x - 10, c.y - 6, 20, 14).fill({ color: MUD });
+    g.rect(c.x - 11, c.y - 8, 22, 3).fill({ color: 0xb98a5c });
+    g.rect(c.x - 2, c.y + 2, 4, 6).fill({ color: DARK });
+    g.rect(c.x + 4, c.y - 3, 3, 3).fill({ color: DARK });
+  },
+  windTower(g, c) {
+    shadow(g, c, 10);
+    g.rect(c.x - 5, c.y - 16, 10, 24).fill({ color: MUD });
+    for (const y of [-14, -10]) g.rect(c.x - 4, c.y + y, 8, 2).fill({ color: DARK });
+    g.rect(c.x - 6, c.y - 18, 12, 3).fill({ color: 0xb98a5c });
+  },
+  absorptionChiller(g, c) {
+    shadow(g, c, 12);
+    g.roundRect(c.x - 10, c.y - 6, 20, 13, 3)
+      .fill({ color: 0xd9dfe2 })
+      .stroke({ width: 1.3, color: 0x6c9fae });
+    g.circle(c.x - 4, c.y, 3.5).stroke({ width: 1.3, color: 0x6c9fae });
+    g.circle(c.x + 4, c.y, 3.5).stroke({ width: 1.3, color: COLORS.terracotta });
+  },
+  fogNet(g, c) {
+    g.moveTo(c.x - 12, c.y + 8)
+      .lineTo(c.x - 12, c.y - 10)
+      .moveTo(c.x + 12, c.y + 8)
+      .lineTo(c.x + 12, c.y - 10);
+    g.stroke({ width: 1.6, color: COLORS.wood });
+    g.rect(c.x - 12, c.y - 10, 24, 12).fill({ color: 0xf4f2ec, alpha: 0.7 });
+    for (let i = -1; i <= 1; i++)
+      g.moveTo(c.x - 12, c.y - 4 + i * 4).lineTo(c.x + 12, c.y - 4 + i * 4);
+    g.stroke({ width: 0.8, color: 0x9aa7aa });
+    g.ellipse(c.x, c.y + 7, 6, 2.5).fill({ color: COLORS.water });
+  },
+  qanat(g, c) {
+    // A line of shafts over the channel underground.
+    for (const x of [-9, 0, 9]) {
+      g.circle(c.x + x, c.y + x * 0.2, 4).fill({ color: MUD });
+      g.circle(c.x + x, c.y + x * 0.2, 2).fill({ color: DARK });
+    }
+  },
+  concentratedSolarPlant(g, c) {
+    shadow(g, c, 15);
+    for (const [x, y] of [
+      [-11, 4],
+      [-4, 7],
+      [5, 7],
+      [12, 4],
+    ] as const)
+      g.poly([
+        c.x + x - 3,
+        c.y + y + 2,
+        c.x + x - 2,
+        c.y + y - 2,
+        c.x + x + 3,
+        c.y + y - 2,
+        c.x + x + 2,
+        c.y + y + 2,
+      ]).fill({ color: 0xbfd6e6 });
+    g.rect(c.x - 2, c.y - 16, 4, 18).fill({ color: COLORS.stone });
+    g.circle(c.x, c.y - 17, 3.5).fill({ color: COLORS.sunGold });
+  },
+  sandBattery(g, c) {
+    shadow(g, c, 11);
+    g.roundRect(c.x - 8, c.y - 12, 16, 20, 4)
+      .fill({ color: 0xc9b089 })
+      .stroke({ width: 1.3, color: DARK });
+    g.rect(c.x - 5, c.y - 4, 10, 3).fill({ color: COLORS.terracotta });
+  },
+  palmWindbreak(g, c) {
+    palm(g, c.x - 7, c.y);
+    palm(g, c.x + 6, c.y - 2);
+  },
+  saltWorks(g, c) {
+    for (const [x, y] of [
+      [-7, -3],
+      [6, -3],
+      [0, 5],
+    ] as const)
+      g.rect(c.x + x - 5, c.y + y - 3, 10, 6)
+        .fill({ color: 0xf4f2ec })
+        .stroke({ width: 1, color: 0x9aa7aa });
+    g.poly([c.x + 10, c.y + 8, c.x + 13, c.y + 2, c.x + 16, c.y + 8]).fill({ color: 0xffffff });
   },
 };
 

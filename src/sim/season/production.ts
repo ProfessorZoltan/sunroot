@@ -1,5 +1,5 @@
 /** Step 4: staffing, generation and production. */
-import type { BuildingDef, Resource } from '../content/schema';
+import type { BuildingDef, Resource, Slot } from '../content/schema';
 import { RESOURCES, SLOTS } from '../content/schema';
 import { hexDistance, hexKey, hexNeighbors } from '../hex';
 import {
@@ -54,9 +54,13 @@ export function generate(ctx: SeasonContext): void {
   const occ = occupancy(state);
   for (const b of activeInOrder(ctx)) {
     const def = defOf(content, b);
-    const output = def.generation ?? def.heatGeneration;
-    if (!output) continue;
-    const makesHeat = !def.generation;
+    // A source may make energy and heat both (the Concentrated Solar Plant's mirrors).
+    const outputs = [
+      ...(def.generation ? [{ output: def.generation, makesHeat: false }] : []),
+      ...(def.heatGeneration ? [{ output: def.heatGeneration, makesHeat: true }] : []),
+    ];
+    if (outputs.length === 0) continue;
+    const runsNow = (slot: Slot) => outputs.some((o) => o.output[slot][si]! > 0);
     const neighbors = neighborBuildings(state, b, occ);
     let adjust = 0;
     const notes: string[] = [];
@@ -105,8 +109,8 @@ export function generate(ctx: SeasonContext): void {
     else if (snowed) notes.push(`under snow at height ${high}: nothing this ${state.season}`);
     // A stove burns its fuel (a bothy's biomass) in a season it makes any heat.
     let unfuelled = false;
-    const fuel = makesHeat ? def.heatFuel : undefined;
-    if (fuel && SLOTS.some((slot) => output[slot][si]! > 0)) {
+    const fuel = def.heatGeneration ? def.heatFuel : undefined;
+    if (fuel && SLOTS.some(runsNow)) {
       const free = neighbors.find((n) => fuel.freeNextTo.includes(n.type));
       if (free)
         notes.push(`next to a ${defOf(content, free).name}: its stove needs no ${fuel.resource}`);
@@ -125,6 +129,19 @@ export function generate(ctx: SeasonContext): void {
       adjust -= fog;
       notes.push(`sea fog -${fog}`);
     }
+    // Dust on the panels and mirrors (the Sun Desert's dust storm).
+    const dust =
+      ctx.report.event === 'storm' && def.fogged ? (content.events.storm?.solarPenalty ?? 0) : 0;
+    if (dust > 0) {
+      adjust -= dust;
+      notes.push(`dust storm -${dust}`);
+    }
+    // A heatwave: too hot to work well, by day.
+    const hot =
+      ctx.report.event === 'heatwave' && def.heatDimmed
+        ? (content.events.heatwave?.solarPenalty ?? 0)
+        : 0;
+    if (hot > 0) notes.push(`heatwave -${hot} by day`);
     if (def.weirBonus && neighbors.some((n) => defOf(content, n).weir)) {
       adjust += def.weirBonus.perSlot;
       notes.push(`next to a weir +${def.weirBonus.perSlot}`);
@@ -145,24 +162,26 @@ export function generate(ctx: SeasonContext): void {
       notes.unshift(
         `river flow ${wheel}: ${Math.ceil(wheel / content.rules.water.wheelFlowPerEnergy)} a slot`,
       );
-    for (const slot of SLOTS) {
-      const base =
-        wheel !== undefined
-          ? Math.ceil(wheel / content.rules.water.wheelFlowPerEnergy)
-          : output[slot][si]!;
-      // Adjustments apply only to slots where the source runs at all.
-      let amount = base > 0 && !snowed && !unfuelled ? Math.max(0, base + adjust) : 0;
-      if (kept > 0 && slot === 'day' && base > 0)
-        amount = Math.min(kept, Math.max(0, base + adjust));
-      if (makesHeat) addHeat(ctx, slot, b, amount);
-      else addSupply(ctx, slot, b, amount);
-      const what = makesHeat ? 'heat' : 'energy';
-      explain(
-        ctx,
-        b,
-        `${slot} ${what} ${base}${adjust ? ` ${adjust > 0 ? '+' : ''}${adjust}` : ''} = ${amount}`,
-      );
-    }
+    for (const { output, makesHeat } of outputs)
+      for (const slot of SLOTS) {
+        const base =
+          wheel !== undefined
+            ? Math.ceil(wheel / content.rules.water.wheelFlowPerEnergy)
+            : output[slot][si]!;
+        const change = adjust - (slot === 'day' ? hot : 0);
+        // Adjustments apply only to slots where the source runs at all.
+        let amount = base > 0 && !snowed && !unfuelled ? Math.max(0, base + change) : 0;
+        if (kept > 0 && slot === 'day' && base > 0)
+          amount = Math.min(kept, Math.max(0, base + change));
+        if (makesHeat) addHeat(ctx, slot, b, amount);
+        else addSupply(ctx, slot, b, amount);
+        const what = makesHeat ? 'heat' : 'energy';
+        explain(
+          ctx,
+          b,
+          `${slot} ${what} ${base}${change ? ` ${change > 0 ? '+' : ''}${change}` : ''} = ${amount}`,
+        );
+      }
     notes.forEach((n) => explain(ctx, b, n));
   }
 }
