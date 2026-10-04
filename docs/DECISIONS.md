@@ -841,7 +841,9 @@ The Highland's hand-made art:
 
 ## Root City's art
 
-Root City is ready for its hand-made art ([ART-CITY.md](ART-CITY.md)):
+Root City has its hand-made art ([ART-CITY.md](ART-CITY.md)): all 54 files, delivered as
+`root-city/` and moved to `art/incoming/city/`, where the importer reads them. The 4 rotor pivots
+are measured from their hubs.
 
 | Topic                  | Decision                                                                                                                                                                                                                                                                                                                                                                                                                                      | Source                                         |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |

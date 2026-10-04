@@ -6,7 +6,8 @@ follows the existing art spec ([ART.md](ART.md) and
 [`art/incoming/README.md`](../art/incoming/README.md)) unless a section says otherwise: the same
 papercraft style, the same light from the upper left, and the same 512 × 640 frame.
 
-**Ready for the art.** The importer takes `art/incoming/city/` (`npx tsx scripts/import-art.ts`,
+**Delivered and in the game:** all 54 files (the 36 asked for, the 14 lit versions and the 4
+rotors), delivered as `root-city/` and kept in `art/incoming/city/`. **How it gets in.** The importer takes `art/incoming/city/` (`npx tsx scripts/import-art.ts`,
 which refuses a name or a frame size that isn't this guide's), and the city screen draws each
 piece it has: the city already stands on the map's hex geometry, so the tiles fit together as on
 the map. Anything without art is still drawn in code (`src/ui/City.tsx`): coloured hexes with a

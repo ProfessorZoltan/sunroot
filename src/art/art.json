@@ -38,6 +38,11 @@
   "city": {
     "tallFrame": [256, 512],
     "tallTileCentre": [128, 378.75],
-    "pivots": {}
+    "pivots": {
+      "millraceQuarter.heartwood": [142, 151],
+      "millraceQuarter.sapling": [143.5, 149.5],
+      "millraceQuarter.seedling": [150, 154.5],
+      "tidalQuarter.heartwood": [196.5, 156]
+    }
   }
 }
