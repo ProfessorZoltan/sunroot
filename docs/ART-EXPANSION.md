@@ -26,18 +26,21 @@ Highland's tiles and buildings (their request comes with HL4).
 
 ## Order
 
-| Milestone                   | Needs art? | What to draw first                                                    | Source                                      |
-| --------------------------- | ---------- | --------------------------------------------------------------------- | ------------------------------------------- |
-| E1. Water in the simulation | No         | —                                                                     | EXPANSION.md, Build plan                    |
-| E2. Water on screen         | Yes        | Irrigation Channel pieces and the Sluice Gate                         | EXPANSION.md, Build plan                    |
-| E3. Willow Reach v2 content | Yes        | 6 new buildings and 7 evolutions                                      | EXPANSION.md, New buildings; New evolutions |
-| E4. Wildlife and festivals  | Yes        | 4 animals, 3 festival cards, 2 props                                  | EXPANSION.md, Bigger systems                |
-| E5. Great Water Garden      | Yes        | The 7-hex wonder and its build stages                                 | EXPANSION.md, Bigger systems                |
-| B4. The coast on screen     | Yes        | Its 4 tiles, then the Croft and Tide Turbine                          | proposals/windswept-coast.md, Build plan    |
-| B5. The coast in Root City  | Yes        | The Tide Mill and the Estuary Turbine                                 | proposals/windswept-coast.md, Build plan    |
-| B6. The coast's wonder      | Yes        | The Tidal Lagoon, 4 animals, 2 festival cards                         | proposals/windswept-coast.md, Build plan    |
-| HL4. The Highland on screen | Yes        | Its 2 tiles, then the Terrace Farm, Glen Farm, Hill Turbine and Bothy | proposals/highland.md, Build plan           |
-| HL6. The Highland's wonder  | Yes (done) | The Cloud Terraces, 4 animals, 2 festival cards                       | proposals/highland.md, Build plan           |
+| Milestone                    | Needs art? | What to draw first                                                                                                                        | Source                                      |
+| ---------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| E1. Water in the simulation  | No         | —                                                                                                                                         | EXPANSION.md, Build plan                    |
+| E2. Water on screen          | Yes        | Irrigation Channel pieces and the Sluice Gate                                                                                             | EXPANSION.md, Build plan                    |
+| E3. Willow Reach v2 content  | Yes        | 6 new buildings and 7 evolutions                                                                                                          | EXPANSION.md, New buildings; New evolutions |
+| E4. Wildlife and festivals   | Yes        | 4 animals, 3 festival cards, 2 props                                                                                                      | EXPANSION.md, Bigger systems                |
+| E5. Great Water Garden       | Yes        | The 7-hex wonder and its build stages                                                                                                     | EXPANSION.md, Bigger systems                |
+| B4. The coast on screen      | Yes        | Its 4 tiles, then the Croft and Tide Turbine                                                                                              | proposals/windswept-coast.md, Build plan    |
+| B5. The coast in Root City   | Yes        | The Tide Mill and the Estuary Turbine                                                                                                     | proposals/windswept-coast.md, Build plan    |
+| B6. The coast's wonder       | Yes        | The Tidal Lagoon, 4 animals, 2 festival cards                                                                                             | proposals/windswept-coast.md, Build plan    |
+| HL4. The Highland on screen  | Yes        | Its 2 tiles, then the Terrace Farm, Glen Farm, Hill Turbine and Bothy                                                                     | proposals/highland.md, Build plan           |
+| HL6. The Highland's wonder   | Yes (done) | The Cloud Terraces, 4 animals, 2 festival cards                                                                                           | proposals/highland.md, Build plan           |
+| SD4. The desert on screen    | Yes        | Its 5 tiles and the wadi bank's and old array's looks, then the Oasis Garden, Mud-brick House, Wind Tower and Solar Canopy's desert dress | proposals/sun-desert.md, Build plan         |
+| SD5. The desert in Root City | Yes        | The Sun Quarter district and the Glassworks landmark ([ART-CITY.md](ART-CITY.md))                                                         | proposals/sun-desert.md, Build plan         |
+| SD6. The desert's wonder     | Yes        | The Solar Oasis, 4 animals, 3 festival cards                                                                                              | proposals/sun-desert.md, Build plan         |
 
 ## The standard frame (reminder)
 
@@ -320,6 +323,96 @@ level ground, as the other Highland art: the game raises each tile.
 Animals follow the wildlife frame above (128 × 128, bottom-centre anchor, facing right). The
 Highland's Lantern Night uses the Reach's card, and its festivals the Reach's bunting and lanterns.
 
+## The Sun Desert (SD4 to SD6)
+
+The fourth biome ([proposals/sun-desert.md](proposals/sun-desert.md)): a thin river that floods
+its wadi banks in spring and runs dry in summer, an oasis near the middle, flat gravel plain
+(reg), dunes (erg) along one side, rock at the edges, a salt flat, and the ruins of an old solar
+array. Everything here is drawn in code until its art comes, so any piece can arrive on its own.
+Same frame, light and file names as everything else: a summer `id.png` and a winter
+`id.winter.png`, delivered to the usual folders of `art/incoming/`.
+
+**The palette.** Bright and dry: warm sand (`#E8C98A`), pale gravel (`#D9C3A0`), rust rock
+(`#A8603F`), salt white, sky-blue water, and the deep green of date palms (`#2F5D3A`) as the one
+dark note. The light is high and hard, so shadows are short and crisp, and colours a little
+bleached, never grey. Keep the papercraft style: the same cut-paper edges, the same light from
+the upper left.
+
+**Winter is the green season, not a white one.** Desert winters are mild by day and cold by
+night, with what little rain falls. So a desert `.winter.png` keeps the sand and the palms and
+adds a faint green sheen on the scrub and the gravel, the oasis brimming, a few flowers on the
+meadow, and pale frost only in the shade (the north-west side of things). No snow anywhere.
+
+The game draws these in code, so don't paint them: heat shimmer over the reg in summer, dust
+blowing across in a dust storm, the flash flood over the wadi banks, the river drying (from the
+dry look below), a glint running across mirrors and panels, the fog net's drops, cooling marks
+over homes, lit windows from a `.lit.png`, and a rotor's turn from a `.rotor.png`.
+
+### Tiles
+
+Each new type needs two summer looks and a winter one (`id.png`, `id-2.png`, `id.winter.png`).
+The shared types get the desert's own look as `id.desert.png` and `id.desert.winter.png`, as the
+coast's headlands and the glen's meadow; the game uses them in the desert in place of the
+Reach's.
+
+| Tile       | Id                                         | What it is                            | Notes                                                                                                                                                                                                                    | Source                  |
+| ---------- | ------------------------------------------ | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------- |
+| Oasis      | `oasis`                                    | A spring-fed pool, the desert's water | Clear blue-green water filling most of the top face, a pale sand rim, reeds and a few papyrus heads at the edge. Winter: the water higher on the rim.                                                                    | proposals/sun-desert.md |
+| Reg        | `reg`                                      | Flat gravel plain, the commonest land | Pale gravel packed flat with scattered darker pebbles and a single dry tuft. The ground mirrors stand on, so keep it plain. Winter: a faint green haze between the stones.                                               | proposals/sun-desert.md |
+| Erg        | `erg`                                      | Dunes: drifting sand                  | Warm sand in two or three crescent ridges, sharp crests with the lee side shaded, wind ripples. Nothing growing. Winter: the same, the shadows a touch longer.                                                           | proposals/sun-desert.md |
+| Rock       | `rock`                                     | Outcrops at the map's edge            | Rust-red rock in rounded, layered slabs (wind-worn, not the Highland's broken grey crag), a dark crack or two, one thorny shrub. Winter: a little green in the cracks.                                                   | proposals/sun-desert.md |
+| Salt flat  | `saltFlat`                                 | A dry lakebed crusted white           | White salt crust in polygon plates, the cracks between them faintly pink-grey, flat as a table. Winter: a thin skin of water shining on part of it.                                                                      | proposals/sun-desert.md |
+| Wadi bank  | `floodplain.desert.png`                    | The low ground the flash flood covers | Fine grey-brown silt, cracked into curling plates, sedge and a few green shoots where the water was. Winter: greener shoots.                                                                                             | proposals/sun-desert.md |
+| River      | `river.desert.png`, `river.desert.dry.png` | The thin river, wet and dry           | A narrow stream in a wide pale sandy bed with rounded stones. The dry look (used while the river runs at 0, from SD4) is the same bed with no water: stones, ripple marks in the sand, a damp dark line down the middle. | proposals/sun-desert.md |
+| Old array  | `ruin.desert.png`                          | The ruins of an old solar farm        | Two or three broken solar panels on bent frames, tilted and half buried in sand, a toppled cable spool. Salvage, not menace.                                                                                             | proposals/sun-desert.md |
+| Scrub      | `scrub.desert.png`                         | Low desert scrub                      | Sand with saltbush and small grey-green shrubs in clumps.                                                                                                                                                                | proposals/sun-desert.md |
+| Meadow     | `meadow.desert.png`                        | Desert grassland, after healing       | Tufted golden grass and low wildflowers (yellow and violet) over sand.                                                                                                                                                   | proposals/sun-desert.md |
+| Palm grove | `woodland.desert.png`                      | The desert's woodland                 | Three or four date palms of different heights with clusters of orange dates, their shadows pooled beneath, grass between.                                                                                                | proposals/sun-desert.md |
+
+### Buildings
+
+| Name                     | Id                       | What it is                                        | Files                                                                          | Notes                                                                                                                                                                                                                              | Source                             |
+| ------------------------ | ------------------------ | ------------------------------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| Oasis Garden             | `oasisGarden`            | A garden in three layers under date palms         | `oasisGarden.png`, `.winter`                                                   | Carries its own ground: a low mud wall, two date palms over fig and pomegranate trees, vegetables in small square beds between little water runnels. Its palms are the shade it gives the home beside it.                          | proposals/sun-desert.md, Buildings |
+| Wadi Farm                | `wadiFarm`               | A field on the wadi bank, fed by the flood        | `wadiFarm.png`, `.winter`                                                      | Carries its own ground: sorghum or barley in rows on grey silt, a low earth bank (bund) round it to hold the flood. Winter: young green shoots.                                                                                    | proposals/sun-desert.md, Buildings |
+| Mud-brick House          | `mudBrickHouse`          | A thick-walled home that keeps cool and warm      | `mudBrickHouse.png`, `.winter`, `mudBrickHouse.lit.png`                        | Groundless: a cube of rounded, hand-smoothed mud brick, a flat roof with a low parapet, small deep-set windows, a blue door, a rug airing on the roof. The lit file lights its windows.                                            | proposals/sun-desert.md, Buildings |
+| Wind Tower               | `windTower`              | A tower that catches the wind and cools the house | `windTower.png`, `.winter`                                                     | Groundless, tall: a slim square mud-brick tower (a badgir) about twice a house's height, with slatted openings near the top on all four sides. Plain and handsome; it never moves.                                                 | proposals/sun-desert.md, Energy    |
+| Absorption Chiller       | `absorptionChiller`      | A machine that makes cooling from heat            | `absorptionChiller.png`, `.winter`                                             | Groundless: a squat pale-metal unit like a tank on its side, one hot pipe (copper red) in and one cold pipe (blue, beaded with condensation) out, a small vent on top.                                                             | proposals/sun-desert.md, Energy    |
+| Fog Net                  | `fogNet`                 | A mesh that combs water out of the fog            | `fogNet.png`, `.winter`                                                        | Groundless: a wide rectangle of fine mesh strung between two tall poles with guy ropes, a gutter under it running into a small jar. Semi-transparent mesh. The game draws the drops.                                               | EXPANSION.md, Fog Net              |
+| Qanat                    | `qanat`                  | A channel underground                             | `qanat.png` (the hub) and `qanat.e.png` … `.se.png`, each with `.winter`       | Laid tile by tile, exactly as the Irrigation Channel's hub and 6 arms (above): no open water, just a line of round shaft mounds (a ring of spoil with a dark hole) along the arm, one at the hub.                                  | proposals/sun-desert.md, Buildings |
+| Concentrated Solar Plant | `concentratedSolarPlant` | Mirrors focusing the sun on a tower, a salt tank  | `concentratedSolarPlant.png`, `.winter`, `concentratedSolarPlant.lit.png`      | Carries its own reg ground: rows of small flat mirrors (heliostats) on stands around a slim tower with a bright receiver at the top, a round insulated salt tank beside it. The lit file lights the receiver and the tank's hatch. | DECISIONS.md (playtester)          |
+| Sand Battery             | `sandBattery`            | A silo of sand that stores heat                   | `sandBattery.png`, `.winter`                                                   | Groundless: a short, fat insulated silo in white with a band of terracotta, a pipe to the ground, a small sign with a heat gauge. Winter: a wisp of warmth is drawn in code, so leave it out.                                      | proposals/sun-desert.md, Energy    |
+| Palm Windbreak           | `palmWindbreak`          | A line of palms along an edge, against the dust   | `palmWindbreak.edge.e.png`, `.edge.ne.png`, `.edge.nw.png`, and each `.winter` | Along tile edges, exactly as the Hedgerow's pieces (above): three young date palms in a row with a low brushwood fence at their feet, about 90 px high (taller than a hedge).                                                      | proposals/sun-desert.md, Buildings |
+| Salt Works               | `saltWorks`              | Pans where brine dries into salt                  | `saltWorks.png`, `.winter`                                                     | Carries its own salt flat: shallow square pans in a grid, some pink with brine, some white, a heap of salt with a wooden rake, a small shed.                                                                                       | proposals/sun-desert.md, Buildings |
+| Solar Canopy (desert)    | `solarCanopy.desert.png` | Optional: the canopy in the desert's dress        | `solarCanopy.desert.png`, `.desert.winter.png`                                 | As the Reach's canopy, with a light dusting of sand on the frame and a cloth shade hung beneath it. SD4 teaches the game to use it in the desert, as it does the tiles' desert looks.                                              | proposals/sun-desert.md            |
+
+The shared buildings (workshop, salvage yard, composter, cistern, well, greenhouse, bathhouse and
+the rest) keep the Reach's art.
+
+### Evolutions (SD3)
+
+| Name               | Id                 | Grows from   | What it is                                   | Files                             | Notes                                                                                                                                  | Source                          |
+| ------------------ | ------------------ | ------------ | -------------------------------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| Three-Layer Garden | `threeLayerGarden` | Oasis Garden | The garden grown into a forest garden        | `threeLayerGarden.png`, `.winter` | As the Oasis Garden, fuller: tall palms, a full middle layer of fruit trees, ground crops in deep shade, a bench.                      | proposals/sun-desert.md, Combos |
+| Fog Fence          | `fogFence`         | Fog Net      | Three fog nets joined into one long fence    | `fogFence.png`, `.winter`         | As the Fog Net, wider: mesh panels across most of the tile on four poles, a longer gutter into a covered tank.                         | proposals/sun-desert.md, Combos |
+| Restored Array     | `restoredArray`    | Salvage Yard | The old array's panels mended, working again | `restoredArray.png`, `.winter`    | Carries its own ruin ground: the old frames straightened, three clean panels on them, sand swept back, a little shrine of spare parts. | proposals/sun-desert.md, Combos |
+
+### With SD6: the wonder, animals and festivals
+
+| Name           | Id            | Files                                                                                             | Notes                                                                                                                                                                                                                                                                                                                                    | Source                             |
+| -------------- | ------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| Solar Oasis    | `solarOasis`  | `solarOasis.png`, `.winter`, `solarOasis.stage1.png` … `.stage3.png`                              | On the Great Water Garden's frame (1536 × 1280): a flower of mirrors over 7 tiles of reg, curved rows on the 6 outer tiles all turned to a tall tower at the centre, a cooling pool at its foot watering a ring of garden. Stages: footings and the tower's base; the tower and half the mirrors; all the mirrors, the pool still empty. | proposals/sun-desert.md, Wonder    |
+| Fennec foxes   | `fennecs`     | `fennec.run.1.png`, `fennec.run.2.png`, `fennec.sit.png`, and each `.winter`                      | Small sand-coloured foxes with huge ears, on open scrub and dunes. Winter: a touch thicker coat.                                                                                                                                                                                                                                         | proposals/sun-desert.md, Wildlife  |
+| Sandgrouse     | `sandgrouse`  | `sandgrouse.1.png`, `sandgrouse.2.png`                                                            | Plump speckled birds, a pair drinking at the oasis's edge.                                                                                                                                                                                                                                                                               | proposals/sun-desert.md, Wildlife  |
+| Lanner falcons | `falcons`     | `falcon.fly.1.png`, `falcon.fly.2.png`, `falcon.perch.png`                                        | A slim grey-brown falcon in flight; perched on a wind tower's top.                                                                                                                                                                                                                                                                       | proposals/sun-desert.md, Wildlife  |
+| Oryx           | `oryx`        | `oryx.walk.1.png` … `oryx.walk.4.png`, `oryx.graze.1.png`, `oryx.graze.2.png`, and each `.winter` | White antelope with long straight horns and a dark face mask, walking the open reg in a small herd, as the Reach's deer.                                                                                                                                                                                                                 | proposals/sun-desert.md, Wildlife  |
+| Rain Feast     | `rainFeast`   | `rainFeast.card.png`                                                                              | Spring: people dancing in the first rain, the wadi running, umbrellas and bare feet.                                                                                                                                                                                                                                                     | proposals/sun-desert.md, Festivals |
+| Night Market   | `nightMarket` | `nightMarket.card.png`                                                                            | Summer: stalls by lantern light after the heat of the day, spices and fruit, people out late.                                                                                                                                                                                                                                            | proposals/sun-desert.md, Festivals |
+| Star Night     | `starNight`   | `starNight.card.png`                                                                              | Winter: the lights out, everyone on the roofs under a sky thick with stars and the Milky Way.                                                                                                                                                                                                                                            | proposals/sun-desert.md, Festivals |
+
+Animals follow the wildlife frame above (128 × 128, bottom-centre anchor, facing right). The
+desert's festivals use the Reach's bunting and lanterns.
+
 ## Optional: interface marks
 
 The game draws these in code. Paint them only if you want them in the art style; 128 × 128 px,
@@ -337,11 +430,7 @@ anchored at the centre.
 
 Reserved for Root City districts and later biomes. Numbers and art notes come when each is designed.
 
-| Name                     | Id                  | For                                                             | Source                                  |
-| ------------------------ | ------------------- | --------------------------------------------------------------- | --------------------------------------- |
-| Repair Café              | `repairCafe`        | Foundry District unlock                                         | EXPANSION.md, Reserved for Root City    |
-| Preserve House           | `preserveHouse`     | Orchard Ward unlock                                             | EXPANSION.md, Reserved for Root City    |
-| Pump Station             | `pumpStation`       | Highland                                                        | EXPANSION.md, Reserved for later biomes |
-| Biochar Kiln             | `biocharKiln`       | Highland                                                        | EXPANSION.md, Reserved for later biomes |
-| Concentrated Solar Plant | `concentratedSolar` | Sun Desert: mirrors focus the sun for both electricity and heat | DECISIONS.md, Water expansion           |
-| Fog Net                  | `fogNet`            | Sun Desert                                                      | EXPANSION.md, Reserved for later biomes |
+| Name           | Id              | For                     | Source                               |
+| -------------- | --------------- | ----------------------- | ------------------------------------ |
+| Repair Café    | `repairCafe`    | Foundry District unlock | EXPANSION.md, Reserved for Root City |
+| Preserve House | `preserveHouse` | Orchard Ward unlock     | EXPANSION.md, Reserved for Root City |
