@@ -34,7 +34,7 @@ const AWAITING_ART = new Set(['iceHouse', 'mudBoat']);
 /** Root City pieces drawn in code until their art comes (Lake Gardens' LG5, ART-CITY.md). */
 const CITY_AWAITING_ART = new Set(['canalQuarter', 'waterMarket']);
 /** Tiles drawn in code until their art comes (Lake Gardens, before its art guide). */
-const TILES_AWAITING_ART = new Set(['shallows', 'deep', 'bed']);
+const TILES_AWAITING_ART = new Set(['shallows', 'deep', 'bed', 'darkEarth']);
 
 const art = (path: string) => existsSync(new URL(`../src/art/${path}`, import.meta.url));
 const info = JSON.parse(readFileSync(new URL('../src/art/art.json', import.meta.url), 'utf8')) as {

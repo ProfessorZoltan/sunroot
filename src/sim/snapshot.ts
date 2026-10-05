@@ -77,6 +77,7 @@ function copyBuildings(buildings: Record<string, BuildingState>): Record<string,
     const b = buildings[uid]!;
     const c: BuildingState = { ...b, at: { ...b.at } };
     if (b.damage) c.damage = { ...b.damage };
+    if (b.layers) c.layers = b.layers.map((l) => ({ ...l }));
     out[uid] = c;
   }
   return out;

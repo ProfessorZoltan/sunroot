@@ -20,6 +20,11 @@ export interface Tile extends Hex {
   height?: number;
   /** Charred by a biochar kiln (the Highland): a farm here makes 1 more food, for good. */
   charred?: boolean;
+  /**
+   * Fertility (Rainforest Gardens), 0 to the forest rules' most; missing is the tile type's own
+   * (`rules.forest.fertility`), until something changes it.
+   */
+  fertility?: number;
 }
 
 export interface MapState {
@@ -69,6 +74,10 @@ export interface BuildingState {
   footprint?: number;
   /** A wonder: the turn whose season finished building it. */
   finished?: number;
+  /** Layers added to it (a forest garden's shrub, understory, canopy): each with when it was. */
+  layers?: { id: string; turn: number }[];
+  /** A kitchen midden's seasons towards its next tile of dark earth. */
+  darkening?: number;
 }
 
 export interface RunOptions {
@@ -258,6 +267,8 @@ export type Command =
   /** Coppices a woodland tile (Coppice Wood); `stopCoppice` lets it grow back. */
   | { type: 'coppice'; at: Hex }
   | { type: 'stopCoppice'; uid: string }
+  /** Add a layer to a building that takes them (a forest garden), one a season. */
+  | { type: 'addLayer'; uid: string; layer: string }
   /** Plants a hedge along the edge between two tiles side by side, or clears one. */
   | { type: 'plantHedge'; a: Hex; b: Hex }
   | { type: 'removeHedge'; a: Hex; b: Hex }
@@ -451,6 +462,20 @@ export interface LakeReport {
   bloom: boolean;
 }
 
+/** Rainforest Gardens' soil this season (`resolveForest`). */
+export interface ForestReport {
+  /** Fertility the monsoon washed out, by tile key (1 each). */
+  leached: string[];
+  /** Fields with no fertility left that wore a step down the land-health ladder, by tile key. */
+  wornOut: string[];
+  /** Charcoal makers that ran, by uid. */
+  charcoal: string[];
+  /** Middens fed this season, by uid: their seasons towards the next dark earth. */
+  middens: Record<string, number>;
+  /** Tiles turned to dark earth, by tile key. */
+  darkened: string[];
+}
+
 export interface WaterReport {
   /** Entering the river at the top of the map. */
   riverFlow: number;
@@ -552,6 +577,8 @@ export interface SeasonReport {
    * by itself and what it holds at the end; mud settled and dredged; whether it bloomed.
    */
   lake?: LakeReport;
+  /** Rainforest Gardens' soil: fertility washed out, fields worn out, dark earth made. */
+  forest?: ForestReport;
   /** Buildings that lost food to the low river (far from water), or got too little water. */
   dried: string[];
   /** The water system's season, while it is on. */

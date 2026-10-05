@@ -36,6 +36,8 @@ export const TILE_COLORS: Record<TileType, TileColors> = {
   shallows: { top: 0x8fc0b0, side: 0x6a9a8a, detail: 0xb8d8b0 },
   deep: { top: 0x5d93a8, side: 0x426f80, detail: 0xcfe7ee },
   bed: { top: 0x9fc27a, side: 0x6f8a52, detail: 0x5e7a3e },
+  // Rainforest Gardens: dark earth, black and crumbly with char and potsherds.
+  darkEarth: { top: 0x4a3a2c, side: 0x33271d, detail: 0x7a6248 },
 };
 
 export const COLORS = {

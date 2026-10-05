@@ -40,6 +40,8 @@ export const TILE_TYPES = [
   'shallows',
   'deep',
   'bed',
+  // Rainforest Gardens (proposals/rainforest-gardens.md): made by a kitchen midden, never found.
+  'darkEarth',
 ] as const;
 export const TileTypeSchema = z.enum(TILE_TYPES);
 export type TileType = z.infer<typeof TileTypeSchema>;
@@ -194,6 +196,30 @@ const RecipeSchema = z.object({
     .strict()
     .optional(),
 });
+
+/**
+ * A layer added to a building after it stands (Rainforest Gardens' forest garden): shrub,
+ * understory or canopy over the building's own ground layer. Each makes its own yields once it
+ * has grown, and may help another layer (`ground` is the building's own yields) while that one
+ * makes any.
+ */
+const LayerSchema = z
+  .object({
+    id: z.string().regex(/^[a-z][A-Za-z]*$/),
+    name: z.string(),
+    /** Materials to add it. */
+    cost: nonNeg,
+    /** Seasons after it is added before it yields. */
+    grows: nonNeg,
+    yields: z.partialRecord(ResourceSchema, PerSeason).default({}),
+    helps: z
+      .array(z.object({ layer: z.string(), resource: ResourceSchema, amount: int.min(1) }).strict())
+      .default([]),
+    /** Once grown, it covers the tile: the monsoon washes none of its fertility away. */
+    covers: z.boolean().default(false),
+  })
+  .strict();
+export type LayerDef = z.infer<typeof LayerSchema>;
 
 export const BuildingSchema = z
   .object({
@@ -436,6 +462,35 @@ export const BuildingSchema = z
       .optional(),
     /** It fishes the lake: an algae bloom costs it food (Lake Gardens). */
     fishesLake: z.boolean().default(false),
+    /**
+     * Layers added to it later, one a season, each for its cost (Rainforest Gardens' forest
+     * garden). Its own yields are the ground layer.
+     */
+    layers: z.array(LayerSchema).optional(),
+    /**
+     * Built on one of `from`, it burns the tile clear to `to`, leaving the forest rules' `ash` as
+     * the new field's fertility (a milpa cleared from rainforest).
+     */
+    burns: z
+      .object({ from: z.array(TileTypeSchema).min(1), to: TileTypeSchema })
+      .strict()
+      .optional(),
+    /** Food for each point of its tile's fertility, in a season it makes any (the milpa). */
+    fertilityFood: nonNeg.default(0),
+    /**
+     * A kitchen midden (Rainforest Gardens): each season it takes `scraps` scraps from the stores
+     * and, if a charcoal maker within `range` ran, comes a season nearer to making dark earth; at
+     * `seasons` it turns the nearest tile it can within `range` into dark earth.
+     */
+    midden: z
+      .object({ scraps: int.min(1), seasons: int.min(1), range: int.min(1) })
+      .strict()
+      .optional(),
+    /** A char hearth: each season it burns this much biomass into charcoal for middens near it. */
+    charcoal: z
+      .object({ biomass: int.min(1) })
+      .strict()
+      .optional(),
     /** Shade: a home next to it (or along it, for an edge building) needs this much less cooling. */
     shades: nonNeg.default(0),
     recipes: z
@@ -813,6 +868,33 @@ const LakeRulesSchema = z
 export type LakeRules = z.infer<typeof LakeRulesSchema>;
 
 /**
+ * Rainforest Gardens' soil (proposals/rainforest-gardens.md, The new rules). Farmed tiles hold
+ * fertility, which the monsoon washes out of uncovered fields; a field with none makes less and
+ * wears down the land-health ladder. Compost puts it back; dark earth keeps it for good.
+ */
+const ForestRulesSchema = z
+  .object({
+    /** Fertility a tile holds at most. */
+    maxFertility: int.min(1),
+    /** A tile's fertility before anything changes it, by type (missing: 0). */
+    fertility: z.partialRecord(TileTypeSchema, nonNeg).default({}),
+    /** Fertility a field burned clear of forest starts with. */
+    ash: nonNeg,
+    /** Seasons whose rain washes 1 fertility out of each uncovered farmed tile (the monsoon). */
+    leaches: PerSeasonFlags,
+    /** A farm on a tile with no fertility makes this share of its food, rounded down. */
+    bareFactor: z.number().min(0).max(1),
+    /** Tiles whose fertility never washes out (dark earth). */
+    keeps: z.array(TileTypeSchema).default([]),
+    /** Food a farm on dark earth makes more, in a season it makes any. */
+    darkEarthFood: nonNeg.default(0),
+    /** Tiles a midden can turn into dark earth. */
+    darkens: z.array(TileTypeSchema).min(1),
+  })
+  .strict();
+export type ForestRules = z.infer<typeof ForestRulesSchema>;
+
+/**
  * Local heat (DECISIONS.md, Teaching by layers): heat sources (free heat,
  * heat pumps, heat wells) reach only buildings within `range` tiles; heat
  * paid with energy from the grid still reaches anywhere.
@@ -1006,6 +1088,8 @@ export const RulesSchema = z
     cooling: CoolingRulesSchema.default({ range: 2, gridCool: true, gridCoolCost: 2 }),
     /** Lake Gardens' lake (proposals/lake-gardens.md): its mud and its grey water. Off without it. */
     lake: LakeRulesSchema.optional(),
+    /** Rainforest Gardens' soil (proposals/rainforest-gardens.md): its fertility. Off without it. */
+    forest: ForestRulesSchema.optional(),
     localHeat: LocalHeatRulesSchema.default({
       enabled: false,
       range: 2,

@@ -19,6 +19,8 @@ import { addHeat, addSupply, addYield, explain, flow, type SeasonContext } from 
 import { festivalThisSeason } from '../wildlife';
 import { hedged } from '../edges';
 import { wonderDone } from '../wonder';
+import { fertilityOf } from '../forest';
+import { layerHelp, layerYields } from './forest';
 
 const EPSILON = 1e-9;
 
@@ -268,6 +270,17 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
       base += 1;
       lines.push('+1 biochar');
     }
+    // Rainforest Gardens: a milpa makes more on fertile ground, any farm more on dark earth.
+    const forest = content.rules.forest;
+    const fertility = def.farmland ? fertilityOf(content, tile) : null;
+    if (forest && fertility !== null && fertility > 0 && def.fertilityFood > 0) {
+      base += fertility * def.fertilityFood;
+      lines.push(`+${fertility * def.fertilityFood} fertility ${fertility}`);
+    }
+    if (forest && def.farmland && tile.type === 'darkEarth' && forest.darkEarthFood > 0) {
+      base += forest.darkEarthFood;
+      lines.push(`+${forest.darkEarthFood} dark earth`);
+    }
     // High pasture: a shieling among meadows.
     const pasture = def.nextToTilesFood;
     if (pasture?.seasons[ctx.si]) {
@@ -287,7 +300,19 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
       lines.push(`+${boost.food} ${festival!.name}`);
     }
   }
+  // A forest garden's layers help its ground layer (the understory's mulch).
+  const help = def.layers ? layerHelp(ctx, b, 'ground', res) : null;
+  if (help && help.amount > 0) {
+    base += help.amount;
+    lines.push(...help.from);
+  }
   let multiplier = 1;
+  // A field the rain has washed bare makes less (Rainforest Gardens).
+  const bare = content.rules.forest?.bareFactor;
+  if (res === 'food' && def.farmland && bare !== undefined && fertilityOf(content, tile) === 0) {
+    multiplier *= bare;
+    lines.push(`× ${bare} no fertility left`);
+  }
   if (res === 'food' && def.farmland) {
     const flood = content.events.flood;
     if (flood && b.siltYear === state.year && flood.siltSeasons.includes(state.season)) {
@@ -378,6 +403,7 @@ export function yieldFor(ctx: SeasonContext, buildings: BuildingState[]): void {
       }
       addYield(ctx, b, res, amount);
     }
+    if (def.layers) layerYields(ctx, b);
   }
 }
 

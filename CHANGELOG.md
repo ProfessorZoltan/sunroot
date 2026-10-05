@@ -1,5 +1,18 @@
 # Changelog
 
+## Rainforest Gardens: the forest's rules
+
+- **Rainforest Gardens** is the sixth biome, joining once 10 districts stand in Root City. Its
+  rules come first; the biome itself follows.
+- **Layers**: a forest garden can take a shrub layer, an understory and a canopy, added one a
+  season. Each grows in its own time and makes its own crop; the understory mulches the ground
+  and the canopy helps the shrubs.
+- **Fertility**: fields hold fertility. A milpa burned out of the rainforest starts with 3 and
+  makes 1 more food for each point. The monsoon washes 1 out of every field nothing covers; a
+  field with none left makes half and wears down. Compost puts it back.
+- **Dark earth**: a kitchen midden, fed scraps with a char hearth's charcoal near, turns a tile
+  into dark earth once a year. Dark earth keeps its fertility for good and gives a farm 1 more food.
+
 ## Lake Gardens: the Floating City, its animals and festivals
 
 - **The Floating City**, the lake's wonder: raised beds in flower round a willow island, out on

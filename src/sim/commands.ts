@@ -5,6 +5,7 @@
 import type { Content } from './content/load';
 import { AUTO_RECIPE, type Resource } from './content/schema';
 import { compostPlan } from './compost';
+import { burnClear, feedSoil, layerProblem } from './forest';
 import { demolish, demolishCheck } from './demolish';
 import { projectBlocked } from './projects';
 import { drawCards, draftSize, isTuning } from './draft';
@@ -118,6 +119,23 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       b.builtTurn = s.turn;
       return null;
     }
+    case 'addLayer': {
+      const problem = layerProblem(content, s, command.uid, command.layer);
+      if (problem) return problem;
+      const b = s.buildings[command.uid]!;
+      const def = defOf(content, b);
+      const layer = def.layers!.find((l) => l.id === command.layer)!;
+      s.stores.materials -= layer.cost;
+      flow(
+        s.spent,
+        'materials',
+        'used',
+        `Building: ${def.name} (${layer.name.toLowerCase()})`,
+        layer.cost,
+      );
+      b.layers = [...(b.layers ?? []), { id: layer.id, turn: s.turn }];
+      return null;
+    }
     case 'plantHedge': {
       const problem = hedgeProblem(content, s, command.a, command.b);
       if (problem) return problem;
@@ -205,6 +223,7 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       if (def.digester) b.slot = def.digester.defaultSlot;
       if (def.storage) b.stored = 0;
       if (def.setsTile) plantTile(content, tileAt(s, b.at)!, def.setsTile);
+      if (def.burns) burnClear(content, tileAt(s, b.at)!, def.burns);
       if (def.weir) {
         const index = tileAt(s, b.at)!.riverIndex ?? 0;
         const occupied = new Set(Object.values(s.buildings).map((o) => hexKey(o.at)));
@@ -278,7 +297,9 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       if (!tile) return 'outside the valley';
       const cost = content.rules.compostPerTileStep;
       if (s.stores.compost < cost) return `spreading compost needs ${cost} compost`;
-      if (!improveTile(content, tile, 1)) return `compost can't improve ${tile.type}`;
+      // On a field (Rainforest Gardens) it feeds the soil as well as healing the land.
+      const fed = feedSoil(content, s, tile);
+      if (!improveTile(content, tile, 1) && !fed) return `compost can't improve ${tile.type}`;
       s.stores.compost -= cost;
       flow(s.spent, 'compost', 'used', 'Spread on the land', cost);
       return null;
@@ -292,6 +313,7 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       const plan = compostPlan(content, s, times);
       if (plan.length === 0) return 'no land left that compost can improve';
       for (const key of plan) {
+        feedSoil(content, s, s.map.tiles[key]!);
         improveTile(content, s.map.tiles[key]!, 1);
         s.stores.compost -= cost;
         flow(s.spent, 'compost', 'used', 'Spread on the land', cost);

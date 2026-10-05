@@ -180,6 +180,17 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
         );
     }
   }
+  // Rainforest Gardens' soil and layers.
+  for (const b of data.buildings) {
+    const forest = b.layers || b.burns || b.fertilityFood > 0 || b.midden || b.charcoal;
+    if (forest && !data.rules.forest) problems.push(`${b.id} needs rules.forest`);
+    const ids = (b.layers ?? []).map((l) => l.id);
+    if (new Set(ids).size !== ids.length) problems.push(`${b.id}.layers has a layer twice`);
+    for (const l of b.layers ?? [])
+      for (const h of l.helps)
+        if (h.layer !== 'ground' && !ids.includes(h.layer))
+          problems.push(`${b.id}.layers.${l.id} helps ${h.layer}, which is not one of its layers`);
+  }
   for (const b of data.buildings) {
     const w = b.wonder;
     if (!w) continue;
