@@ -24,12 +24,14 @@ import { Inspector, RightPanel, paletteOrder, type Ui } from './RightPanel';
 import { SeasonReportDialog } from './SeasonReport';
 import type { Season } from '../sim';
 import { TipProvider } from './tips';
+import { IconsContext } from './pictures';
 import { TopBar } from './TopBar';
 
 export function App({
   store,
   view,
   icons,
+  tiles = () => ({}),
   newRun,
   viewCity,
   log,
@@ -38,6 +40,8 @@ export function App({
   store: GameStore;
   view: () => MapView | null;
   icons: () => Record<string, string>;
+  /** Tile icons, by tile type (for the pictures on combo cards). */
+  tiles?: () => Record<string, string>;
   /** Abandons this run (and its save), or after a run ends: on to Root City or the next run. */
   newRun: () => void;
   /** Looks at Root City; the run stays saved. */
@@ -99,7 +103,7 @@ export function App({
   const { content, state } = store;
   const order = paletteOrder(content, state.unlocked);
   const hotkeys = paletteHotkeys(order.map((id) => ({ id, name: content.byId[id]!.name })));
-  const ui: Ui = { icons: icons(), hotkeys };
+  const ui: Ui = { icons: icons(), tiles: tiles(), hotkeys };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -264,71 +268,73 @@ export function App({
   };
   return (
     <TipProvider>
-      <div class="screen">
-        <TopBar
-          store={store}
-          onReport={(season) => setReport(season)}
-          onEnergyMix={() => setEnergyMix(true)}
-        />
-        <div class="middle">
-          <LeftPanel store={store} onOverview={() => setOverview(true)} />
-          <main class="map-wrap" aria-label="Map of the valley">
-            <div id="map-host" class="map" />
-            {store.resolution ? (
-              <ResolutionBanner store={store} />
-            ) : (
-              <ForecastBanner store={store} />
-            )}
-            <MapTip store={store} view={view()} />
-            <div class="map-controls">
-              <TerrainPicker store={store} />
-              <ShortfallPicker store={store} />
-            </div>
-            {store.inspected && !priorities && !store.tool && (
-              <div class="inspector-overlay">
-                <Inspector store={store} ui={ui} />
+      <IconsContext.Provider value={{ buildings: ui.icons, tiles: ui.tiles }}>
+        <div class="screen">
+          <TopBar
+            store={store}
+            onReport={(season) => setReport(season)}
+            onEnergyMix={() => setEnergyMix(true)}
+          />
+          <div class="middle">
+            <LeftPanel store={store} onOverview={() => setOverview(true)} />
+            <main class="map-wrap" aria-label="Map of the valley">
+              <div id="map-host" class="map" />
+              {store.resolution ? (
+                <ResolutionBanner store={store} />
+              ) : (
+                <ForecastBanner store={store} />
+              )}
+              <MapTip store={store} view={view()} />
+              <div class="map-controls">
+                <TerrainPicker store={store} />
+                <ShortfallPicker store={store} />
               </div>
+              {store.inspected && !priorities && !store.tool && (
+                <div class="inspector-overlay">
+                  <Inspector store={store} ui={ui} />
+                </div>
+              )}
+              <ActionDock store={store} menu={menu} />
+            </main>
+            {priorities ? (
+              <PrioritiesPanel
+                store={store}
+                ui={ui}
+                view={view}
+                onClose={() => setPriorities(false)}
+              />
+            ) : (
+              <RightPanel store={store} ui={ui} />
             )}
-            <ActionDock store={store} menu={menu} />
-          </main>
-          {priorities ? (
-            <PrioritiesPanel
-              store={store}
-              ui={ui}
-              view={view}
-              onClose={() => setPriorities(false)}
+          </div>
+          {help && <Help onClose={() => setHelp(false)} log={log} audio={audio} />}
+          {overview && <RunOverview store={store} onClose={() => setOverview(false)} />}
+          {energyMix && <EnergyMixDialog store={store} onClose={() => setEnergyMix(false)} />}
+          {noting && log && (
+            <NoteDialog
+              season={`${store.state.season}, year ${store.state.year}`}
+              onSave={(text) => {
+                log.note(store.state, text);
+                setNoting(false);
+              }}
+              onClose={() => setNoting(false)}
             />
-          ) : (
-            <RightPanel store={store} ui={ui} />
+          )}
+          {report && (
+            <SeasonReportDialog
+              store={store}
+              season={report === 'latest' ? undefined : report}
+              onClose={() => setReport(null)}
+            />
+          )}
+          {askNewRun && <NewRunDialog onConfirm={newRun} onClose={() => setAskNewRun(false)} />}
+          {almanac && <AlmanacModal store={store} onClose={() => setAlmanac(false)} />}
+          {store.reveals.length > 0 && !store.resolution && <RevealCard store={store} />}
+          {ended && !endSeen && !store.resolution && store.reveals.length === 0 && (
+            <EndScreen store={store} onClose={() => setEndSeen(true)} onNewRun={newRun} />
           )}
         </div>
-        {help && <Help onClose={() => setHelp(false)} log={log} audio={audio} />}
-        {overview && <RunOverview store={store} onClose={() => setOverview(false)} />}
-        {energyMix && <EnergyMixDialog store={store} onClose={() => setEnergyMix(false)} />}
-        {noting && log && (
-          <NoteDialog
-            season={`${store.state.season}, year ${store.state.year}`}
-            onSave={(text) => {
-              log.note(store.state, text);
-              setNoting(false);
-            }}
-            onClose={() => setNoting(false)}
-          />
-        )}
-        {report && (
-          <SeasonReportDialog
-            store={store}
-            season={report === 'latest' ? undefined : report}
-            onClose={() => setReport(null)}
-          />
-        )}
-        {askNewRun && <NewRunDialog onConfirm={newRun} onClose={() => setAskNewRun(false)} />}
-        {almanac && <AlmanacModal store={store} onClose={() => setAlmanac(false)} />}
-        {store.reveals.length > 0 && !store.resolution && <RevealCard store={store} />}
-        {ended && !endSeen && !store.resolution && store.reveals.length === 0 && (
-          <EndScreen store={store} onClose={() => setEndSeen(true)} onNewRun={newRun} />
-        )}
-      </div>
+      </IconsContext.Provider>
     </TipProvider>
   );
 }

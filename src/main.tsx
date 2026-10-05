@@ -29,7 +29,7 @@ import { PlayLog } from './game/playlog';
 import { indexedDbSlot, throttled } from './game/saves';
 import { GameStore, type Reveal } from './game/store';
 import { buildTimeline } from './game/timeline';
-import { renderBuildingIcons } from './render/icons';
+import { renderBuildingIcons, renderTileIcons } from './render/icons';
 import { artLoaded, iconUrl, loadArt, windowsTexture } from './render/sprites';
 import { MapView } from './render/mapView';
 import { COLORS } from './render/palette';
@@ -257,12 +257,14 @@ async function start() {
 
   let view: MapView | null = null;
   let icons: Record<string, string> = {};
+  let tileIcons: Record<string, string> = {};
   const draw = () =>
     render(
       <App
         store={store}
         view={() => view}
         icons={() => icons}
+        tiles={() => tileIcons}
         newRun={newRun}
         viewCity={passing ? undefined : viewCity}
         log={log}
@@ -350,6 +352,7 @@ async function start() {
   drawMap();
   icons = await renderBuildingIcons(app);
   for (const id of Object.keys(icons)) icons[id] = iconUrl(id) ?? icons[id]!;
+  tileIcons = await renderTileIcons(app, store.content.land);
   draw();
 }
 

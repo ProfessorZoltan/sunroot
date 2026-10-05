@@ -14,27 +14,49 @@ export function terrainName(type: TileType): string {
   return TERRAIN_NAMES[type] ?? type.charAt(0).toUpperCase() + type.slice(1);
 }
 
-/** Picks a terrain to highlight: the map dims every other tile. */
+/**
+ * Picks what to highlight (the map dims every other tile): a terrain, or a closed loop's
+ * buildings, so a loop on its card can be found on the map.
+ */
 export function TerrainPicker({ store }: { store: GameStore }) {
   const present = [...new Set(Object.values(store.state.map.tiles).map((t) => t.type))].sort();
   const counts = (type: TileType) =>
     Object.values(store.state.map.tiles).filter((t) => t.type === type).length;
+  const loops = store.state.loops.map((l) => ({
+    key: `${l.combo}:${l.anchor}`,
+    name: store.rules.comboById[l.combo]?.name ?? l.combo,
+    n: l.members.length,
+  }));
+  const value = store.loopFocus ? `loop:${store.loopFocus}` : (store.terrainFocus ?? '');
   return (
     <label class="map-control terrain-picker">
       <span class="small">Highlight</span>
       <select
         aria-label="Highlight terrain"
-        value={store.terrainFocus ?? ''}
-        onChange={(e) =>
-          store.focusTerrain(((e.target as HTMLSelectElement).value || null) as TileType | null)
-        }
+        value={value}
+        onChange={(e) => {
+          const v = (e.target as HTMLSelectElement).value;
+          if (v.startsWith('loop:')) store.focusLoop(v.slice('loop:'.length));
+          else store.focusTerrain((v || null) as TileType | null);
+        }}
       >
-        <option value="">No terrain</option>
-        {present.map((t) => (
-          <option value={t}>
-            {terrainName(t)} ({counts(t)})
-          </option>
-        ))}
+        <option value="">Nothing</option>
+        {loops.length > 0 && (
+          <optgroup label="Closed loops">
+            {loops.map((l) => (
+              <option value={`loop:${l.key}`}>
+                {l.name} ({l.n} buildings)
+              </option>
+            ))}
+          </optgroup>
+        )}
+        <optgroup label="Terrain">
+          {present.map((t) => (
+            <option value={t}>
+              {terrainName(t)} ({counts(t)})
+            </option>
+          ))}
+        </optgroup>
       </select>
     </label>
   );

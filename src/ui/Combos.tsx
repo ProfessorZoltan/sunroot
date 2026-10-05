@@ -6,6 +6,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { entryView, LAYER_NAMES } from '../game/almanac';
 import type { GameStore } from '../game/store';
+import { ComboPicture, PieceIcon } from './pictures';
 import { COMBO_LAYERS, eraGoal, wonderGivesText, type Combo, type ComboLayer } from '../sim';
 
 /** Jewel colour per layer, from the stained-glass palette. */
@@ -112,6 +113,7 @@ function AlmanacEntry({
             {combo.name}
             {now && <span class="found-now"> · found this run</span>}
           </div>
+          <ComboPicture content={store.rules} combo={combo} size="large" />
           <div class="small">{combo.text}</div>
         </div>
       </article>
@@ -165,6 +167,7 @@ export function RevealCard({ store }: { store: GameStore }) {
         <Jewel layer={combo.layer} />
         <span class="card-kind">Discovered · {LAYER_NAMES[combo.layer]}</span>
         <h2 class="glass-title">{combo.name}</h2>
+        <ComboPicture content={store.rules} combo={combo} size="large" />
         <p>{combo.text}</p>
         <div class="small">Filed in the Almanac.</div>
       </>
@@ -451,6 +454,7 @@ export function EvolutionPanel({ store }: { store: GameStore }) {
               <span class="card-body">
                 <span class="card-kind">Evolution</span>
                 <span class="card-name">{combo.name}</span>
+                <ComboPicture content={store.rules} combo={combo} />
                 <span class="card-text">{combo.text}</span>
               </span>
               <span class="keycap" aria-hidden="true">
@@ -485,6 +489,7 @@ export function LoopsPanel({ store }: { store: GameStore }) {
           <span>
             <strong>{combo.name}</strong> · {loop.members.length} buildings, +1 each
             {loop.turn === state.turn - 1 ? ' from this season' : ''}
+            <LoopMembers store={store} members={loop.members} />
           </span>
         </div>
       ))}
@@ -506,5 +511,28 @@ export function LoopsPanel({ store }: { store: GameStore }) {
       ))}
       {empty && <div class="quiet small">Charters come at the start of eras 2, 3 and 4.</div>}
     </section>
+  );
+}
+
+/** The buildings in a closed loop, as they stand on the map, in loop order. */
+function LoopMembers({ store, members }: { store: GameStore; members: string[] }) {
+  const pieces = members
+    .map((uid) => store.state.buildings[uid])
+    .filter((b) => b !== undefined)
+    .map((b) => ({
+      kind: 'building' as const,
+      id: b.type,
+      name: store.rules.byId[b.type]?.name ?? b.type,
+    }));
+  return (
+    <span class="loop-members" aria-hidden="true">
+      {pieces.map((p, i) => (
+        <>
+          {i > 0 && <span class="cp-join">→</span>}
+          <PieceIcon piece={p} />
+        </>
+      ))}
+      <span class="cp-join cp-loop">↺</span>
+    </span>
   );
 }

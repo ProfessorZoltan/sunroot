@@ -5,6 +5,7 @@
  * energy by source and use, the combos, loops and other bonuses at work, and
  * wellbeing and population.
  */
+import { ComboPicture } from './pictures';
 import { eventOf } from '../sim';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { waterLedger, waterNotes } from '../game/waterInfo';
@@ -332,6 +333,7 @@ function Bonuses({ store, report }: { store: GameStore; report: SeasonReport }) 
                   <strong>{combo?.name ?? id}</strong>
                   {n > 1 ? ` ×${n}` : ''}{' '}
                   <span class="quiet">({combo ? LAYER_NAMES[combo.layer] : ''})</span>
+                  {combo && <ComboPicture content={store.rules} combo={combo} />}
                 </li>
               );
             })}

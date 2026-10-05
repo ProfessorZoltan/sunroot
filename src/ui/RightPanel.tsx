@@ -22,6 +22,9 @@ import {
   type Resource,
 } from '../sim';
 import { CharterPanel, EvolutionPanel } from './Combos';
+import { ComboPicture } from './pictures';
+import { shows } from '../game/comboPicture';
+import { entryView } from '../game/almanac';
 import { FestivalPanel } from './Festivals';
 import { VisionPanel } from './RunUi';
 import { autoText, describeBuilding } from './describe';
@@ -45,6 +48,8 @@ const JEWEL: Record<BuildingDef['kind'], string> = {
 
 export interface Ui {
   icons: Record<string, string>;
+  /** Tile icons, by tile type. */
+  tiles: Record<string, string>;
   hotkeys: Record<string, string>;
 }
 
@@ -513,6 +518,7 @@ function PlacementPanel({ store }: { store: GameStore }) {
         return (
           <div class="combo-line small">
             {combo.layer === 'chain' ? 'Closes the' : 'Forms'} <strong>{combo.name}</strong>
+            <ComboPicture content={store.rules} combo={combo} />
           </div>
         );
       })}
@@ -565,6 +571,47 @@ function Repairs({ store, uid, cost }: { store: GameStore; uid: string; cost: nu
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * The closed loops a building stands in, and the combos found so far that it takes part in,
+ * drawn as on their cards, so a card can be matched to what stands on the map.
+ */
+function CombosWith({ store, uid }: { store: GameStore; uid: string }) {
+  const { state } = store;
+  const b = state.buildings[uid]!;
+  const loops = state.loops.filter((l) => l.members.includes(uid));
+  const inLoop = new Set(loops.map((l) => l.combo));
+  const known = store.rules.combos.filter(
+    (c) =>
+      !inLoop.has(c.id) &&
+      entryView(store.almanac, state, c) === 'known' &&
+      shows(store.rules, c, b.type),
+  );
+  if (loops.length === 0 && known.length === 0) return null;
+  return (
+    <div class="combos-with">
+      {loops.map((l) => {
+        const combo = store.rules.comboById[l.combo]!;
+        return (
+          <div class="small">
+            <span class="loop-mark" aria-hidden="true">
+              ∞
+            </span>{' '}
+            In the <strong>{combo.name}</strong>, closed: +1 for as long as it stands.
+            <ComboPicture content={store.rules} combo={combo} />
+          </div>
+        );
+      })}
+      {known.length > 0 && <div class="quiet small">Combos it takes part in:</div>}
+      {known.map((c) => (
+        <div class="small" title={c.text}>
+          <strong>{c.name}</strong>
+          <ComboPicture content={store.rules} combo={c} />
+        </div>
+      ))}
     </div>
   );
 }
@@ -644,6 +691,7 @@ export function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
         <div class="small heat-line">{line}</div>
       ))}
       {gauge && <StorageGaugeView gauge={gauge} />}
+      <CombosWith store={store} uid={b.uid} />
       {store.waterForecast?.uses[b.uid] && (
         <div class="small quiet">
           Buildings the same distance down a channel share its water by priority (below).

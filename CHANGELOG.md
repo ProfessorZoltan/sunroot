@@ -1,5 +1,15 @@
 # Changelog
 
+## Combos you can see
+
+- **Combo cards show their buildings**: the Almanac, a discovery, an evolution choice, the
+  placement preview and the season report draw each combo's buildings and tiles with the map's
+  own art, in the order the card reads (next to, then, becomes, in a line, around it).
+- **A building's details** list the closed loops it stands in and the combos you have found that
+  it takes part in.
+- **Highlight a loop**: the map's Highlight picker lists your closed loops; pick one to light up
+  its buildings.
+
 ## Lake Gardens begins
 
 - **Lake Gardens** will join after 10 runs, whatever the city has built. Its lake's rules are

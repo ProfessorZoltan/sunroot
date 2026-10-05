@@ -41,6 +41,12 @@ test('a discovery unfolds as a card, and the Almanac keeps it', async ({ page })
   const card = page.getByRole('dialog', { name: 'Discovered: Green Doorstep' });
   await expect(card).toBeVisible();
   await expect(card).toContainText('Filed in the Almanac');
+  // Its picture: the cottage, then meadow or woodland, named under each.
+  await expect(card.locator('.combo-picture .cp-name')).toHaveText([
+    'Cottage',
+    'meadow',
+    'woodland',
+  ]);
   // Close every card (there may be more than one), then open the Almanac.
   for (let i = 0; i < 8 && (await page.getByRole('dialog').count()) > 0; i++) {
     await page

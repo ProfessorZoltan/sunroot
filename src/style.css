@@ -348,6 +348,111 @@ select:focus-visible {
   color: var(--gold-text);
   font-weight: 800;
 }
+.loop-members {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+/* A building's combos, in its details. */
+.combos-with {
+  display: grid;
+  gap: 4px;
+  margin: 6px 0;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+
+/* Combos as pictures: the buildings and tiles a card describes, with the map's own art. */
+.combo-picture {
+  margin: 4px 0;
+}
+.cp-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+}
+.cp-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.cp-slot {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.cp-slot.cp-ring {
+  padding: 2px 6px;
+  border: 1.5px dashed currentColor;
+  border-radius: 999px;
+}
+.cp-piece {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+.cp-piece img {
+  display: block;
+  object-fit: contain;
+}
+.combo-picture.large .cp-piece {
+  max-width: 76px;
+}
+.cp-name {
+  font-size: 11px;
+  line-height: 1.15;
+  text-align: center;
+}
+.cp-blank {
+  display: grid;
+  place-items: center;
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  background: rgba(128, 128, 128, 0.25);
+  font-size: 11px;
+  font-weight: 700;
+}
+.cp-any {
+  width: 26px;
+  height: 26px;
+}
+.combo-picture.large .cp-any {
+  width: 44px;
+  height: 44px;
+}
+.cp-or {
+  font-size: 11px;
+  opacity: 0.75;
+}
+.cp-count {
+  font-weight: 800;
+  font-size: 12px;
+}
+.cp-join {
+  font-weight: 800;
+  opacity: 0.8;
+}
+.cp-loop {
+  font-size: 16px;
+}
+.cp-note {
+  font-size: 12px;
+  font-style: italic;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+.modal.discovery .combo-picture {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.modal.discovery .cp-row {
+  justify-content: center;
+}
 
 .map-wrap {
   flex: 1;

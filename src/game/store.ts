@@ -701,6 +701,7 @@ export class GameStore {
   focusTerrain(type: TileType | null): void {
     this.terrainFocus = type;
     this.shortFocus = null;
+    this.loopFocus = null;
     this.emit();
   }
 
@@ -710,6 +711,7 @@ export class GameStore {
   focusShortfall(need: Need | 'any' | null): void {
     this.shortFocus = need;
     this.terrainFocus = null;
+    this.loopFocus = null;
     this.emit();
   }
 
@@ -718,8 +720,26 @@ export class GameStore {
     return shortfalls(this.rules, this.state, this.insight.now);
   }
 
-  /** The tiles the map highlights: a terrain's, or the buildings short of the chosen need. */
+  /** A closed loop chosen to light up on the map (its combo and first building, `combo:uid`). */
+  loopFocus: string | null = null;
+
+  focusLoop(key: string | null): void {
+    this.loopFocus = key;
+    this.terrainFocus = null;
+    this.shortFocus = null;
+    this.emit();
+  }
+
+  /**
+   * The tiles the map highlights: a closed loop's buildings, a terrain's, or the buildings short
+   * of the chosen need.
+   */
   get terrainTiles(): Hex[] {
+    const loop = this.state.loops.find((l) => `${l.combo}:${l.anchor}` === this.loopFocus);
+    if (loop)
+      return loop.members
+        .map((uid) => this.state.buildings[uid]?.at)
+        .filter((h): h is Hex => h !== undefined);
     if (this.shortFocus) {
       return shortOf(this.shortfalls, this.shortFocus)
         .map((s) => this.state.buildings[s.uid]?.at)
