@@ -12,6 +12,10 @@
 
 ## Fixes
 
+- **Building tooltips say everything a building does**: what it uses (energy by day or night),
+  what changes its output (shade, fog, snow, height, neighbours), what the smokehouse, cistern,
+  fog net, well, pump station and the rest are for, and each land's own words (the king tide,
+  salt flat). A well says it serves homes only. Draft cards show the full text on hover.
 - A **desalinator** can now start its own irrigation channel: lay one from beside it, and its
   clean water runs down the channel to the crofts and greenhouses along it, wherever they are.
 - Demolishing a building on the coast's mudflat, saltmarsh, dune or sea, or on the Highland's crag

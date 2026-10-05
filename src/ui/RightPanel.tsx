@@ -170,6 +170,7 @@ function DraftCard({
       type="button"
       class="card"
       aria-keyshortcuts={String(index + 1)}
+      title={lines.join('\n')}
       onClick={() => store.dispatch({ type: 'pickCard', card: def.id })}
     >
       <span class="jewel" style={{ background: JEWEL[def.kind] }}>
