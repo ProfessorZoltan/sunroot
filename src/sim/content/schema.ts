@@ -36,6 +36,10 @@ export const TILE_TYPES = [
   'erg',
   'rock',
   'saltFlat',
+  // Lake Gardens (proposals/lake-gardens.md).
+  'shallows',
+  'deep',
+  'bed',
 ] as const;
 export const TileTypeSchema = z.enum(TILE_TYPES);
 export type TileType = z.infer<typeof TileTypeSchema>;
@@ -408,6 +412,21 @@ export const BuildingSchema = z
       .object({ capacity: int.min(1), perWater: int.min(1), melt: nonNeg })
       .strict()
       .optional(),
+    /**
+     * A mud boat (Lake Gardens): each season it lifts up to this much mud (spring to winter)
+     * from the shallows beside it, most first, as compost.
+     */
+    dredges: PerSeason.optional(),
+    /**
+     * A wastewater fishery (Lake Gardens): each season it takes up to `takesGrey` of the grey
+     * water the lake holds and makes `foodPerGrey` food for each.
+     */
+    eatsGrey: z
+      .object({ takesGrey: int.min(1), foodPerGrey: int.min(1) })
+      .strict()
+      .optional(),
+    /** It fishes the lake: an algae bloom costs it food (Lake Gardens). */
+    fishesLake: z.boolean().default(false),
     /** Shade: a home next to it (or along it, for an edge building) needs this much less cooling. */
     shades: nonNeg.default(0),
     recipes: z
@@ -725,6 +744,39 @@ const CommuteRulesSchema = z
 export type CommuteRules = z.infer<typeof CommuteRulesSchema>;
 
 /**
+ * Lake Gardens' lake (proposals/lake-gardens.md, The new rules). Nutrient and grey water that
+ * reaches the lake (a channel's end, a building on no channel beside it, what a building drawing
+ * from it gives back) settles mud on the shallows where it enters, and its grey water stays in
+ * the lake until something cleans it.
+ */
+const LakeRulesSchema = z
+  .object({
+    /** Nutrient or grey water entering at a shallows tile that settles 1 mud there. */
+    waterPerMud: int.min(1),
+    /** Mud a shallows tile holds before it silts up: neither water nor land until dredged. */
+    siltAt: int.min(1),
+    /** Grey water the lake cleans by itself each season (sun, reeds, time). */
+    selfCleans: nonNeg,
+    /** Harmony each unit of grey water the lake holds costs, each season. */
+    greyHarmonyPerUnit: nonNeg,
+    /**
+     * An algae bloom: in these seasons, a lake holding more than `above` grey water blooms.
+     * Buildings that fish the lake make `foodLoss` less food, and its grey water costs
+     * `harmonyFactor` times as much Harmony.
+     */
+    bloom: z
+      .object({
+        above: nonNeg,
+        seasons: PerSeasonFlags,
+        foodLoss: nonNeg,
+        harmonyFactor: int.min(1),
+      })
+      .strict(),
+  })
+  .strict();
+export type LakeRules = z.infer<typeof LakeRulesSchema>;
+
+/**
  * Local heat (DECISIONS.md, Teaching by layers): heat sources (free heat,
  * heat pumps, heat wells) reach only buildings within `range` tiles; heat
  * paid with energy from the grid still reaches anywhere.
@@ -914,6 +966,8 @@ export const RulesSchema = z
     water: WaterRulesSchema,
     commute: CommuteRulesSchema.default({ enabled: false, freeDistance: 3, tilesPerWellbeing: 4 }),
     cooling: CoolingRulesSchema.default({ range: 2, gridCool: true, gridCoolCost: 2 }),
+    /** Lake Gardens' lake (proposals/lake-gardens.md): its mud and its grey water. Off without it. */
+    lake: LakeRulesSchema.optional(),
     localHeat: LocalHeatRulesSchema.default({
       enabled: false,
       range: 2,

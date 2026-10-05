@@ -45,6 +45,7 @@ export function canPlace(
     if (placementEvolution(content, buildingId, occupant)) return { ok: true };
     return { ok: false, reason: 'tile already has a building' };
   }
+  if (tile.silted) return { ok: false, reason: 'silted up: a mud boat must dredge it first' };
   if (!def.placement.tiles.includes(tile.type)) {
     return { ok: false, reason: `${def.name} can't be built on ${tile.type}` };
   }
@@ -73,7 +74,10 @@ export function canPlace(
   if (awayFrom && neighborTiles(state, at).some((n) => awayFrom.includes(n.type)))
     return { ok: false, reason: `${def.name} must be away from ${awayFrom.join(', ')}` };
   if (adjacentTo) {
-    const touchesTile = neighborTiles(state, at).some((n) => adjacentTo.includes(n.type));
+    // Silted shallows count as water for nothing (Lake Gardens), but a mud boat can dredge them.
+    const touchesTile = neighborTiles(state, at).some(
+      (n) => (!n.silted || def.dredges) && adjacentTo.includes(n.type),
+    );
     const touchesBuilding = buildingsTouching(state, at).some((n) =>
       adjacentToBuildings.includes(n.type),
     );

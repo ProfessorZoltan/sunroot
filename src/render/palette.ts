@@ -32,6 +32,10 @@ export const TILE_COLORS: Record<TileType, TileColors> = {
   erg: { top: 0xeccb8a, side: 0xc9a160, detail: 0xd9a95c },
   rock: { top: 0xb08566, side: 0x86604a, detail: 0x7a5640 },
   saltFlat: { top: 0xf1ece0, side: 0xcfc6b3, detail: 0xd8d0bd },
+  // Lake Gardens: knee-deep green water, the deep lake, and the raised beds made from it.
+  shallows: { top: 0x8fc0b0, side: 0x6a9a8a, detail: 0xb8d8b0 },
+  deep: { top: 0x5d93a8, side: 0x426f80, detail: 0xcfe7ee },
+  bed: { top: 0x9fc27a, side: 0x6f8a52, detail: 0x5e7a3e },
 };
 
 export const COLORS = {

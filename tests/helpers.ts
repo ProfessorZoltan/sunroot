@@ -8,6 +8,7 @@
  *   L lake (a reservoir off the river: still water, no river position)
  *   The Windswept Coast: = sea   _ mudflat   " saltmarsh   : dune
  *   The Sun Desert: O oasis   g reg (gravel)   E erg (dunes)   K rock   s salt flat
+ *   Lake Gardens: w shallows   D deep water   B raised bed
  */
 import { expect } from 'vitest';
 import {
@@ -81,6 +82,9 @@ const TOKENS: Record<string, TileType> = {
   E: 'erg',
   K: 'rock',
   s: 'saltFlat',
+  w: 'shallows',
+  D: 'deep',
+  B: 'bed',
 };
 
 export function mapFromAscii(rows: string[]): { map: MapState; camp: Hex } {

@@ -45,6 +45,7 @@ export function snapshot(state: SeasonSnapshot): SeasonSnapshot {
     everCold: [...state.everCold],
     hints: [...state.hints],
     wildlife: [...state.wildlife],
+    ...(state.lake ? { lake: { ...state.lake } } : {}),
     festivals: { ...state.festivals },
     freeRerolls: state.freeRerolls,
     visionOffer: [...state.visionOffer],

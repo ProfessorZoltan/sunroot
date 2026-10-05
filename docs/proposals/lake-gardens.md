@@ -9,6 +9,9 @@ Vietnamese garden-pond-pen (VAC), the sewage-fed fisheries of East Kolkata and r
 Everything here is a proposal: the designer's defaults until review, the bots and playtesting
 tune them.
 
+**Status**: started. It joins after 10 runs, however many districts the city has (the
+playtester). LG1, the lake's rules, is built; see DECISIONS.md, Lake Gardens.
+
 It builds on what the earlier biomes left: water with its three qualities (clean, grey, nutrient),
 lakes, cisterns and channels (E1), grey water's cost to Harmony, the reed bed and oyster reef that
 clean it, fish ponds that feed nutrient water into channels, the land-health ladder and compost,
@@ -130,7 +133,7 @@ past half the shallows, but fisheries make 1 more).
 
 | Item          | Proposal                                                                                                                                                                                                                                                                                                                        | Source        |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| Joins         | After the Sun Desert, at a mark to decide in review (see Open questions). DESIGN.md names the Volcanic Isle "after the first Landmark"; Lake Gardens could come before it or after.                                                                                                                                             | DESIGN.md     |
+| Joins         | After 10 runs, however many districts the city has (decided by the playtester).                                                                                                                                                                                                                                                 | Playtester    |
 | First run     | Guided first year, opening with what is new: making land, the mud, grey water as feed.                                                                                                                                                                                                                                          | As the desert |
 | Canal Quarter | A new district, earned by water-led food (food from chinampas, fisheries and fish ponds as a share of all food; full at half). Perk: fish ponds +1 food in winter (Seedling), also autumn (Sapling), also spring (Heartwood). Adds the **Mud Boat** to every biome's drafts (dredging reservoirs, lakes and ponds for compost). | New           |
 | Water Market  | A landmark: the Canal Quarter next to the Orchard Ward. Food beyond storage keeps one season longer before it rots, in every biome.                                                                                                                                                                                             | New           |
@@ -169,7 +172,6 @@ Each step ends with tests and a commit; the other four biomes play exactly as be
 | Question                          | Options                                                                                                                                                                            | Source                    |
 | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
 | The name                          | Lake Gardens; the Floating Gardens; Chinampa Lakes; the Delta.                                                                                                                     | New                       |
-| When it joins                     | After 10 districts; after the second landmark; or before the Volcanic Isle, after the first landmark (DESIGN.md gives that mark to the Isle).                                      | DESIGN.md                 |
 | Mud: per tile or a store?         | Per tile (proposed): visible on the map, a reason to place boats; or one lake-wide store, simpler to read.                                                                         | New                       |
 | Silting                           | Should a silted tile become reed fringe (land) for good if left, as real lakes fill in? Proposed: no, it stays silted shallows until dredged.                                      | Research: chinampas       |
 | Land creation and the soil ladder | Beds start at meadow (proposed), or at scrub so that mud is needed to make them fertile.                                                                                           | New                       |

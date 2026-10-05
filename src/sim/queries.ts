@@ -238,9 +238,15 @@ export function standsOn(type: TileType | undefined): string {
   return (type && places[type]) ?? 'in the open';
 }
 
-/** Open water: the river, a lake (or reservoir), or a desert oasis. */
+/** Open water: the river, a lake (or reservoir), a desert oasis, or Lake Gardens' lake. */
 export function isWaterTile(type: TileType): boolean {
-  return type === 'river' || type === 'reservoir' || type === 'oasis';
+  return (
+    type === 'river' ||
+    type === 'reservoir' ||
+    type === 'oasis' ||
+    type === 'shallows' ||
+    type === 'deep'
+  );
 }
 
 /** Distance from a hex to the nearest river, reservoir or pond. */
@@ -326,6 +332,16 @@ export function harmonyLines(content: Content, state: RunState): HarmonyLine[] {
       label: `${grey} grey water in the river`,
       amount: -grey * content.rules.water.greyHarmonyPerUnit,
     });
+  // Lake Gardens: the grey water the lake holds, twice the cost in a bloom.
+  const lake = content.rules.lake;
+  const held = state.lake?.grey ?? 0;
+  if (lake && held > 0) {
+    const bloom = state.lastReport?.lake?.bloom === true;
+    lines.push({
+      label: `${held} grey water in the lake${bloom ? ', blooming' : ''}`,
+      amount: -held * lake.greyHarmonyPerUnit * (bloom ? lake.bloom.harmonyFactor : 1),
+    });
+  }
   for (const p of finishedProjects(content, state))
     if (p.effect.harmony !== 0) lines.push({ label: p.name, amount: p.effect.harmony });
   if (state.stores.clutter > 0) {

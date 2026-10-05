@@ -82,6 +82,7 @@ export function createRun(
     everCold: [],
     hints: [],
     wildlife: [],
+    ...(content.rules.lake ? { lake: { grey: 0 } } : {}),
     festivals: {},
     freeRerolls: 0,
     // Visions draw from their own stream, so turning them on never changes the run itself.

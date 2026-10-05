@@ -271,7 +271,9 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
     // High pasture: a shieling among meadows.
     const pasture = def.nextToTilesFood;
     if (pasture?.seasons[ctx.si]) {
-      const n = neighborTiles(state, b.at).filter((t) => pasture.tiles.includes(t.type)).length;
+      const n = neighborTiles(state, b.at).filter(
+        (t) => !t.silted && pasture.tiles.includes(t.type),
+      ).length;
       if (n >= pasture.count) {
         base += pasture.amount;
         lines.push(`+${pasture.amount} next to ${n} ${pasture.tiles.join(' or ')}`);
@@ -343,6 +345,12 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
       value = Math.max(0, value - loss);
       lines.push(`−${loss} late frost`);
     }
+  }
+  // An algae bloom (Lake Gardens): fish that feed in the lake are fewer.
+  const bloom = content.rules.lake?.bloom;
+  if (res === 'food' && def.fishesLake && bloom && ctx.report.lake?.bloom && value > 0) {
+    value = Math.max(0, value - bloom.foodLoss);
+    lines.push(`−${bloom.foodLoss} algae bloom`);
   }
   const nutrient = def.water?.nutrientBonus[res] ?? 0;
   if (nutrient > 0 && water && water.got.nutrient > 0) {

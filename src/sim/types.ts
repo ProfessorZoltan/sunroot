@@ -10,6 +10,12 @@ export interface Tile extends Hex {
   riverIndex?: number;
   /** Water held by a lake tile (still water off the river), while the water system is on. */
   water?: number;
+  /** Mud settled on a shallows tile (Lake Gardens): dredged as compost, it silts the tile up. */
+  mud?: number;
+  /** So much mud it counts as neither water nor land until dredged (Lake Gardens). */
+  silted?: boolean;
+  /** Water that entered here since the last mud settled: short of what settles one more. */
+  settling?: number;
   /** Steps up from the valley floor (the Highland), 0 to 3; missing is 0. */
   height?: number;
   /** Charred by a biochar kiln (the Highland): a farm here makes 1 more food, for good. */
@@ -181,6 +187,8 @@ export interface RunState {
   hints: string[];
   /** Animals living in the valley this season (E4), in the order they came. */
   wildlife: string[];
+  /** Lake Gardens' lake: the grey water it holds until something cleans it. */
+  lake?: { grey: number };
   /** Festivals held, by id: the year each was last held (E4). */
   festivals: Record<string, number>;
   /** Draft rerolls owed by a festival, used before knowledge (the Harvest Festival). */
@@ -427,6 +435,18 @@ export interface ChannelReport {
  * The season's water (EXPANSION.md, Water system). Every unit is accounted
  * for: what came in (`in`) equals what went out (`out`), stores included.
  */
+export interface LakeReport {
+  greyIn: number;
+  eaten: number;
+  cleaned: number;
+  grey: number;
+  /** Mud settled this season, by shallows tile key. */
+  settled: Record<string, number>;
+  /** Mud each mud boat lifted, by uid. */
+  dredged: Record<string, number>;
+  bloom: boolean;
+}
+
 export interface WaterReport {
   /** Entering the river at the top of the map. */
   riverFlow: number;
@@ -441,6 +461,8 @@ export interface WaterReport {
   /** Water each pump station lifted up its step this season, by uid (the Highland). */
   lifted?: Record<string, number>;
   greyToRiver: number;
+  /** Water reaching Lake Gardens' lake this season, by the lake tile it entered at. */
+  lakeIn?: Record<string, WaterUnits>;
   in: Record<string, number>;
   out: Record<string, number>;
 }
@@ -521,6 +543,11 @@ export interface SeasonReport {
   /** Farms a late frost struck (the Highland's snowmelt), and the ones water kept it off. */
   frosted?: string[];
   frostSpared?: string[];
+  /**
+   * Lake Gardens' lake this season: grey water it took in, what fisheries ate, what it cleaned
+   * by itself and what it holds at the end; mud settled and dredged; whether it bloomed.
+   */
+  lake?: LakeReport;
   /** Buildings that lost food to the low river (far from water), or got too little water. */
   dried: string[];
   /** The water system's season, while it is on. */

@@ -1,5 +1,13 @@
 # Changelog
 
+## Lake Gardens begins
+
+- **Lake Gardens** will join after 10 runs, whatever the city has built. Its lake's rules are
+  in, though no valley uses them yet: shallows that a chinampa turns into a raised bed; mud that
+  the water reaching the lake leaves on the shallows, which silts them up unless a mud boat
+  lifts it out as compost; and grey water that stays in the lake, costing Harmony, feeding a
+  wastewater fishery, and in summer blooming if there is too much of it.
+
 ## What would go short
 
 - **Short if it ended now**: a new picker on the map lights up the buildings that would be short

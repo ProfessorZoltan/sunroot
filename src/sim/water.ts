@@ -33,10 +33,19 @@ export function walksToWater(content: Content): boolean {
   return content.rules.commute.enabled && waterOn(content) && !!content.rules.commute.toWater;
 }
 
+/** A shallows tile so full of mud it counts as neither water nor land (Lake Gardens). */
+export function silted(t: Tile): boolean {
+  return t.silted === true;
+}
+
 /** A lake: still water off the river (an oxbow lake), named by its first tile's key. */
 export function lakeTiles(state: RunState): Map<string, Tile[]> {
+  // Lake Gardens' shallows and deep water are a lake too, but a silted tile holds no water.
   const isLake = (t: Tile | undefined) =>
-    t !== undefined && (t.type === 'reservoir' || t.type === 'oasis') && t.riverIndex === undefined;
+    t !== undefined &&
+    ['reservoir', 'oasis', 'shallows', 'deep'].includes(t.type) &&
+    t.riverIndex === undefined &&
+    !silted(t);
   const lakes = new Map<string, Tile[]>();
   const seen = new Set<string>();
   const keys = Object.keys(state.map.tiles)

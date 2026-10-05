@@ -30,6 +30,7 @@ import { applyEvent, mixedGridBonus } from './events';
 import { feedAndGrow, scrapsAndHarmony } from './people';
 import { generate, produce, producePowered, staff } from './production';
 import { resolveWater } from './water';
+import { resolveLake } from './lake';
 import { assignCommutes } from './commute';
 import { snapshot } from '../snapshot';
 import {
@@ -87,6 +88,7 @@ export function resolveSeason(
   staff(ctx);
   assignCommutes(ctx);
   resolveWater(ctx);
+  resolveLake(ctx);
   generate(ctx); // 4
   mixedGridBonus(ctx);
   produce(ctx);

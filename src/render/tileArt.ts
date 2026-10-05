@@ -271,6 +271,32 @@ function drawDetails(g: Graphics, tile: Tile, c: Point, rand: () => number): voi
         g.circle(p.x, p.y, 3).fill({ color: TILE_COLORS.oasis.detail });
       }
       break;
+    case 'shallows':
+      // Lily pads and a few reed stems in knee-deep water; mud shows as dark patches.
+      for (let i = 0; i < 2; i++) {
+        const p = spot(rand, c);
+        g.ellipse(p.x, p.y, 3.5, 2).fill({ color: detail });
+      }
+      for (let i = 0; i < Math.min(4, tile.mud ?? 0); i++) {
+        const p = spot(rand, c, HEX_RADIUS * 0.4);
+        g.ellipse(p.x, p.y, 5, 2.6).fill({ color: 0x6e6248, alpha: 0.55 });
+      }
+      break;
+    case 'deep':
+      for (let i = 0; i < 2; i++) {
+        const p = spot(rand, c);
+        g.moveTo(p.x - 5, p.y)
+          .quadraticCurveTo(p.x, p.y - 2, p.x + 5, p.y)
+          .stroke({ width: 1.1, color: detail, alpha: 0.6, cap: 'round' });
+      }
+      break;
+    case 'bed':
+      // Rows of crops on a raised bed, its edge staked with willow.
+      for (let i = -1; i <= 1; i++)
+        g.moveTo(c.x - 12, c.y + i * 6)
+          .lineTo(c.x + 12, c.y + i * 6)
+          .stroke({ width: 1.4, color: detail, alpha: 0.7, cap: 'round' });
+      break;
     case 'river':
     case 'reservoir':
       break;

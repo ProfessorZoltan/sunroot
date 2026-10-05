@@ -307,6 +307,20 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
     );
   }
 
+  // Lake Gardens' lake.
+  if (def.dredges?.some((n) => n > 0))
+    lines.push(
+      `Lifts up to ${SEASON_LIST(def.dredges)} mud a season (spring to winter) from the shallows beside it, the fullest first, as compost. Shallows full of mud silt up until dredged.`,
+    );
+  if (def.eatsGrey)
+    lines.push(
+      `Takes up to ${def.eatsGrey.takesGrey} of the grey water the lake holds each season, cleaning it: ${def.eatsGrey.foodPerGrey} food for each.`,
+    );
+  if (def.fishesLake && content.rules.lake)
+    lines.push(
+      `Fishes the lake: in an algae bloom it makes ${content.rules.lake.bloom.foodLoss} less food.`,
+    );
+
   // Water (only while the run has it).
   if (w && w.needs.some((n) => n > 0)) {
     const from = w.fromPond

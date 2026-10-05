@@ -25,7 +25,7 @@
  */
 import type { BuildingDef, WaterQuality } from '../content/schema';
 import { SEASONS, WATER_QUALITIES } from '../content/schema';
-import { hexKey, hexNeighbors } from '../hex';
+import { hexKey, hexNeighbors, type Hex } from '../hex';
 import { byPriority, defOf, heightAt, isWaterTile, neighborBuildings, tileAt } from '../queries';
 import type { BuildingState, ChannelReport, WaterReport, WaterUnits, WaterUse } from '../types';
 import {
@@ -68,6 +68,33 @@ export function resolveWater(ctx: SeasonContext): void {
   ctx.report.water = report;
   const add = (rec: Record<string, number>, key: string, n: number) => {
     if (n > 0) rec[key] = (rec[key] ?? 0) + n;
+  };
+
+  // Lake Gardens: water that reaches the lake is the lake's (its mud, its grey water), recorded
+  // by the tile it enters at; it leaves the season's water as 'into the lake'.
+  const lakeRules = content.rules.lake;
+  /** The lake tile beside `h` that water from it enters at: open shallows first, then by key. */
+  const lakeEntry = (h: Hex): string | null => {
+    const near = hexNeighbors(h)
+      .map((n) => hexKey(n))
+      .filter((k) => {
+        const t = state.map.tiles[k];
+        return t && (t.type === 'shallows' || t.type === 'deep') && !t.silted;
+      })
+      .sort();
+    const openness = (k: string) => {
+      const t = state.map.tiles[k]!;
+      if (t.type !== 'shallows') return 2;
+      return Object.values(state.buildings).some((b) => hexKey(b.at) === k) ? 1 : 0;
+    };
+    return [...near].sort((a, b) => openness(a) - openness(b))[0] ?? null;
+  };
+  const intoLake = (key: string, q: WaterQuality, n: number) => {
+    if (n <= 0) return;
+    report.lakeIn ??= {};
+    const u = (report.lakeIn[key] ??= units());
+    u[q] += n;
+    add(report.out, 'into the lake', n);
   };
 
   const order = byPriority(state);
@@ -290,6 +317,28 @@ export function resolveWater(ctx: SeasonContext): void {
   for (const { b, def, need, source } of users)
     if (!source && !def.water!.fromPond) finish(use(b, need, null), b);
 
+  // Lake Gardens: what a building on no channel feeds (a stilt house's washing water) runs
+  // into the lake beside it.
+  if (lakeRules)
+    for (const b of order) {
+      const def = defOf(content, b);
+      const feeds = def.water?.feeds;
+      if (!feeds || !works(b) || pondFed.has(b.uid) || attachment(b)) continue;
+      const entry = lakeEntry(b.at);
+      if (entry === null) continue;
+      add(
+        report.in,
+        def.housing > 0
+          ? 'grey water from homes'
+          : feeds.quality === 'nutrient'
+            ? 'fed by ponds'
+            : def.name,
+        feeds.amount,
+      );
+      intoLake(entry, feeds.quality, feeds.amount);
+      explain(ctx, b, `water: ${feeds.amount} ${feeds.quality} into the lake`);
+    }
+
   // Cisterns on no channel stand by the river (at their most upstream position) or a lake.
   const working = cisterns.filter(works);
   const riverCisterns = working
@@ -307,7 +356,7 @@ export function resolveWater(ctx: SeasonContext): void {
     entry: (typeof users)[number],
     from: 'river' | 'lake',
     take: (n: number) => number,
-    giveBack: (q: WaterQuality, n: number) => void,
+    giveBack: (q: WaterQuality, n: number, b: BuildingState) => void,
   ) => {
     const { b, def, need } = entry;
     const u = use(b, need, from);
@@ -315,7 +364,7 @@ export function resolveWater(ctx: SeasonContext): void {
     const ret = def.water!.returns;
     if (ret && total(u.got) >= need) {
       add(report.in, 'returned', ret.amount);
-      giveBack(ret.quality, ret.amount);
+      giveBack(ret.quality, ret.amount, b);
     }
     finish(u, b);
   };
@@ -537,11 +586,16 @@ export function resolveWater(ctx: SeasonContext): void {
       ...coloured[p]!,
     }));
     add(report.out, 'evaporated', r.evaporated);
+    // A channel ending at Lake Gardens' lake runs into it.
+    const endsInLake =
+      lakeRules && ch.rejoinsAt === null ? lakeEntry(tiles(ch.keys[ch.keys.length - 1]!)) : null;
     for (const q of WATER_QUALITIES) {
       if (ch.rejoinsAt !== null) {
         r.rejoined[q] = pool[q];
         if (here !== null && ch.rejoinsAt === here) rejoiningHere[q] += pool[q];
         else toRiver(ch.rejoinsAt, q, pool[q]);
+      } else if (endsInLake !== null) {
+        intoLake(endsInLake, q, pool[q]);
       } else {
         r.lost[q] = pool[q];
         add(report.out, 'lost at channel ends', pool[q]);
@@ -566,7 +620,9 @@ export function resolveWater(ctx: SeasonContext): void {
       const t = fromLake(n);
       return t + release(lakeCisternsOf(id), n - t);
     };
-    const giveBack = (q: WaterQuality, n: number) => {
+    const giveBack = (q: WaterQuality, n: number, b: BuildingState) => {
+      const entry = lakeRules ? lakeEntry(b.at) : null;
+      if (entry !== null) return intoLake(entry, q, n);
       if (q === 'grey') report.greyToRiver += n;
       const first = lakes.get(id)![0]!;
       first.water = (first.water ?? 0) + n;
