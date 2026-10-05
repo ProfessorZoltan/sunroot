@@ -111,6 +111,17 @@ export function comboPicture(content: Content, combo: Combo): ComboPicture {
                 ? `${s.size} around it, of ${s.minTypes} kinds or more`
                 : `${s.size} around it`,
           };
+        case 'openRing':
+          return {
+            ...base,
+            slots: [
+              one(content, s.tile),
+              { pieces: s.of.map((id) => piece(content, id)), count: s.size },
+            ],
+            joins: ['next'],
+            ring: true,
+            note: `${s.size} around an open tile, with nothing built on it`,
+          };
         case 'cluster':
           return {
             ...base,

@@ -169,6 +169,16 @@ export function findFormations(
             if (shape.beside.includes(n.type)) beside.add(n.uid);
         hits.push({ combo: combo.id, members: [...run.map((b) => b.uid), ...beside] });
       }
+    } else if (shape.kind === 'openRing') {
+      // An open tile of the type, ringed by enough of the buildings (the Floating Garden).
+      for (const t of Object.values(state.map.tiles)) {
+        if (t.type !== shape.tile || occ.has(hexKey(t))) continue;
+        const ring = hexNeighbors(t)
+          .map((h) => occ.get(hexKey(h)))
+          .filter((x): x is BuildingState => x !== undefined && shape.of.includes(x.type));
+        if (ring.length >= shape.size)
+          hits.push({ combo: combo.id, members: ring.map((x) => x.uid), tiles: [hexKey(t)] });
+      }
     } else {
       const strip = findStrip(state, shape.tiles, shape.gaps);
       if (strip) hits.push({ combo: combo.id, members: [], tiles: strip });
@@ -355,6 +365,7 @@ export function applyFormationYields(ctx: SeasonContext): void {
   for (const hit of ctx.formations) {
     const combo = ctx.content.comboById[hit.combo] as ComboOf<'formation'>;
     const e = combo.effect;
+    if (!e.seasons[ctx.si]) continue;
     for (const uid of hit.members) {
       const b = ctx.state.buildings[uid];
       if (!b || (e.appliesTo && b.type !== e.appliesTo)) continue;
@@ -471,6 +482,28 @@ export function loopHarmony(
     .map((c) => ({ label: c.name, amount: c.harmony }));
 }
 
+/** Open tiles a standing formation keeps from silting (Lake Gardens' Floating Garden). */
+export function keptOpen(content: Content, state: RunState): Set<string> {
+  const open = combosOf(content, 'formation').filter((c) => c.effect.keepsOpen);
+  if (open.length === 0) return new Set();
+  return new Set(findFormations(content, state, open).flatMap((h) => h.tiles ?? []));
+}
+
+/** How much more a closed loop lets this building do (`dredgeBonus`, `greyBonus`). */
+export function loopBoost(
+  content: Content,
+  state: RunState,
+  uid: string,
+  kind: 'dredgeBonus' | 'greyBonus',
+): number {
+  let more = 0;
+  for (const loop of standingLoops(content, state)) {
+    if (!loop.members.includes(uid) || loop.turn >= state.turn) continue;
+    more = Math.max(more, (content.comboById[loop.combo] as ComboOf<'chain'>)[kind]);
+  }
+  return more;
+}
+
 /** How much more a pump station lifts in a closed loop (the Meltwater Loop). */
 export function loopLift(content: Content, state: RunState, uid: string): number {
   let lift = 0;
@@ -542,7 +575,8 @@ export function evolutionsReady(
       return (
         touches(state, b, when.nextTo, occ) &&
         (!when.also || touches(state, b, when.also, occ)) &&
-        (when.minHarmony === undefined || state.harmony >= when.minHarmony)
+        (when.minHarmony === undefined || state.harmony >= when.minHarmony) &&
+        (when.minAge === undefined || state.turn + 1 - b.builtTurn >= when.minAge)
       );
     }
     if (when.kind === 'ruinExhausted') {

@@ -255,7 +255,13 @@ export function resolveWater(ctx: SeasonContext): void {
     const def = defOf(content, b);
     const w = def.water;
     if (!w || !works(b) || isChannel(def)) continue;
-    const need = w.needs[si]!;
+    // A paddy beside a duck house needs less (Lake Gardens' Duck and Rice).
+    const less =
+      w.lessNextTo &&
+      neighborBuildings(state, b).some((n) => w.lessNextTo!.buildings.includes(n.type))
+        ? w.lessNextTo.amount
+        : 0;
+    const need = Math.max(0, w.needs[si]! - less);
     const age = state.turn - b.builtTurn;
     if (need === 0 || age < def.maturesAfterSeasons) continue;
     // Buildings that return or clean water work through their channel; others drink from the

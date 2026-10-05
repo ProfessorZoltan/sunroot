@@ -46,6 +46,18 @@ export function canPlace(
     return { ok: false, reason: 'tile already has a building' };
   }
   if (tile.silted) return { ok: false, reason: 'silted up: a mud boat must dredge it first' };
+  // The Water First charter: beds only while they are less than their share of the lake.
+  const share = content.rules.lake?.bedShare;
+  if (share !== undefined && def.setsTile === 'bed') {
+    const tiles = Object.values(state.map.tiles);
+    const beds = tiles.filter((t) => t.type === 'bed').length;
+    const lake = beds + tiles.filter((t) => t.type === 'shallows').length;
+    if (beds >= share * lake)
+      return {
+        ok: false,
+        reason: `no more beds: they may be ${Math.round(share * 100)}% of the lake's shallows at most`,
+      };
+  }
   if (!def.placement.tiles.includes(tile.type)) {
     return { ok: false, reason: `${def.name} can't be built on ${tile.type}` };
   }

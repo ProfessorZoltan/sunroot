@@ -14,6 +14,7 @@
 import { hexKey, hexNeighbors } from '../hex';
 import { byPriority, defOf } from '../queries';
 import type { LakeReport } from '../types';
+import { keptOpen, loopBoost } from '../combos';
 import { addYield, explain, type SeasonContext } from './context';
 
 export function resolveLake(ctx: SeasonContext): void {
@@ -35,11 +36,13 @@ export function resolveLake(ctx: SeasonContext): void {
   // 1. Mud settles where water entered, on the shallows (faster at high water).
   const entered = ctx.report.water?.lakeIn ?? {};
   const factor = ctx.report.event === 'flood' ? (content.events.flood?.mudFactor ?? 1) : 1;
+  // A Floating Garden's open pool: its water keeps moving, and no mud settles there.
+  const open = keptOpen(content, state);
   for (const key of Object.keys(entered).sort()) {
     const u = entered[key]!;
     report.greyIn += u.grey;
     const t = state.map.tiles[key];
-    if (!t || t.type !== 'shallows') continue;
+    if (!t || t.type !== 'shallows' || open.has(key)) continue;
     const before = t.mud ?? 0;
     let settling = (t.settling ?? 0) + (u.grey + u.nutrient) * factor;
     let mud = before;
@@ -58,7 +61,10 @@ export function resolveLake(ctx: SeasonContext): void {
   for (const b of order) {
     const eats = defOf(content, b).eatsGrey;
     if (!eats) continue;
-    const t = Math.min(eats.takesGrey, state.lake.grey);
+    const t = Math.min(
+      eats.takesGrey + loopBoost(content, state, b.uid, 'greyBonus'),
+      state.lake.grey,
+    );
     if (t <= 0) continue;
     state.lake.grey -= t;
     report.eaten += t;
@@ -74,8 +80,9 @@ export function resolveLake(ctx: SeasonContext): void {
 
   // 4. Mud boats lift mud from the shallows beside them, the fullest first, as compost.
   for (const b of order) {
-    const can = defOf(content, b).dredges?.[si] ?? 0;
-    if (can <= 0) continue;
+    const base = defOf(content, b).dredges?.[si] ?? 0;
+    if (base <= 0) continue;
+    const can = base + loopBoost(content, state, b.uid, 'dredgeBonus');
     let left = can;
     const beside = hexNeighbors(b.at)
       .map((h) => state.map.tiles[hexKey(h)])

@@ -345,6 +345,7 @@ export function siteScore(
       score += 3 * touching('floodplainFarm', 'orchard', 'fishPond', 'greenhouse', 'croft');
       score += 3 * touching('oasisGarden', 'wadiFarm');
       score += 3 * touching('riceFishPaddy', 'mushroomCellar');
+      score += 3 * touching('chinampa');
       break;
     // Willow Reach v2 (E3): next to what feeds them or what they feed.
     case 'greenhouse':
@@ -359,6 +360,36 @@ export function siteScore(
       break;
     case 'riceFishPaddy':
       score += 2 * touching('composter', 'riceFishPaddy');
+      break;
+    // Lake Gardens: a raised bed with open water on enough sides (it makes 1 more), by a composter, a
+    // wastewater fishery or a duck house, and out of the wind off the deep water.
+    case 'chinampa': {
+      const open = neighborTiles.filter((t) => t.type === 'shallows' || t.type === 'deep');
+      score += open.length >= (def.nextToTilesFood?.count ?? 2) ? 4 : 0;
+      if (open.some((t) => t.type === 'deep')) score -= 2;
+      score += 2 * touching('composter', 'wastewaterFishery', 'duckHouse', 'pigPen');
+      break;
+    }
+    case 'wastewaterFishery':
+      score += 3 * Math.min(1, touching('stiltHouse')) + 2 * Math.min(1, touching('chinampa'));
+      break;
+    case 'fishPond':
+      // On the lake: room beside it for a mulberry dyke.
+      score += turn.rules.rules.lake
+        ? neighborTiles.filter((t) => ['scrub', 'barren', 'meadow', 'bed'].includes(t.type)).length
+        : 0;
+      break;
+    case 'mulberryDyke':
+      score +=
+        3 * touching('silkHouse') + 2 * touching('fishPond', 'wastewaterFishery', 'lakeFishery');
+      break;
+    case 'silkHouse':
+      score += 2 * touching('mulberryDyke');
+      break;
+    case 'stiltHouse':
+      score += 2 * Math.min(1, touching('wastewaterFishery'));
+      // A garden beside the house (a bed, meadow or woodland): wellbeing every season.
+      if (neighborTiles.some((t) => ['bed', 'meadow', 'woodland'].includes(t.type))) score += 4;
       break;
     case 'mushroomCellar': {
       score += 3 * touching('floodplainFarm', 'agrivoltaicField');

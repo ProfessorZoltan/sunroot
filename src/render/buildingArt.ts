@@ -1261,6 +1261,37 @@ export const BUILDING_ART: Record<string, Art> = {
     g.stroke({ width: 1.1, color: COLORS.wood });
     g.circle(c.x, c.y, 2).fill({ color: DARK });
   },
+  /** A rice-fish paddy with ducks on it. */
+  riceDuckPaddy(g, c) {
+    BUILDING_ART.riceFishPaddy!(g, c);
+    for (const [dx, dy] of [
+      [-6, 4],
+      [5, -3],
+    ] as const) {
+      g.ellipse(c.x + dx, c.y + dy, 3, 2).fill({ color: 0xffffff });
+      g.circle(c.x + dx + 2.5, c.y + dy - 2, 1.3).fill({ color: 0x3f7a3a });
+    }
+  },
+  /** A plaza with boats moored at its edge. */
+  floatingMarket(g, c) {
+    BUILDING_ART.commonsPlaza!(g, c);
+    for (const [dx, dy, col] of [
+      [-12, 9, 0xd98c5f],
+      [11, 10, 0x8a5a7a],
+    ] as const)
+      g.poly([
+        c.x + dx - 5,
+        c.y + dy,
+        c.x + dx + 5,
+        c.y + dy,
+        c.x + dx + 3,
+        c.y + dy + 3,
+        c.x + dx - 3,
+        c.y + dy + 3,
+      ]).fill({
+        color: col,
+      });
+  },
 };
 
 /** Damaged buildings get a grey veil and a crack; blacked-out ones a dim veil. */

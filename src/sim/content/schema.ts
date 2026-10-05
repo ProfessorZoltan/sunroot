@@ -133,6 +133,11 @@ const BuildingWaterSchema = z
     fromPond: z.boolean().default(false),
     /** Turned by the river: energy per slot follows the flow at its tile (the River Wheel). */
     wheel: z.boolean().default(false),
+    /** Needs `amount` less water with one of these beside it (a paddy by a duck house). */
+    lessNextTo: z
+      .object({ buildings: z.array(z.string()).min(1), amount: int.min(1) })
+      .strict()
+      .optional(),
   })
   .strict();
 export type BuildingWater = z.infer<typeof BuildingWaterSchema>;
@@ -775,6 +780,11 @@ const LakeRulesSchema = z
     waterPerMud: int.min(1),
     /** Mud a shallows tile holds before it silts up: neither water nor land until dredged. */
     siltAt: int.min(1),
+    /**
+     * Raised beds can be made only while beds are less than this share of the beds and shallows
+     * together (the Water First charter). Missing: no limit.
+     */
+    bedShare: z.number().min(0).max(1).optional(),
     /** Grey water the lake cleans by itself each season (sun, reeds, time). */
     selfCleans: nonNeg,
     /** Harmony each unit of grey water the lake holds costs, each season. */
@@ -1156,6 +1166,8 @@ const LakeMapSchema = z
     islands: nonNeg,
     /** Columns where the stream may start at the top edge. */
     streamColumns: z.tuple([nonNeg, nonNeg]),
+    /** Rows at the top the lake leaves to the stream, so it runs a while before the shore. */
+    streamRows: nonNeg.default(0),
     /** A shore tile beside the lake is reed fringe by this chance. */
     fringeChance: z.number().min(0).max(1),
     /** Columns of higher shore along one side: hills by `hillChance`, and the woodland. */
@@ -1269,6 +1281,10 @@ export const ComboSchema = z.discriminatedUnion('layer', [
       harmony: int.default(0),
       /** Pump stations in a closed loop of it lift this much more water (the Meltwater Loop). */
       liftBonus: nonNeg.default(0),
+      /** Mud boats in a closed loop of it lift this much more mud a season (the Dyke Loop). */
+      dredgeBonus: nonNeg.default(0),
+      /** Fisheries in a closed loop of it take this much more grey water (the Clean Lake Loop). */
+      greyBonus: nonNeg.default(0),
     })
     .strict(),
   /** 3. Formations: hidden shapes. Their effect lasts while the shape stands. */
@@ -1310,6 +1326,16 @@ export const ComboSchema = z.discriminatedUnion('layer', [
           /** Each member a step higher than the one before (the Water Stair). */
           rising: z.boolean().default(false),
         }),
+        /**
+         * A tile of `tile` left open, with no building on it, ringed by at least `size` of these
+         * buildings (Lake Gardens' Floating Garden: chinampas round a pool of shallows).
+         */
+        z.object({
+          kind: z.literal('openRing'),
+          tile: TileTypeSchema,
+          of: z.array(z.string()).min(1),
+          size: int.min(1).max(6),
+        }),
         /** An unbroken strip of these tiles from the river to a side edge of the valley. */
         z.object({
           kind: z.literal('strip'),
@@ -1327,6 +1353,8 @@ export const ComboSchema = z.discriminatedUnion('layer', [
           /** The slots that extra comes in (the Heliostat Line: by night). */
           generationSlots: z.array(z.enum(SLOTS)).default(['day', 'night']),
           ignoresShade: z.boolean().default(false),
+          /** The open tile of an open ring never silts up (Lake Gardens' Floating Garden). */
+          keepsOpen: z.boolean().default(false),
           /** Members of `appliesTo` run without energy. */
           freeRuns: z.boolean().default(false),
           /** Multiplies what members of `appliesTo` convert (a composter's compost). */
@@ -1337,7 +1365,7 @@ export const ComboSchema = z.discriminatedUnion('layer', [
           shelterRadius: nonNeg.default(0),
           /** Its members' Harmony penalty is cancelled (the Ridge Spires). */
           quiet: z.boolean().default(false),
-          /** Seasons the wellbeing applies in (the Hearth Square: winter). */
+          /** Seasons the wellbeing and the yields apply in (the Hearth Square: winter). */
           seasons: PerSeasonFlags.default([true, true, true, true]),
           appliesTo: z.string().optional(),
         })
@@ -1359,6 +1387,8 @@ export const ComboSchema = z.discriminatedUnion('layer', [
           also: NextTo.optional(),
           /** Only while Harmony is at least this (the Beaver Dam). */
           minHarmony: int.min(1).optional(),
+          /** Only once it has stood this many seasons (the Rice-Duck Paddy). */
+          minAge: int.min(1).optional(),
         }),
         /** Its ruin has no salvage left (and, optionally, it has these neighbours). */
         z.object({ kind: z.literal('ruinExhausted'), nextTo: NextTo.optional() }),

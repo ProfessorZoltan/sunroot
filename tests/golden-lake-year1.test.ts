@@ -4,17 +4,19 @@
  *
  * Checked against the numbers before it is proposed. The proposal's year didn't fit as first
  * written: a workshop with no spare day energy made nothing, the lake wind damaged both raised
- * beds, and on winter nights the stilt house was shut off with nothing but the camp to light
- * it. So the spring adds a solar canopy; the two chinampas stand side by side, so the willow
- * edge on the edge between them shelters both; and the winter builds a canal wheel on the
- * stream for the nights (the stream runs 10 / 5 / 8 / 8, DECISIONS.md, LG2). The mulberry dyke
- * comes in the winter's draft, for year 2.
+ * beds, and on winter nights the stilt house was shut off with nothing but the camp to light it.
+ * LG3's balance changed it again (a chinampa costs 4 and makes 2 / 3 / 3 / 1; DECISIONS.md, LG3),
+ * so the year is spread out: the spring adds a solar canopy, on dry ground with the workshop (the
+ * high water floods the reed fringe); the stilt house comes in summer, its fishery in autumn; the
+ * two chinampas stand side by side, so the willow edge on the edge between them shelters both; and
+ * the winter builds a mud boat by the mud (low water, dredging is easiest) and a canal wheel on the
+ * stream for the nights. The autumn closes the Clean Lake Loop (house, fishery, bed).
  *
- * | Season | Build                                                         | Materials | Food | Citizens |
- * | Spring | 2 Chinampas side by side, Salvage Yard, Workshop, Solar Canopy | 8         | 12   | 6        |
- * | Summer | Stilt House, Wastewater Fishery beside it                      | 6         | 17   | 7        |
- * | Autumn | Mud Boat, Willow Edge between the two chinampas                | 5         | 21   | 8        |
- * | Winter | Canal Wheel on the stream                                      | 5         | 20   | 8        |
+ * | Season | Build                                                          | Materials | Food | Citizens |
+ * | Spring | 2 Chinampas side by side, Salvage Yard, Workshop, Solar Canopy | 6         | 12   | 6        |
+ * | Summer | Stilt House                                                    | 11        | 14   | 7        |
+ * | Autumn | Wastewater Fishery by the house, Willow Edge between the beds  | 11        | 17   | 8        |
+ * | Winter | Mud Boat by the mud, Canal Wheel on the stream                 | 9         | 17   | 8        |
  */
 import { describe, expect, it } from 'vitest';
 import { biomeContent } from '../src/content';
@@ -65,31 +67,31 @@ const open = (s: RunState) => (h: Hex) =>
 export function lakeYear(): RunState[] {
   let s = createRun(LAKE, { seed: LAKE_SEED, guided: true, visions: false, water: true });
   const seasons: RunState[] = [];
+  const dry = (h: Hex) => s.map.tiles[hexKey(h)]!.type !== 'floodplain';
   // Spring: high water; two chinampas made side by side on the shallows by the camp, the drowned
-  // town's salvage, a workshop, and a canopy for its day energy.
+  // town's salvage, a workshop on dry ground, and a canopy for its day energy.
   s = build(s, 'chinampa');
   const first = find(s, 'chinampa').at;
   s = build(s, 'chinampa', (h) => hexDistance(h, first) === 1);
   s = build(s, 'salvageYard');
-  s = build(s, 'workshop');
-  s = build(s, 'solarCanopy', open(s));
+  s = build(s, 'workshop', dry);
+  s = build(s, 'solarCanopy', (h) => dry(h) && open(s)(h));
   s = end(s, 'wastewaterFishery');
   seasons.push(s);
-  // Summer: the bloom season; a stilt house over the water, and a wastewater fishery beside it
-  // to eat its washing water.
+  // Summer: the bloom season; a stilt house over the water, its washing water into the lake.
   s = build(s, 'stiltHouse');
-  const house = find(s, 'stiltHouse').at;
-  s = build(s, 'wastewaterFishery', (h) => hexDistance(h, house) === 1);
   s = end(s, 'willowEdge');
   seasons.push(s);
-  // Autumn: the lake wind; a mud boat near the fishery, and a willow edge between the beds.
-  const fishery = find(s, 'wastewaterFishery').at;
-  s = build(s, 'mudBoat', (h) => hexDistance(h, fishery) <= 2);
+  // Autumn: the lake wind; a wastewater fishery beside the house, a willow edge between the beds.
+  const house = find(s, 'stiltHouse').at;
+  s = build(s, 'wastewaterFishery', (h) => hexDistance(h, house) === 1);
   const [a, b] = all(s, 'chinampa');
   s = act(s, { type: 'plantHedge', a: a!.at, b: b!.at });
   s = end(s, 'canalWheel');
   seasons.push(s);
-  // Winter: low water; a canal wheel on the stream for the cold nights.
+  // Winter: low water; a mud boat by the mud the house's water left, a canal wheel for the nights.
+  const muddy = Object.values(s.map.tiles).filter((t) => (t.mud ?? 0) > 0);
+  s = build(s, 'mudBoat', (h) => muddy.some((m) => hexDistance(m, h) === 1));
   s = build(s, 'canalWheel');
   s = end(s, 'mulberryDyke');
   seasons.push(s);
@@ -107,10 +109,10 @@ describe('Lake Gardens, Year 1 (golden, PROPOSED)', () => {
       citizens: s.citizens,
     }));
     expect(rows).toEqual([
-      { season: 'spring', materials: 8, food: 12, citizens: 6 },
-      { season: 'summer', materials: 6, food: 17, citizens: 7 },
-      { season: 'autumn', materials: 5, food: 21, citizens: 8 },
-      { season: 'winter', materials: 5, food: 20, citizens: 8 },
+      { season: 'spring', materials: 6, food: 12, citizens: 6 },
+      { season: 'summer', materials: 11, food: 14, citizens: 7 },
+      { season: 'autumn', materials: 11, food: 17, citizens: 8 },
+      { season: 'winter', materials: 9, food: 17, citizens: 8 },
     ]);
   });
 
@@ -119,6 +121,7 @@ describe('Lake Gardens, Year 1 (golden, PROPOSED)', () => {
     const r = spring.lastReport!;
     expect(r.event).toBe('flood');
     expect(r.flooded.length).toBeGreaterThan(0);
+    expect(r.damaged).toEqual([]);
     for (const bed of all(spring, 'chinampa')) {
       expect(spring.map.tiles[hexKey(bed.at)]!.type).toBe('bed');
       expect(r.flooded).not.toContain(hexKey(bed.at));
@@ -128,21 +131,22 @@ describe('Lake Gardens, Year 1 (golden, PROPOSED)', () => {
     expect(r.runs[find(spring, 'workshop').uid]!.runs).toBeGreaterThan(0);
   });
 
-  it("summer: the stilt house's grey water is the fishery's feed, so the lake doesn't bloom", () => {
+  it("summer: the stilt house's grey water goes into the lake, which cleans a little itself", () => {
     const summer = year[1]!;
     const r = summer.lastReport!;
     expect(r.event).toBe('bloom');
-    expect(r.lake).toMatchObject({ greyIn: 1, eaten: 1, bloom: false });
-    expect(r.yields[find(summer, 'wastewaterFishery').uid]?.food).toBe(1);
+    expect(r.lake).toMatchObject({ greyIn: 1, cleaned: 1, bloom: false });
     expect(summer.lake!.grey).toBe(0);
   });
 
-  it('autumn: the mud the water left is lifted as compost; the willow edge keeps the wind off', () => {
+  it('autumn: the fishery eats the grey water; the willow edge keeps the wind off both beds', () => {
     const autumn = year[2]!;
     const r = autumn.lastReport!;
     expect(r.event).toBe('storm');
-    expect(r.lake!.dredged[find(autumn, 'mudBoat').uid]).toBe(1);
-    expect(autumn.stores.compost).toBe(1);
+    expect(r.lake).toMatchObject({ greyIn: 1, eaten: 1 });
+    expect(r.yields[find(autumn, 'wastewaterFishery').uid]?.food).toBe(1);
+    // House, fishery and bed in a chain of neighbours: the Clean Lake Loop.
+    expect(autumn.loops.map((l) => l.combo)).toContain('cleanLakeLoop');
     // Both beds face the deep water, and the one edge between them shelters both.
     expect(r.damaged).toEqual([]);
     const unsheltered = { ...autumn, hedges: [] };
@@ -152,11 +156,15 @@ describe('Lake Gardens, Year 1 (golden, PROPOSED)', () => {
     }
   });
 
-  it('winter: low water; the canal wheel lights the stilt house through the cold nights', () => {
+  it('winter: low water; the mud is lifted as compost and the canal wheel lights the nights', () => {
     const winter = year[3]!;
     const r = winter.lastReport!;
     expect(r.event).toBe('freeze');
+    expect(r.lake!.dredged[find(winter, 'mudBoat').uid]).toBe(1);
+    expect(winter.stores.compost).toBe(1);
     expect(r.blackouts).toEqual([]);
     expect(r.math[find(winter, 'canalWheel').uid]!.join(' ')).toContain('night energy 2');
+    // The loop pays from the season after it closed.
+    expect(r.math[find(winter, 'wastewaterFishery').uid]!.join(' ')).toMatch(/Clean Lake Loop/);
   });
 });

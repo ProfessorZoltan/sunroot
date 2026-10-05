@@ -1,5 +1,21 @@
 # Changelog
 
+## Lake Gardens: combos, cards and balance
+
+- **The lake's loops**: the Dyke Loop (silk, mulberry, fish and mud), the VAC Loop (pond, house,
+  pen and bed) and the Clean Lake Loop (house, wastewater fishery, bed).
+- **Its formations and evolutions**: the Floating Garden (4 chinampas round an open pool that
+  never silts), the Willow Shore, Duck and Rice, the Rice-Duck Paddy and the Floating Market.
+- **8 tunings and 2 charters**: Canal Keepers (the lake never blooms) and Water First (beds take
+  at most half the shallows; the fish make more).
+- **Stilt houses beside a garden** (a bed, meadow or woodland) are happier, as cottages beside
+  meadow are.
+- **The chinampa** costs 4 and makes 2 / 3 / 3 / 1 food (+1 with open water on 2 sides); high
+  water fills the lake to 1 a tile, so a lake turned all to beds runs dry; the stream always runs
+  a few tiles before it reaches the lake.
+- The bots now keep the lake clean, dredge it, shelter their beds and make silk, and reach
+  Heartwood on the lake about as often as in the Reach. The proposed Year 1 changed to fit.
+
 ## The Regenerative Loops Atlas
 
 - The research behind the game's loops, as its own page: 41 farming, housing and rewilding

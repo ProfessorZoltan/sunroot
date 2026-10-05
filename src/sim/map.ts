@@ -369,7 +369,10 @@ function generateLake(content: Content, gen: LakeMapGen, seed: string): Generate
 
   // The lake grows from the middle (a little towards the low side), taking the nearest tiles
   // first with some noise, never the high shore, the map's edge or the top row.
-  const centre = at(Math.floor(gen.width / 2) + (shoreLeft ? 1 : -1), Math.floor(gen.height / 2))!;
+  const centre = at(
+    Math.floor(gen.width / 2) + (shoreLeft ? 1 : -1),
+    Math.floor((gen.height + gen.streamRows) / 2),
+  )!;
   const size = Math.round(gen.width * gen.height * gen.lakeShare);
   const noise = new Map(order.map((k) => [k, nextInt(rng, 1000) / 1000]));
   const lake = new Set<string>([hexKey(centre)]);
@@ -377,7 +380,14 @@ function generateLake(content: Content, gen: LakeMapGen, seed: string): Generate
     const options = [...lake]
       .flatMap((k) => hexNeighbors(tiles[k]!))
       .map(tile)
-      .filter((t): t is Tile => t !== undefined && !lake.has(hexKey(t)) && !edge(t) && !onShore(t))
+      .filter(
+        (t): t is Tile =>
+          t !== undefined &&
+          !lake.has(hexKey(t)) &&
+          !edge(t) &&
+          !onShore(t) &&
+          t.r >= gen.streamRows,
+      )
       .map(hexKey);
     if (options.length === 0) break;
     const score = (k: string) => hexDistance(tiles[k]!, centre) + noise.get(k)! * 1.6;

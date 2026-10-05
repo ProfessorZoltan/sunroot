@@ -398,6 +398,70 @@ function plantHedges(turn: Turn, profile: Profile, max: number): void {
   }
 }
 
+/**
+ * The lake's cards (no other biome offers them): what keeps it clean, lit at night and out of the
+ * wind before the bot's own cards, the rest after them.
+ */
+const LAKE_FIRST = [
+  'wastewaterFishery',
+  'canalWheel',
+  'willowEdge',
+  'mulberryDyke',
+  'silkHouse',
+  'fishPond',
+];
+const LAKE_LATER = ['lakeFishery', 'floatingSolar', 'pigPen', 'duckHouse'];
+
+/**
+ * Lake Gardens (LG3): keep the lake clean and open. A wastewater fishery for every 3 stilt houses
+ * (or whenever grey water is left in the lake), beside a house and a bed where it can; a mud boat
+ * beside shallows holding 2 mud or more; before the autumn wind, willow edges on the beds facing
+ * deep water; silk before the drowned town's salvage runs out. All of it waits while salvage
+ * waits on a workshop with no power.
+ */
+function tendLake(turn: Turn, profile: Profile): void {
+  const lake = turn.rules.rules.lake;
+  if (!lake) return;
+  // Salvage waiting on a workshop with no power to run it: the materials go to power first.
+  if (idleWorkshops(turn) > 0) return;
+  const state = turn.state;
+  const reserve = Math.min(profile.reserve, 2);
+  const fisheries = turn.count('wastewaterFishery');
+  const takes = turn.rules.byId.wastewaterFishery?.eatsGrey?.takesGrey ?? 3;
+  const greyIn = turn.count('stiltHouse');
+  if ((fisheries * takes < greyIn || (state.lake?.grey ?? 0) > fisheries) && fisheries < 6)
+    turn.build('wastewaterFishery', reserve);
+  // Mud boats: every shallows tile gathering mud has a working boat beside it.
+  const boats = Object.values(state.buildings).filter((b) => b.type === 'mudBoat');
+  const muddy = Object.values(state.map.tiles).filter(
+    (t) =>
+      t.type === 'shallows' && (t.mud ?? 0) >= 2 && !boats.some((b) => hexDistance(b.at, t) === 1),
+  );
+  if (muddy.length > 0 && turn.canBuild('mudBoat', reserve)) {
+    let best: { at: Hex; score: number } | null = null;
+    for (const t of turn.sites('mudBoat')) {
+      const reach = muddy.filter((m) => hexDistance(m, t) === 1);
+      if (reach.length === 0) continue;
+      const mud = reach.reduce((n, m) => n + (m.mud ?? 0), 0);
+      const score = 10 * mud + 3 * reach.length + siteScore(turn, 'mudBoat', t);
+      if (!best || score > best.score) best = { at: { q: t.q, r: t.r }, score };
+    }
+    if (best) turn.apply({ type: 'place', building: 'mudBoat', at: best.at });
+  }
+  // The lake wind comes in autumn: shelter the exposed beds in summer.
+  if (state.season === 'summer') plantHedges(turn, profile, 12);
+  // Before the drowned town's salvage runs out, silk for materials: mulberry dykes by the fish,
+  // a silk house by each dyke.
+  const salvage = Object.values(state.map.tiles).reduce((n, t) => n + (t.salvage ?? 0), 0);
+  if (salvage < 60) {
+    if (turn.count('mulberryDyke') < 2 && !turn.build('mulberryDyke', reserve))
+      // A dyke stands by fish: a pond on the shore first, when there is none to stand by.
+      if (turn.unlocked('mulberryDyke') && turn.build('fishPond', reserve))
+        turn.build('mulberryDyke', reserve);
+    if (turn.count('silkHouse') < turn.count('mulberryDyke')) turn.build('silkHouse', reserve);
+  }
+}
+
 /** The shared needs-first play of the non-random bots. */
 function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): void {
   // A wonder's tiles are kept free from the start of the run.
@@ -413,7 +477,9 @@ function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): v
       ? ['cistern', 'weir', ...profile.cards]
       : frosty
         ? ['cistern', ...profile.cards]
-        : profile.cards,
+        : turn.rules.rules.lake
+          ? [...LAKE_FIRST, ...profile.cards, ...LAKE_LATER]
+          : profile.cards,
   );
   if (turn.waterOn) tendWater(turn, profile, water);
   // The heat layer: energy can't heat, so a heat-minding bot puts a pump by every home first.
@@ -448,6 +514,9 @@ function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): v
     const power = profile.dayPower.filter((id) => turn.canBuild(id, profile.reserve));
     if (!buildFirstThatHelps(turn, power, idleWorkshops)) break;
   }
+
+  // The lake (after power for the workshops, which the dredging would otherwise outbid).
+  tendLake(turn, profile);
 
   // Long walks to work: a cottage near the far work, when the walks cost wellbeing.
   if (turn.commuteOn && turn.commuteAware && (turn.peek()?.report.commute?.wellbeing ?? 0) < 0)
@@ -921,6 +990,7 @@ const growHousing = (turn: Turn) =>
 const NIGHT = [
   'airSourceHeatPump',
   'riverWheel',
+  'canalWheel',
   'hillTurbine',
   'tideTurbine',
   'waveBuoy',
@@ -932,7 +1002,14 @@ const NIGHT = [
   'concentratedSolarPlant',
   'biogasDigester',
 ];
-const DAY = ['solarCanopy', 'tideTurbine', 'hillTurbine', 'airSourceHeatPump', 'windTower'];
+const DAY = [
+  'solarCanopy',
+  'tideTurbine',
+  'hillTurbine',
+  'airSourceHeatPump',
+  'windTower',
+  'floatingSolar',
+];
 
 const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
   greedyFood: {
@@ -968,6 +1045,7 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'oasisGarden',
       'wadiFarm',
       'chinampa',
+      'lakeFishery',
       'shieling',
       'riceFishPaddy',
       'fishPond',
@@ -986,7 +1064,7 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
         'oasisGarden',
         'wadiFarm',
         'chinampa',
-        'chinampa',
+        'lakeFishery',
         'shieling',
         'fishPond',
         'kelpFarm',
@@ -1063,6 +1141,7 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'oasisGarden',
       'wadiFarm',
       'chinampa',
+      'lakeFishery',
       'fishPond',
       'kelpFarm',
       'greenhouse',
@@ -1126,6 +1205,7 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'oasisGarden',
       'wadiFarm',
       'chinampa',
+      'lakeFishery',
       'shieling',
       'fishPond',
       'kelpFarm',

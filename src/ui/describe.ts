@@ -381,6 +381,10 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
       );
   }
   if (w?.fromPond) lines.push('Watered by a fish pond next to it, not a channel.');
+  if (w?.lessNextTo)
+    lines.push(
+      `Needs ${w.lessNextTo.amount} less water next to a ${w.lessNextTo.buildings.map((id) => content.byId[id]?.name ?? id).join(' or ')}.`,
+    );
   if (w?.noEvaporation) lines.push('Its channel loses no water to summer evaporation.');
   if (w?.cleans)
     lines.push(

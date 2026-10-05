@@ -10,8 +10,9 @@ Everything here is a proposal: the designer's defaults until review, the bots an
 tune them.
 
 **Status**: started. It joins after 10 runs, however many districts the city has (the
-playtester). LG1, the lake's rules, and LG2, its simulation, are built (`?biome=lakeGardens`);
-see DECISIONS.md, Lake Gardens, for where the build differs from this proposal.
+playtester). LG1, the lake's rules, LG2, its simulation, and LG3, its combos, cards and balance,
+are built (`?biome=lakeGardens`); see DECISIONS.md, Lake Gardens, for where the build differs from
+this proposal (the chinampa's numbers among them).
 
 It builds on what the earlier biomes left: water with its three qualities (clean, grey, nutrient),
 lakes, cisterns and channels (E1), grey water's cost to Harmony, the reed bed and oyster reef that

@@ -124,8 +124,8 @@ describe("the lake's buildings", () => {
     expect(tile(s, 3, 1).type).toBe('bed');
     s = end(s);
     expect(s.lastReport!.water!.uses[uidAt(s, 3, 1)]).toMatchObject({ from: 'lake', short: false });
-    // 4 in summer, +1 with open water on 2 sides or more.
-    expect(yieldOf(s, 3, 1, 'food')).toBe(5);
+    // 3 in summer, +1 with open water on 2 sides or more.
+    expect(yieldOf(s, 3, 1, 'food')).toBe(4);
   });
 
   it('a lake fishery stands on deep water beside shallows', () => {
@@ -152,10 +152,10 @@ describe("the lake's buildings", () => {
   it('a duck house helps the chinampas beside it, spring to autumn', () => {
     let s = build(start(), 'chinampa', 3, 2);
     s = build(s, 'duckHouse', 2, 2);
-    expect(yieldOf(end(s), 3, 2, 'food')).toBe(6);
+    expect(yieldOf(end(s), 3, 2, 'food')).toBe(5);
     let w = build(start('winter'), 'chinampa', 3, 2);
     w = build(w, 'duckHouse', 2, 2);
-    expect(yieldOf(end(w), 3, 2, 'food')).toBe(3);
+    expect(yieldOf(end(w), 3, 2, 'food')).toBe(2);
   });
 
   it('a pig pen turns scraps into compost', () => {

@@ -79,7 +79,7 @@
       },
       "shortfallFactor": 0.5,
       "greyHarmonyPerUnit": 1,
-      "lakePerTile": 2,
+      "lakePerTile": 1,
       "wheelFlowPerEnergy": 4,
       "campChannel": 0,
       "channelBuilding": "irrigationChannel"
@@ -205,6 +205,7 @@
     "lake": {
       "waterPerMud": 2,
       "siltAt": 4,
+      "bedShare": 1,
       "selfCleans": 1,
       "greyHarmonyPerUnit": 1,
       "bloom": {
@@ -219,10 +220,11 @@
     "kind": "lake",
     "width": 12,
     "height": 10,
-    "lakeShare": 0.45,
+    "lakeShare": 0.4,
     "deepFrom": 2,
     "islands": 2,
     "streamColumns": [3, 8],
+    "streamRows": 2,
     "fringeChance": 0.5,
     "shoreColumns": 2,
     "hillChance": 0.5,
@@ -291,7 +293,7 @@
     {
       "id": "chinampa",
       "name": "Chinampa",
-      "cost": 3,
+      "cost": 4,
       "workers": 1,
       "kind": "food",
       "starter": true,
@@ -303,7 +305,7 @@
       },
       "setsTile": "bed",
       "yields": {
-        "food": [2, 4, 4, 2]
+        "food": [2, 3, 3, 1]
       },
       "nextToTilesFood": {
         "tiles": ["shallows", "deep"],
@@ -352,6 +354,12 @@
         },
         "heat": {
           "night": [0, 0, 0, 1]
+        }
+      },
+      "wellbeing": {
+        "nextToTiles": {
+          "tiles": ["bed", "meadow", "woodland"],
+          "amount": 1
         }
       },
       "water": {
@@ -976,6 +984,10 @@
         "returns": {
           "quality": "nutrient",
           "amount": 1
+        },
+        "lessNextTo": {
+          "buildings": ["duckHouse"],
+          "amount": 1
         }
       }
     },
@@ -1376,6 +1388,58 @@
       },
       "harmonyAsTile": "meadow",
       "revertsAfterSeasons": 2
+    },
+    {
+      "id": "riceDuckPaddy",
+      "name": "Rice-Duck Paddy",
+      "cost": 5,
+      "workers": 1,
+      "kind": "food",
+      "requiresWater": true,
+      "floodTolerant": true,
+      "farmland": true,
+      "placement": {
+        "tiles": ["floodplain", "bed"],
+        "adjacentTo": [],
+        "adjacentToBuildings": ["irrigationChannel"]
+      },
+      "yields": {
+        "food": [3, 5, 5, 0]
+      },
+      "water": {
+        "needs": [2, 2, 2, 0],
+        "accepts": ["clean", "nutrient"],
+        "returns": {
+          "quality": "nutrient",
+          "amount": 2
+        },
+        "lessNextTo": {
+          "buildings": ["duckHouse"],
+          "amount": 1
+        }
+      },
+      "placeable": false,
+      "draftable": false
+    },
+    {
+      "id": "floatingMarket",
+      "name": "Floating Market",
+      "cost": 8,
+      "workers": 1,
+      "kind": "civic",
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "demand": {
+        "energy": {
+          "night": [1, 1, 1, 1]
+        }
+      },
+      "wellbeing": {
+        "whenPowered": 5
+      },
+      "placeable": false,
+      "draftable": false
     }
   ],
   "combos": [
@@ -1614,21 +1678,6 @@
       "hint": "Terraces stepping down, one feeding the next."
     },
     {
-      "id": "windbreak",
-      "layer": "formation",
-      "name": "Windbreak",
-      "requiresWater": true,
-      "shape": {
-        "kind": "hedgeRun",
-        "length": 4
-      },
-      "effect": {
-        "shelterRadius": 2
-      },
-      "text": "4 hedges joined end to end along the edges between tiles: storms can’t damage any building within 2 tiles of them, on any side.",
-      "hint": "A long hedge stops more wind than a short one."
-    },
-    {
       "id": "hearthSquare",
       "layer": "formation",
       "name": "Hearth Square",
@@ -1766,6 +1815,163 @@
       "text": "Coppice a woodland tile next to a workshop and it becomes a Coppice Wood: 2 materials each season with 1 worker, but it counts as meadow for Harmony (1 instead of 2). Stop coppicing and it is woodland again after 2 seasons.",
       "hint": "Cut a tree low and it grows back many.",
       "requiresWater": true
+    },
+    {
+      "id": "duckAndRice",
+      "layer": "adjacency",
+      "name": "Duck and Rice",
+      "requiresWater": true,
+      "building": "riceFishPaddy",
+      "nextTo": {
+        "buildings": ["duckHouse"]
+      },
+      "text": "A rice-fish paddy next to a duck house needs 1 less water: the ducks keep the weeds down that drink it.",
+      "hint": "Ducks in the paddy."
+    },
+    {
+      "id": "dykeLoop",
+      "layer": "chain",
+      "name": "Dyke Loop",
+      "links": [
+        {
+          "buildings": ["silkHouse"]
+        },
+        {
+          "buildings": ["mulberryDyke"]
+        },
+        {
+          "buildings": ["fishPond", "lakeFishery", "wastewaterFishery"]
+        },
+        {
+          "buildings": ["mudBoat"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["materials", "biomass", "food", "compost"],
+      "dredgeBonus": 1,
+      "text": "Silk house ← leaves ← mulberry dyke → droppings → fish → mud → mud boat → compost for the dyke, in a chain of neighbours. Once it runs, each makes +1 (silk, leaves, fish or compost) and the mud boat lifts 1 more mud, for as long as it stands.",
+      "hint": "Mulberry, silk, fish and mud, each beside the next."
+    },
+    {
+      "id": "vacLoop",
+      "layer": "chain",
+      "name": "VAC Loop",
+      "requiresWater": true,
+      "links": [
+        {
+          "buildings": ["fishPond"]
+        },
+        {
+          "buildings": ["stiltHouse"],
+          "standing": true
+        },
+        {
+          "buildings": ["pigPen"]
+        },
+        {
+          "buildings": ["chinampa"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "compost"],
+      "text": "Garden, pond, pen: a fish pond by a stilt house, a pig pen by the house turning its scraps to manure, a chinampa by the pen, in a chain of neighbours. Once it runs, the pond and the chinampa make +1 food and the pen +1 compost, for as long as it stands.",
+      "hint": "House, pond, pen and garden, each beside the next."
+    },
+    {
+      "id": "cleanLakeLoop",
+      "layer": "chain",
+      "name": "Clean Lake Loop",
+      "requiresWater": true,
+      "links": [
+        {
+          "buildings": ["stiltHouse"],
+          "standing": true
+        },
+        {
+          "buildings": ["wastewaterFishery"]
+        },
+        {
+          "buildings": ["chinampa"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food"],
+      "greyBonus": 1,
+      "text": "Stilt house → grey water → wastewater fishery → fish and rich water → chinampa, in a chain of neighbours, the fishery eating grey water. Once it runs, the fishery and the chinampa make +1 food and the fishery takes 1 more grey water, for as long as it stands.",
+      "hint": "What the house washes away, the fish eat, and the bed drinks."
+    },
+    {
+      "id": "floatingGarden",
+      "layer": "formation",
+      "name": "Floating Garden",
+      "requiresWater": true,
+      "shape": {
+        "kind": "openRing",
+        "tile": "shallows",
+        "of": ["chinampa"],
+        "size": 4
+      },
+      "effect": {
+        "yields": {
+          "food": 1
+        },
+        "seasons": [false, true, false, false],
+        "keepsOpen": true,
+        "appliesTo": "chinampa"
+      },
+      "text": "4 chinampas round a tile of shallows left open: the open pool never silts, and each chinampa makes +1 food in summer.",
+      "hint": "Beds around a pool, not over it."
+    },
+    {
+      "id": "willowShore",
+      "layer": "formation",
+      "name": "Willow Shore",
+      "requiresWater": true,
+      "shape": {
+        "kind": "hedgeRun",
+        "length": 4
+      },
+      "effect": {
+        "shelterRadius": 2
+      },
+      "text": "4 willow edges joined end to end: the lake wind can’t damage any building within 2 tiles of them.",
+      "hint": "A long row of willows breaks the wind off the water."
+    },
+    {
+      "id": "riceDuckPaddy",
+      "layer": "evolution",
+      "name": "Rice-Duck Paddy",
+      "requiresWater": true,
+      "from": "riceFishPaddy",
+      "into": "riceDuckPaddy",
+      "when": {
+        "kind": "nextTo",
+        "nextTo": {
+          "buildings": ["duckHouse"]
+        },
+        "minAge": 4
+      },
+      "text": "A rice-fish paddy that has stood 4 seasons next to a duck house becomes a Rice-Duck Paddy: +1 food each season it grows, and it returns 2 nutrient-rich water instead of 1.",
+      "hint": "Ducks that stay a year."
+    },
+    {
+      "id": "floatingMarket",
+      "layer": "evolution",
+      "name": "Floating Market",
+      "from": "commonsPlaza",
+      "into": "floatingMarket",
+      "when": {
+        "kind": "nextTo",
+        "nextTo": {
+          "buildings": ["stiltHouse"],
+          "count": 2
+        },
+        "also": {
+          "tiles": ["shallows", "deep"]
+        }
+      },
+      "text": "A commons plaza next to 2 stilt houses and the water becomes a Floating Market: +5 wellbeing while powered instead of +3.",
+      "hint": "Boats moored by the square."
     }
   ],
   "tunings": [
@@ -2052,6 +2258,109 @@
           "add": 1
         }
       ]
+    },
+    {
+      "id": "deeperDredging",
+      "name": "Deeper Dredging",
+      "text": "Mud boats lift 1 more mud every season.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "mudBoat",
+          "path": "dredges",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "silkTrade",
+      "name": "Silk Trade",
+      "text": "Silk houses make 4 materials a run instead of 3.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "silkHouse",
+          "path": "recipes.options.0.outputs.materials",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "cleanCanals",
+      "name": "Clean Canals",
+      "text": "The lake cleans 2 grey water a season by itself instead of 1.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "lake.selfCleans",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "manyHarvests",
+      "name": "Many Harvests",
+      "text": "Chinampas make 1 more food in winter.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "chinampa",
+          "path": "yields.food.3",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "fishLadders",
+      "name": "Fish Ladders",
+      "text": "Lake fisheries make 1 more food every season.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "lakeFishery",
+          "path": "yields.food",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "willowPlanting",
+      "name": "Willow Planting",
+      "text": "Willow edges cost nothing.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "willowEdge",
+          "path": "cost",
+          "set": 0
+        }
+      ]
+    },
+    {
+      "id": "reedThatch",
+      "name": "Reed Thatch",
+      "text": "Stilt houses house 4 instead of 3.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "stiltHouse",
+          "path": "housing",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "nightFishing",
+      "name": "Night Fishing",
+      "text": "Wastewater fisheries take 4 grey water a season instead of 3.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "wastewaterFishery",
+          "path": "eatsGrey.takesGrey",
+          "add": 1
+        }
+      ]
     }
   ],
   "charters": [
@@ -2124,6 +2433,48 @@
           "target": "building",
           "id": "pollinatorMeadow",
           "path": "harmony",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "canalKeepers",
+      "name": "Canal Keepers",
+      "text": "The lake never blooms, but every chinampa costs 1 more.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "lake.bloom.above",
+          "set": 1000
+        },
+        {
+          "target": "building",
+          "id": "chinampa",
+          "path": "cost",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "waterFirst",
+      "name": "Water First",
+      "text": "Raised beds can take no more than half the shallows, but lake fisheries and fish ponds make 1 more food every season.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "lake.bedShare",
+          "set": 0.5
+        },
+        {
+          "target": "building",
+          "id": "lakeFishery",
+          "path": "yields.food",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "fishPond",
+          "path": "yields.food",
           "add": 1
         }
       ]
