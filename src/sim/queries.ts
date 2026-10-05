@@ -371,3 +371,16 @@ export function improveTile(content: Content, tile: Tile, steps: number, cap?: T
   tile.type = ladder[next]!;
   return true;
 }
+
+/**
+ * Turn a tile into what a planting makes of it (a building's setsTile or matureTileBecomes): up the
+ * land-health ladder as far as `to`, never down; and plantable ground off the ladder (the coast's
+ * dunes) straight to `to`. Returns true if it changed.
+ */
+export function plantTile(content: Content, tile: Tile, to: TileType): boolean {
+  if (content.rules.plantable.includes(tile.type) && tile.type !== to) {
+    tile.type = to;
+    return true;
+  }
+  return improveTile(content, tile, content.rules.landHealth.length, to);
+}

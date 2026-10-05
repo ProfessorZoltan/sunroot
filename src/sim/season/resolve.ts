@@ -15,7 +15,7 @@ import {
   computeHarmony,
   defOf,
   eraOf,
-  improveTile,
+  plantTile,
   seasonIndex,
   tileAt,
   byPriority,
@@ -268,14 +268,7 @@ function startSeason(content: Content, state: RunState): void {
     }
     if (def.spawns && state.season === 'spring') spawn(content, state, b, def.spawns);
     if (def.matureTileBecomes && state.turn - b.builtTurn === def.maturesAfterSeasons) {
-      if (
-        improveTile(
-          content,
-          tileAt(state, b.at)!,
-          content.rules.landHealth.length,
-          def.matureTileBecomes,
-        )
-      ) {
+      if (plantTile(content, tileAt(state, b.at)!, def.matureTileBecomes)) {
         state.notices.push(`${def.name} matured and turned its tile to ${def.matureTileBecomes}`);
       }
     }

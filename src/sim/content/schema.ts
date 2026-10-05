@@ -748,6 +748,11 @@ export const RulesSchema = z
     rotsInto: z.enum(['scraps', 'biomass']),
     citizensPerScrap: int.min(1),
     landHealth: z.array(TileTypeSchema).min(2),
+    /**
+     * Ground off the land-health ladder that compost, nurseries and projects leave alone, but that
+     * planting still turns (a building's setsTile or matureTileBecomes): the coast's dunes.
+     */
+    plantable: z.array(TileTypeSchema).default([]),
     harmony: z.object({
       perTile: z.partialRecord(TileTypeSchema, int),
       perClutter: int,

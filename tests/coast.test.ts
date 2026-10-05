@@ -5,7 +5,7 @@
 import { describe, expect, it } from 'vitest';
 import { biomeContent } from '../src/content';
 import { createRun, hexKey, hexNeighbors, scoreRun, type RunState } from '../src/sim';
-import { at, endSeason, place, rejects, scenario, uidAt } from './helpers';
+import { act, at, endSeason, place, rejects, scenario, uidAt } from './helpers';
 
 const COAST = biomeContent('windsweptCoast');
 const seeds = ['a', 'b', 'coast-1', 'coast-2', 'coast-3'];
@@ -86,10 +86,10 @@ describe('the coast in a full run (B3)', () => {
     ).not.toContain(line.reason);
   });
 
-  it("Restore the Shore asks for half the coast's healable land, dunes included", () => {
+  it("Restore the Shore asks for 60% of the coast's healable land, dunes left out", () => {
     const vision = COAST.visions.find((v) => v.name === 'Restore the Shore')!;
-    expect(vision.goal).toEqual({ kind: 'greenLand', share: 0.5 });
-    expect(COAST.rules.landHealth[0]).toBe('dune');
+    expect(vision.goal).toEqual({ kind: 'greenLand', share: 0.6 });
+    expect(COAST.rules.landHealth).not.toContain('dune');
   });
 
   it('the balanced bot plays a whole coast run to the end, salvaging the strandline', async () => {
@@ -264,5 +264,33 @@ describe('the coast rules', () => {
     expect(s.map.tiles[hexKey(at(3, 2))]!.type).toBe('dune');
     s = end(end(s));
     expect(s.map.tiles[hexKey(at(3, 2))]!.type).toBe('scrub');
+  });
+
+  // Dunes are off the soil ladder, like mudflats: the terns, dune grass and the lagoon need them.
+  it("compost can't improve a dune; barren ground beside it still greens", () => {
+    const s = { ...start(), stores: { ...start().stores, compost: 20 } };
+    expect(rejects(s, { type: 'spreadCompost', at: at(3, 2) }, COAST)).toBe(
+      "compost can't improve dune",
+    );
+    const spread = act(s, { type: 'spreadCompost', at: at(0, 0) }, COAST);
+    expect(spread.map.tiles[hexKey(at(0, 0))]!.type).toBe('scrub');
+  });
+
+  it('Green Terraces heal the worst land and leave the dunes', () => {
+    const rich = { materials: 100, compost: 100, food: 100 };
+    let s = scenario(SHORE, { content: COAST, year: 7, citizens: 10, stores: rich });
+    const count = (x: RunState, type: string) =>
+      Object.values(x.map.tiles).filter((t) => t.type === type).length;
+    const dunes = count(s, 'dune');
+    s = act(s, { type: 'startProject', project: 'greenTerraces' }, COAST);
+    s = end(end(s));
+    expect(s.projects.find((p) => p.id === 'greenTerraces')?.done).not.toBeNull();
+    expect(count(s, 'dune')).toBe(dunes);
+    expect(count(s, 'barren')).toBe(0);
+  });
+
+  it('a pollinator meadow planted on a dune still makes it meadow', () => {
+    const s = build(start(), 'pollinatorMeadow', [[3, 2]]);
+    expect(s.map.tiles[hexKey(at(3, 2))]!.type).toBe('meadow');
   });
 });

@@ -204,7 +204,7 @@ Spire's).
 | Sea       | `sea`       | Open water off the shore                         | Groundless top face of deep blue-green water with a soft swell; the side band dark water, not paper earth. Up to 3 variants: `sea.png`, `sea-2.png`, `sea-3.png`; one winter `sea.winter.png`. | Proposal, Map |
 | Mudflat   | `mudflat`   | Wet sand and mud the tide covers and uncovers    | Glistening grey-brown with ripple marks and a few shells and worm casts. The game floods it with code-drawn water at night.                                                                    | Proposal, Map |
 | Saltmarsh | `saltmarsh` | Low marsh of samphire and sea lavender, in pools | Green-grey turf cut by small creeks and pans of standing water; purple flecks of sea lavender in summer.                                                                                       | Proposal, Map |
-| Dune      | `dune`      | Sand hills with marram grass                     | Pale sand in two or three soft ridges, sparse marram tufts; the healing ladder's lowest step, below barren.                                                                                    | Proposal, Map |
+| Dune      | `dune`      | Sand hills with marram grass                     | Pale sand in two or three soft ridges, sparse marram tufts.                                                                                                                                    | Proposal, Map |
 | Headland  | `hill`      | The coast's hills: rocky headlands over the sea  | Optional: the Reach's hill tile serves until then. Grass over grey rock, short cliffs on the seaward side.                                                                                     | Proposal, Map |
 
 ### Buildings

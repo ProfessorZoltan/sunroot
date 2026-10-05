@@ -17,6 +17,7 @@ import {
   computeHarmony,
   defOf,
   improveTile,
+  plantTile,
   isHome,
   repairCost,
   tileAt,
@@ -202,8 +203,7 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       if (def.recipes) b.recipe = def.recipes.defaultRecipe;
       if (def.digester) b.slot = def.digester.defaultSlot;
       if (def.storage) b.stored = 0;
-      if (def.setsTile)
-        improveTile(content, tileAt(s, b.at)!, content.rules.landHealth.length, def.setsTile);
+      if (def.setsTile) plantTile(content, tileAt(s, b.at)!, def.setsTile);
       if (def.weir) {
         const index = tileAt(s, b.at)!.riverIndex ?? 0;
         const occupied = new Set(Object.values(s.buildings).map((o) => hexKey(o.at)));

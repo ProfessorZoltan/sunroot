@@ -30,17 +30,20 @@ band of mudflat (tidal) and saltmarsh along the shore; dunes behind the beach; m
 inland; 2 or 3 headlands (rocky, high, windy) reaching into the sea; a short stream from the
 inland edge to the sea, its mouth an estuary of mudflat; 2 to 3 ruins (an old harbour).
 
-| Tile                                           | Like (Willow Reach) | Buildable                     | Notes                                                                            | Source |
-| ---------------------------------------------- | ------------------- | ----------------------------- | -------------------------------------------------------------------------------- | ------ |
-| Sea                                            | River               | Sea buildings only            | Water, not drinkable. Deep sea (away from land) for wave buoys.                  | New    |
-| Mudflat                                        | Floodplain          | Tidal buildings, crofts at −1 | Covered at high tide; the king tide salts what stands on it.                     | New    |
-| Saltmarsh                                      | Floodplain          | Most land buildings           | Rich, low; reached by the king tide beyond the mudflat.                          | New    |
-| Dune                                           | Barren              | Most land buildings           | Poor sand; dune grass turns it to scrub. On the land-health ladder below barren. | New    |
-| Headland                                       | Hill                | As hills                      | Windy; exposed to gales (as hills to storms).                                    | New    |
-| Stream                                         | River               | As river                      | Flow 6 (the Reach's river is 12); the only fresh surface water.                  | New    |
-| Ruin, scrub, meadow (machair), woodland (pine) | The same            | The same                      | Machair is the coast's meadow, shown with its own name.                          | New    |
+| Tile                                           | Like (Willow Reach) | Buildable                     | Notes                                                                | Source |
+| ---------------------------------------------- | ------------------- | ----------------------------- | -------------------------------------------------------------------- | ------ |
+| Sea                                            | River               | Sea buildings only            | Water, not drinkable. Deep sea (away from land) for wave buoys.      | New    |
+| Mudflat                                        | Floodplain          | Tidal buildings, crofts at −1 | Covered at high tide; the king tide salts what stands on it.         | New    |
+| Saltmarsh                                      | Floodplain          | Most land buildings           | Rich, low; reached by the king tide beyond the mudflat.              | New    |
+| Dune                                           | Barren              | Most land buildings           | Poor sand; dune grass turns it to scrub. Off the land-health ladder. | New    |
+| Headland                                       | Hill                | As hills                      | Windy; exposed to gales (as hills to storms).                        | New    |
+| Stream                                         | River               | As river                      | Flow 6 (the Reach's river is 12); the only fresh surface water.      | New    |
+| Ruin, scrub, meadow (machair), woodland (pine) | The same            | The same                      | Machair is the coast's meadow, shown with its own name.              | New    |
 
-Land-health ladder on the coast: dune → barren → scrub → meadow → woodland.
+Land-health ladder on the coast: barren → scrub → meadow → woodland, as in the Reach. Dunes were
+first its lowest step, but then compost and Green Terraces turned them into barren land, which the
+terns, dune grass and the Tidal Lagoon need as dunes; now they are left alone, like the mudflats.
+Planting still changes them: dune grass makes scrub, a pollinator meadow makes meadow.
 
 ## Seasonal events
 

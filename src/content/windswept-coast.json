@@ -16,7 +16,8 @@
     "foodPerCitizen": 1,
     "rotsInto": "biomass",
     "citizensPerScrap": 3,
-    "landHealth": ["dune", "barren", "scrub", "meadow", "woodland"],
+    "landHealth": ["barren", "scrub", "meadow", "woodland"],
+    "plantable": ["dune"],
     "harmony": {
       "perTile": {
         "meadow": 1,
@@ -2471,10 +2472,10 @@
     {
       "id": "restoreTheReach",
       "name": "Restore the Shore",
-      "text": "Make half the coast's healable land meadow or woodland.",
+      "text": "Make 60% of the coast's healable land meadow or woodland.",
       "goal": {
         "kind": "greenLand",
-        "share": 0.5
+        "share": 0.6
       }
     },
     {

@@ -5,6 +5,10 @@
 - Demolishing a building on the coast's mudflat, saltmarsh, dune or sea, or on the Highland's crag
   or bog, now leaves that ground as it was, ready for seals, oyster reefs or a wonder, instead of
   turning it to barren land.
+- Compost, tree nurseries and Green Terraces leave the coast's dunes alone now, like its mudflats,
+  instead of turning them into barren land. Dune grass and pollinator meadows still grow on them.
+  So **Restore the Shore** counts the land from barren to woodland, as in the Reach, and asks for
+  60% of it, as the Reach's vision does.
 
 ## New art
 
