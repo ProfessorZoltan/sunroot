@@ -8,8 +8,9 @@ papercraft style, the same light from the upper left, and the same 512 × 640 fr
 
 **Delivered and in the game:** all 54 files for the first six districts and four landmarks (the
 36 asked for, the 14 lit versions and the 4 rotors), delivered as `root-city/` and kept in
-`art/incoming/city/`. **Still to paint:** the Sun Quarter and the Glassworks, which came with the
-Sun Desert (SD5); their brief is [below](#the-sun-quarter-and-the-glassworks-sd5). **How it gets in.** The importer takes `art/incoming/city/` (`npx tsx scripts/import-art.ts`,
+`art/incoming/city/`; and the Sun Quarter at its three tiers (with its lit Sapling and
+Heartwood) and the Glassworks' three edges, which came with the Sun Desert (SD5), their brief
+[below](#the-sun-quarter-and-the-glassworks-sd5). **How it gets in.** The importer takes `art/incoming/city/` (`npx tsx scripts/import-art.ts`,
 which refuses a name or a frame size that isn't this guide's), and the city screen draws each
 piece it has: the city already stands on the map's hex geometry, so the tiles fit together as on
 the map. Anything without art is still drawn in code (`src/ui/City.tsx`): coloured hexes with a
@@ -86,8 +87,8 @@ Key colours are the interface's (`src/ui/City.tsx`, `LOOK`). Each needs `id.seed
 
 ## The Sun Quarter and the Glassworks (SD5)
 
-The seventh district and the fifth landmark, in the game since SD5 and drawn in code until their
-art comes (a burnt-orange hex with a sun over a wind tower; a gold clasp on the shared edge). Same
+The seventh district and the fifth landmark, in the game since SD5. **Delivered and in the
+game:** all 8 files, the two optional lit ones included. Same
 frame, style, tier ladder and file rules as everything above: 512 × 640, late summer, each tile
 carrying its own ground, no winter files. The importer already knows both names.
 

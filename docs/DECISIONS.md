@@ -1025,6 +1025,15 @@ they come.
 | The fish       | Three frames of a leap, a fish for each land (the valley's for a land without its own); the rings on the water stay drawn in code.                                                                                                                                                                              | `fishName`, `fishPose`                   |
 | As they come   | One citizen's first walking frame is enough for the map to use the art; a frame not yet painted falls back to it. Checked in the game with test art run through the importer.                                                                                                                                   | `scripts/import-art.ts`                  |
 
+Art delivered for these, and the Sun Desert's districts:
+
+| Topic             | Decision                                                                                                                                                                                                                        | Source              |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| Sorted on arrival | The Sun Quarter and Glassworks came in `sd5_districts_art/`, the young ones with the props in `keepsakes/`, and the fish in `fish/`: moved to the importer's folders (`city/`, `wildlife/`), the props staying in `keepsakes/`. | `art/incoming/`     |
+| Root City         | The Sun Quarter at its three tiers, lit at Sapling and Heartwood, and the Glassworks' three edges: every district and landmark now has its art, checked by the art test.                                                        | `tests/art.test.ts` |
+| Keepsakes         | Every young one's frames (the eagle pair needs none) and the banner (its white flag tinted to the first district's colour), window box and bird box.                                                                            | `tests/art.test.ts` |
+| Citizens and fish | The fish of all four lands, and `citizen.2` with its six frames and clothes layers: every walker is Citizen 2 in the 8 colours until the rest of the cast comes.                                                                | `tests/art.test.ts` |
+
 ## Deferred to later milestones
 
 - The world map that heals as runs are completed, Tempest levels, and biome unlocks (Highland,

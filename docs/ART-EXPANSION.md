@@ -42,7 +42,7 @@ and the Well with its own icon (`well.icon.png`). All in the game.
 | HL4. The Highland on screen  | Yes        | Its 2 tiles, then the Terrace Farm, Glen Farm, Hill Turbine and Bothy                                                                     | proposals/highland.md, Build plan           |
 | HL6. The Highland's wonder   | Yes (done) | The Cloud Terraces, 4 animals, 2 festival cards                                                                                           | proposals/highland.md, Build plan           |
 | SD4. The desert on screen    | Yes (done) | Its 5 tiles and the wadi bank's and old array's looks, then the Oasis Garden, Mud-brick House, Wind Tower and Solar Canopy's desert dress | proposals/sun-desert.md, Build plan         |
-| SD5. The desert in Root City | Yes        | The Sun Quarter district and the Glassworks landmark ([ART-CITY.md](ART-CITY.md))                                                         | proposals/sun-desert.md, Build plan         |
+| SD5. The desert in Root City | Yes (done) | The Sun Quarter district and the Glassworks landmark ([ART-CITY.md](ART-CITY.md))                                                         | proposals/sun-desert.md, Build plan         |
 | SD6. The desert's wonder     | Yes (done) | The Solar Oasis, 4 animals, 3 festival cards                                                                                              | proposals/sun-desert.md, Build plan         |
 
 ## The standard frame (reminder)
@@ -426,9 +426,9 @@ desert's festivals use the Reach's bunting and lanterns.
 ## Keepsakes (Seeds)
 
 Keepsakes are bought in Root City with Seeds ([proposals/seed-uses.md](proposals/seed-uses.md))
-and are only to look at. **In the game, drawn in code**: each young one uses its parent's frames,
-smaller or whitened, and each ornament is a small code drawing. Any piece can arrive on its own,
-and the importer takes them now. Same light and style as the rest.
+and are only to look at. **Delivered and in the game:** every young one's frames (the eagle pair
+needs none) and the banner, window box and bird box. The bunting and lanterns use the festivals'
+art and the kites stay drawn in code. Same light and style as the rest.
 
 ### The young ones
 

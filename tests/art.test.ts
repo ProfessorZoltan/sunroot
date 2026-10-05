@@ -119,6 +119,50 @@ describe('hand-made art', () => {
       expect(art(`festivals/${f}.png`), f).toBe(true);
   });
 
+  it("has the keepsakes: every young one's frames and the settlement's three props", () => {
+    // Each young one's frames are its animal's, its own name after the animal's (ART-EXPANSION.md).
+    const young: Record<string, string[]> = {
+      'wildBees.bumble': ['1', '2', '3'],
+      'otter.cub': ['swim.1', 'swim.2', 'rest'],
+      'beaver.kit': ['swim.1', 'swim.2', 'carry'],
+      'deer.white': ['walk.1', 'walk.2', 'walk.3', 'walk.4', 'graze.1', 'graze.2'],
+      'tern.chick': ['rest'],
+      'seal.pup': ['rest'],
+      'puffin.fish': ['1', '2'],
+      'dolphin.calf': ['1', '2', '3'],
+      'hare.young': ['run.1', 'run.2', 'sit'],
+      'dipper.young': ['1', '2'],
+      'marten.kit': ['1', '2'],
+      'fennec.cub': ['run.1', 'run.2', 'sit'],
+      'sandgrouse.chick': ['1', '2'],
+      'falcon.chick': ['perch'],
+      'oryx.calf': ['walk.1', 'walk.2', 'walk.3', 'walk.4', 'graze.1', 'graze.2'],
+    };
+    for (const [name, frames] of Object.entries(young))
+      for (const f of frames) expect(art(`wildlife/${name}.${f}.png`), `${name}.${f}`).toBe(true);
+    for (const f of ['banner', 'windowBox', 'birdBox'])
+      expect(art(`keepsakes/${f}.png`), f).toBe(true);
+  });
+
+  it('has the leaping fish of each land, and the first citizen (ART-PEOPLE.md)', () => {
+    for (const land of ['', 'coast.', 'glen.', 'desert.'])
+      for (const n of [1, 2, 3])
+        expect(art(`wildlife/fish.${land}leap.${n}.png`), `fish.${land}leap.${n}`).toBe(true);
+    for (const f of ['walk.1', 'walk.2', 'walk.3', 'walk.4', 'stand', 'work'])
+      for (const layer of ['', '.clothes'])
+        expect(art(`people/citizen.2.${f}${layer}.png`), `citizen.2.${f}${layer}`).toBe(true);
+  });
+
+  it('has every Root City district at each tier, and each landmark along its three edges', () => {
+    const tiers = content.rules.score.tiers.map((t) => t.id);
+    for (const d of content.districts)
+      for (const tier of tiers)
+        expect(art(`city/${d.id}.${tier}.png`), `${d.id}.${tier}`).toBe(true);
+    for (const l of content.landmarks)
+      for (const side of ['e', 'ne', 'nw'])
+        expect(art(`city/${l.id}.edge.${side}.png`), `${l.id}.edge.${side}`).toBe(true);
+  });
+
   it('has each wonder finished, in winter and at its 3 stages, with an icon (E5)', () => {
     for (const b of drawn.filter((d) => d.wonder)) {
       for (const f of ['', '.winter', '.stage1', '.stage2', '.stage3'])

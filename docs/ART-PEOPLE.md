@@ -5,9 +5,9 @@ their homes and their work, and the **fish** that leap in fish ponds and rivers.
 the existing art spec ([ART.md](ART.md), [ART-EXPANSION.md](ART-EXPANSION.md)) unless a section
 says otherwise: the same papercraft style, light from the upper left, the wildlife frame.
 
-**Status: requested; the game is ready for it.** Until the art comes the game keeps its code
-drawings: up to 6 small figures in 6 coat colours, all with one skin tone, and grey-silver fish
-(`src/render/ambient.ts`). The importer takes `art/incoming/people/` (refusing a name that isn't
+**Status: the fish of every land and `citizen.2` are delivered and in the game; the other 11
+citizens are still to paint.** Until a piece comes the game keeps its code drawings: small figures
+in 6 coat colours, all with one skin tone, and grey-silver fish (`src/render/ambient.ts`). The importer takes `art/incoming/people/` (refusing a name that isn't
 in the guide) and the fish among the wildlife, and the map uses whatever has come: as soon as one
 citizen's first walking frame is in, every walker is drawn from the cast delivered so far, and a
 frame not yet painted falls back to that first walking frame. So one citizen can be sent alone and

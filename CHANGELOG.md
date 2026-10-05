@@ -1,5 +1,11 @@
 # Changelog
 
+## New art
+
+- The **Sun Quarter** and the **Glassworks** in Root City are hand-painted now.
+- Every keepsake's art: the animals' young ones, the city's banner, window boxes and bird boxes.
+- The leaping fish of each land, and the first of the citizens walking between home and work.
+
 ## Ready for the citizens' and fishes' art
 
 - The game now draws the walking citizens and the leaping fish from hand-made art as soon as it
