@@ -17,13 +17,14 @@ import {
   flower,
   wonderOf,
   wonders,
+  type BuildingState,
   type Hex,
   type Tile,
 } from '../sim';
 import { pick, nextFloat, nextInt } from '../sim/rng';
 import { lowGround, siteScore, type Turn } from './turn';
 import { edgeBuilding } from '../sim/edges';
-import { stormExposed } from '../sim/queries';
+import { heightAt, neighborBuildings, neighborTiles, stormExposed } from '../sim/queries';
 import { wonderSiteProblem } from '../sim/wonder';
 import { SEASONS, type BuildingDef } from '../sim/content/schema';
 import { coppiceProblem } from '../sim/combos';
@@ -310,6 +311,42 @@ function tendCooling(turn: Turn, profile: Profile): void {
   }
 }
 
+/** Farms a late frost would strike: high enough, with no standing water beside them. */
+export function frostExposed(turn: Turn): BuildingState[] {
+  const frost = turn.rules.events.flood?.frost;
+  if (!frost) return [];
+  const state = turn.state;
+  return Object.values(state.buildings).filter(
+    (b) =>
+      turn.rules.byId[b.type]!.farmland &&
+      heightAt(state, b.at) >= frost.fromHeight &&
+      !neighborTiles(state, b.at).some((t) => frost.besideTiles.includes(t.type)) &&
+      !neighborBuildings(state, b).some((n) => frost.besideBuildings.includes(n.type)),
+  );
+}
+
+/**
+ * The late frost (the Highland): before the snowmelt brings it, a cistern where it stands beside
+ * the most farms the frost would strike (it keeps water for them too). Each farm spared keeps 2
+ * food a year, so one is worth it.
+ */
+export function tendFrost(turn: Turn, profile: Pick<Profile, 'reserve'>): void {
+  const season = turn.state.season;
+  if ((season !== 'winter' && season !== 'spring') || !turn.unlocked('cistern')) return;
+  for (let i = 0; i < 2; i++) {
+    const exposed = frostExposed(turn);
+    if (exposed.length === 0 || !turn.canBuild('cistern', Math.min(profile.reserve, 2))) return;
+    let best: { at: Hex; score: number } | null = null;
+    for (const t of turn.sites('cistern')) {
+      const covered = exposed.filter((b) => hexDistance(b.at, t) === 1).length;
+      if (covered === 0) continue;
+      const score = 10 * covered + siteScore(turn, 'cistern', t);
+      if (!best || score > best.score) best = { at: { q: t.q, r: t.r }, score };
+    }
+    if (!best || !turn.apply({ type: 'place', building: 'cistern', at: best.at })) return;
+  }
+}
+
 /**
  * Ice houses (the Sun Desert's yakhchal): in autumn, before the winter that fills them, if last
  * summer the grid still had to cool homes, one for every 3 homes, where it reaches the most.
@@ -361,8 +398,14 @@ function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): v
       const at = wonderOf(turn.state, def.id) ? undefined : keptFlower(turn, def);
       if (at) for (const h of flower(at)) turn.reserved.add(hexKey(h));
     }
+  // A late frost coming (the Highland): a cistern among the terraces is worth drafting.
+  const frosty = frostExposed(turn).length > 0;
   turn.pick(
-    turn.waterOn && water === 'storage' ? ['cistern', 'weir', ...profile.cards] : profile.cards,
+    turn.waterOn && water === 'storage'
+      ? ['cistern', 'weir', ...profile.cards]
+      : frosty
+        ? ['cistern', ...profile.cards]
+        : profile.cards,
   );
   if (turn.waterOn) tendWater(turn, profile, water);
   // The heat layer: energy can't heat, so a heat-minding bot puts a pump by every home first.
@@ -371,6 +414,7 @@ function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): v
   if (turn.heatAware && (turn.state.season === 'spring' || turn.state.season === 'summer'))
     tendCooling(turn, profile);
   tendIce(turn, profile);
+  tendFrost(turn, profile);
   if (!turn.has('salvageYard')) turn.build('salvageYard');
   if (!turn.has('workshop')) turn.build('workshop');
   // On the coast, salvage from the strandline as well as the ruins: a beachcombing yard a workshop.

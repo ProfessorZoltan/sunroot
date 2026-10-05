@@ -5,7 +5,10 @@
  */
 import { describe, expect, it } from 'vitest';
 import { biomeContent } from '../src/content';
-import type { RunState } from '../src/sim';
+import { hexDistance, type RunState } from '../src/sim';
+import { Turn } from '../src/balance/turn';
+import { frostExposed, tendFrost } from '../src/balance/bots';
+import { createRng } from '../src/sim/rng';
 import { at, endSeason, place, scenario, uidAt } from './helpers';
 
 const HIGH = biomeContent('highland');
@@ -63,5 +66,20 @@ describe('the late frost', () => {
     expect(s.buildings[uidAt(s, 4, 0)]!.frostYear).toBeUndefined();
     const floor = end(place(start(), 'glenFarm', 4, 3, HIGH));
     expect(floor.lastReport!.frosted ?? []).not.toContain(uidAt(floor, 4, 3));
+  });
+});
+
+describe('the bots and the frost', () => {
+  it('put a cistern beside a farm the frost would strike, before the snowmelt', () => {
+    // A terrace up the slope with nothing wet beside it; the bank below it takes a cistern.
+    let s = start();
+    s = { ...s, season: 'winter', stores: { ...s.stores, materials: 50 } };
+    s = place(s, 'terraceFarm', 2, 2, HIGH);
+    const turn = new Turn(HIGH, s, createRng('frost'));
+    expect(frostExposed(turn).map((b) => b.type)).toEqual(['terraceFarm']);
+    tendFrost(turn, { reserve: 0 });
+    expect(frostExposed(turn)).toEqual([]);
+    const cistern = Object.values(turn.state.buildings).find((b) => b.type === 'cistern')!;
+    expect(hexDistance(cistern.at, at(2, 2))).toBe(1);
   });
 });

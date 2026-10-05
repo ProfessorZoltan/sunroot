@@ -309,6 +309,14 @@ export function siteScore(
   if (turn.waterOn && def.water?.needs.some((n) => n > 0) && turn.watered(tile, occ, id))
     score += 4;
   if (tile.type === 'meadow' || tile.type === 'woodland') score -= 1;
+  // The Highland's late frost: a farm up the slope goes beside standing water, which keeps it off.
+  const frost = content.events.flood?.frost;
+  if (frost && def.farmland && (tile.height ?? 0) >= frost.fromHeight) {
+    const warm =
+      neighborTiles.some((t) => frost.besideTiles.includes(t.type)) ||
+      neighbors.some((b) => frost.besideBuildings.includes(b.type));
+    score += warm ? 3 : 0;
+  }
 
   switch (id) {
     case 'floodplainFarm':
