@@ -178,7 +178,9 @@ function WaterRow({ store }: { store: GameStore }) {
           <div class="small water-hint">
             Farms, orchards and greenhouses drink from channels: build them beside the camp&rsquo;s
             channel. To dig more, choose Irrigation Channel and click from a channel&rsquo;s end, or
-            beside the river. Hover a channel to see its water.
+            beside the river
+            {store.rules.byId.desalinator?.water?.startsChannel ? ' or a desalinator' : ''}. Hover a
+            channel to see its water.
           </div>
         ) : (
           <div class="small water-hint">

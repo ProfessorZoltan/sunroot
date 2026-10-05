@@ -1377,7 +1377,8 @@
         "feeds": {
           "quality": "clean",
           "amount": 2
-        }
+        },
+        "startsChannel": true
       }
     },
     {

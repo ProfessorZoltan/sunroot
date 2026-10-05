@@ -48,8 +48,14 @@ export function waterAt(
       `Channel: tile ${p + 1} of ${n} from its intake (carries at most ${content.rules.water.channelCapacity}).`,
     );
     if (p === 0) {
-      if (ch.intake === null) lines.push('No intake: it touches no river or lake at its ends.');
-      else {
+      if (ch.intake === null)
+        lines.push('No intake: it touches no river, lake or desalinator at its ends.');
+      else if ('source' in ch.intake) {
+        const src = state.buildings[ch.intake.source];
+        lines.push(
+          `Starts at the ${(src && content.byId[src.type]?.name) ?? 'desalinator'}: its water runs down from there.`,
+        );
+      } else {
         const from = 'river' in ch.intake ? 'the river' : 'the lake';
         lines.push(
           `Takes ${ch.drawn} from ${from}${ch.evaporated > 0 ? `, ${ch.evaporated} of it lost to summer evaporation` : ''}.`,
@@ -160,7 +166,14 @@ export function waterNotes(content: Content, state: RunState, report: WaterRepor
   const lines: string[] = [`The river brought ${report.riverFlow}.`];
   report.channels.forEach((ch, i) => {
     if (!ch) return;
-    const from = ch.intake === null ? 'no intake' : 'river' in ch.intake ? 'the river' : 'a lake';
+    const from =
+      ch.intake === null
+        ? 'no intake'
+        : 'source' in ch.intake
+          ? `the ${name(ch.intake.source)}`
+          : 'river' in ch.intake
+            ? 'the river'
+            : 'a lake';
     lines.push(
       `Channel ${i + 1} (${ch.tiles.length} tiles, from ${from}): took ${ch.drawn}${ch.evaporated > 0 ? ` (${ch.evaporated} evaporated)` : ''}, gave ${ch.usedAt.reduce((a, b) => a + b, 0)} to buildings` +
         (ch.released > 0 ? `, ${ch.released} from cisterns` : '') +

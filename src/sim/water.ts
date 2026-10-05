@@ -88,7 +88,11 @@ export function lakeNear(state: RunState, h: Hex, of: Map<string, string>): stri
   return ids[0] ?? null;
 }
 
-export type Intake = { river: number } | { lake: string } | null;
+/**
+ * Where a channel draws its water: the river at a position, a lake, or a building beside its first
+ * tile that makes water for it (a desalinator); null if none.
+ */
+export type Intake = { river: number } | { lake: string } | { source: string } | null;
 
 export interface Channel {
   /** Channel tiles' building uids, from the intake down. */
@@ -155,7 +159,12 @@ export function channels(
     else {
       first = ends.find((k) => lakeNear(state, tiles.get(k)!.at, of) !== null);
       if (first !== undefined) intake = { lake: lakeNear(state, tiles.get(first)!.at, of)! };
-      else first = ends[0]!;
+      else {
+        first = ends.find((k) => sourceBeside(content, state, tiles.get(k)!.at) !== null);
+        if (first !== undefined)
+          intake = { source: sourceBeside(content, state, tiles.get(first)!.at)!.uid };
+        else first = ends[0]!;
+      }
     }
     // Walk the path from the intake end.
     const path = [first];
@@ -183,8 +192,18 @@ export function channels(
   return result;
 }
 
+/** A building beside this tile that a channel may start from (a desalinator), or null. */
+export function sourceBeside(content: Content, state: RunState, at: Hex): BuildingState | null {
+  const occ = occupancy(state);
+  const found = hexNeighbors(at)
+    .map((n) => occ.get(hexKey(n)))
+    .filter((b): b is BuildingState => b !== undefined && !!defOf(content, b).water?.startsChannel)
+    .sort((a, b) => a.uid.localeCompare(b.uid));
+  return found[0] ?? null;
+}
+
 /**
- * Where a tile of channel may go: next to the river or a reservoir (starting
+ * Where a tile of channel may go: next to the river, a reservoir or a desalinator (starting
  * a channel), or at the end of exactly one channel (extending it). Channels
  * don't branch, and two channels never join.
  */
@@ -198,7 +217,8 @@ export function channelSiteProblem(content: Content, state: RunState, at: Hex): 
       const type = tileAt(state, n)?.type;
       return type !== undefined && isWaterTile(type);
     });
-    return water ? null : 'a new channel must start next to the river or a reservoir';
+    if (water || sourceBeside(content, state, at)) return null;
+    return 'a new channel must start next to the river, a reservoir or a desalinator';
   }
   if (touching.length > 1) return 'channels can only be extended from one end, not joined';
   const end = touching[0]!;

@@ -180,6 +180,8 @@ export function resolveWater(ctx: SeasonContext): void {
   const intakeHeightOf = (ch: Channel): number => {
     if (!ch.intake) return Infinity;
     const first = tiles(ch.keys[0]!);
+    // A desalinator pumps its water in at its own level.
+    if ('source' in ch.intake) return heightAt(state, state.buildings[ch.intake.source]!.at);
     const water = hexNeighbors(first)
       .map((n) => state.map.tiles[hexKey(n)])
       .filter((t) => t && isWaterTile(t.type));
@@ -460,11 +462,13 @@ export function resolveWater(ctx: SeasonContext): void {
         inAt[p]! += feeds.amount;
         // A home's washing water (the Sun Desert's mud-brick houses), or a fish pond's.
         const fdef = defOf(content, f.b);
-        const label = fdef.wonder
-          ? fdef.name
-          : fdef.housing > 0
+        // A desalinator or a wonder by name; homes' washing water; fish ponds.
+        const label =
+          fdef.housing > 0
             ? 'grey water from homes'
-            : 'fed by ponds';
+            : feeds.quality === 'nutrient'
+              ? 'fed by ponds'
+              : fdef.name;
         add(report.in, label, feeds.amount);
         explain(ctx, f.b, `water: feeds ${feeds.amount} ${feeds.quality} into its channel`);
       }
@@ -580,7 +584,8 @@ export function resolveWater(ctx: SeasonContext): void {
     for (const c of lakeCisternsOf(id)) refill(c, fromLake);
   }
   chans.forEach((ch, c) => {
-    if (ch.intake === null) runChannel(c, () => 0, null);
+    // Channels fed only by what stands beside them: a desalinator at their head, or none.
+    if (ch.intake === null || 'source' in ch.intake) runChannel(c, () => 0, null);
   });
 
   // 3. The river, from the top of the map down.

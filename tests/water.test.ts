@@ -93,7 +93,9 @@ describe('channels', () => {
       return r.ok ? 'ok' : r.reason;
     };
     expect(why(2, 0)).toMatch(/can't be built on hill/);
-    expect(why(2, 2)).toBe('a new channel must start next to the river or a reservoir');
+    expect(why(2, 2)).toBe(
+      'a new channel must start next to the river, a reservoir or a desalinator',
+    );
     // A path (1,1) → (2,1) → (3,2) → (3,3).
     s = build(s, 'irrigationChannel', [
       [1, 1],

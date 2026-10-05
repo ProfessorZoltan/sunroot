@@ -149,3 +149,65 @@ test("the coast's wonder on the palette, and Kite Day held from its card", async
   await expect(card.getByRole('button', { name: 'Call off' })).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test('a channel from a desalinator carries its water inland', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/?biome=windsweptCoast&seed=coast-desal&visions=0');
+  await expect(page.locator('#map-host canvas')).toBeVisible();
+  type Hex = { q: number; r: number };
+  type Store = {
+    state: {
+      unlocked: string[];
+      stores: { materials: number };
+      buildings: Record<string, { uid: string; type: string; at: Hex }>;
+      lastReport: { water?: { channels: ({ intake: unknown; tiles: string[] } | null)[] } } | null;
+    };
+    legalSites: { at: Hex }[];
+    selectBuilding(id: string | null): void;
+    clickAt(hex: Hex): void;
+  };
+  // A desalinator on the shore, then two tiles of channel leading away from it.
+  const placed = await page.evaluate(() => {
+    const s = (window as unknown as { sunroot: { store: Store } }).sunroot.store;
+    s.state.stores.materials = 100;
+    // Not yet drawn as a card this early: unlocked here by hand.
+    s.state.unlocked.push('desalinator');
+    const near = (a: Hex, b: Hex) =>
+      (Math.abs(a.q - b.q) + Math.abs(a.r - b.r) + Math.abs(a.q + a.r - b.q - b.r)) / 2 === 1;
+    s.selectBuilding('desalinator');
+    const first = s.legalSites[0];
+    if (!first) return { plant: '', channel: -1 };
+    s.clickAt(first.at);
+    const plant = Object.values(s.state.buildings).find((b) => b.type === 'desalinator')!;
+    let end = plant.at;
+    for (let i = 0; i < 2; i++) {
+      s.selectBuilding('irrigationChannel');
+      const site = s.legalSites.find((x) => near(x.at, end));
+      if (!site) return { plant: plant.uid, channel: i };
+      s.clickAt(site.at);
+      end = site.at;
+    }
+    s.selectBuilding(null);
+    return { plant: plant.uid, channel: 2 };
+  });
+  expect(placed.channel).toBe(2);
+  // End the season (a draft card first), and its channel's intake is the desalinator.
+  await page.keyboard.press('1');
+  await page.keyboard.press('e');
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (
+            window as unknown as { sunroot: { store: Store } }
+          ).sunroot.store.state.lastReport?.water?.channels
+            .filter((c) => c !== null)
+            .map((c) => c!.intake) ?? [],
+      ),
+    )
+    .toContainEqual({ source: placed.plant });
+  const shots = process.env.SUNROOT_SHOTS;
+  if (shots) await page.screenshot({ path: `${shots}/desalinator-channel.png` });
+  expect(errors).toEqual([]);
+});

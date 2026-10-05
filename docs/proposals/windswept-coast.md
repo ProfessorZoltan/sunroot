@@ -76,17 +76,17 @@ Digester, Heat Well, Solar Thermal Collector.
 ★ = unlocked at the start of every coast run. Shared buildings keep the Reach's numbers unless
 noted.
 
-| Building            | Cost | Workers | Placement                           | Output per season (spring to winter)                                              | Source       |
-| ------------------- | ---- | ------- | ----------------------------------- | --------------------------------------------------------------------------------- | ------------ |
-| Croft ★             | 3    | 1       | Machair or saltmarsh; mudflat at −1 | Food 2 / 3 / 4 / 0; 1 biomass except winter                                       | New          |
-| Kelp Farm           | 4    | 1       | Sea next to land                    | Food 1 / 2 / 2 / 1; biomass 1 / 2 / 2 / 0; gale-exposed                           | New          |
-| Oyster Reef         | 4    | 0       | Mudflat                             | Food 1 / 1 / 2 / 1; cleans 2 grey water; salt-tolerant                            | New          |
-| Beachcombing Yard ★ | 2    | 1       | Beach (dune next to sea) or ruin    | 2 salvage; +3 after a gale                                                        | New          |
-| Dune Grass          | 1    | 0       | Dune                                | Turns its tile to scrub after 2 seasons; +1 Harmony                               | New          |
-| Sea Wall            | 4    | 0       | Saltmarsh or mudflat next to sea    | Keeps the king tide (damage and salt) off tiles within 2                          | New          |
-| Desalinator         | 7    | 1       | Next to sea                         | Spare energy: 2 energy → 2 clean water into its channel                           | EXPANSION.md |
-| Lighthouse          | 9    | 1       | Headland                            | +3 wellbeing when powered at night; gale-exposed buildings within 2 are sheltered | New          |
-| Smokehouse          | 6    | 1       | Anywhere                            | Takes 1 heat a season: +10 food storage, and food doesn't rot                     | New          |
+| Building            | Cost | Workers | Placement                           | Output per season (spring to winter)                                                   | Source       |
+| ------------------- | ---- | ------- | ----------------------------------- | -------------------------------------------------------------------------------------- | ------------ |
+| Croft ★             | 3    | 1       | Machair or saltmarsh; mudflat at −1 | Food 2 / 3 / 4 / 0; 1 biomass except winter                                            | New          |
+| Kelp Farm           | 4    | 1       | Sea next to land                    | Food 1 / 2 / 2 / 1; biomass 1 / 2 / 2 / 0; gale-exposed                                | New          |
+| Oyster Reef         | 4    | 0       | Mudflat                             | Food 1 / 1 / 2 / 1; cleans 2 grey water; salt-tolerant                                 | New          |
+| Beachcombing Yard ★ | 2    | 1       | Beach (dune next to sea) or ruin    | 2 salvage; +3 after a gale                                                             | New          |
+| Dune Grass          | 1    | 0       | Dune                                | Turns its tile to scrub after 2 seasons; +1 Harmony                                    | New          |
+| Sea Wall            | 4    | 0       | Saltmarsh or mudflat next to sea    | Keeps the king tide (damage and salt) off tiles within 2                               | New          |
+| Desalinator         | 7    | 1       | Next to sea                         | Spare energy: 2 energy → 2 clean water into its channel; a channel may start beside it | EXPANSION.md |
+| Lighthouse          | 9    | 1       | Headland                            | +3 wellbeing when powered at night; gale-exposed buildings within 2 are sheltered      | New          |
+| Smokehouse          | 6    | 1       | Anywhere                            | Takes 1 heat a season: +10 food storage, and food doesn't rot                          | New          |
 
 Shared, as the Reach: Cottage ★, Composter ★, Workshop ★, Salvage Yard, Kiln, Greenhouse, Apiary,
 Commons Plaza, Seedbank Library, Tree Nursery (pines), Pollinator Meadow, Irrigation Channel ★,

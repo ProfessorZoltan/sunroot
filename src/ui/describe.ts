@@ -120,6 +120,10 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
         'Grey water costs Harmony if it reaches the river: a Reed Bed further down the channel, or beside the river where it rejoins, cleans it.',
       );
   }
+  if (w?.feeds && w.startsChannel)
+    lines.push(
+      `Makes ${w.feeds.amount} ${w.feeds.quality} water a season for a channel: lay one from beside it to carry the water inland.`,
+    );
   if (w?.fromPond) lines.push('Watered by a fish pond next to it, not a channel.');
   if (w?.noEvaporation) lines.push('Its channel loses no water to summer evaporation.');
   if (w?.cleans)

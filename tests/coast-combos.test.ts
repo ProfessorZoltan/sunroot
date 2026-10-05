@@ -5,7 +5,7 @@
 import { describe, expect, it } from 'vitest';
 import { biomeContent } from '../src/content';
 import { harmonyLines, hexKey, type RunState } from '../src/sim';
-import { act, at, endSeason, place, scenario, uidAt } from './helpers';
+import { act, at, endSeason, place, rejects, scenario, uidAt } from './helpers';
 
 const COAST = biomeContent('windsweptCoast');
 type Season = 'spring' | 'summer' | 'autumn' | 'winter';
@@ -181,5 +181,50 @@ describe('evolutions', () => {
     s = end(s);
     expect(s.evolutionOffer).toEqual([]);
     expect(typeAt(s, 3, 0)).toBe('rewildedRuin');
+  });
+});
+
+describe('desalinated water down a channel', () => {
+  // No river: the only fresh water is what the desalinator makes from the sea.
+  const DRY = [', , , , : =', ', , , , : =', ', C , , : =', ', , , , : ='];
+  const plant = (power = true) => {
+    let s = build(start(DRY, 'spring', true), 'desalinator', [[4, 1]]);
+    if (power)
+      s = build(s, 'solarCanopy', [
+        [0, 3],
+        [1, 3],
+      ]);
+    return s;
+  };
+
+  it('a new channel may start beside a desalinator, and nowhere else away from water', () => {
+    const channel = { type: 'place' as const, building: 'irrigationChannel', at: at(3, 1) };
+    expect(rejects(start(DRY, 'spring', true), channel, COAST)).toBe(
+      'a new channel must start next to the river, a reservoir or a desalinator',
+    );
+    expect(() => act(plant(), channel, COAST)).not.toThrow();
+  });
+
+  it('its water runs from the desalinator down the channel to a croft inland', () => {
+    const lay = (channel: boolean) => {
+      let s = plant();
+      if (channel)
+        s = build(s, 'irrigationChannel', [
+          [3, 1],
+          [2, 1],
+        ]);
+      s = build(s, 'croft', [[1, 1]]);
+      return end(s);
+    };
+    const s = lay(true);
+    const water = s.lastReport!.water!;
+    const croft = water.uses[uidAt(s, 1, 1)]!;
+    expect(croft).toMatchObject({ need: 1, from: 'channel', short: false });
+    expect(croft.got.clean).toBe(1);
+    expect(water.channels.find((c) => c)!.intake).toEqual({ source: uidAt(s, 4, 1) });
+    expect(water.in['Desalinator']).toBe(2);
+    // Without the channel the croft, 3 tiles from the desalinator, gets nothing.
+    const dry = lay(false);
+    expect(dry.lastReport!.water!.uses[uidAt(dry, 1, 1)]!.short).toBe(true);
   });
 });

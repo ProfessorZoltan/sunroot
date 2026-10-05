@@ -108,6 +108,11 @@ const BuildingWaterSchema = z
       .object({ quality: WaterQualitySchema, amount: int.min(1) })
       .strict()
       .optional(),
+    /**
+     * A new channel may start beside it, and its water runs down that channel from there (the
+     * Desalinator, whose sea is no use to a channel): the channel's source, as a river is.
+     */
+    startsChannel: z.boolean().default(false),
     /** Holds back river water in one season and releases it below itself in another (the Weir). */
     holdsBack: z
       .object({ amount: int.min(1), fill: z.enum(SEASONS), release: z.enum(SEASONS) })

@@ -12,6 +12,8 @@
 
 ## Fixes
 
+- A **desalinator** can now start its own irrigation channel: lay one from beside it, and its
+  clean water runs down the channel to the crofts and greenhouses along it, wherever they are.
 - Demolishing a building on the coast's mudflat, saltmarsh, dune or sea, or on the Highland's crag
   or bog, now leaves that ground as it was, ready for seals, oyster reefs or a wonder, instead of
   turning it to barren land.

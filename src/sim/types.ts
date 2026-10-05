@@ -400,7 +400,7 @@ export interface ChannelReport {
   /** The channel's tiles (building uids), from the intake down. */
   tiles: string[];
   /** Where it takes its water: a river position, a lake (its first tile key), or nothing. */
-  intake: { river: number } | { lake: string } | null;
+  intake: { river: number } | { lake: string } | { source: string } | null;
   /** Fresh water taken from its source, evaporation included. */
   drawn: number;
   evaporated: number;
