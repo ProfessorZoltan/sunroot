@@ -1,5 +1,10 @@
 # Changelog
 
+## The whole cast
+
+- **All 12 citizens now walk the map**, each with their own face, build and skin tone, dressed
+  in the 8 colours. One goes about in a wheelchair.
+
 ## Lake Gardens: combos, cards and balance
 
 - **The lake's loops**: the Dyke Loop (silk, mulberry, fish and mud), the VAC Loop (pond, house,

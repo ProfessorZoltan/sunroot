@@ -1042,6 +1042,14 @@ Art delivered for these, and the Sun Desert's districts:
 | Keepsakes         | Every young one's frames (the eagle pair needs none) and the banner (its white flag tinted to the first district's colour), window box and bird box.                                                                            | `tests/art.test.ts` |
 | Citizens and fish | The fish of all four lands, and `citizen.2` with its six frames and clothes layers: every walker is Citizen 2 in the 8 colours until the rest of the cast comes.                                                                | `tests/art.test.ts` |
 
+The rest of the cast, delivered in `people/people_and_fish2/`:
+
+| Topic          | Decision                                                                                                                                                                                                            | Source                        |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| What was new   | Citizens 1 and 3–12, 128 frames: six frames and their clothes layers each, Citizen 7 rolling (two frames) instead of walking. Citizen 2 and the twelve fish frames came again unchanged and were left as they were. | `art/incoming/people/`        |
+| On the map     | The walkers now step through all 12, so neighbours look different as well as dress differently.                                                                                                                     | `castOf`; `tests/art.test.ts` |
+| Winter clothes | None came yet, so walkers keep their usual clothes in winter until they do.                                                                                                                                         | `MapView.movePeople`          |
+
 ## Combos as pictures
 
 The playtester asked for the buildings and tiles of loops, chains and adjacencies to be shown on

@@ -15,6 +15,7 @@ import {
 } from '../src/render/layout';
 import { TILE_TYPES } from '../src/sim';
 import { biomeContent } from '../src/content';
+import { CAST_SIZE } from '../src/render/peopleArt';
 import { content } from './helpers';
 
 const COAST = biomeContent('windsweptCoast');
@@ -149,13 +150,19 @@ describe('hand-made art', () => {
       expect(art(`keepsakes/${f}.png`), f).toBe(true);
   });
 
-  it('has the leaping fish of each land, and the first citizen (ART-PEOPLE.md)', () => {
+  it('has the leaping fish of each land, and the whole cast of citizens (ART-PEOPLE.md)', () => {
     for (const land of ['', 'coast.', 'glen.', 'desert.'])
       for (const n of [1, 2, 3])
         expect(art(`wildlife/fish.${land}leap.${n}.png`), `fish.${land}leap.${n}`).toBe(true);
-    for (const f of ['walk.1', 'walk.2', 'walk.3', 'walk.4', 'stand', 'work'])
-      for (const layer of ['', '.clothes'])
-        expect(art(`people/citizen.2.${f}${layer}.png`), `citizen.2.${f}${layer}`).toBe(true);
+    for (let c = 1; c <= CAST_SIZE; c++) {
+      // Citizen 7 goes about in a wheelchair: rolling frames, not walking ones.
+      const moving = c === 7 ? ['roll.1', 'roll.2'] : ['walk.1', 'walk.2', 'walk.3', 'walk.4'];
+      for (const f of [...moving, 'stand', 'work'])
+        for (const layer of ['', '.clothes'])
+          expect(art(`people/citizen.${c}.${f}${layer}.png`), `citizen.${c}.${f}${layer}`).toBe(
+            true,
+          );
+    }
   });
 
   it('has every Root City district at each tier, and each landmark along its three edges', () => {
