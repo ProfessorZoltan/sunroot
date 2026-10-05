@@ -9,6 +9,7 @@ import type {
   CoastMapGen,
   DesertMapGen,
   HighlandMapGen,
+  LakeMapGen,
   TileType,
   ValleyMapGen,
 } from './content/schema';
@@ -26,6 +27,7 @@ export function generateMap(content: Content, seed: string): GeneratedMap {
   if (gen.kind === 'coast') return generateCoast(content, gen, seed);
   if (gen.kind === 'highland') return generateHighland(content, gen, seed);
   if (gen.kind === 'desert') return generateDesert(content, gen, seed);
+  if (gen.kind === 'lake') return generateLake(content, gen, seed);
   return generateValley(content, gen, seed);
 }
 
@@ -333,6 +335,188 @@ function generateDesert(content: Content, gen: DesertMapGen, seed: string): Gene
   return {
     map: { width: gen.width, height: gen.height, tiles, river, floodOrder },
     camp: { q: tiles[campKey]!.q, r: tiles[campKey]!.r },
+  };
+}
+
+/**
+ * A lake (Lake Gardens): the lake grows from the middle of the map, a little ragged, until it
+ * covers `lakeShare` of it. Lake tiles `deepFrom` steps or more from the shore are deep water, the
+ * rest shallows; small islands rise out of it, ringed by shallows. A stream runs in from the top
+ * edge to the shore; reed fringe lines the shore; the higher shore along one side has hills and
+ * the woodland; the drowned town's ruins stand at the water's edge; the camp stands a short walk
+ * from the shallows. High water floods the reed fringe.
+ */
+function generateLake(content: Content, gen: LakeMapGen, seed: string): GeneratedMap {
+  const rng = createRng(`${seed}:map`);
+  const tiles: Record<string, Tile> = {};
+  const order: string[] = [];
+  const at = (col: number, row: number) => tiles[hexKey(offsetToAxial(col, row))];
+  const colOf = (t: Hex) => t.q + Math.floor(t.r / 2);
+  for (let row = 0; row < gen.height; row++)
+    for (let col = 0; col < gen.width; col++) {
+      const h = offsetToAxial(col, row);
+      tiles[hexKey(h)] = { ...h, type: 'scrub' };
+      order.push(hexKey(h));
+    }
+  const tile = (h: Hex) => tiles[hexKey(h)];
+  const edge = (t: Tile) =>
+    t.r === 0 || t.r === gen.height - 1 || colOf(t) === 0 || colOf(t) === gen.width - 1;
+
+  // The higher shore: the side the lake leaves alone.
+  const shoreLeft = chance(rng, 0.5);
+  const onShore = (t: Tile) =>
+    shoreLeft ? colOf(t) < gen.shoreColumns : colOf(t) >= gen.width - gen.shoreColumns;
+
+  // The lake grows from the middle (a little towards the low side), taking the nearest tiles
+  // first with some noise, never the high shore, the map's edge or the top row.
+  const centre = at(Math.floor(gen.width / 2) + (shoreLeft ? 1 : -1), Math.floor(gen.height / 2))!;
+  const size = Math.round(gen.width * gen.height * gen.lakeShare);
+  const noise = new Map(order.map((k) => [k, nextInt(rng, 1000) / 1000]));
+  const lake = new Set<string>([hexKey(centre)]);
+  while (lake.size < size) {
+    const options = [...lake]
+      .flatMap((k) => hexNeighbors(tiles[k]!))
+      .map(tile)
+      .filter((t): t is Tile => t !== undefined && !lake.has(hexKey(t)) && !edge(t) && !onShore(t))
+      .map(hexKey);
+    if (options.length === 0) break;
+    const score = (k: string) => hexDistance(tiles[k]!, centre) + noise.get(k)! * 1.6;
+    const next = [...new Set(options)].sort(
+      (a, b) => score(a) - score(b) || a.localeCompare(b),
+    )[0]!;
+    lake.add(next);
+  }
+  if (lake.size < size / 2) throw new Error('map has no room for the lake');
+  /** Steps from a lake tile to the nearest land. */
+  const land = order.filter((k) => !lake.has(k)).map((k) => tiles[k]!);
+  const fromShore = (t: Hex) => Math.min(...land.map((l) => hexDistance(l, t)));
+  for (const k of lake) tiles[k]!.type = fromShore(tiles[k]!) >= gen.deepFrom ? 'deep' : 'shallows';
+
+  // Islands: a tile (or two) of land out in the lake, ringed by shallows.
+  for (let i = 0; i < gen.islands; i++) {
+    const options = [...lake].filter((k) => {
+      const t = tiles[k]!;
+      return t.type === 'deep' && hexNeighbors(t).every((n) => tile(n)?.type === 'deep');
+    });
+    if (options.length === 0) break;
+    const isle = tiles[options[nextInt(rng, options.length)]!]!;
+    const isles = [isle];
+    const second = hexNeighbors(isle)
+      .map(tile)
+      .filter((n): n is Tile => n?.type === 'deep');
+    if (second.length > 0 && chance(rng, 0.5)) isles.push(second[nextInt(rng, second.length)]!);
+    for (const t of isles) {
+      t.type = chance(rng, 0.5) ? 'scrub' : 'barren';
+      lake.delete(hexKey(t));
+    }
+    for (const t of isles)
+      for (const n of hexNeighbors(t).map(tile)) if (n?.type === 'deep') n.type = 'shallows';
+  }
+  const lakeTilesNow = () => [...lake].map((k) => tiles[k]!);
+  const lakeDistance = (t: Hex) => Math.min(...lakeTilesNow().map((l) => hexDistance(l, t)));
+
+  // The stream: from the top edge down to the shore, wandering a column now and then.
+  const [minCol, maxCol] = gen.streamColumns;
+  let col = minCol + nextInt(rng, maxCol - minCol + 1);
+  const river: string[] = [];
+  for (let row = 0; row < gen.height; row++) {
+    if (row > 0 && chance(rng, 0.3))
+      col = Math.max(1, Math.min(gen.width - 2, col + (chance(rng, 0.5) ? 1 : -1)));
+    const t = at(col, row)!;
+    if (lake.has(hexKey(t))) break;
+    t.type = 'river';
+    t.riverIndex = river.length;
+    river.push(hexKey(t));
+    if (lakeDistance(t) <= 1) break;
+  }
+  const isLand = (t: Tile) => !lake.has(hexKey(t)) && t.type !== 'river';
+
+  // The higher shore: hills, and the rest barren or scrub.
+  for (const k of order) {
+    const t = tiles[k]!;
+    if (!isLand(t)) continue;
+    if (onShore(t) && chance(rng, gen.hillChance)) t.type = 'hill';
+    else t.type = chance(rng, gen.barrenChance) ? 'barren' : 'scrub';
+  }
+  // Reed fringe on the shore.
+  for (const k of order) {
+    const t = tiles[k]!;
+    if (isLand(t) && t.type !== 'hill' && lakeDistance(t) === 1 && chance(rng, gen.fringeChance))
+      t.type = 'floodplain';
+  }
+
+  // The drowned town: ruins at the water's edge, never touching each other.
+  let ruinsLeft = gen.ruins;
+  for (const k of shuffled(rng, order)) {
+    if (ruinsLeft === 0) break;
+    const t = tiles[k]!;
+    if (!isLand(t) || t.type === 'hill' || lakeDistance(t) !== 1 || edge(t)) continue;
+    if (hexNeighbors(t).some((n) => tile(n)?.type === 'ruin' || tile(n)?.type === 'river'))
+      continue;
+    t.type = 'ruin';
+    t.salvage = gen.ruinSalvage;
+    ruinsLeft--;
+  }
+
+  // The camp: plain land on the mainland (not an island) a short walk from the shallows.
+  const mainland = new Set(order.filter((k) => !lake.has(k) && edge(tiles[k]!)));
+  for (const queue = [...mainland]; queue.length > 0;) {
+    for (const n of hexNeighbors(tiles[queue.shift()!]!)) {
+      const k = hexKey(n);
+      if (tiles[k] && !lake.has(k) && !mainland.has(k)) {
+        mainland.add(k);
+        queue.push(k);
+      }
+    }
+  }
+  const shallows = lakeTilesNow().filter((t) => t.type === 'shallows');
+  const shallowsDistance = (t: Hex) => Math.min(...shallows.map((l) => hexDistance(l, t)));
+  const [nearestCamp, farthestCamp] = gen.campLakeDistance;
+  const campOptions = order.filter((k) => {
+    const t = tiles[k]!;
+    const d = shallowsDistance(t);
+    return (
+      ['barren', 'scrub'].includes(t.type) &&
+      mainland.has(k) &&
+      !edge(t) &&
+      d >= nearestCamp &&
+      d <= farthestCamp
+    );
+  });
+  if (campOptions.length === 0) throw new Error('map has no site for the Founders Camp');
+  const campKey = campOptions[nextInt(rng, campOptions.length)]!;
+  tiles[campKey]!.type = 'scrub';
+
+  // The willows on the higher shore first, then meadow near the camp, to the starting Harmony.
+  const perTile = content.rules.harmony.perTile;
+  const woodValue = perTile.woodland ?? 0;
+  const meadowValue = perTile.meadow ?? 0;
+  let remaining = gen.startingHarmony;
+  const plain = (k: string) => k !== campKey && ['barren', 'scrub'].includes(tiles[k]!.type);
+  for (let i = 0; i < gen.woodlands && remaining >= woodValue && woodValue > 0; i++) {
+    const options = order.filter((k) => plain(k) && onShore(tiles[k]!));
+    const pool = options.length > 0 ? options : order.filter(plain);
+    if (pool.length === 0) break;
+    tiles[pool[nextInt(rng, pool.length)]!]!.type = 'woodland';
+    remaining -= woodValue;
+  }
+  if (meadowValue <= 0 || remaining % meadowValue !== 0)
+    throw new Error('starting Harmony cannot be reached with meadow tiles');
+  const camp = tiles[campKey]!;
+  for (let m = remaining / meadowValue; m > 0; m--) {
+    const options = order
+      .filter(plain)
+      .sort((a, b) => hexDistance(tiles[a]!, camp) - hexDistance(tiles[b]!, camp));
+    if (options.length === 0) throw new Error('not enough land for starting meadows');
+    const pool = options.slice(0, Math.min(options.length, 8));
+    tiles[pool[nextInt(rng, pool.length)]!]!.type = 'meadow';
+  }
+
+  // High water covers the reed fringe, in reading order.
+  const floodOrder = order.filter((k) => tiles[k]!.type === 'floodplain');
+  return {
+    map: { width: gen.width, height: gen.height, tiles, river, floodOrder },
+    camp: { q: camp.q, r: camp.r },
   };
 }
 

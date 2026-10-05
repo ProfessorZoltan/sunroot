@@ -1,0 +1,2550 @@
+{
+  "id": "lakeGardens",
+  "name": "Lake Gardens",
+  "rules": {
+    "yearsPerRun": 12,
+    "yearsPerEra": 3,
+    "eras": ["Settle", "Mend", "Flourish", "Bloom"],
+    "start": {
+      "materials": 20,
+      "food": 12,
+      "citizens": 6,
+      "wellbeing": 60
+    },
+    "foodPerCitizen": 1,
+    "rotsInto": "biomass",
+    "citizensPerScrap": 3,
+    "landHealth": ["barren", "scrub", "meadow", "woodland"],
+    "harmony": {
+      "perTile": {
+        "meadow": 1,
+        "woodland": 2,
+        "bed": 1
+      },
+      "perClutter": -1,
+      "tiers": [
+        {
+          "min": 0,
+          "multiplier": 1
+        },
+        {
+          "min": 20,
+          "multiplier": 1.1
+        },
+        {
+          "min": 40,
+          "multiplier": 1.2
+        },
+        {
+          "min": 70,
+          "multiplier": 1.3
+        }
+      ],
+      "multiplies": ["food", "biomass", "knowledge"]
+    },
+    "wellbeing": {
+      "min": 0,
+      "max": 100,
+      "allNeedsMet": 1,
+      "perUnfedCitizen": -3,
+      "perUnpoweredHome": -2,
+      "clutterStep": 5,
+      "perClutterStep": -1
+    },
+    "population": {
+      "growAt": 60,
+      "boomAt": 80,
+      "growth": 1,
+      "boomGrowth": 2,
+      "minSpareFood": 2,
+      "leaveBelow": 20,
+      "leaving": 1
+    },
+    "compostPerTileStep": 2,
+    "knowledge": {
+      "reroll": 2,
+      "extraCard": 3,
+      "hint": 5
+    },
+    "draftCards": 3,
+    "maxTunings": 12,
+    "water": {
+      "enabled": false,
+      "riverFlow": [10, 5, 8, 8],
+      "drawBesideRiver": false,
+      "channelCapacity": 4,
+      "evaporation": {
+        "tilesPerUnit": 4,
+        "seasons": [false, true, false, false]
+      },
+      "shortfallFactor": 0.5,
+      "greyHarmonyPerUnit": 1,
+      "lakePerTile": 2,
+      "wheelFlowPerEnergy": 4,
+      "campChannel": 0,
+      "channelBuilding": "irrigationChannel"
+    },
+    "commute": {
+      "enabled": false,
+      "freeDistance": 2,
+      "tilesPerWellbeing": 3,
+      "toWater": {
+        "freeDistance": 2,
+        "tilesPerWellbeing": 3
+      }
+    },
+    "localHeat": {
+      "enabled": false,
+      "range": 2,
+      "coldPerBed": 1
+    },
+    "mixedGrid": {
+      "minSourceTypes": 3,
+      "minShare": 0.15,
+      "excludeSources": ["foundersCamp"],
+      "bonusPerSlot": 1
+    },
+    "demolition": {
+      "energy": 2,
+      "slot": "day",
+      "rubbleShare": 0.5,
+      "salvagedBy": ["salvageYard"],
+      "tileBecomes": "barren",
+      "keeps": ["hill", "floodplain", "river", "reservoir", "ruin", "shallows", "deep", "bed"]
+    },
+    "expectations": {
+      "fromEra": 3,
+      "base": 20,
+      "perBuilding": {
+        "commonsPlaza": 15,
+        "seedbankLibrary": 10
+      },
+      "perUnserved": 10
+    },
+    "eraModifiers": [
+      {
+        "era": 3,
+        "text": "Wilder weather: flood repairs cost 3 materials, and a storm can damage 2 exposed buildings.",
+        "modifiers": [
+          {
+            "target": "event",
+            "id": "flood",
+            "path": "repairCost",
+            "add": 1
+          },
+          {
+            "target": "event",
+            "id": "storm",
+            "path": "disableCount",
+            "add": 1
+          }
+        ]
+      },
+      {
+        "era": 4,
+        "text": "Long winters: homes need 1 more heat on winter nights.",
+        "modifiers": [
+          {
+            "target": "building",
+            "id": "foundersCamp",
+            "path": "demand.heat.night.3",
+            "add": 1
+          },
+          {
+            "target": "building",
+            "id": "cottage",
+            "path": "demand.heat.night.3",
+            "add": 1
+          },
+          {
+            "target": "building",
+            "id": "treehouseCommons",
+            "path": "demand.heat.night.3",
+            "add": 1
+          }
+        ]
+      }
+    ],
+    "charterEras": [2, 3, 4],
+    "charterChoices": 3,
+    "score": {
+      "perSeasonSurvived": 1,
+      "perCitizen": 2,
+      "perHarmony": 1,
+      "wellbeingStep": 10,
+      "perWellbeingStep": 1,
+      "completeBonus": 20,
+      "perLoop": 5,
+      "perDiscovery": 5,
+      "visionBonus": 40,
+      "layers": {
+        "water": 12,
+        "commute": 5,
+        "localHeat": 1
+      },
+      "tiers": [
+        {
+          "id": "seedling",
+          "name": "Seedling",
+          "min": 0
+        },
+        {
+          "id": "sapling",
+          "name": "Sapling",
+          "min": 215
+        },
+        {
+          "id": "heartwood",
+          "name": "Heartwood",
+          "min": 345
+        }
+      ]
+    },
+    "visionChoices": 2,
+    "plantable": ["shallows"],
+    "lake": {
+      "waterPerMud": 2,
+      "siltAt": 4,
+      "selfCleans": 1,
+      "greyHarmonyPerUnit": 1,
+      "bloom": {
+        "above": 4,
+        "seasons": [false, true, false, false],
+        "foodLoss": 1,
+        "harmonyFactor": 2
+      }
+    }
+  },
+  "map": {
+    "kind": "lake",
+    "width": 12,
+    "height": 10,
+    "lakeShare": 0.45,
+    "deepFrom": 2,
+    "islands": 2,
+    "streamColumns": [3, 8],
+    "fringeChance": 0.5,
+    "shoreColumns": 2,
+    "hillChance": 0.5,
+    "ruins": 4,
+    "ruinSalvage": 30,
+    "barrenChance": 0.45,
+    "woodlands": 3,
+    "startingHarmony": 12,
+    "campLakeDistance": [1, 2]
+  },
+  "calendar": ["flood", "bloom", "storm", "freeze"],
+  "events": {
+    "flood": {
+      "name": "High water",
+      "summary": "the lake rises over the reed fringe; mud settles twice as fast",
+      "description": "Spring rains raise the lake a ring: the reed fringe floods. Farms there gain silt (+50% food in summer and autumn); buildings there that aren’t flood-tolerant are disabled for the season and cost 2 materials to repair. Raised beds stand above it. Water reaching the lake this season leaves twice the mud.",
+      "siltBonus": 0.5,
+      "siltSeasons": ["summer", "autumn"],
+      "repairCost": 2,
+      "mudFactor": 2
+    },
+    "bloom": {
+      "name": "Algae bloom",
+      "summary": "a lake holding more than 4 grey water blooms",
+      "description": "Warm still water: if the lake holds more than 4 grey water, it blooms. Lake fisheries make 1 less food, and the Harmony cost of its grey water doubles. A lake kept clean doesn’t bloom at all."
+    },
+    "storm": {
+      "name": "Lake wind",
+      "summary": "wind off the deep water; two exposed buildings on beds may be damaged",
+      "description": "Wind across the open water: two buildings on raised beds facing deep water may be damaged for the season, unless a willow edge runs along their bed or woodland stands beside them.",
+      "disableCount": 2,
+      "exposedOn": ["bed"],
+      "exposedFacing": ["deep"]
+    },
+    "freeze": {
+      "name": "Low water",
+      "summary": "the shallows drain to mud; dredging is easy; homes need heat at night",
+      "description": "The lake falls: mud boats lift twice as much, and the fish crowd into deep water (lake fisheries make 1 more). Solar is weak and homes need heat at night."
+    }
+  },
+  "campBuilding": "foundersCamp",
+  "buildings": [
+    {
+      "id": "foundersCamp",
+      "name": "Founders' Camp",
+      "cost": 0,
+      "workers": 0,
+      "kind": "home",
+      "draftable": false,
+      "placement": {
+        "tiles": ["barren", "scrub", "meadow", "woodland", "hill", "bed"]
+      },
+      "housing": 6,
+      "foodStorage": 40,
+      "forage": 2,
+      "generation": {
+        "day": [2, 2, 2, 2],
+        "night": [2, 2, 2, 2]
+      },
+      "demand": {
+        "heat": {
+          "night": [0, 0, 0, 2]
+        }
+      }
+    },
+    {
+      "id": "chinampa",
+      "name": "Chinampa",
+      "cost": 3,
+      "workers": 1,
+      "kind": "food",
+      "starter": true,
+      "farmland": true,
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["shallows"],
+        "adjacentTo": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed", "ruin"]
+      },
+      "setsTile": "bed",
+      "yields": {
+        "food": [2, 4, 4, 2]
+      },
+      "nextToTilesFood": {
+        "tiles": ["shallows", "deep"],
+        "count": 2,
+        "amount": 1,
+        "seasons": [true, true, true, true]
+      },
+      "water": {
+        "needs": [1, 1, 1, 0],
+        "accepts": ["clean", "nutrient"],
+        "besideRiver": true,
+        "nutrientBonus": {
+          "food": 1
+        }
+      }
+    },
+    {
+      "id": "mudBoat",
+      "name": "Mud Boat",
+      "cost": 2,
+      "workers": 1,
+      "kind": "industry",
+      "starter": true,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"],
+        "adjacentTo": ["shallows"]
+      },
+      "dredges": [3, 3, 3, 6]
+    },
+    {
+      "id": "stiltHouse",
+      "name": "Stilt House",
+      "cost": 3,
+      "workers": 0,
+      "kind": "home",
+      "starter": true,
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["shallows", "floodplain"]
+      },
+      "housing": 3,
+      "foodStorage": 5,
+      "demand": {
+        "energy": {
+          "night": [1, 1, 1, 1]
+        },
+        "heat": {
+          "night": [0, 0, 0, 1]
+        }
+      },
+      "water": {
+        "feeds": {
+          "quality": "grey",
+          "amount": 1
+        }
+      }
+    },
+    {
+      "id": "wastewaterFishery",
+      "name": "Wastewater Fishery",
+      "cost": 4,
+      "workers": 1,
+      "kind": "food",
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["shallows"]
+      },
+      "eatsGrey": {
+        "takesGrey": 3,
+        "foodPerGrey": 1
+      },
+      "neighborFoodBonus": {
+        "amount": 1,
+        "targets": ["chinampa"],
+        "maxTargets": 1,
+        "seasons": [true, true, true, true]
+      }
+    },
+    {
+      "id": "lakeFishery",
+      "name": "Lake Fishery",
+      "cost": 4,
+      "workers": 1,
+      "kind": "food",
+      "floodTolerant": true,
+      "waterBody": true,
+      "fishesLake": true,
+      "placement": {
+        "tiles": ["deep"],
+        "adjacentTo": ["shallows"]
+      },
+      "yields": {
+        "food": [2, 2, 2, 3]
+      }
+    },
+    {
+      "id": "mulberryDyke",
+      "name": "Mulberry Dyke",
+      "cost": 3,
+      "workers": 1,
+      "kind": "nature",
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"],
+        "adjacentTo": [],
+        "adjacentToBuildings": ["fishPond", "wastewaterFishery", "lakeFishery"]
+      },
+      "yields": {
+        "biomass": [1, 2, 2, 0]
+      },
+      "neighborFoodBonus": {
+        "amount": 1,
+        "targets": ["fishPond", "wastewaterFishery", "lakeFishery"],
+        "maxTargets": 1,
+        "seasons": [true, true, true, false]
+      }
+    },
+    {
+      "id": "silkHouse",
+      "name": "Silk House",
+      "cost": 5,
+      "workers": 1,
+      "kind": "industry",
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"],
+        "adjacentTo": [],
+        "adjacentToBuildings": ["mulberryDyke"]
+      },
+      "recipes": {
+        "maxRuns": 2,
+        "energyPerRun": 1,
+        "runSlots": ["day"],
+        "defaultRecipe": "silk",
+        "options": [
+          {
+            "id": "silk",
+            "inputs": {
+              "biomass": 2
+            },
+            "outputs": {
+              "materials": 3
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "pigPen",
+      "name": "Pig Pen",
+      "cost": 3,
+      "workers": 1,
+      "kind": "industry",
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "composter": {
+        "inputs": ["scraps", "biomass"],
+        "maxInput": 3,
+        "output": "compost",
+        "outputPerFullRun": 2
+      }
+    },
+    {
+      "id": "duckHouse",
+      "name": "Duck House",
+      "cost": 3,
+      "workers": 0,
+      "kind": "food",
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"],
+        "adjacentTo": [],
+        "adjacentToBuildings": ["riceFishPaddy", "chinampa"]
+      },
+      "neighborFoodBonus": {
+        "amount": 1,
+        "targets": ["riceFishPaddy", "chinampa"],
+        "maxTargets": 2,
+        "seasons": [true, true, true, false]
+      }
+    },
+    {
+      "id": "willowEdge",
+      "name": "Willow Edge",
+      "cost": 1,
+      "workers": 0,
+      "kind": "nature",
+      "requiresWater": true,
+      "placement": {
+        "tiles": [
+          "floodplain",
+          "hill",
+          "barren",
+          "scrub",
+          "meadow",
+          "woodland",
+          "bed",
+          "ruin",
+          "shallows",
+          "deep"
+        ]
+      },
+      "edge": {}
+    },
+    {
+      "id": "floatingSolar",
+      "name": "Floating Solar",
+      "cost": 5,
+      "workers": 0,
+      "kind": "energy",
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["shallows", "deep"]
+      },
+      "generation": {
+        "day": [3, 5, 3, 1],
+        "night": [0, 0, 0, 0]
+      }
+    },
+    {
+      "id": "canalWheel",
+      "name": "Canal Wheel",
+      "cost": 5,
+      "workers": 0,
+      "kind": "energy",
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland"],
+        "adjacentTo": ["river"]
+      },
+      "generation": {
+        "day": [2, 1, 2, 2],
+        "night": [2, 1, 2, 2]
+      },
+      "water": {
+        "wheel": true
+      }
+    },
+    {
+      "id": "apiary",
+      "name": "Apiary",
+      "cost": 3,
+      "workers": 1,
+      "kind": "food",
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "neighborFoodBonus": {
+        "amount": 1,
+        "targets": ["chinampa"],
+        "maxTargets": 3,
+        "seasons": [true, true, true, false],
+        "disabledNextTo": ["windSpire"]
+      }
+    },
+    {
+      "id": "fishPond",
+      "name": "Fish Pond",
+      "cost": 4,
+      "workers": 1,
+      "kind": "food",
+      "floodTolerant": true,
+      "waterBody": true,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"],
+        "adjacentTo": ["river", "reservoir", "shallows"]
+      },
+      "yields": {
+        "food": [2, 1, 2, 1]
+      },
+      "water": {
+        "feeds": {
+          "quality": "nutrient",
+          "amount": 1
+        }
+      }
+    },
+    {
+      "id": "greenhouse",
+      "name": "Greenhouse",
+      "cost": 7,
+      "workers": 1,
+      "kind": "food",
+      "requiresPower": true,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "yields": {
+        "food": [3, 3, 3, 3]
+      },
+      "demand": {
+        "energy": {
+          "day": [2, 2, 2, 2]
+        },
+        "heat": {
+          "day": [0, 0, 0, 1]
+        }
+      },
+      "water": {
+        "needs": [1, 1, 1, 1]
+      },
+      "heatFromNeighbors": ["bathhouse"]
+    },
+    {
+      "id": "composter",
+      "name": "Composter",
+      "cost": 3,
+      "workers": 1,
+      "kind": "industry",
+      "starter": true,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "composter": {
+        "inputs": ["scraps", "biomass"],
+        "maxInput": 3,
+        "output": "compost",
+        "outputPerFullRun": 2
+      },
+      "neighborFoodBonus": {
+        "amount": 1,
+        "costs": {
+          "resource": "compost",
+          "amount": 1
+        }
+      }
+    },
+    {
+      "id": "salvageYard",
+      "name": "Salvage Yard",
+      "cost": 2,
+      "workers": 1,
+      "kind": "industry",
+      "starter": true,
+      "placement": {
+        "tiles": ["ruin"]
+      },
+      "drawsFromRuin": true,
+      "yields": {
+        "salvage": [3, 3, 3, 3]
+      },
+      "demand": {
+        "energy": {
+          "day": [1, 1, 1, 1]
+        }
+      }
+    },
+    {
+      "id": "workshop",
+      "name": "Workshop",
+      "cost": 5,
+      "workers": 1,
+      "kind": "industry",
+      "starter": true,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "recipes": {
+        "maxRuns": 2,
+        "energyPerRun": 2,
+        "runSlots": ["day"],
+        "defaultRecipe": "auto",
+        "options": [
+          {
+            "id": "salvage",
+            "inputs": {
+              "salvage": 2
+            },
+            "outputs": {
+              "materials": 3
+            }
+          },
+          {
+            "id": "clutter",
+            "inputs": {
+              "clutter": 2
+            },
+            "outputs": {
+              "materials": 1
+            },
+            "autoAtLeast": {
+              "clutter": 5
+            }
+          }
+        ]
+      },
+      "demand": {
+        "energy": {
+          "day": [1, 1, 1, 1]
+        }
+      }
+    },
+    {
+      "id": "kiln",
+      "name": "Kiln",
+      "cost": 6,
+      "workers": 1,
+      "kind": "industry",
+      "tall": true,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"],
+        "adjacentTo": ["river", "reservoir", "floodplain", "shallows"]
+      },
+      "recipes": {
+        "maxRuns": 2,
+        "energyPerRun": 2,
+        "runSlots": ["day"],
+        "defaultRecipe": "fire",
+        "options": [
+          {
+            "id": "fire",
+            "outputs": {
+              "materials": 2
+            },
+            "heatToNeighborStorage": 1
+          }
+        ]
+      },
+      "demand": {
+        "energy": {
+          "day": [1, 1, 1, 1]
+        }
+      }
+    },
+    {
+      "id": "cottage",
+      "name": "Cottage",
+      "cost": 4,
+      "workers": 0,
+      "kind": "home",
+      "starter": false,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "housing": 3,
+      "foodStorage": 5,
+      "demand": {
+        "energy": {
+          "night": [1, 1, 1, 1]
+        },
+        "heat": {
+          "night": [0, 0, 0, 1]
+        }
+      },
+      "wellbeing": {
+        "nextToTiles": {
+          "tiles": ["meadow", "woodland"],
+          "amount": 1
+        }
+      }
+    },
+    {
+      "id": "bothy",
+      "name": "Bothy",
+      "cost": 4,
+      "workers": 0,
+      "kind": "home",
+      "starter": false,
+      "placement": {
+        "tiles": ["barren", "scrub", "meadow", "woodland", "hill", "floodplain", "bed"]
+      },
+      "housing": 3,
+      "foodStorage": 3,
+      "demand": {
+        "energy": {
+          "night": [1, 1, 1, 1]
+        },
+        "heat": {
+          "night": [0, 0, 1, 1]
+        }
+      },
+      "heatAtHeight": {
+        "from": 2,
+        "add": 1,
+        "seasons": ["autumn", "winter"]
+      },
+      "heatGeneration": {
+        "day": [0, 0, 0, 0],
+        "night": [0, 0, 2, 2]
+      },
+      "heatFuel": {
+        "resource": "biomass",
+        "amount": 1,
+        "freeNextTo": ["heatWell"]
+      }
+    },
+    {
+      "id": "commonsPlaza",
+      "name": "Commons Plaza",
+      "cost": 8,
+      "workers": 1,
+      "kind": "civic",
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "demand": {
+        "energy": {
+          "night": [1, 1, 1, 1]
+        }
+      },
+      "wellbeing": {
+        "whenPowered": 3
+      }
+    },
+    {
+      "id": "seedbankLibrary",
+      "name": "Seedbank Library",
+      "cost": 6,
+      "workers": 1,
+      "kind": "civic",
+      "tall": true,
+      "requiresPower": true,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "yields": {
+        "knowledge": [1, 1, 1, 1]
+      },
+      "demand": {
+        "energy": {
+          "day": [1, 1, 1, 1]
+        }
+      }
+    },
+    {
+      "id": "treeNursery",
+      "name": "Tree Nursery",
+      "cost": 4,
+      "workers": 1,
+      "kind": "nature",
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "improvesNeighborSteps": 1
+    },
+    {
+      "id": "pollinatorMeadow",
+      "name": "Pollinator Meadow",
+      "cost": 1,
+      "workers": 0,
+      "kind": "nature",
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "setsTile": "meadow",
+      "harmony": 1
+    },
+    {
+      "id": "irrigationChannel",
+      "name": "Irrigation Channel",
+      "cost": 1,
+      "workers": 0,
+      "kind": "water",
+      "starter": true,
+      "draftable": false,
+      "requiresWater": true,
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["floodplain", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "water": {
+        "channel": true
+      },
+      "drinkingWater": true,
+      "stormProof": true
+    },
+    {
+      "id": "well",
+      "name": "Well",
+      "cost": 3,
+      "workers": 0,
+      "kind": "water",
+      "starter": true,
+      "draftable": false,
+      "requiresWater": true,
+      "requiresWalks": true,
+      "drinkingWater": true,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      }
+    },
+    {
+      "id": "cistern",
+      "name": "Cistern",
+      "cost": 5,
+      "workers": 0,
+      "kind": "water",
+      "requiresWater": true,
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"],
+        "adjacentTo": ["river", "reservoir", "shallows"],
+        "adjacentToBuildings": ["irrigationChannel"]
+      },
+      "water": {
+        "stores": 6,
+        "fills": [true, false, true, true]
+      },
+      "drinkingWater": true
+    },
+    {
+      "id": "reedBed",
+      "name": "Reed Bed",
+      "cost": 3,
+      "workers": 0,
+      "kind": "water",
+      "requiresWater": true,
+      "floodTolerant": true,
+      "placement": {
+        "tiles": ["floodplain", "barren", "scrub", "meadow", "woodland", "bed"],
+        "adjacentTo": ["river", "shallows"],
+        "adjacentToBuildings": ["irrigationChannel"]
+      },
+      "yields": {
+        "biomass": [1, 1, 1, 0]
+      },
+      "harmony": 1,
+      "water": {
+        "cleans": 3
+      }
+    },
+    {
+      "id": "bathhouse",
+      "name": "Bathhouse",
+      "cost": 8,
+      "workers": 1,
+      "kind": "civic",
+      "requiresWater": true,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"],
+        "adjacentTo": [],
+        "adjacentToBuildings": ["irrigationChannel"]
+      },
+      "heatFromNeighbors": ["kiln", "heatWell"],
+      "demand": {
+        "heat": {
+          "night": [1, 1, 1, 1]
+        }
+      },
+      "wellbeing": {
+        "whenPowered": 3
+      },
+      "water": {
+        "needs": [1, 1, 1, 1],
+        "accepts": ["clean"],
+        "returns": {
+          "quality": "grey",
+          "amount": 1
+        }
+      }
+    },
+    {
+      "id": "riceFishPaddy",
+      "name": "Rice-fish Paddy",
+      "cost": 5,
+      "workers": 1,
+      "kind": "food",
+      "requiresWater": true,
+      "floodTolerant": true,
+      "farmland": true,
+      "placement": {
+        "tiles": ["floodplain", "bed"],
+        "adjacentTo": [],
+        "adjacentToBuildings": ["irrigationChannel"]
+      },
+      "yields": {
+        "food": [2, 4, 4, 0]
+      },
+      "water": {
+        "needs": [2, 2, 2, 0],
+        "accepts": ["clean", "nutrient"],
+        "returns": {
+          "quality": "nutrient",
+          "amount": 1
+        }
+      }
+    },
+    {
+      "id": "mushroomCellar",
+      "name": "Mushroom Cellar",
+      "cost": 5,
+      "workers": 1,
+      "kind": "food",
+      "requiresWater": true,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "recipes": {
+        "maxRuns": 1,
+        "energyPerRun": 0,
+        "defaultRecipe": "grow",
+        "options": [
+          {
+            "id": "grow",
+            "inputs": {
+              "biomass": 2
+            },
+            "outputs": {
+              "food": 2,
+              "compost": 1
+            },
+            "bonusNextTo": {
+              "tiles": ["woodland"],
+              "tall": true,
+              "outputs": {
+                "food": 1
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "solarCanopy",
+      "name": "Solar Canopy",
+      "cost": 4,
+      "workers": 0,
+      "kind": "energy",
+      "starter": true,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "generation": {
+        "day": [3, 4, 2, 1],
+        "night": [0, 0, 0, 0]
+      },
+      "shading": {
+        "penaltyPerSlot": 1
+      }
+    },
+    {
+      "id": "windSpire",
+      "name": "Wind Spire",
+      "cost": 8,
+      "workers": 0,
+      "kind": "energy",
+      "tall": true,
+      "placement": {
+        "tiles": ["hill"]
+      },
+      "generation": {
+        "day": [2, 1, 3, 3],
+        "night": [3, 1, 4, 4]
+      },
+      "spacing": {
+        "radius": 2,
+        "penaltyPerSlot": 1
+      },
+      "harmonyPenalty": {
+        "amount": 2,
+        "cancelledByNeighbor": ["pollinatorMeadow"]
+      }
+    },
+    {
+      "id": "biogasDigester",
+      "name": "Biogas Digester",
+      "cost": 8,
+      "workers": 0,
+      "kind": "energy",
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "digester": {
+        "inputs": ["scraps", "biomass"],
+        "inputPerRun": 2,
+        "maxRuns": 2,
+        "energyPerRun": 3,
+        "compostPerRun": 1,
+        "defaultSlot": "night"
+      }
+    },
+    {
+      "id": "heatPump",
+      "name": "Water-source Heat Pump",
+      "cost": 7,
+      "workers": 0,
+      "kind": "energy",
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"],
+        "adjacentTo": ["river", "reservoir", "shallows", "deep"],
+        "adjacentToBuildings": ["fishPond"]
+      },
+      "heatPump": {
+        "heatPerEnergy": 3,
+        "maxHeatPerSlot": 6
+      }
+    },
+    {
+      "id": "airSourceHeatPump",
+      "name": "Air-source Heat Pump",
+      "cost": 5,
+      "workers": 0,
+      "kind": "energy",
+      "requiresHeatLayer": true,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "heatPump": {
+        "heatPerEnergy": 2,
+        "maxHeatPerSlot": 4
+      },
+      "starter": true
+    },
+    {
+      "id": "solarThermalCollector",
+      "name": "Solar Thermal Collector",
+      "cost": 4,
+      "workers": 0,
+      "kind": "energy",
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "heatGeneration": {
+        "day": [2, 3, 3, 2],
+        "night": [0, 0, 0, 0]
+      },
+      "shading": {
+        "penaltyPerSlot": 1
+      }
+    },
+    {
+      "id": "cellBank",
+      "name": "Cell Bank",
+      "cost": 5,
+      "workers": 0,
+      "kind": "storage",
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "storage": {
+        "holds": "energy",
+        "capacity": 4,
+        "returns": {
+          "numerator": 3,
+          "denominator": 4
+        },
+        "chargesFrom": ["day"],
+        "carriesOver": false
+      }
+    },
+    {
+      "id": "heatWell",
+      "name": "Heat Well",
+      "cost": 6,
+      "workers": 0,
+      "kind": "storage",
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "storage": {
+        "holds": "heat",
+        "capacity": 6,
+        "chargesFrom": ["day", "night"],
+        "decayPerSeason": 1,
+        "carriesOver": true
+      }
+    },
+    {
+      "id": "pumpedReservoir",
+      "name": "Pumped Reservoir",
+      "cost": 18,
+      "workers": 0,
+      "kind": "storage",
+      "minEra": 3,
+      "placement": {
+        "tiles": ["hill"],
+        "adjacentTo": ["reservoir", "shallows"]
+      },
+      "storage": {
+        "holds": "energy",
+        "capacity": 12,
+        "returns": {
+          "numerator": 3,
+          "denominator": 4
+        },
+        "chargesFrom": ["day", "night"],
+        "carriesOver": true
+      }
+    },
+    {
+      "id": "winterGarden",
+      "name": "Winter Garden",
+      "cost": 7,
+      "workers": 1,
+      "kind": "food",
+      "draftable": false,
+      "placeable": false,
+      "requiresPower": true,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "yields": {
+        "food": [3, 3, 3, 4]
+      },
+      "demand": {
+        "energy": {
+          "day": [2, 2, 2, 2]
+        }
+      },
+      "water": {
+        "needs": [1, 1, 1, 1]
+      }
+    },
+    {
+      "id": "rewildedRuin",
+      "name": "Rewilded Ruin",
+      "cost": 2,
+      "workers": 0,
+      "kind": "nature",
+      "draftable": false,
+      "placeable": false,
+      "placement": {
+        "tiles": ["ruin"]
+      },
+      "harmony": 2
+    },
+    {
+      "id": "treehouseCommons",
+      "name": "Treehouse Commons",
+      "cost": 4,
+      "workers": 0,
+      "kind": "home",
+      "draftable": false,
+      "placeable": false,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "housing": 3,
+      "foodStorage": 5,
+      "demand": {
+        "energy": {
+          "night": [1, 1, 1, 1]
+        },
+        "heat": {
+          "night": [0, 0, 0, 1]
+        }
+      },
+      "wellbeing": {
+        "nextToTiles": {
+          "tiles": ["meadow", "woodland"],
+          "amount": 2
+        }
+      }
+    },
+    {
+      "draftable": false,
+      "placeable": false,
+      "requiresWater": true,
+      "id": "aquaponicsHall",
+      "name": "Aquaponics Hall",
+      "cost": 7,
+      "workers": 1,
+      "kind": "food",
+      "requiresPower": true,
+      "placement": {
+        "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "yields": {
+        "food": [4, 4, 4, 4]
+      },
+      "demand": {
+        "energy": {
+          "day": [2, 2, 2, 2]
+        },
+        "heat": {
+          "day": [0, 0, 0, 1]
+        }
+      },
+      "water": {
+        "needs": [1, 1, 1, 1],
+        "accepts": ["nutrient"],
+        "fromPond": true
+      },
+      "heatFromNeighbors": ["bathhouse"]
+    },
+    {
+      "draftable": false,
+      "placeable": false,
+      "requiresWater": true,
+      "id": "canalTopSolar",
+      "name": "Canal-top Solar",
+      "cost": 5,
+      "workers": 0,
+      "kind": "energy",
+      "floodTolerant": true,
+      "stormProof": true,
+      "sourceType": "solarCanopy",
+      "placement": {
+        "tiles": ["floodplain", "barren", "scrub", "meadow", "woodland", "bed"]
+      },
+      "generation": {
+        "day": [3, 5, 2, 1],
+        "night": [0, 0, 0, 0]
+      },
+      "shading": {
+        "penaltyPerSlot": 1
+      },
+      "water": {
+        "channel": true,
+        "noEvaporation": true
+      }
+    },
+    {
+      "id": "singingSpire",
+      "name": "Singing Spire",
+      "cost": 8,
+      "workers": 0,
+      "kind": "energy",
+      "tall": true,
+      "placement": {
+        "tiles": ["hill"]
+      },
+      "generation": {
+        "day": [2, 1, 3, 3],
+        "night": [3, 1, 4, 4]
+      },
+      "spacing": {
+        "radius": 2,
+        "penaltyPerSlot": 1
+      },
+      "wellbeing": {
+        "always": 1
+      },
+      "draftable": false,
+      "placeable": false,
+      "requiresWater": true
+    },
+    {
+      "draftable": false,
+      "placeable": false,
+      "requiresWater": true,
+      "id": "oldWorldArchive",
+      "name": "Old World Archive",
+      "cost": 2,
+      "workers": 1,
+      "kind": "civic",
+      "placement": {
+        "tiles": ["ruin"]
+      },
+      "yields": {
+        "knowledge": [2, 2, 2, 2]
+      }
+    },
+    {
+      "draftable": false,
+      "placeable": false,
+      "requiresWater": true,
+      "id": "coppiceWood",
+      "name": "Coppice Wood",
+      "cost": 0,
+      "workers": 1,
+      "kind": "industry",
+      "placement": {
+        "tiles": ["woodland"]
+      },
+      "yields": {
+        "materials": [2, 2, 2, 2]
+      },
+      "harmonyAsTile": "meadow"
+    },
+    {
+      "draftable": false,
+      "placeable": false,
+      "requiresWater": true,
+      "id": "coppiceRegrowth",
+      "name": "Regrowing Coppice",
+      "cost": 0,
+      "workers": 0,
+      "kind": "nature",
+      "placement": {
+        "tiles": ["woodland"]
+      },
+      "harmonyAsTile": "meadow",
+      "revertsAfterSeasons": 2
+    }
+  ],
+  "combos": [
+    {
+      "id": "busyBees",
+      "layer": "adjacency",
+      "name": "Busy Bees",
+      "building": "apiary",
+      "nextTo": {
+        "buildings": ["chinampa"]
+      },
+      "notNextTo": ["windSpire"],
+      "seasons": [true, true, true, false],
+      "text": "An apiary next to chinampas: +1 food on each of up to 3, spring to autumn. A wind spire next door scares the bees off.",
+      "hint": "Bees and beds."
+    },
+    {
+      "id": "quietSpire",
+      "layer": "adjacency",
+      "name": "Quiet Spire",
+      "building": "pollinatorMeadow",
+      "nextTo": {
+        "buildings": ["windSpire"]
+      },
+      "text": "A pollinator meadow next to a wind spire cancels the spire's Harmony penalty.",
+      "hint": "Flowers soften the hum of the wind spires."
+    },
+    {
+      "id": "kilnWarmth",
+      "layer": "adjacency",
+      "name": "Kiln Warmth",
+      "building": "kiln",
+      "nextTo": {
+        "buildings": ["heatWell"]
+      },
+      "text": "A kiln next to a heat well charges it for free: 1 heat each run.",
+      "hint": "A kiln's waste heat can be kept for winter."
+    },
+    {
+      "id": "greenDoorstep",
+      "layer": "adjacency",
+      "name": "Green Doorstep",
+      "building": "cottage",
+      "nextTo": {
+        "tiles": ["meadow", "woodland"]
+      },
+      "text": "A cottage next to meadow or woodland: +1 wellbeing each season.",
+      "hint": "People like to live near green land."
+    },
+    {
+      "id": "kitchenLoop",
+      "layer": "chain",
+      "name": "Kitchen Loop",
+      "links": [
+        {
+          "buildings": ["composter"]
+        },
+        {
+          "buildings": ["chinampa"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "compost"],
+      "text": "Farm → scraps and biomass → composter → compost → farm. Once it runs, every building in the loop makes +1 (farms food, the composter compost) for as long as it stands.",
+      "hint": "Put a composter among working farms."
+    },
+    {
+      "id": "gasLoop",
+      "layer": "chain",
+      "name": "Gas Loop",
+      "links": [
+        {
+          "buildings": ["biogasDigester"],
+          "slot": "night"
+        },
+        {
+          "buildings": ["chinampa"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "compost"],
+      "text": "Farm biomass → digester → night power, digestate back to the farms. Once it runs, every building in the loop makes +1 (farms food, the digester compost) for as long as it stands.",
+      "hint": "A digester feeding the night, among working farms."
+    },
+    {
+      "id": "riverLoop",
+      "layer": "chain",
+      "name": "River Loop",
+      "links": [
+        {
+          "buildings": ["fishPond"]
+        },
+        {
+          "buildings": ["greenhouse", "winterGarden", "aquaponicsHall"]
+        },
+        {
+          "buildings": ["biogasDigester"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "compost"],
+      "text": "Fish pond → nutrient water → greenhouse → biomass → digester, in a chain of neighbours. Once it runs, each makes +1 (food, or the digester's compost) for as long as it stands.",
+      "hint": "Pond water feeds a greenhouse; its waste feeds a digester."
+    },
+    {
+      "id": "bathLoop",
+      "layer": "chain",
+      "name": "Bath Loop",
+      "requiresWater": true,
+      "links": [
+        {
+          "buildings": ["kiln", "heatWell"]
+        },
+        {
+          "buildings": ["bathhouse"],
+          "heatFrom": true
+        },
+        {
+          "buildings": ["reedBed"],
+          "cleaned": true
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["materials", "biomass"],
+      "text": "Kiln or heat well → heat → bathhouse → grey water → reed bed, in a chain of neighbours. It closes when the bathhouse takes its heat from the kiln or well next to it and the reed bed next to it cleans grey water. Once it runs, the kiln makes +1 materials and the reed bed +1 biomass for as long as it stands.",
+      "hint": "Warm the bath with a neighbour's spare heat; let reeds clean what it lets out."
+    },
+    {
+      "id": "mushroomLoop",
+      "layer": "chain",
+      "name": "Mushroom Loop",
+      "requiresWater": true,
+      "links": [
+        {
+          "buildings": ["chinampa"]
+        },
+        {
+          "buildings": ["mushroomCellar"]
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "compost"],
+      "text": "Farm → biomass → mushroom cellar → spent substrate (compost) → farm. It closes when a working cellar stands next to a working farm. Once it runs, both make +1 food for as long as it stands.",
+      "hint": "What a farm leaves, mushrooms eat; what mushrooms leave, a farm eats."
+    },
+    {
+      "id": "heatCascade",
+      "layer": "chain",
+      "name": "Heat Cascade",
+      "requiresWater": true,
+      "links": [
+        {
+          "buildings": ["kiln", "heatWell"]
+        },
+        {
+          "buildings": ["bathhouse"],
+          "heatFrom": true
+        },
+        {
+          "buildings": ["greenhouse", "aquaponicsHall"],
+          "heatFrom": true
+        }
+      ],
+      "bonus": 1,
+      "bonusOrder": ["food", "materials"],
+      "text": "Heat runs from hot to warm, losing some at each step: a kiln or heat well warms the bathhouse next to it, and the bathhouse's warm water heats the greenhouse next to it (up to 1 heat a slot). It closes the first winter the greenhouse is warmed that way. Once it runs, the kiln makes +1 materials and the greenhouse +1 food for as long as it stands.",
+      "hint": "Spare heat from a hot neighbour can warm two buildings, not one."
+    },
+    {
+      "id": "villageGreen",
+      "layer": "formation",
+      "name": "Village Green",
+      "shape": {
+        "kind": "ring",
+        "center": "commonsPlaza",
+        "size": 6,
+        "minTypes": 3
+      },
+      "effect": {
+        "wellbeing": 2
+      },
+      "text": "A Commons Plaza ringed by 6 buildings of at least 3 kinds: +2 wellbeing each season.",
+      "hint": "A gathering place, surrounded on every side by a varied neighbourhood."
+    },
+    {
+      "id": "sunTerrace",
+      "layer": "formation",
+      "name": "Sun Terrace",
+      "shape": {
+        "kind": "line",
+        "sequence": ["solarCanopy", "solarCanopy", "solarCanopy"],
+        "tiles": ["hill"]
+      },
+      "effect": {
+        "generation": 1,
+        "appliesTo": "solarCanopy"
+      },
+      "text": "3 solar canopies in a row, all on hills: each makes +1 day energy every season.",
+      "hint": "Panels stepping in a straight line along the high ground."
+    },
+    {
+      "id": "keyholeGarden",
+      "layer": "formation",
+      "name": "Keyhole Garden",
+      "requiresWater": true,
+      "shape": {
+        "kind": "ring",
+        "center": "composter",
+        "size": 3,
+        "minTypes": 1,
+        "of": ["chinampa"]
+      },
+      "effect": {
+        "outputMultiplier": 2,
+        "appliesTo": "composter"
+      },
+      "text": "A composter with 3 farms next to it: its compost doubles.",
+      "hint": "A heap at the heart of the beds."
+    },
+    {
+      "id": "waterLadder",
+      "layer": "formation",
+      "name": "Water Ladder",
+      "requiresWater": true,
+      "shape": {
+        "kind": "line",
+        "sequence": ["riceFishPaddy", "riceFishPaddy", "riceFishPaddy"]
+      },
+      "effect": {
+        "yields": {
+          "food": 1
+        },
+        "appliesTo": "riceFishPaddy"
+      },
+      "text": "3 rice-fish paddies in a row: each makes +1 food in a season it makes any.",
+      "hint": "Terraces stepping down, one feeding the next."
+    },
+    {
+      "id": "windbreak",
+      "layer": "formation",
+      "name": "Windbreak",
+      "requiresWater": true,
+      "shape": {
+        "kind": "hedgeRun",
+        "length": 4
+      },
+      "effect": {
+        "shelterRadius": 2
+      },
+      "text": "4 hedges joined end to end along the edges between tiles: storms can’t damage any building within 2 tiles of them, on any side.",
+      "hint": "A long hedge stops more wind than a short one."
+    },
+    {
+      "id": "hearthSquare",
+      "layer": "formation",
+      "name": "Hearth Square",
+      "requiresWater": true,
+      "shape": {
+        "kind": "cluster",
+        "buildings": ["bathhouse", "commonsPlaza", "cottage"]
+      },
+      "effect": {
+        "wellbeing": 5,
+        "seasons": [false, false, false, true]
+      },
+      "text": "A bathhouse, a Commons Plaza and a cottage, each touching the other two: +5 wellbeing in winter.",
+      "hint": "Somewhere warm to gather when it's cold."
+    },
+    {
+      "id": "winterGarden",
+      "layer": "evolution",
+      "name": "Winter Garden",
+      "from": "greenhouse",
+      "into": "winterGarden",
+      "when": {
+        "kind": "nextTo",
+        "nextTo": {
+          "buildings": ["heatWell"]
+        }
+      },
+      "text": "A greenhouse next to a heat well becomes a Winter Garden: the well keeps it warm, so it needs no heat in winter and makes 4 food then instead of 3.",
+      "hint": "Glass that never gets cold."
+    },
+    {
+      "id": "rewildedRuin",
+      "layer": "evolution",
+      "name": "Rewilded Ruin",
+      "from": "salvageYard",
+      "into": "rewildedRuin",
+      "when": {
+        "kind": "ruinExhausted"
+      },
+      "text": "A salvage yard whose ruin is empty becomes a Rewilded Ruin: +2 Harmony, and its worker is free.",
+      "hint": "What happens when nothing is left to salvage?"
+    },
+    {
+      "id": "treehouseCommons",
+      "layer": "evolution",
+      "name": "Treehouse Commons",
+      "from": "cottage",
+      "into": "treehouseCommons",
+      "when": {
+        "kind": "nextTo",
+        "nextTo": {
+          "tiles": ["woodland"],
+          "count": 2
+        }
+      },
+      "text": "A cottage next to 2 woodland tiles becomes a Treehouse Commons: +2 wellbeing each season instead of +1.",
+      "hint": "A home among the trees."
+    },
+    {
+      "id": "aquaponicsHall",
+      "layer": "evolution",
+      "name": "Aquaponics Hall",
+      "from": "greenhouse",
+      "into": "aquaponicsHall",
+      "when": {
+        "kind": "nextTo",
+        "nextTo": {
+          "buildings": ["fishPond"]
+        }
+      },
+      "text": "A greenhouse next to a fish pond becomes an Aquaponics Hall: 4 food every season, watered by the pond's nutrient-rich water instead of a channel. It still needs 2 day energy. Next to a heat well too, choose it or the Winter Garden.",
+      "hint": "Fish feed the plants; the plants clean the fishes' water.",
+      "requiresWater": true
+    },
+    {
+      "id": "canalTopSolar",
+      "layer": "evolution",
+      "name": "Canal-top Solar",
+      "from": "irrigationChannel",
+      "into": "canalTopSolar",
+      "when": {
+        "kind": "placed",
+        "building": "solarCanopy"
+      },
+      "text": "A solar canopy built over a channel becomes Canal-top Solar: water still flows beneath, the whole channel loses nothing to summer evaporation, and the panels make 1 more energy by day in summer, kept cool by the water.",
+      "hint": "Shade the water, cool the panels.",
+      "requiresWater": true
+    },
+    {
+      "id": "singingSpire",
+      "layer": "evolution",
+      "name": "Singing Spire",
+      "from": "windSpire",
+      "into": "singingSpire",
+      "when": {
+        "kind": "nextTo",
+        "nextTo": {
+          "buildings": ["pollinatorMeadow"],
+          "count": 2
+        }
+      },
+      "text": "A wind spire with pollinator meadows on 2 sides becomes a Singing Spire: no Harmony penalty, and +1 wellbeing each season.",
+      "hint": "Wind through flowers makes music.",
+      "requiresWater": true
+    },
+    {
+      "id": "oldWorldArchive",
+      "layer": "evolution",
+      "name": "Old World Archive",
+      "from": "salvageYard",
+      "into": "oldWorldArchive",
+      "when": {
+        "kind": "ruinExhausted",
+        "nextTo": {
+          "buildings": ["seedbankLibrary"]
+        }
+      },
+      "text": "A salvage yard whose ruin is empty, next to a Seedbank Library, may become an Old World Archive instead of a Rewilded Ruin: +2 knowledge each season, with 1 worker. You choose.",
+      "hint": "Not everything worth keeping in a ruin is metal.",
+      "requiresWater": true
+    },
+    {
+      "id": "coppiceWood",
+      "layer": "evolution",
+      "name": "Coppice Wood",
+      "from": "woodland",
+      "into": "coppiceWood",
+      "when": {
+        "kind": "coppiced",
+        "nextTo": {
+          "buildings": ["workshop"]
+        },
+        "regrowth": "coppiceRegrowth"
+      },
+      "text": "Coppice a woodland tile next to a workshop and it becomes a Coppice Wood: 2 materials each season with 1 worker, but it counts as meadow for Harmony (1 instead of 2). Stop coppicing and it is woodland again after 2 seasons.",
+      "hint": "Cut a tree low and it grows back many.",
+      "requiresWater": true
+    }
+  ],
+  "tunings": [
+    {
+      "id": "mirrorFilm",
+      "name": "Mirror Film",
+      "text": "Solar canopies make +1 energy in winter.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "solarCanopy",
+          "path": "generation.day.3",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "nightShift",
+      "name": "Night Shift",
+      "text": "Workshops get a 3rd run, on night energy only.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "workshop",
+          "path": "recipes.nightOnlyRuns",
+          "set": 1
+        }
+      ]
+    },
+    {
+      "id": "hiveMind",
+      "name": "Hive Mind",
+      "text": "Apiaries reach 2 tiles.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "apiary",
+          "path": "neighborFoodBonus.radius",
+          "set": 2
+        }
+      ]
+    },
+    {
+      "id": "kilnLoop",
+      "name": "Kiln Loop",
+      "text": "Kilns recover their own heat: each firing needs 1 energy instead of 2.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "kiln",
+          "path": "recipes.energyPerRun",
+          "set": 1
+        }
+      ]
+    },
+    {
+      "id": "terracedFields",
+      "name": "Terraced Fields",
+      "text": "Floodplain farms make +1 food in summer and autumn.",
+      "refinement": true,
+      "building": "chinampa",
+      "max": 2,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "chinampa",
+          "path": "yields.food.1",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "chinampa",
+          "path": "yields.food.2",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "brighterPanels",
+      "name": "Brighter Panels",
+      "text": "Solar canopies make +1 day energy in spring and summer.",
+      "refinement": true,
+      "building": "solarCanopy",
+      "max": 2,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "solarCanopy",
+          "path": "generation.day.0",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "solarCanopy",
+          "path": "generation.day.1",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "balancedBlades",
+      "name": "Balanced Blades",
+      "text": "Wind spires make +1 energy by day and night in summer.",
+      "refinement": true,
+      "building": "windSpire",
+      "max": 1,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "windSpire",
+          "path": "generation.day.1",
+          "add": 1
+        },
+        {
+          "target": "building",
+          "id": "windSpire",
+          "path": "generation.night.1",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "insulatedHomes",
+      "name": "Insulated Homes",
+      "text": "Cottages and treehouses need no heat on winter nights.",
+      "refinement": true,
+      "building": "cottage",
+      "max": 1,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "cottage",
+          "path": "demand.heat.night.3",
+          "set": 0
+        },
+        {
+          "target": "building",
+          "id": "treehouseCommons",
+          "path": "demand.heat.night.3",
+          "set": 0
+        }
+      ]
+    },
+    {
+      "id": "biggerLarders",
+      "name": "Bigger Larders",
+      "text": "Cottages store 5 more food.",
+      "refinement": true,
+      "building": "cottage",
+      "max": 2,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "cottage",
+          "path": "foodStorage",
+          "add": 5
+        }
+      ]
+    },
+    {
+      "id": "loftRooms",
+      "name": "Loft Rooms",
+      "text": "Cottages house 1 more citizen.",
+      "refinement": true,
+      "building": "cottage",
+      "max": 2,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "cottage",
+          "path": "housing",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "leanWorkshops",
+      "name": "Lean Workshops",
+      "text": "Each workshop run needs 1 energy instead of 2.",
+      "refinement": true,
+      "building": "workshop",
+      "max": 1,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "workshop",
+          "path": "recipes.energyPerRun",
+          "set": 1
+        }
+      ]
+    },
+    {
+      "id": "deepCells",
+      "name": "Deep Cells",
+      "text": "Cell banks hold 2 more energy.",
+      "refinement": true,
+      "building": "cellBank",
+      "max": 2,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "cellBank",
+          "path": "storage.capacity",
+          "add": 2
+        }
+      ]
+    },
+    {
+      "id": "hotCompost",
+      "name": "Hot Compost",
+      "text": "A full composter makes 3 compost instead of 2.",
+      "refinement": true,
+      "building": "composter",
+      "max": 1,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "composter",
+          "path": "composter.outputPerFullRun",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "readingRooms",
+      "name": "Reading Rooms",
+      "text": "Seedbank libraries make +1 knowledge every season.",
+      "refinement": true,
+      "building": "seedbankLibrary",
+      "max": 2,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "seedbankLibrary",
+          "path": "yields.knowledge",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "busyBees",
+      "name": "Busy Bees",
+      "text": "Each apiary helps 1 more neighbouring farm or orchard.",
+      "refinement": true,
+      "building": "apiary",
+      "max": 1,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "apiary",
+          "path": "neighborFoodBonus.maxTargets",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "festivalNights",
+      "name": "Festival Nights",
+      "text": "A powered Commons Plaza gives +1 more wellbeing.",
+      "refinement": true,
+      "building": "commonsPlaza",
+      "max": 2,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "commonsPlaza",
+          "path": "wellbeing.whenPowered",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "heatRecovery",
+      "name": "Heat Recovery",
+      "text": "Each kiln firing sends 1 more heat to a neighbouring heat well.",
+      "refinement": true,
+      "building": "kiln",
+      "max": 1,
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "kiln",
+          "path": "recipes.options.0.heatToNeighborStorage",
+          "add": 1
+        }
+      ]
+    }
+  ],
+  "charters": [
+    {
+      "id": "repairCulture",
+      "name": "Repair Culture",
+      "text": "Salvage ×2: each salvage yard makes 6 a season from the same ruin. Workshops turn 2 clutter into 2 materials.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "ruinSalvageFactor",
+          "set": 2
+        },
+        {
+          "target": "building",
+          "id": "workshop",
+          "path": "recipes.options.1.outputs.materials",
+          "set": 2
+        }
+      ]
+    },
+    {
+      "id": "nightMarket",
+      "name": "Night Market",
+      "text": "+2 wellbeing each season the night slot is fully powered.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "wellbeing.nightPowered",
+          "set": 2
+        }
+      ]
+    },
+    {
+      "id": "seedSavers",
+      "name": "Seed Savers",
+      "text": "4 draft cards instead of 3.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "draftCards",
+          "set": 4
+        }
+      ]
+    },
+    {
+      "id": "slowPower",
+      "name": "Slow Power",
+      "text": "Workshops and kilns make 50% more.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "flexibleOutputFactor",
+          "set": 1.5
+        }
+      ]
+    },
+    {
+      "id": "rewilders",
+      "name": "Rewilders",
+      "text": "Tree nurseries improve a neighbouring tile 2 steps a season; pollinator meadows give +1 more Harmony.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "treeNursery",
+          "path": "improvesNeighborSteps",
+          "set": 2
+        },
+        {
+          "target": "building",
+          "id": "pollinatorMeadow",
+          "path": "harmony",
+          "add": 1
+        }
+      ]
+    }
+  ],
+  "visions": [
+    {
+      "id": "gardenTheLake",
+      "name": "Garden the Lake",
+      "text": "Make 60% of the lake's healable land meadow or woodland.",
+      "goal": {
+        "kind": "greenLand",
+        "share": 0.6
+      }
+    },
+    {
+      "id": "lanternOfTheLake",
+      "name": "Lantern of the Lake",
+      "text": "Go a full year, spring to winter, with 30 or more citizens and no shortfall in any slot.",
+      "goal": {
+        "kind": "noShortfallYear",
+        "minCitizens": 30
+      }
+    },
+    {
+      "id": "thrivingCommons",
+      "name": "Thriving Commons",
+      "text": "Reach 50 citizens with wellbeing 70 or more.",
+      "goal": {
+        "kind": "citizens",
+        "citizens": 50,
+        "wellbeing": 70
+      }
+    }
+  ],
+  "projects": [
+    {
+      "id": "greenTerraces",
+      "name": "Green Terraces",
+      "text": "Compost worked into the worst ground: when finished, the 8 least healthy tiles of land each improve one step.",
+      "era": 3,
+      "cost": {
+        "compost": 60,
+        "materials": 15
+      },
+      "seasons": 2,
+      "effect": {
+        "heal": 8
+      }
+    },
+    {
+      "id": "biocharBeds",
+      "name": "Biochar Beds",
+      "text": "Biomass buried as charcoal feeds the soil for good: +6 Harmony from then on.",
+      "era": 3,
+      "cost": {
+        "biomass": 80,
+        "materials": 10
+      },
+      "seasons": 2,
+      "effect": {
+        "harmony": 6
+      }
+    },
+    {
+      "id": "seedVault",
+      "name": "Seed Vault",
+      "text": "The valley's seeds, catalogued and kept: +25 to the run's score.",
+      "era": 3,
+      "cost": {
+        "knowledge": 20,
+        "materials": 25
+      },
+      "seasons": 2,
+      "effect": {
+        "score": 25
+      }
+    },
+    {
+      "id": "festivalGrounds",
+      "name": "Festival Grounds",
+      "text": "A meadow stage for the turning seasons: +2 wellbeing every season from then on.",
+      "era": 4,
+      "cost": {
+        "materials": 60,
+        "food": 20
+      },
+      "seasons": 2,
+      "effect": {
+        "wellbeing": 2
+      }
+    },
+    {
+      "id": "longBridge",
+      "name": "The Long Bridge",
+      "text": "A timber bridge across the whole reach: +40 to the run's score.",
+      "era": 4,
+      "cost": {
+        "materials": 100,
+        "compost": 40
+      },
+      "seasons": 3,
+      "effect": {
+        "score": 40
+      }
+    },
+    {
+      "id": "skyGarden",
+      "name": "Sky Garden",
+      "text": "Terraced gardens climbing the hills: +12 Harmony and +1 wellbeing every season from then on.",
+      "era": 4,
+      "cost": {
+        "materials": 80,
+        "compost": 120,
+        "knowledge": 15
+      },
+      "seasons": 3,
+      "effect": {
+        "harmony": 12,
+        "wellbeing": 1
+      }
+    },
+    {
+      "id": "rootCityGift",
+      "name": "Gift to Root City",
+      "text": "Seed stock, tools and stories sent ahead: +6 Seeds when the run is sent home.",
+      "era": 4,
+      "cost": {
+        "materials": 60,
+        "compost": 60,
+        "knowledge": 10
+      },
+      "seasons": 2,
+      "effect": {
+        "seeds": 6
+      }
+    }
+  ],
+  "wildlife": [],
+  "festivals": [],
+  "twists": [
+    {
+      "id": "fairWeather",
+      "name": "Fair Weather",
+      "text": "No twist: the seasons as usual."
+    },
+    {
+      "id": "leanStart",
+      "name": "Lean Start",
+      "text": "The Sprout sets out with 5 materials, 4 food and 4 citizens. The Graft is one tier higher.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "start.materials",
+          "set": 5
+        },
+        {
+          "target": "rules",
+          "path": "start.food",
+          "set": 4
+        },
+        {
+          "target": "rules",
+          "path": "start.citizens",
+          "set": 4
+        }
+      ],
+      "graftTierBonus": 1
+    },
+    {
+      "id": "bigFamilies",
+      "name": "Big Families",
+      "text": "Citizens arrive two at a time, but only when a season's harvest leaves 4 food spare after eating (usually 2).",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "population.growth",
+          "add": 1
+        },
+        {
+          "target": "rules",
+          "path": "population.minSpareFood",
+          "add": 2
+        }
+      ]
+    },
+    {
+      "id": "scavengers",
+      "name": "Scavengers' Lake",
+      "text": "The drowned town holds 12 more salvage each (42 instead of 30), but every clutter costs 2 Harmony.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "ruinSalvage",
+          "add": 12
+        },
+        {
+          "target": "rules",
+          "path": "harmony.perClutter",
+          "set": -2
+        }
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "id": "openLake",
+      "name": "Open Lake",
+      "text": "The lake as it is: a broad shallow lake over half the valley with deep water in the middle and a few small islands, a stream running in from the north, reed fringe on the shore, a wooded higher shore along one side and the drowned town at the water’s edge."
+    }
+  ],
+  "eraGoals": [
+    {
+      "era": 1,
+      "text": "House 10 citizens.",
+      "goal": {
+        "kind": "citizens",
+        "citizens": 10
+      },
+      "reward": {
+        "knowledge": 3
+      }
+    },
+    {
+      "era": 2,
+      "text": "Close 2 loops.",
+      "goal": {
+        "kind": "loops",
+        "count": 2
+      },
+      "reward": {
+        "knowledge": 3
+      }
+    },
+    {
+      "era": 3,
+      "text": "Reach Harmony 40.",
+      "goal": {
+        "kind": "harmony",
+        "harmony": 40
+      },
+      "reward": {
+        "knowledge": 3
+      }
+    },
+    {
+      "era": 4,
+      "text": "Go a full year, spring to winter, with no energy shortfall.",
+      "goal": {
+        "kind": "noShortfallYear"
+      },
+      "reward": {
+        "knowledge": 3
+      }
+    }
+  ],
+  "guidedYear": [
+    ["wastewaterFishery", "fishPond", "apiary"],
+    ["willowEdge", "pigPen", "treeNursery"],
+    ["canalWheel", "cellBank", "lakeFishery"],
+    ["mulberryDyke", "floatingSolar", "duckHouse"]
+  ],
+  "tempest": {
+    "seedsPerLevel": 2,
+    "levels": [
+      {
+        "id": "tempestBitterNights",
+        "name": "Bitter Nights",
+        "text": "Homes need 1 more heat on winter nights.",
+        "modifiers": [
+          {
+            "target": "building",
+            "id": "foundersCamp",
+            "path": "demand.heat.night.3",
+            "add": 1
+          },
+          {
+            "target": "building",
+            "id": "cottage",
+            "path": "demand.heat.night.3",
+            "add": 1
+          },
+          {
+            "target": "building",
+            "id": "treehouseCommons",
+            "path": "demand.heat.night.3",
+            "add": 1
+          }
+        ]
+      },
+      {
+        "id": "tempestThinDrafts",
+        "name": "Thin Drafts",
+        "text": "Drafts offer 2 cards instead of 3.",
+        "modifiers": [
+          {
+            "target": "rules",
+            "path": "draftCards",
+            "add": -1
+          }
+        ]
+      },
+      {
+        "id": "tempestQuickClutter",
+        "name": "Quick Clutter",
+        "text": "Citizens make scraps faster: one for every 2 citizens instead of 3.",
+        "modifiers": [
+          {
+            "target": "rules",
+            "path": "citizensPerScrap",
+            "add": -1
+          }
+        ]
+      },
+      {
+        "id": "tempestSlowHealing",
+        "name": "Slow Healing",
+        "text": "Spreading compost takes 4 compost per step of healing instead of 2.",
+        "modifiers": [
+          {
+            "target": "rules",
+            "path": "compostPerTileStep",
+            "add": 2
+          }
+        ]
+      },
+      {
+        "id": "tempestRestless",
+        "name": "Restless People",
+        "text": "The population grows only at wellbeing 70 or more, instead of 60.",
+        "modifiers": [
+          {
+            "target": "rules",
+            "path": "population.growAt",
+            "add": 10
+          }
+        ]
+      },
+      {
+        "id": "tempestColdAutumns",
+        "name": "Cold Autumns",
+        "text": "Homes need 1 more heat on autumn nights.",
+        "modifiers": [
+          {
+            "target": "building",
+            "id": "foundersCamp",
+            "path": "demand.heat.night.2",
+            "add": 1
+          },
+          {
+            "target": "building",
+            "id": "cottage",
+            "path": "demand.heat.night.2",
+            "add": 1
+          },
+          {
+            "target": "building",
+            "id": "treehouseCommons",
+            "path": "demand.heat.night.2",
+            "add": 1
+          }
+        ]
+      },
+      {
+        "id": "tempestRoughSeasons",
+        "name": "Rough Seasons",
+        "text": "Flood repairs cost 2 more materials, and storms can damage one more exposed building.",
+        "modifiers": [
+          {
+            "target": "event",
+            "id": "flood",
+            "path": "repairCost",
+            "add": 2
+          },
+          {
+            "target": "event",
+            "id": "storm",
+            "path": "disableCount",
+            "add": 1
+          }
+        ]
+      },
+      {
+        "id": "tempestWearyPeople",
+        "name": "Weary People",
+        "text": "Meeting every need no longer lifts wellbeing.",
+        "modifiers": [
+          {
+            "target": "rules",
+            "path": "wellbeing.allNeedsMet",
+            "set": 0
+          }
+        ]
+      },
+      {
+        "id": "tempestHighHopes",
+        "name": "High Hopes",
+        "text": "Civic life serves 10 fewer citizens before expectations cost wellbeing.",
+        "modifiers": [
+          {
+            "target": "rules",
+            "path": "expectations.base",
+            "add": -10
+          }
+        ]
+      },
+      {
+        "id": "tempestCrampedHomes",
+        "name": "Cramped Homes",
+        "text": "Cottages house 2 citizens instead of 3.",
+        "modifiers": [
+          {
+            "target": "building",
+            "id": "cottage",
+            "path": "housing",
+            "add": -1
+          }
+        ]
+      }
+    ]
+  },
+  "land": "lake",
+  "intro": "New: Lake Gardens. A broad shallow lake, little land, and you make more of it: a chinampa turns a tile of shallows into a raised bed, a farm with water on every side. Grey and nutrient water that reaches the lake leaves mud on the shallows; too much silts them up, and a mud boat lifts it back out as compost. Grey water stays in the lake, costing Harmony, until a wastewater fishery eats it; in summer a dirty lake blooms. High water in spring floods the reed fringe; the autumn wind comes off the deep water."
+}

@@ -110,7 +110,15 @@ const foodGap = (t: Turn) =>
   );
 
 /** The biome's farms (fields that want water) and orchards: those of these it has. */
-const FARMS = ['floodplainFarm', 'croft', 'glenFarm', 'terraceFarm', 'oasisGarden', 'wadiFarm'];
+const FARMS = [
+  'floodplainFarm',
+  'croft',
+  'glenFarm',
+  'terraceFarm',
+  'oasisGarden',
+  'wadiFarm',
+  'chinampa',
+];
 const ORCHARDS = ['orchard'];
 /** Whether one of these buildings could stand on the tile by its type and height. */
 const fitsAny = (turn: Turn, ids: readonly string[], t: Tile) =>
@@ -902,7 +910,7 @@ function spend(turn: Turn, profile: Profile, options: readonly string[], limit =
 }
 
 /** Homes, in the order a bot builds them: the Highland's bothy where there are no cottages yet. */
-const HOMES = ['cottage', 'mudBrickHouse', 'bothy'];
+const HOMES = ['cottage', 'mudBrickHouse', 'bothy', 'stiltHouse'];
 const buildHome = (turn: Turn, reserve = 0) => HOMES.some((id) => turn.build(id, reserve));
 
 const growHousing = (turn: Turn) =>
@@ -959,6 +967,7 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'terraceFarm',
       'oasisGarden',
       'wadiFarm',
+      'chinampa',
       'shieling',
       'riceFishPaddy',
       'fishPond',
@@ -976,6 +985,8 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
         'terraceFarm',
         'oasisGarden',
         'wadiFarm',
+        'chinampa',
+        'chinampa',
         'shieling',
         'fishPond',
         'kelpFarm',
@@ -1051,6 +1062,7 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'terraceFarm',
       'oasisGarden',
       'wadiFarm',
+      'chinampa',
       'fishPond',
       'kelpFarm',
       'greenhouse',
@@ -1113,6 +1125,7 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'terraceFarm',
       'oasisGarden',
       'wadiFarm',
+      'chinampa',
       'shieling',
       'fishPond',
       'kelpFarm',

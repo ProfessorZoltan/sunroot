@@ -1,5 +1,18 @@
 # Changelog
 
+## Lake Gardens, playable (not yet in Root City)
+
+- **The lake's valley**: a broad shallow lake over nearly half the map, deep water in the middle,
+  small islands, a stream running in, reed fringe on the shore and the drowned town's ruins at
+  the water's edge. Open it with `?biome=lakeGardens`.
+- **Its seasons**: high water floods the reed fringe and leaves twice the mud; the summer may
+  bring an algae bloom; the autumn wind off the deep water can damage what stands on beds facing
+  it, unless a willow edge shelters them; low water in winter makes dredging easy.
+- **Its buildings**: the Chinampa, Mud Boat and Stilt House to start, then the Wastewater and
+  Lake Fisheries, Mulberry Dyke, Silk House, Pig Pen, Duck House, Willow Edge, Floating Solar and
+  Canal Wheel, with the shared buildings that fit.
+- A proposed Year 1 for the lake, for review.
+
 ## Combos you can see
 
 - **Combo cards show their buildings**: the Almanac, a discovery, an evolution choice, the

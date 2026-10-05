@@ -216,6 +216,12 @@ export function stormExposed(content: Content, state: RunState, b: BuildingState
     storm.exposedFromHeight !== undefined &&
     (tileAt(state, b.at)?.height ?? 0) >= storm.exposedFromHeight;
   if (!storm.exposedOn.includes(type) && !high) return false;
+  // The lake wind blows off the deep water: only what faces it is exposed.
+  if (
+    storm.exposedFacing.length > 0 &&
+    !neighborTiles(state, b.at).some((t) => storm.exposedFacing.includes(t.type))
+  )
+    return false;
   if (neighborTiles(state, b.at).some((t) => t.type === 'woodland')) return false;
   // A hedgerow next to it breaks the wind: one along an edge of its tile, or a hedgerow building
   // beside it; a Windbreak further.

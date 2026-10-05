@@ -190,5 +190,8 @@ export function applyEvent(ctx: SeasonContext): void {
     case 'freeze':
       // Freeze is expressed by the seasonal tables (weak solar, winter heat demand, strong wind).
       break;
+    case 'bloom':
+      // The lake's own step decides whether it blooms (resolveLake).
+      break;
   }
 }

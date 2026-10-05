@@ -598,6 +598,8 @@ export const EventsSchema = z
       siltBonus: z.number().min(0),
       siltSeasons: z.array(z.enum(SEASONS)),
       repairCost: nonNeg,
+      /** Water reaching the lake this season settles this many times the mud (Lake Gardens). */
+      mudFactor: int.min(1).default(1),
       /** Whether the flood damages buildings that aren't flood-tolerant (River Keepers: no). */
       damages: z.boolean().default(true),
       /**
@@ -653,8 +655,18 @@ export const EventsSchema = z
       exposedFromHeight: int.min(1).optional(),
       /** Dust on the panels (the Sun Desert's dust storm): `fogged` sources make this much less. */
       solarPenalty: nonNeg.default(0),
+      /**
+       * The wind comes off these tiles (Lake Gardens' lake wind, off the deep water): a building
+       * is exposed only with one of them beside it. Empty: from anywhere.
+       */
+      exposedFacing: z.array(TileTypeSchema).default([]),
     }).optional(),
     freeze: EventBase.optional(),
+    /**
+     * Lake Gardens' summer: the lake may bloom (`rules.lake.bloom` says when). The event is the
+     * forecast's warning; the lake's own step decides.
+     */
+    bloom: EventBase.optional(),
     /**
      * A heatwave (the Sun Desert's summer): homes need `coolingAdd` more cooling by day,
      * `fogged` sources make `solarPenalty` less by day (too hot to work well), and channels
@@ -668,7 +680,15 @@ export const EventsSchema = z
   })
   .strict();
 export type Events = z.infer<typeof EventsSchema>;
-export const EVENT_IDS = ['flood', 'lowRiver', 'fog', 'storm', 'freeze', 'heatwave'] as const;
+export const EVENT_IDS = [
+  'flood',
+  'lowRiver',
+  'fog',
+  'storm',
+  'freeze',
+  'heatwave',
+  'bloom',
+] as const;
 export type EventId = (typeof EVENT_IDS)[number];
 
 export const ModifierSchema = z
@@ -1117,12 +1137,49 @@ const DesertMapSchema = z
   })
   .strict();
 
+/**
+ * Lake Gardens (proposals/lake-gardens.md, Map): a broad lake over about `lakeShare` of the map,
+ * shallows round its rim and its islands, deep water in the middle; a stream running in from the
+ * top edge; reed fringe (floodplain) on the shore; higher, wooded shore along one side; and the
+ * drowned town's ruins at the water's edge.
+ */
+const LakeMapSchema = z
+  .object({
+    kind: z.literal('lake'),
+    width: int.min(8),
+    height: int.min(6),
+    /** About this share of the map is lake. */
+    lakeShare: z.number().min(0.2).max(0.7),
+    /** Lake tiles this many steps or more from the shore are deep. */
+    deepFrom: int.min(1),
+    /** Small islands (1 or 2 tiles of land) in the lake, each ringed by shallows. */
+    islands: nonNeg,
+    /** Columns where the stream may start at the top edge. */
+    streamColumns: z.tuple([nonNeg, nonNeg]),
+    /** A shore tile beside the lake is reed fringe by this chance. */
+    fringeChance: z.number().min(0).max(1),
+    /** Columns of higher shore along one side: hills by `hillChance`, and the woodland. */
+    shoreColumns: nonNeg,
+    hillChance: z.number().min(0).max(1),
+    ruins: nonNeg,
+    ruinSalvage: int.min(1),
+    /** Other land is barren (else scrub) by this chance. */
+    barrenChance: z.number().min(0).max(1),
+    woodlands: nonNeg,
+    startingHarmony: nonNeg,
+    /** Tiles from the shallows where the camp may stand. */
+    campLakeDistance: z.tuple([int.min(1), int.min(1)]),
+  })
+  .strict();
+
 export const MapGenSchema = z.union([
   CoastMapSchema,
   HighlandMapSchema,
   DesertMapSchema,
+  LakeMapSchema,
   ValleyMapSchema,
 ]);
+export type LakeMapGen = z.infer<typeof LakeMapSchema>;
 export type DesertMapGen = z.infer<typeof DesertMapSchema>;
 export type HighlandMapGen = z.infer<typeof HighlandMapSchema>;
 export type MapGen = z.infer<typeof MapGenSchema>;

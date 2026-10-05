@@ -2,7 +2,7 @@
  * Lake Gardens' lake (proposals/lake-gardens.md, The new rules), resolved right after the water:
  *
  *  1. Nutrient and grey water that reached the lake settles mud on the shallows where it entered:
- *     1 mud for every `waterPerMud`, up to `siltAt` a tile.
+ *     1 mud for every `waterPerMud` (`mudFactor` times as fast at high water), up to `siltAt` a tile.
  *  2. Its grey water stays in the lake. Fisheries that eat grey water take theirs, in priority
  *     order, and make food of it; then the lake cleans a little by itself.
  *  3. In the bloom seasons, a lake still holding more than `bloom.above` grey water blooms.
@@ -32,15 +32,16 @@ export function resolveLake(ctx: SeasonContext): void {
   ctx.report.lake = report;
   const order = byPriority(state).filter((b) => ctx.active.has(b.uid));
 
-  // 1. Mud settles where water entered, on the shallows.
+  // 1. Mud settles where water entered, on the shallows (faster at high water).
   const entered = ctx.report.water?.lakeIn ?? {};
+  const factor = ctx.report.event === 'flood' ? (content.events.flood?.mudFactor ?? 1) : 1;
   for (const key of Object.keys(entered).sort()) {
     const u = entered[key]!;
     report.greyIn += u.grey;
     const t = state.map.tiles[key];
     if (!t || t.type !== 'shallows') continue;
     const before = t.mud ?? 0;
-    let settling = (t.settling ?? 0) + u.grey + u.nutrient;
+    let settling = (t.settling ?? 0) + (u.grey + u.nutrient) * factor;
     let mud = before;
     while (settling >= rules.waterPerMud && mud < rules.siltAt) {
       settling -= rules.waterPerMud;

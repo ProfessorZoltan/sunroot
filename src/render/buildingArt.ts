@@ -1141,6 +1141,126 @@ export const BUILDING_ART: Record<string, Art> = {
         .stroke({ width: 1, color: 0x9aa7aa });
     g.poly([c.x + 10, c.y + 8, c.x + 13, c.y + 2, c.x + 16, c.y + 8]).fill({ color: 0xffffff });
   },
+  // Lake Gardens (LG2): drawn here until their art comes.
+  /** A raised bed: a field edged with stakes and willow, water at its feet. */
+  chinampa(g, c) {
+    g.poly(hexCorners(c, 21)).fill({ color: 0x9fbf6a }).stroke({ width: 1.5, color: 0x6e8a3e });
+    for (let i = -1; i <= 1; i++)
+      g.moveTo(c.x - 12, c.y + i * 6 + 2)
+        .lineTo(c.x + 12, c.y + i * 6 - 2)
+        .stroke({ width: 2, color: 0x5f8a45, cap: 'round' });
+    for (const [dx, dy] of [
+      [-15, 0],
+      [15, 0],
+      [0, -15],
+    ] as const)
+      g.rect(c.x + dx - 1, c.y + dy - 4, 2, 6).fill({ color: COLORS.wood });
+    tree(g, c.x + 12, c.y - 10, 3.5);
+  },
+  /** A flat boat with a heap of mud and a long pole. */
+  mudBoat(g, c) {
+    shadow(g, c, 13, 3.5, 7);
+    g.poly([c.x - 13, c.y, c.x + 13, c.y, c.x + 9, c.y + 6, c.x - 9, c.y + 6]).fill({
+      color: COLORS.wood,
+    });
+    g.ellipse(c.x - 2, c.y - 2, 7, 4).fill({ color: 0x6b5236 });
+    g.moveTo(c.x + 5, c.y + 4)
+      .lineTo(c.x + 12, c.y - 14)
+      .stroke({ width: 1.4, color: DARK });
+  },
+  /** A house on stilts over the water. */
+  stiltHouse(g, c) {
+    g.ellipse(c.x, c.y + 9, 13, 3.5).fill({ color: COLORS.water });
+    for (const dx of [-6, -2, 2, 6])
+      g.moveTo(c.x + dx, c.y + 3)
+        .lineTo(c.x + dx, c.y + 10)
+        .stroke({ width: 1.4, color: COLORS.wood });
+    house(g, c.x, c.y - 3, 0.9);
+  },
+  /** Ponds in a row, with a sluice between them, fish in the water. */
+  wastewaterFishery(g, c) {
+    for (const dx of [-7, 7])
+      g.ellipse(c.x + dx, c.y + 1, 7, 6)
+        .fill({ color: 0x8fbfa4 })
+        .stroke({ width: 1.2, color: 0x6a9a8a });
+    g.rect(c.x - 1, c.y - 3, 2, 8).fill({ color: COLORS.stone });
+    g.poly([c.x - 9, c.y + 1, c.x - 5, c.y - 1, c.x - 5, c.y + 3]).fill({ color: 0xe58f4a });
+    g.poly([c.x + 5, c.y + 2, c.x + 9, c.y, c.x + 9, c.y + 4]).fill({ color: 0xe58f4a });
+  },
+  /** Net floats in deep water, and a boat. */
+  lakeFishery(g, c) {
+    g.circle(c.x, c.y, 11).stroke({ width: 1.2, color: 0xf3dfbd });
+    for (let i = 0; i < 8; i++) {
+      const a = (i * Math.PI) / 4;
+      g.circle(c.x + Math.cos(a) * 11, c.y + Math.sin(a) * 11, 1.6).fill({ color: 0xd9543c });
+    }
+    g.poly([c.x - 6, c.y - 1, c.x + 6, c.y - 1, c.x + 4, c.y + 3, c.x - 4, c.y + 3]).fill({
+      color: COLORS.wood,
+    });
+  },
+  /** Mulberry bushes on a bank. */
+  mulberryDyke(g, c) {
+    shadow(g, c, 14, 4, 9);
+    g.roundRect(c.x - 14, c.y + 3, 28, 5, 2).fill({ color: 0x8a6a46 });
+    for (const dx of [-9, 0, 9]) {
+      g.circle(c.x + dx, c.y - 1, 5).fill({ color: 0x4f7a3e });
+      g.circle(c.x + dx - 1, c.y - 2, 1.1).fill({ color: 0x4b2a4a });
+    }
+  },
+  /** A long low house with racks of silkworm trays. */
+  silkHouse(g, c) {
+    shadow(g, c, 14);
+    g.rect(c.x - 12, c.y - 4, 24, 11).fill({ color: WALL });
+    g.poly([c.x - 14, c.y - 3, c.x - 10, c.y - 10, c.x + 10, c.y - 10, c.x + 14, c.y - 3]).fill({
+      color: 0x8a5a7a,
+    });
+    for (const dx of [-7, 0, 7]) g.rect(c.x + dx - 2, c.y, 4, 3).fill({ color: 0xfaf3e6 });
+  },
+  /** A sty: a fence and a pink pig. */
+  pigPen(g, c) {
+    shadow(g, c, 13);
+    g.rect(c.x - 12, c.y - 6, 24, 14).stroke({ width: 1.5, color: COLORS.wood });
+    g.ellipse(c.x, c.y + 1, 6, 4).fill({ color: 0xe9a6a0 });
+    g.circle(c.x + 6, c.y, 2.6).fill({ color: 0xe9a6a0 });
+  },
+  /** A small hut and two ducks. */
+  duckHouse(g, c) {
+    shadow(g, c, 11);
+    house(g, c.x - 4, c.y, 0.7, 0x7c8f5a);
+    for (const [dx, dy] of [
+      [7, 3],
+      [10, -2],
+    ] as const) {
+      g.ellipse(c.x + dx, c.y + dy, 3, 2).fill({ color: 0xffffff });
+      g.circle(c.x + dx + 2.5, c.y + dy - 2, 1.3).fill({ color: 0x3f7a3a });
+    }
+  },
+  /** Willow stakes in a row, sprouting. */
+  willowEdge(g, c) {
+    shadow(g, c, 15, 3.5, 7);
+    for (const dx of [-10, -4, 2, 8]) {
+      g.moveTo(c.x + dx, c.y + 6)
+        .lineTo(c.x + dx, c.y - 4)
+        .stroke({ width: 1.6, color: COLORS.wood });
+      g.ellipse(c.x + dx + 1, c.y - 6, 3, 4).fill({ color: 0x9cbf6a });
+    }
+  },
+  /** Panels on floats over the water. */
+  floatingSolar(g, c) {
+    g.ellipse(c.x, c.y + 8, 15, 3).fill({ color: 0xffffff, alpha: 0.5 });
+    panel(g, { x: c.x - 4, y: c.y - 1 }, COLORS.solarTeal, 0x9fc6c8);
+  },
+  /** A small undershot wheel. */
+  canalWheel(g, c) {
+    shadow(g, c, 10, 3.5, 10);
+    g.circle(c.x, c.y, 8).stroke({ width: 1.8, color: COLORS.wood });
+    for (let i = 0; i < 6; i++) {
+      const a = (i * Math.PI) / 3;
+      g.moveTo(c.x, c.y).lineTo(c.x + Math.cos(a) * 8, c.y + Math.sin(a) * 8);
+    }
+    g.stroke({ width: 1.1, color: COLORS.wood });
+    g.circle(c.x, c.y, 2).fill({ color: DARK });
+  },
 };
 
 /** Damaged buildings get a grey veil and a crack; blacked-out ones a dim veil. */
