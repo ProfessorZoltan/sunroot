@@ -570,9 +570,7 @@
       "placement": {
         "tiles": ["barren", "scrub", "meadow", "woodland", "hill", "ruin", "bog", "crag"]
       },
-      "edge": {
-        "harmonyPer": 4
-      }
+      "edge": {}
     },
     {
       "id": "rewettedBog",

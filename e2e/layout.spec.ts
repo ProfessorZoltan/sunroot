@@ -12,7 +12,8 @@ type Hex = { q: number; r: number };
 type Win = {
   sunroot: {
     store: {
-      state: { priority: string[]; buildings: Record<string, { at: Hex }> };
+      state: { priority: string[]; buildings: Record<string, { at: Hex; type: string }> };
+      rules: { byId: Record<string, { kind: string }> };
       inspected: string | null;
       terrainFocus: string | null;
       selectBuilding(id: string | null): void;
@@ -127,6 +128,28 @@ test('building details over the map, the priority list and the terrain highlight
   });
   await expect(rows.nth(0)).toHaveClass(/selected/);
   await expect(details).toBeHidden();
+  // Several at once: tick one, send it to the top; Clear lets go.
+  const ticked = (await store(page)).priority;
+  await rows.nth(2).getByRole('checkbox').check();
+  await panel.getByRole('button', { name: 'To the top' }).click();
+  await expect
+    .poll(async () => (await store(page)).priority)
+    .toEqual([ticked[0], ticked[2], ticked[1]]);
+  await panel.getByRole('button', { name: 'Clear' }).click();
+  await expect(panel.getByRole('button', { name: 'To the top' })).toBeHidden();
+  // A whole kind at once, and presets that sort the list by kind.
+  const kinds = panel.getByRole('group', { name: 'Choose by kind' }).getByRole('button');
+  await kinds.first().click();
+  await expect(panel.locator('.priority-row.chosen')).not.toHaveCount(0);
+  await panel.getByRole('button', { name: 'Clear' }).click();
+  const kindAt = (i: number) =>
+    page.evaluate((i) => {
+      const s = (window as unknown as Win).sunroot.store;
+      const uid = s.state.priority[i]!;
+      return s.rules.byId[s.state.buildings[uid]!.type]!.kind;
+    }, i);
+  await panel.getByRole('button', { name: 'Food first' }).click();
+  await expect.poll(() => kindAt(1)).toBe('food');
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/priorities.png` });
   await panel.getByRole('button', { name: 'Done' }).click();
   await expect(panel).toBeHidden();
@@ -136,5 +159,38 @@ test('building details over the map, the priority list and the terrain highlight
   await expect.poll(async () => (await store(page)).terrain).toBe('floodplain');
   await page.getByRole('combobox', { name: 'Highlight terrain' }).selectOption('');
   await expect.poll(async () => (await store(page)).terrain).toBe(null);
+  expect(errors).toEqual([]);
+});
+
+test('spreading compost many times, where it gives the most Harmony', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/?seed=willow-reach-golden&visions=0');
+  await expect(page.locator('#map-host canvas')).toBeVisible();
+  type Live = { state: { harmony: number; stores: { compost: number } } };
+  const live = () =>
+    page.evaluate(() => {
+      const s = (window as unknown as { sunroot: { store: Live } }).sunroot.store.state;
+      return { harmony: s.harmony, compost: s.stores.compost };
+    });
+  // 20 compost: room for 10 spreads at 2 each.
+  await page.evaluate(() => {
+    const s = (window as unknown as Win).sunroot.store;
+    (s.state as unknown as Live['state']).stores.compost = 20;
+    s.selectBuilding(null);
+  });
+  const build = page.locator('.auto-compost');
+  await build.getByRole('spinbutton', { name: 'Times to spread compost' }).fill('3');
+  const before = await live();
+  if (SHOTS) await build.screenshot({ path: `${SHOTS}/auto-compost.png` });
+  await build.getByRole('button', { name: /Spread · 6 compost, \+\d+ Harmony/ }).click();
+  await expect.poll(async () => (await live()).compost).toBe(14);
+  expect((await live()).harmony).toBeGreaterThan(before.harmony);
+  // One undo takes it all back (to the season's start, before the 20 put in by hand).
+  await page
+    .getByRole('group', { name: 'Season controls' })
+    .getByRole('button', { name: 'Undo' })
+    .click();
+  await expect.poll(async () => (await live()).harmony).toBe(before.harmony);
   expect(errors).toEqual([]);
 });

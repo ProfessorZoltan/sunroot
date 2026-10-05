@@ -1,5 +1,15 @@
 # Changelog
 
+## Less busywork late in a run
+
+- **Spread compost many times at once**: under Build, choose how many times, and it goes where
+  it gives the most Harmony (finishing a Wildway if one is in reach). One undo takes it all back.
+- **Hedgerows no longer give Harmony.** They still shelter buildings from storms, and 4 in a row
+  still make a windbreak.
+- **Prioritize buildings**: tick several (Shift for a run of them) or a whole kind at once and
+  move them together, to the top, the bottom, or one place at a time; or sort the whole list
+  with a preset: Food, Energy, Water, Homes or Industry first.
+
 ## Fixes
 
 - Demolishing a building on the coast's mudflat, saltmarsh, dune or sea, or on the Highland's crag

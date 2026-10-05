@@ -316,14 +316,6 @@ export function harmonyLines(content: Content, state: RunState): HarmonyLine[] {
     }
   }
   for (const [name, e] of byBuilding) lines.push({ label: `${e.n} ${name}`, amount: e.amount });
-  // Hedges along tile edges: 1 Harmony for every few segments.
-  const hedge = edgeBuilding(content);
-  const segments = state.hedges.length;
-  if (hedge?.edge && segments >= hedge.edge.harmonyPer)
-    lines.push({
-      label: `${segments} hedge segment${segments > 1 ? 's' : ''}`,
-      amount: Math.floor(segments / hedge.edge.harmonyPer),
-    });
   for (const [name, e] of penalties) lines.push({ label: `${e.n} ${name}`, amount: e.amount });
   lines.push(...formationHarmony(content, state));
   lines.push(...loopHarmony(content, state));

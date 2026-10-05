@@ -4,6 +4,7 @@
  */
 import type { Content } from './content/load';
 import { AUTO_RECIPE, type Resource } from './content/schema';
+import { compostPlan } from './compost';
 import { demolish, demolishCheck } from './demolish';
 import { projectBlocked } from './projects';
 import { drawCards, draftSize, isTuning } from './draft';
@@ -280,6 +281,21 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       if (!improveTile(content, tile, 1)) return `compost can't improve ${tile.type}`;
       s.stores.compost -= cost;
       flow(s.spent, 'compost', 'used', 'Spread on the land', cost);
+      return null;
+    }
+    case 'autoCompost': {
+      const cost = content.rules.compostPerTileStep;
+      if (!Number.isInteger(command.times) || command.times < 1)
+        return 'spread compost at least once';
+      const times = Math.min(command.times, Math.floor(s.stores.compost / cost));
+      if (times < 1) return `spreading compost needs ${cost} compost`;
+      const plan = compostPlan(content, s, times);
+      if (plan.length === 0) return 'no land left that compost can improve';
+      for (const key of plan) {
+        improveTile(content, s.map.tiles[key]!, 1);
+        s.stores.compost -= cost;
+        flow(s.spent, 'compost', 'used', 'Spread on the land', cost);
+      }
       return null;
     }
     case 'setRecipe': {

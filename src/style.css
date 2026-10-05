@@ -495,6 +495,26 @@ select:focus-visible {
 
 /* ---------------------------------------------------------------- palette */
 
+.auto-compost {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.auto-compost input {
+  width: 4.5em;
+  height: 30px;
+  padding: 0 6px;
+  border-radius: 8px;
+  border: 1.5px solid var(--line-strong);
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--ui);
+  font-size: 13px;
+}
+
 .palette {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1631,6 +1651,38 @@ ul.projects {
   border: 1.5px solid var(--line);
   border-radius: 8px;
   background: var(--card);
+}
+.priority-row.chosen {
+  border-color: var(--line-strong);
+  background: var(--panel);
+}
+.priority-check {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex: none;
+  accent-color: var(--gold);
+}
+.priority-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin: 6px 0;
+}
+.chip {
+  min-height: 28px;
+  padding: 0 9px;
+  border-radius: 14px;
+  border: 1.5px solid var(--line-strong);
+  background: var(--panel);
+  color: var(--ink);
+  font: 700 12px var(--ui);
+  cursor: pointer;
+}
+.chip.on {
+  border-color: var(--gold);
+  background: var(--gold-soft);
 }
 .priority-row[draggable='true'] {
   cursor: grab;

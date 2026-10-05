@@ -31,10 +31,10 @@ import type { BuildingState, ComboHit, RunState } from './types';
 import { available, waterOn } from './water';
 import { edgeTiles, hedgeRuns } from './edges';
 
-type ComboOf<L extends Combo['layer']> = Extract<Combo, { layer: L }>;
+export type ComboOf<L extends Combo['layer']> = Extract<Combo, { layer: L }>;
 
 /** The combos of a layer in play this run (Willow Reach v2's need water). */
-const combosOf = <L extends Combo['layer']>(content: Content, layer: L): ComboOf<L>[] =>
+export const combosOf = <L extends Combo['layer']>(content: Content, layer: L): ComboOf<L>[] =>
   content.combos.filter(
     (c): c is ComboOf<L> => c.layer === layer && (!c.requiresWater || waterOn(content)),
   );
@@ -177,13 +177,8 @@ export function findFormations(
   return hits;
 }
 
-/**
- * An unbroken strip of the given tiles from a tile touching the river to a
- * side edge of the valley (the first or last tile of a row), crossing at most
- * `gaps` land tiles of other kinds. Returns the strip's tile keys, the fewest
- * gaps first and then the shortest, or null.
- */
-function findStrip(state: RunState, types: readonly string[], gaps = 0): string[] | null {
+/** Where a strip may start (a tile touching water) and end (a side edge of the valley). */
+function stripEnds(state: RunState) {
   const tiles = state.map.tiles;
   const rows = new Map<number, { min: number; max: number }>();
   for (const t of Object.values(tiles)) {
@@ -197,14 +192,77 @@ function findStrip(state: RunState, types: readonly string[], gaps = 0): string[
     return col === r.min || col === r.max;
   };
   const WATER = ['river', 'reservoir', 'oasis'];
+  const byRiver = (h: Hex) =>
+    hexNeighbors(h).some((n) => WATER.includes(tiles[hexKey(n)]?.type ?? ''));
+  return { isEdge, byRiver, WATER };
+}
+
+/**
+ * The cheapest strip from the water to a side edge when each tile costs `costOf` (null: it can't
+ * be crossed): its tile keys and total cost, or null. For compost aiming at the Wildway.
+ */
+export function cheapestStrip(
+  state: RunState,
+  costOf: (type: string) => number | null,
+): { tiles: string[]; cost: number } | null {
+  const tiles = state.map.tiles;
+  const { isEdge, byRiver, WATER } = stripEnds(state);
+  const cost = (key: string): number | null => {
+    const type = tiles[key]?.type;
+    return type === undefined || WATER.includes(type) ? null : costOf(type);
+  };
+  const best = new Map<string, number>();
+  const from = new Map<string, string | null>();
+  const open: string[] = [];
+  for (const [key, t] of Object.entries(tiles)) {
+    const c = cost(key);
+    if (c === null || !byRiver(t)) continue;
+    best.set(key, c);
+    from.set(key, null);
+    open.push(key);
+  }
+  // Dijkstra, ties broken by key so the same valley always gives the same strip.
+  const done = new Set<string>();
+  while (open.length > 0) {
+    open.sort((a, b) => best.get(a)! - best.get(b)! || a.localeCompare(b));
+    const key = open.shift()!;
+    if (done.has(key)) continue;
+    done.add(key);
+    if (isEdge(tiles[key]!)) {
+      const path: string[] = [];
+      for (let k: string | null = key; k !== null; k = from.get(k)!) path.unshift(k);
+      return { tiles: path, cost: best.get(key)! };
+    }
+    for (const n of hexNeighbors(tiles[key]!)) {
+      const nk = hexKey(n);
+      const c = cost(nk);
+      if (c === null || done.has(nk)) continue;
+      const total = best.get(key)! + c;
+      if (total < (best.get(nk) ?? Infinity)) {
+        best.set(nk, total);
+        from.set(nk, key);
+        open.push(nk);
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * An unbroken strip of the given tiles from a tile touching the river to a
+ * side edge of the valley (the first or last tile of a row), crossing at most
+ * `gaps` land tiles of other kinds. Returns the strip's tile keys, the fewest
+ * gaps first and then the shortest, or null.
+ */
+function findStrip(state: RunState, types: readonly string[], gaps = 0): string[] | null {
+  const tiles = state.map.tiles;
+  const { isEdge, byRiver, WATER } = stripEnds(state);
   /** 0 for a strip tile, 1 for a gap (other land), null if it can't be crossed. */
   const step = (key: string): number | null => {
     const type = tiles[key]?.type;
     if (type === undefined || WATER.includes(type)) return null;
     return types.includes(type) ? 0 : 1;
   };
-  const byRiver = (h: Hex) =>
-    hexNeighbors(h).some((n) => WATER.includes(tiles[hexKey(n)]?.type ?? ''));
   // Breadth-first over (tile, gaps used), finishing each count of gaps before the next.
   const id = (key: string, used: number) => `${key}|${used}`;
   const from = new Map<string, string | null>();

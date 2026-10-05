@@ -98,14 +98,14 @@ describe('what a hedge does', () => {
     expect([exposed(3), exposed(4)]).toEqual([false, false]);
   });
 
-  it('gives 1 Harmony for every 2 segments', () => {
-    const line = (s: RunState) => harmonyLines(W, s).find((l) => /hedge segment/.test(l.label));
-    let s = plant(start(), at(3, 1), at(4, 1));
-    expect(line(s)).toBeUndefined();
+  it('gives no Harmony, however many are planted', () => {
+    const harmony = (s: RunState) => harmonyLines(W, s).reduce((n, l) => n + l.amount, 0);
+    const before = start();
+    let s = plant(before, at(3, 1), at(4, 1));
     s = plant(s, at(4, 1), at(5, 1));
-    expect(line(s)).toEqual({ label: '2 hedge segments', amount: 1 });
     s = plant(s, at(5, 1), at(6, 1));
-    expect(line(s)).toEqual({ label: '3 hedge segments', amount: 1 });
+    expect(s.hedges).toHaveLength(3);
+    expect(harmony(s)).toBe(harmony(before));
   });
 });
 

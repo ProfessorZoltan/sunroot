@@ -860,9 +860,7 @@
       "placement": {
         "tiles": ["floodplain", "hill", "barren", "scrub", "meadow", "woodland", "ruin"]
       },
-      "edge": {
-        "harmonyPer": 2
-      }
+      "edge": {}
     },
     {
       "id": "solarCanopy",

@@ -460,13 +460,10 @@ export const BuildingSchema = z
     sheltersNeighbors: z.boolean().default(false),
     /**
      * Runs along the edges between tiles instead of standing on one (the Hedgerow): planted
-     * between two tiles of `placement.tiles`, it shelters both from storms, and every
-     * `harmonyPer` segments give 1 Harmony.
+     * between two tiles of `placement.tiles`, it shelters both from storms. It gives no Harmony
+     * (playtesting: laying dozens of them late in a run for Harmony was a chore).
      */
-    edge: z
-      .object({ harmonyPer: int.min(1) })
-      .strict()
-      .optional(),
+    edge: z.object({}).strict().optional(),
     /** Gone after this many seasons, leaving its tile as it was (a coppice regrowing). */
     revertsAfterSeasons: int.min(1).optional(),
     /**

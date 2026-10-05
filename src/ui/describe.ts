@@ -11,7 +11,6 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
     return [
       `Planted along the edge between two tiles (not water), ${def.cost} materials a segment.`,
       'Storms can’t damage the buildings on either side of it.',
-      `1 Harmony for every ${def.edge.harmonyPer} segments.`,
     ];
   }
   // A wonder (E5) takes a flower of 7 tiles.

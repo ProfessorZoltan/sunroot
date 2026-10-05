@@ -1092,9 +1092,7 @@
           "saltFlat"
         ]
       },
-      "edge": {
-        "harmonyPer": 4
-      },
+      "edge": {},
       "shades": 1,
       "starter": true
     },

@@ -252,6 +252,8 @@ export type Command =
   | { type: 'buyExtraCard' }
   | { type: 'place'; building: string; at: Hex }
   | { type: 'spreadCompost'; at: Hex }
+  /** Spreads compost this many times where it gives the most Harmony (sim/compost.ts). */
+  | { type: 'autoCompost'; times: number }
   /** Starts a project: its cost is paid now; it finishes after its seasons. */
   | { type: 'startProject'; project: string }
   /** Holds this season's festival: its cost now, its reward as the season ends; or calls it off. */

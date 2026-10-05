@@ -118,6 +118,7 @@ export {
   type RunResult,
   type Teaching,
 } from './city';
+export { compostPlan } from './compost';
 export { demolishCheck, type DemolishCheck } from './demolish';
 export { energyLedger, SHORT, type EnergyLedger } from './energyLedger';
 export { finishedProjects, projectBlocked } from './projects';

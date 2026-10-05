@@ -1,4 +1,5 @@
 /** Right column: the draft, projects, the building palette and the placement preview. */
+import { useMemo, useState } from 'preact/hooks';
 import type { GameStore } from '../game/store';
 import { waterAt } from '../game/waterInfo';
 import { commuteAt } from '../game/commuteInfo';
@@ -6,6 +7,7 @@ import { heatAt } from '../game/heatInfo';
 import { coolAt } from '../game/coolInfo';
 import {
   AUTO_RECIPE,
+  applyCommand,
   demolishCheck,
   projectBlocked,
   timesTaken,
@@ -215,6 +217,49 @@ function TuningCard({ store, id, index }: { store: GameStore; id: string; index:
   );
 }
 
+/**
+ * Spreading compost many times at once where it gives the most Harmony (asked for in playtesting:
+ * late in a run, spreading it a tile at a time was a chore). Shows what it would give first.
+ */
+function AutoCompost({ store }: { store: GameStore }) {
+  const { content, state } = store;
+  const cost = content.rules.compostPerTileStep;
+  const most = Math.floor(state.stores.compost / cost);
+  const [wanted, setWanted] = useState(5);
+  const times = Math.max(1, Math.min(wanted, most));
+  const gain = useMemo(() => {
+    if (most < 1) return null;
+    const r = applyCommand(content, state, { type: 'autoCompost', times });
+    return r.ok ? r.state.harmony - state.harmony : null;
+  }, [content, state, times, most]);
+  if (most < 1) return null;
+  return (
+    <div class="auto-compost">
+      <label class="small">
+        Spread compost{' '}
+        <input
+          type="number"
+          min={1}
+          max={most}
+          value={times}
+          aria-label="Times to spread compost"
+          onInput={(e) => setWanted(Math.max(1, Number((e.target as HTMLInputElement).value) || 1))}
+        />{' '}
+        times where it gives the most Harmony
+      </label>
+      <button
+        type="button"
+        class="button small-button"
+        disabled={gain === null}
+        title="Each spread improves one tile a step; it may aim for a Wildway. Undo takes it all back."
+        onClick={() => store.dispatch({ type: 'autoCompost', times })}
+      >
+        Spread · {times * cost} compost{gain !== null ? `, ${signed(gain)} Harmony` : ''}
+      </button>
+    </div>
+  );
+}
+
 function BuildPanel({ store, ui }: { store: GameStore; ui: Ui }) {
   const { content, state } = store;
   const ended = state.status !== 'active';
@@ -325,6 +370,7 @@ function BuildPanel({ store, ui }: { store: GameStore; ui: Ui }) {
           </button>
         )}
       </div>
+      {open && !ended && <AutoCompost store={store} />}
       {open && (
         <div class="quiet small">
           Hover or use the arrow keys to aim, N for the next legal site, Enter or click to place.
@@ -394,7 +440,7 @@ function PlacementPanel({ store }: { store: GameStore }) {
           {e?.planted
             ? 'A hedge stands here: click to clear it (nothing back).'
             : (e?.problem ??
-              `Planted along the edge between two tiles, ${def.cost} materials a segment. It shelters the buildings on both sides from storms; every ${def.edge!.harmonyPer} segments give 1 Harmony; 4 joined end to end make a windbreak.`)}
+              `Planted along the edge between two tiles, ${def.cost} materials a segment. It shelters the buildings on both sides from storms; 4 joined end to end make a windbreak.`)}
         </div>
         <div class="quiet small">
           Point at a side of a tile, or press [ and ] to turn to the next side.
