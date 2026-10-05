@@ -1,7 +1,18 @@
 /** Demolishing a building (asked for in playtesting; see DECISIONS.md). */
 import { describe, expect, it } from 'vitest';
-import { applyCommand, demolishCheck } from '../src/sim';
-import { act, content, endSeason, place, rejects, scenario, tileTypeAt, uidAt } from './helpers';
+import { BIOMES, biomeContent } from '../src/content';
+import { applyCommand, createRun, demolishCheck, type TileType } from '../src/sim';
+import {
+  act,
+  at,
+  content,
+  endSeason,
+  place,
+  rejects,
+  scenario,
+  tileTypeAt,
+  uidAt,
+} from './helpers';
 
 const LAND = [
   '^ ^ ^ , ~ , , , ^ ^',
@@ -95,5 +106,66 @@ describe('demolishing', () => {
     expect(s.loops).toHaveLength(1);
     s = act(s, { type: 'demolish', uid: uidAt(s, 6, 3) });
     expect(s.loops).toEqual([]);
+  });
+});
+
+describe("demolishing keeps a biome's own ground", () => {
+  const COAST = biomeContent('windsweptCoast');
+  const HIGH = biomeContent('highland');
+
+  it('the coast: mudflat, saltmarsh, dune and sea stay as they are', () => {
+    // Sea, mudflat, saltmarsh and dune in a row, the camp inland.
+    let s = scenario(['= _ " : , ,', '= _ " : C ,', '= _ " : , ,'], {
+      content: COAST,
+      stores: { materials: 200 },
+    });
+    s = place(s, 'oysterReef', 1, 0, COAST);
+    s = place(s, 'croft', 2, 0, COAST);
+    s = place(s, 'duneGrass', 3, 2, COAST);
+    s = place(s, 'kelpFarm', 0, 0, COAST);
+    for (const [col, row, type] of [
+      [1, 0, 'mudflat'],
+      [2, 0, 'saltmarsh'],
+      [3, 2, 'dune'],
+      [0, 0, 'sea'],
+    ] as const) {
+      s = act(s, { type: 'demolish', uid: uidAt(s, col, row) }, COAST);
+      expect(tileTypeAt(s, col, row), type).toBe(type);
+    }
+  });
+
+  it('the Highland: crag and bog stay as they are', () => {
+    let s = scenario(['A b , ,', 'A b C ,'], { content: HIGH, stores: { materials: 200 } });
+    s = place(s, 'lookout', 0, 0, HIGH);
+    // A rewetted bog is a bog brought back (an evolution), not placed: put it straight on the map.
+    const uid = `b${s.nextUid++}`;
+    s.buildings[uid] = { uid, type: 'rewettedBog', at: at(1, 0), builtTurn: s.turn };
+    s.priority.push(uid);
+    s = act(s, { type: 'demolish', uid: uidAt(s, 0, 0) }, HIGH);
+    s = act(s, { type: 'demolish', uid: uidAt(s, 1, 0) }, HIGH);
+    expect(tileTypeAt(s, 0, 0)).toBe('crag');
+    expect(tileTypeAt(s, 1, 0)).toBe('bog');
+  });
+
+  it('in every biome, only land on its soil ladder (at or above where demolition leaves it) changes', () => {
+    for (const id of Object.keys(BIOMES)) {
+      const c = biomeContent(id);
+      const { landHealth, demolition } = c.rules;
+      const floor = landHealth.indexOf(demolition.tileBecomes);
+      const types = new Set<TileType>();
+      for (const region of [null, ...c.regions.map((r) => r.id)])
+        for (let i = 0; i < 3; i++) {
+          const s = createRun(c, {
+            seed: `ground-${i}`,
+            water: true,
+            expedition: { twist: null, request: null, region },
+          });
+          for (const t of Object.values(s.map.tiles)) types.add(t.type);
+        }
+      for (const t of types) {
+        const degrades = landHealth.indexOf(t) >= floor && floor >= 0;
+        if (!degrades) expect(demolition.keeps, `${id}: ${t}`).toContain(t);
+      }
+    }
   });
 });

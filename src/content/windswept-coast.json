@@ -111,7 +111,17 @@
       "rubbleShare": 0.5,
       "salvagedBy": ["salvageYard", "beachcombingYard"],
       "tileBecomes": "barren",
-      "keeps": ["hill", "floodplain", "river", "reservoir", "ruin"]
+      "keeps": [
+        "hill",
+        "floodplain",
+        "river",
+        "reservoir",
+        "ruin",
+        "mudflat",
+        "saltmarsh",
+        "dune",
+        "sea"
+      ]
     },
     "expectations": {
       "fromEra": 3,

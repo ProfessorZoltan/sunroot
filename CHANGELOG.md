@@ -1,5 +1,11 @@
 # Changelog
 
+## Fixes
+
+- Demolishing a building on the coast's mudflat, saltmarsh, dune or sea, or on the Highland's crag
+  or bog, now leaves that ground as it was, ready for seals, oyster reefs or a wonder, instead of
+  turning it to barren land.
+
 ## New art
 
 - The **Sun Quarter** and the **Glassworks** in Root City are hand-painted now.

@@ -110,7 +110,7 @@
       "rubbleShare": 0.5,
       "salvagedBy": ["salvageYard"],
       "tileBecomes": "barren",
-      "keeps": ["hill", "floodplain", "river", "reservoir", "ruin"]
+      "keeps": ["hill", "floodplain", "river", "reservoir", "ruin", "crag", "bog"]
     },
     "expectations": {
       "fromEra": 3,
