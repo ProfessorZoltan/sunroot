@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Regenerative Loops Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f3ec; --surface:#fffdf8; --ink:#1f2a22; --muted:#5d675f; --line:#d9d3c5;
+  --chip:#ece6d8; --shadow:0 1px 2px rgba(30,40,30,.06),0 6px 18px rgba(30,40,30,.06);
+  --wet:#2f7d8c; --trop:#3f8a4a; --dry:#c27a2c; --temp:#7a8a2f; --mtn:#6a5aa8; --coast:#2b6cb0; --house:#a2553e; --rewild:#2f8a6e;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141815; --surface:#1c221e; --ink:#e8ebe6; --muted:#a2aba4; --line:#323b35;
+    --chip:#262e29; --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25);
+    --wet:#5fb3c2; --trop:#6fbf78; --dry:#e3a35a; --temp:#b3c35a; --mtn:#a597e0; --coast:#6aa5e6; --house:#e08a70; --rewild:#5ec6a2;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+header{max-width:1120px;margin:0 auto;padding:40px 16px 12px}
+.home{display:inline-block;margin-bottom:14px;color:var(--muted);font:500 13.5px Inter,system-ui,sans-serif;text-decoration:none}
+.home:hover{color:var(--ink);text-decoration:underline}
+h1{font-family:Fraunces,Georgia,serif;font-weight:650;font-size:clamp(28px,5vw,44px);line-height:1.1;margin:0 0 10px;letter-spacing:-.01em}
+.lead{color:var(--muted);max-width:720px;margin:0 0 20px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.search{flex:1 1 220px;min-width:0;padding:10px 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font:inherit}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 12px;font:500 13px Inter,system-ui,sans-serif;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+main{max-width:1120px;margin:0 auto;padding:8px 16px 64px}
+section.biome{margin-top:28px}
+section.biome h2{font-family:Fraunces,Georgia,serif;font-weight:500;font-size:22px;line-height:1.2;margin:0 0 6px;display:flex;align-items:center;gap:10px}
+section.biome h2 .bar{width:14px;height:14px;border-radius:4px;flex:none}
+section.biome p.blurb{color:var(--muted);margin:0 0 12px;font-size:14px;max-width:760px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.card{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:6px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:12px;padding:14px 14px 12px;cursor:pointer;box-shadow:var(--shadow);transition:transform .12s ease,box-shadow .12s ease}
+.card:hover{transform:translateY(-2px)}
+.card:focus-visible{outline:2px solid var(--c);outline-offset:2px}
+.card .name{font-weight:600;font-size:15.5px;line-height:1.3}
+.card .where{color:var(--muted);font-size:13px;line-height:1.35}
+.card .chain{font-size:12.5px;color:var(--ink);opacity:.85;line-height:1.4;margin-top:2px}
+.card .chain b{color:var(--c);font-weight:600}
+.card .open{margin-top:auto;font-size:12px;color:var(--c);font-weight:600;padding-top:4px}
+.empty{color:var(--muted);padding:40px 0;text-align:center}
+
+/* overlay */
+.overlay{position:fixed;inset:0;z-index:50;display:none;background:rgba(15,20,16,.55);backdrop-filter:blur(3px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.overlay.open{display:block}
+.panel{position:relative;max-width:900px;margin:32px auto;background:var(--surface);border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:24px 24px 20px}
+@media (max-width:640px){.panel{margin:0;border-radius:0;min-height:100%;padding:18px 16px 24px}}
+.topbar{display:flex;align-items:flex-start;gap:12px}
+.topbar .titles{flex:1;min-width:0}
+.tag{display:inline-block;font:600 11.5px Inter,system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:var(--c);margin-bottom:4px}
+.panel h3{font-family:Fraunces,Georgia,serif;font-weight:650;font-size:clamp(22px,4vw,30px);line-height:1.15;margin:0 0 4px}
+.panel .where{color:var(--muted);margin:0}
+.iconbtn{all:unset;cursor:pointer;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);color:var(--ink);flex:none;font-size:18px;line-height:1}
+.iconbtn:hover{background:var(--chip)}
+.iconbtn:focus-visible{outline:2px solid var(--c)}
+.key{margin:14px 0 0;padding:10px 14px;border-radius:10px;background:color-mix(in srgb,var(--c) 12%,transparent);font-size:14.5px}
+.flows{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.flow{font-size:13px;padding:5px 10px;border-radius:8px;background:var(--chip)}
+.flow b{font-weight:600}
+.diagram{margin:16px 0 8px;width:100%}
+.diagram svg{display:block;width:100%;height:auto;overflow:visible}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+@media (max-width:640px){.cols{grid-template-columns:1fr}}
+.cols h4,.sources h4{font:600 12px Inter,system-ui,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+.cols p{margin:0;font-size:14.5px}
+.sources{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+.sources ul{margin:0;padding-left:18px;font-size:14px}
+.sources a{color:var(--c)}
+.navrow{display:flex;justify-content:space-between;gap:8px;margin-top:18px}
+.navbtn{all:unset;cursor:pointer;border:1px solid var(--line);border-radius:999px;padding:8px 14px;font:500 13.5px Inter,system-ui,sans-serif;max-width:48%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.navbtn:hover{background:var(--chip)}
+.navbtn:focus-visible{outline:2px solid var(--c)}
+
+/* svg */
+.n-box{fill:var(--surface);stroke:var(--c);stroke-width:1.6}
+.n-num{fill:var(--c)}
+.n-numtxt{fill:var(--surface);font:600 11px Inter,system-ui,sans-serif}
+.n-name{fill:var(--ink);font:600 14px Inter,system-ui,sans-serif}
+.n-sub{fill:var(--muted);font:400 12px Inter,system-ui,sans-serif}
+.e-line{fill:none;stroke:var(--muted);stroke-width:1.5}
+.e-line.ret{stroke-dasharray:5 5}
+.e-pill{fill:var(--surface);stroke:var(--line)}
+.e-txt{fill:var(--ink);font:500 12px Inter,system-ui,sans-serif}
+.ret-txt{fill:var(--muted);font:500 12px Inter,system-ui,sans-serif}
+.arrowhead{fill:var(--muted)}
+footer{max-width:1120px;margin:0 auto;padding:0 16px 40px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <a class="home" href="../">← Play Sunroot</a>
+  <h1>Regenerative Loops Atlas</h1>
+  <p class="lead">Farming, housing and rewilding systems from around the world where one element's output becomes another's input, or where placing two things side by side helps both. Tap any system to see its loop drawn as a diagram.</p>
+  <div class="controls">
+    <input class="search" id="q" type="search" placeholder="Search systems, places or cultures" aria-label="Search systems">
+  </div>
+  <div class="chips" id="chips" role="group" aria-label="Filter by biome"></div>
+</header>
+<main id="list"></main>
+<footer>Compiled October 2026 from the sources linked inside each system. Status details reflect the dates of those sources.</footer>
+
+<div class="overlay" id="ov" aria-hidden="true">
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="ov-title" id="panel">
+    <div class="topbar">
+      <div class="titles">
+        <div class="tag" id="ov-tag"></div>
+        <h3 id="ov-title"></h3>
+        <p class="where" id="ov-where"></p>
+      </div>
+      <button class="iconbtn" id="ov-close" aria-label="Close">✕</button>
+    </div>
+    <div class="key" id="ov-key"></div>
+    <div class="flows" id="ov-flows"></div>
+    <div class="diagram" id="ov-diagram"></div>
+    <div class="cols">
+      <div><h4>Why proximity helps</h4><p id="ov-prox"></p></div>
+      <div><h4>Status</h4><p id="ov-status"></p></div>
+    </div>
+    <div class="sources"><h4>Sources</h4><ul id="ov-src"></ul></div>
+    <div class="navrow">
+      <button class="navbtn" id="ov-prev"></button>
+      <button class="navbtn" id="ov-next"></button>
+    </div>
+  </div>
+</div>
+
+<script>
+const BIOMES = [
+  {id:"wet", name:"River deltas, floodplains and wetlands", blurb:"Water carries nutrients from one element to the next, and pond or canal mud is lifted back onto land as fertilizer."},
+  {id:"trop", name:"Humid tropics and tropical forests", blurb:"Fertility is stored in charcoal and living biomass rather than bare soil, so the ground stays covered and layered."},
+  {id:"dry", name:"Drylands, deserts and savannas", blurb:"Animals, pits and shade concentrate scarce water and nitrogen exactly where crops need them."},
+  {id:"temp", name:"Temperate woodlands and grasslands", blurb:"Leaves, sods, acorns and grazing move nutrients from woodland and heath onto cropland near homes."},
+  {id:"mtn", name:"Mountains and highlands", blurb:"Systems are organized by slope: forest and pasture above are protected because everything below depends on them."},
+  {id:"coast", name:"Coasts and islands", blurb:"Land runoff feeds marine life where fresh meets salt water, and the sea's surplus is carried back uphill."},
+  {id:"house", name:"Housing and settlement", blurb:"Homes capture their two by-products, heat and waste, and put both back to work."},
+  {id:"rewild", name:"Rewilding and restoration", blurb:"Returning a missing animal or removing a pressure lets broken links between species rebuild."}
+];
+
+const S = [
+/* ---------- WETLANDS ---------- */
+{id:"mulberry", b:"wet", name:"Mulberry-dyke fish pond", where:"Cantonese farmers, Pearl River Delta and Taihu basin, China; over 2,000 years",
+ key:"Farmers' rule of thumb: 1 mu of mulberry supplies enough feed and fertilizer for 1 mu of fish pond.",
+ nodes:[["Mulberry trees","on dykes dug from pond soil"],["Silkworms","in rearing sheds"],["Fish","carp in the pond"],["Pond-bottom mud","rich in fish waste"]],
+ edges:["leaves picked through the season","droppings, moults and pupae feed fish","fish waste settles","mud spread on dykes about 3 times a year"],
+ outs:"cocoons to silk mills; fish to city markets",
+ prox:"Digging the ponds raised the dykes above flood level, so one excavation created both dry land for trees and water for fish.",
+ status:"GIAHS site (Huzhou, 2017). Declining where land and labour costs have risen.",
+ src:[["FAO, integrated fish farming","https://www.fao.org/4/AC241E/AC241E00.htm"],["FAO, embankment fish culture","https://www.fao.org/4/y1187e/y1187e09.htm"],["Univ. of Brighton","https://blogs.brighton.ac.uk/pulr/?p=726"]]},
+{id:"ricefish", b:"wet", name:"Rice-fish co-culture", where:"Longxian village, Qingtian county, Zhejiang, China; more than 1,300 years",
+ key:"No pesticide, herbicide or fertilizer: about 3,700 ha farmed this way in 2021, averaging 7.2 t of rice per hectare.",
+ nodes:[["Rice plants","flooded paddy"],["Planthoppers and weeds","pests of rice"],["Fish","stocked in the paddy"],["Droppings and stirred soil","oxygenated water"]],
+ edges:["host pests and weeds","eaten by fish","fish swim, root and excrete","fertilize rice roots"],
+ outs:"rice and fish from the same field",
+ prox:"Rice shades and shelters the fish; fish soften the soil and oxygenate the water around the rice roots.",
+ status:"First GIAHS site in China (2005).",
+ src:[["FAO GIAHS, Qingtian rice-fish","https://www.fao.org/family-farming/detail/ru/c/275935/"],["China Daily","https://regional.chinadaily.com.cn/Qiushi/2022-07/20/c_790916.htm"]]},
+{id:"aigamo", b:"wet", name:"Rice-duck farming (aigamo)", where:"Traditional Japanese practice, systematized by Takao Furuno in Fukuoka (1988–89); now across Asia and the US",
+ key:"Field research found ducks controlled weeds almost as well as herbicide; one duck covered 3.8 km of a paddy in a day.",
+ nodes:[["Rice seedlings","transplanted"],["Weeds, insects, snails","in the paddy"],["Ducklings","released 1–2 weeks after planting"],["Manure and muddy water","weeds shaded out"]],
+ edges:["host weeds and pests","eaten by ducklings","paddle and excrete","fertilize and oxygenate roots"],
+ outs:"organic rice (sold at a 20–30% premium) and duck meat",
+ prox:"The ducks' paddling clouds the water, cutting light to weed seedlings, while stirring oxygen into the rice roots.",
+ status:"Active in Japan, China, Vietnam, the Philippines and the US.",
+ src:[["Asano et al., Journal of Weed Science","https://www.jstage.jst.go.jp/article/weed1962/44/1/44_1_1/_article"],["Schwab Foundation","https://schwabfound.org/awardees/takao-furuno"]]},
+{id:"chinampa", b:"wet", name:"Chinampas", where:"Xochimilco peoples and Aztecs, Valley of Mexico; about 2,000 years",
+ key:"Up to 5 harvests a year on about 750 ha still worked by roughly 5,000 farmers.",
+ nodes:[["Raised garden beds","built from lake mud"],["Crop residues and runoff","wash off the beds"],["Canal water and plants","algae and aquatic weeds"],["Canal-bottom mud","nutrient-rich silt"]],
+ edges:["wash into the canals","feed aquatic plants","settle as mud","dredged back onto beds"],
+ outs:"vegetables, flowers and herbs for Mexico City",
+ prox:"Native ahuejote willows on bed edges anchor the soil, break wind and house birds; the canals shelter the endangered axolotl.",
+ status:"GIAHS site (2017); wetland now about 3% of its original extent.",
+ src:[["FAO GIAHS, chinampas","https://www.fao.org/giahs/giahsaroundtheworld/designated-sites/latin-america-and-the-caribbean/chinampa-agriculture-in-the-world-natural-and-cultural-heritage-zone-in-xochimilco-tlahuac-and-milpa-alta/en/"],["World History Encyclopedia","https://www.worldhistory.org/Chinampa/"],["IPS News","https://www.ipsnews.net/?p=144016"]]},
+{id:"kolkata", b:"wet", name:"Sewage-fed fisheries (bheris)", where:"Bengali fishers, East Kolkata Wetlands, India; since the 1930s",
+ key:"Roughly 900 million litres of city wastewater recycled daily across about 12,500 ha, the largest sewage-fed aquaculture in the world.",
+ nodes:[["Kolkata households","city of millions"],["Bheri ponds","sun, algae and bacteria"],["Fish","farmed in the ponds"]],
+ edges:["sewage flows downhill to the ponds","algae bloom on nutrients and feed fish","fish sold back to the city"],
+ outs:"treated water also irrigates rice and vegetable fields",
+ prox:"A city with no full treatment plant gets free sewage treatment and fresh fish right on its edge.",
+ status:"Ramsar site; under pressure from development and diverted sewage.",
+ src:[["Wikipedia, East Kolkata Wetlands","https://en.wikipedia.org/wiki/East_Calcutta_Wetlands"],["World Aquaculture Society","https://was.org/Magazine/2023/03/30/"],["Next City","https://nextcity.org/resilientcities/entry/wetlands-turn-a-citys-sewage-into-the-water-that-irrigates-its-crops"]]},
+{id:"pokkali", b:"wet", name:"Pokkali rice-prawn rotation", where:"Coastal wetlands around Vembanad, Kerala, India",
+ key:"Rotating rice and prawns raises the next rice yield about 15–20%, with zero chemical fertilizer.",
+ nodes:[["Pokkali rice","salt-tolerant, June–October"],["Stubble left standing","after harvest"],["Prawns","November–April"],["Prawn waste","organic matter"]],
+ edges:["most straw left in the field","feeds the prawns","excrete and decompose","fertilizes the next rice crop"],
+ ins:"wild prawn larvae carried in by the tide",
+ outs:"rice and prawns from the same field",
+ prox:"Seasonal salinity is used rather than fought: rice grows in the fresh monsoon phase, prawns in the salty dry season.",
+ status:"Shrinking as prawn monoculture spreads.",
+ src:[["Univ. of Hohenheim","https://www.uni-hohenheim.de/en/organization/publication/a-traditional-rice-prawn-rotation-culture-system-from-kerala-state-india"],["ICAR Krishi","https://krishi.icar.gov.in/jspui/handle/123456789/68485"],["Technology Stories","https://www.technologystories.org/farmlands-of-gold/"]]},
+{id:"vac", b:"wet", name:"VAC: garden, pond, livestock pen", where:"Vietnamese households, Red River Delta; promoted nationally since the 1980s",
+ key:"In many northern villages 50–80% of families run the full garden-pond-pen system.",
+ nodes:[["Garden (vườn)","fruit trees and vegetables"],["Pigs and livestock (chuồng)","pens beside the pond"],["Fish pond (ao)","100–1,500 m²"],["Pond mud and water","dredged yearly"]],
+ edges:["scraps and greens feed animals","manure fertilizes pond","sludge and water","manure trees, irrigate garden"],
+ ins:"household waste, rice bran",
+ outs:"fruit, vegetables, pork and fish",
+ prox:"House, pens and garden cluster around the pond so every carrying trip is short.",
+ status:"Widespread across Vietnam, adapted for coast, delta and uplands.",
+ src:[["FAO, VAC system","https://www.fao.org/3/y1187e/y1187e10.htm"],["ILEIA","https://www.ileia.org/2/11-1/11-1-4/"]]},
+
+/* ---------- TROPICS ---------- */
+{id:"terrapreta", b:"trop", name:"Terra preta (Amazonian dark earth)", where:"Pre-Columbian Amazonian peoples, mostly 500–2,500 years ago; still made by the Kuikuro in Brazil",
+ key:"Charcoal-rich middens built soils that still stay fertile centuries later and lock up carbon.",
+ nodes:[["Household","hearth, meals, crafts"],["Kitchen midden","ash, charcoal, bones, scraps, pottery"],["Dark earth","terra preta"],["Crops and fruit trees","planted on the middens"]],
+ edges:["waste swept out","decomposes into","grows","food and firewood return home"],
+ prox:"Middens ring houses and plazas, so household waste builds farmland right beside the home.",
+ status:"Ancient soils still farmed; studied as a model for biochar.",
+ src:[["Wikipedia, Terra preta","https://en.wikipedia.org/wiki/Terra_preta"],["ScienceAlert, Kuikuro study","https://www.sciencealert.com/recipe-for-dark-earth-finally-uncovered-in-the-amazons-depths"],["Embrapa","https://www.alice.cnptia.embrapa.br/alice/bitstream/doc/403287/1/SEPARATAS0001.pdf"]]},
+{id:"chagga", b:"trop", name:"Chagga home gardens (kihamba)", where:"Chagga people, slopes of Mt Kilimanjaro, Tanzania; about 120,000 ha",
+ key:"Four storeys and over 500 plant species on one hillside plot.",
+ nodes:[["Shade trees and bananas","upper storeys"],["Stall-fed cattle and goats","kept in the garden"],["Dung and compost","manure"],["Coffee, taro, beans","lower storeys"]],
+ edges:["lopped fodder and banana leaves","dung","fed to crops","sheltered by the canopy"],
+ outs:"coffee, bananas, avocado, timber",
+ prox:"Trees shade bananas, bananas shade coffee, coffee shades taro and beans; nitrogen-fixing hedges and bee forage help all layers.",
+ status:"Shimbwe Juu village is a GIAHS site.",
+ src:[["UNU Food and Nutrition Bulletin","https://archive.unu.edu/unupress/food/8F073e/8F073E06.htm"],["WOCAT","https://qcat.wocat.net/en/wocat/technologies/view/permalink/5445"],["FAO GIAHS, Shimbwe Juu","https://openknowledge.fao.org/server/api/core/bitstreams/40e90719-4775-4228-afaa-e1e6730df7e6/content/giahs-2022/shimbwe-juu-kihamba-agroforestry.html"]]},
+{id:"kandy", b:"trop", name:"Kandyan forest gardens", where:"Communities of the former Kandyan kingdom, central Sri Lanka; 200–800 m",
+ key:"Nearly 100 fruit crops grown in a canopy that mimics wet evergreen forest.",
+ nodes:[["Canopy trees","jackfruit, coconut, mango"],["Spice vines and shrubs","pepper, cloves, cardamom"],["Leaf litter and prunings","constant mulch"],["Garden soil","protected from erosion"]],
+ edges:["support vines and give shade","drop leaves and prunings","mulch and feed","nourishes the trees"],
+ outs:"fruit, spices, timber, firewood",
+ prox:"The layered canopy relieves pressure on natural forest and protects watersheds, with soil loss close to forest levels.",
+ status:"Proposed as GIAHS; eroding with urbanization.",
+ src:[["Satoyama Initiative","https://sdm.satoyama-initiative.org/projects/2020_sri-lanka/"],["Univ. of Peradeniya (APN)","https://www.apn-gcr.org/wp-content/uploads/2016/07/2-3-Kandyan-Homegardens-in-Sri-Lanka.pdf"],["Sunday Observer","https://archives1.sundayobserver.lk/node/63105"]]},
+{id:"subak", b:"trop", name:"Subak and water temples", where:"Balinese farmers, Indonesia; since the 11th century; about 1,200 cooperatives",
+ key:"When Green Revolution rules broke the temple calendar, pests exploded; Bali restored the temple schedule in the 1980s.",
+ nodes:[["Temple calendar","priests and farmers meet"],["Terraces plant in sync","neighbouring subaks"],["Fallow and flood together","after harvest"],["Farmers share water","upstream lets it pass"]],
+ edges:["sets planting dates","harvest at the same time","pests drown and starve","rituals renew the schedule"],
+ ins:"water from forested crater lakes",
+ prox:"Synchronized fallows starve pests across a whole area, while staggering between groups shares limited water.",
+ status:"UNESCO World Heritage cultural landscape.",
+ src:[["Long Now, Lansing talk","https://longnow.org/talks/02006-lansing/"],["New America","https://www.newamerica.org/political-reform/reports/lessons-from-the-past-to-govern-for-the-future/the-subak-system-in-bali-indonesia/"],["Plexus Institute","https://plexusinstitute.org/2017/07/06/fractal-fields-and-self-organizationthese-commons-arent-tragic/"]]},
+{id:"milpa", b:"trop", name:"Maya milpa-forest garden cycle", where:"Maya farmers of Belize, Guatemala and Mexico; at least 4,000 years",
+ key:"Because plots sit at every stage at once, 66–94% of the landscape stays forested.",
+ nodes:[["Mature forest garden","useful trees dominate"],["Cut and burned plot","one hot burn"],["Milpa","maize, beans, squash"],["Orchard garden","favoured trees regrow"]],
+ edges:["cut and burned","ash and charcoal fertilize","weeds and seedlings tended","closes over in 12–24 years"],
+ prox:"Every phase is managed, so the 'fallow' is a productive orchard and the mature forest is itself a garden.",
+ status:"Practised by a few traditional farmers; demonstrated at El Pilar.",
+ src:[["UCSB News","https://news.ucsb.edu/2009/012737/ucsb-archaeologist-disputes-common-belief-about-collapse-maya"],["Popular Archaeology","https://popular-archaeology.com/article/the-milpa-way/"],["Ford et al.","https://par.nsf.gov/servlets/purl/10597893"]]},
+
+/* ---------- DRYLANDS ---------- */
+{id:"oasis", b:"dry", name:"Three-tier oasis garden", where:"Oasis farmers across the Sahara and Arabia (Gafsa, Jerid, Siwa, AlUla); about 3,000 years",
+ key:"Gafsa alone keeps about 98 date varieties, 10 fruit species and 15 vegetables in one stacked garden.",
+ nodes:[["Date palms","top layer"],["Fruit trees","olive, apricot, pomegranate"],["Cereals, vegetables, alfalfa","ground layer"],["Draught animals","plough and carry"]],
+ edges:["shade and shelter","shade","fodder","dung manures the garden"],
+ ins:"spring or qanat water",
+ outs:"dates, fruit, olive oil, grain",
+ prox:"The stacked canopy builds a cooler, moister microclimate in the middle of the desert.",
+ status:"Gafsa is a GIAHS site; many oases degraded by migration and falling groundwater.",
+ src:[["FAO GIAHS, Gafsa","https://sfcs.fao.org/giahs/giahs-around-the-world/gafsa-oases--tunisia/en"],["Battesti, oasis agriculture","https://vbat.org/article99.html"],["National Geographic, AlUla","https://www.nationalgeographic.com/travel/article/paid-content-oasis-farming-the-desert"]]},
+{id:"pigeon", b:"dry", name:"Persian pigeon towers", where:"Farmers around Isfahan, Iran; mostly Safavid era (1502–1736) or older",
+ key:"One large tower produced about 16,500 kg of dung a year, enough for nearly 10 ha of cropland.",
+ nodes:[["Wild rock pigeons","forage the countryside"],["Pigeon towers","safe roosts"],["Collected dung","guano"],["Melon fields and orchards","nitrogen-poor plains"]],
+ edges:["roost at night","drop dung inside","fertilizes"], closed:false,
+ outs:"melons and fruit; dung also sold to tanneries",
+ prox:"Thick mud-brick towers kept predators out, so the birds chose to live beside the very fields that needed their dung.",
+ status:"About 250–300 survive near Isfahan; made obsolete by chemical fertilizer.",
+ src:[["Aramco World","https://archive.aramcoworld.com/issue/201102/castles.of.the.fields.htm"],["Archnet","https://archnet.org/sites/2888"]]},
+{id:"zai", b:"dry", name:"Zaï planting pits", where:"Mossi farmers, Yatenga, Burkina Faso; revived and improved by Yacouba Sawadogo from about 1980",
+ key:"Pits raise yields of sorghum, millet and trees by up to 500%; spread to over 10,000 ha.",
+ nodes:[["Planting pit","dug in crusted soil"],["Manure and compost","added in dry season"],["Termites","drawn to the manure"],["Sorghum, millet, trees","sprout in the pit"]],
+ edges:["filled with","attracts","tunnels let rain soak in","stalks and leaf litter refill pits"],
+ prox:"Each pit concentrates runoff, nutrients and termite activity around a single plant.",
+ status:"Common across Yatenga; spreading to Niger.",
+ src:[["Wageningen (Reij et al.)","https://edepot.wur.nl/80275"],["Wikipedia, Zaï","https://en.wikipedia.com/wiki/Za%C3%AF"],["Farm Radio","https://wire.farmradio.fm/farmer-stories/3-burkina-faso-innovation-overcomes-dry-conditions-irin-ik-notes"]]},
+{id:"faidherbia", b:"dry", name:"Faidherbia albida parklands", where:"Farmers and herders across the Sahel, Ethiopia and southern Africa",
+ key:"Millet under the trees in Senegal yielded 1.36 t/ha versus 0.48 t/ha in full sun.",
+ nodes:[["Faidherbia tree","bare in the rainy season"],["Fallen leaves","nitrogen-rich"],["Crops under the canopy","millet, maize, sorghum"],["Livestock","dry season"]],
+ edges:["drops leaves as rains start","fertilize","after harvest the tree leafs out","dung beneath the tree"],
+ prox:"Reverse phenology: the tree is leafless while crops grow, so it doesn't compete for light, and its deep roots tap groundwater.",
+ status:"Widespread; promoted by agroforestry programmes.",
+ src:[["Geoscientific Model Development (2025)","https://gmd.copernicus.org/articles/18/9541/2025/gmd-18-9541-2025.html"],["CGIAR Faidherbia-Flux","https://mel.cgiar.org/reporting/downloadmelspace/hash/24d66032f245b6b1d9963daebda3d34d/v/1b928bda032797bb2496642b645d023d"],["ScienceBlog","https://scienceblog.com/?p=24397"]]},
+{id:"boma", b:"dry", name:"Boma glades", where:"Maasai and other East African pastoralists, Kenya",
+ key:"Glades from abandoned corrals persist for decades; browsing wildlife used new glades 9 times more than nearby savanna.",
+ nodes:[["Cattle","graze widely by day"],["Boma","thorn corral at night"],["Glade","nutrient hotspot"],["Wildlife and livestock","drawn to rich grass"]],
+ edges:["penned each night","dung and urine; corral abandoned","attracts grazers","grazing and dung keep it rich"],
+ prox:"Herding concentrates nutrients from a huge area into small patches that feed both livestock and wildlife.",
+ status:"Ongoing; ranchers now test mobile bomas to make hotspots on purpose.",
+ src:[["Veblen 2012","https://digitalcommons.usu.edu/wild_facpub/316"],["Porensky and Veblen 2015","https://repository.arizona.edu/handle/10150/656938"]]},
+{id:"waffle", b:"dry", name:"Zuni waffle gardens", where:"A:shiwi (Zuni) people, New Mexico, US; roughly 1,000 years",
+ key:"Sunken cells are the inverse of raised beds: they hold scarce water instead of draining it.",
+ nodes:[["River water and rain","scarce"],["Sunken cell","about a square foot"],["Clay walls and gravel","shelter and mulch"],["Chiles, onions, corn","family kitchen garden"]],
+ edges:["caught and held","walls stop runoff","moisture stays at the roots"], closed:false,
+ prox:"Each cell's walls shield seedlings from dry wind; gardens sat beside the Zuni River until a 1908 dam cut its flow.",
+ status:"Reviving; about 20% of Zuni households keep one.",
+ src:[["No Tech Magazine (Civil Eats)","https://www.notechmagazine.com/2021/11/waffle-gardens.html"],["New Mexico Magazine","https://www.newmexicomagazine.org/blog/post/zuni-gardening-traditions/"]]},
+
+/* ---------- TEMPERATE ---------- */
+{id:"threesisters", b:"temp", name:"Three Sisters", where:"Haudenosaunee and many other Native nations of North America",
+ key:"Together the three crops form a complete diet: carbohydrate, protein and vitamins.",
+ nodes:[["Corn","eldest sister"],["Beans","host rhizobia"],["Soil nitrogen","fixed from the air"],["Squash","sprawling leaves"]],
+ edges:["trellis for beans","fix nitrogen","feeds corn and squash","shades soil, holds moisture"],
+ prox:"Beans steady corn in the wind; squash's prickly stems deter animals and its leaves suppress weeds.",
+ status:"Widely practised in Native and home gardens.",
+ src:[["One Earth","https://www.oneearth.org/three-sisters-gardens"],["Middlebury College","https://sites.middlebury.edu/energystudybreaks/?p=386"]]},
+{id:"dehesa", b:"temp", name:"Dehesa / montado", where:"Rural communities of southwest Spain and southern Portugal; nearly 20,000 km²",
+ key:"Oaks are managed to live about 250 years while yielding acorns, cork and firewood.",
+ nodes:[["Holm and cork oaks","pruned for acorns"],["Acorns","October–March"],["Iberian pigs","montanera fattening"],["Pasture","grass, sheep, cattle"]],
+ edges:["drop","fatten","dung on pasture","grazing clears scrub around oaks"],
+ outs:"jamón ibérico, cork every 9–12 years, firewood",
+ prox:"Scattered oaks shade grass and livestock in summer; grazing keeps shrubs from taking over and cuts fire risk.",
+ status:"Active; oak regeneration under heavy grazing is a concern.",
+ src:[["Wikipedia, Dehesa","https://en.wikipedia.com/wiki/Dehesa"],["UC ANR","https://ccfruitandnuts.ucanr.edu/sites/default/files/2020-10/338269.pdf"]]},
+{id:"satoyama", b:"temp", name:"Satoyama", where:"Japanese farming villages, Edo period (1603–1867) and earlier",
+ key:"Woods were coppiced every 15–20 years, keeping them young and productive.",
+ nodes:[["Coppice woodland","oak and chestnut"],["Leaf litter and greens","gathered by hand"],["Compost","fermented"],["Rice paddies","lowland fields"],["Villagers","tend all of it"]],
+ edges:["gathered","made into","spread on","food for","cut and tend the woods"],
+ outs:"rice, charcoal, firewood, timber, mushrooms",
+ prox:"Woods, ponds, grassland and paddies form a mosaic animals move through; cutting keeps forest from closing.",
+ status:"Declined with oil and chemical fertilizer; conservation movement since the 1980s.",
+ src:[["Wikipedia, Satoyama","https://en.wikipedia.org/wiki/Satoyama"],["Japan Review","https://nichibun.repo.nii.ac.jp/record/225/files/JN2002.pdf"],["Japan Ministry of Environment","https://www.env.go.jp/nature/satoyama/pamph/pamph2/full.pdf"]]},
+{id:"plaggen", b:"temp", name:"Plaggen agriculture", where:"Sandy soils of the Netherlands, Belgium and north Germany, early Middle Ages to about 1900",
+ key:"Centuries of this built fertile soil 40 cm to over 1.5 m deep, but over-cutting turned heaths into drifting sand.",
+ nodes:[["Heath and grass","outfield"],["Sods as stable bedding","cut from the heath"],["Plaggen manure","soaked with dung"],["Village fields","rye and grain"],["Sheep and cattle","fed from fields"]],
+ edges:["sods cut","soaked by animals","spread each spring","straw and grain","graze the heath by day"],
+ prox:"Sheep grazed the heath by day and slept in stables at night, moving nutrients from open land to the village.",
+ status:"Ended with chemical fertilizer; a warning about one-way transfers.",
+ src:[["Wikipedia, Plaggen soil","https://www.wikipedia.org/wiki/Plaggen"],["Naturalis","https://repository.naturalis.nl/pub/534943/MBMHU1977450001001.pdf"],["EGU 2018","https://meetingorganizer.copernicus.org/EGU2018/EGU2018-18445.pdf?pdf"]]},
+{id:"burning", b:"temp", name:"Cultural burning", where:"Yurok, Karuk, Mono, Miwok and other California Native nations, for millennia",
+ key:"Low fire burns weevil-infested acorns and litter, so the next acorn crop is cleaner.",
+ nodes:[["Tribal fire stewards","set the burn cycle"],["Low-intensity fire","under oaks"],["Open oak groves","clean, low fuel"],["Acorns and basketry plants","new hazel shoots"]],
+ edges:["light","clears pests and litter","produce","gathered for food and baskets"],
+ prox:"Open groves are easier to gather in and hunt, and low fuel loads reduce catastrophic wildfire.",
+ status:"Banned from 1850; reviving through tribal programs and CalFire partnerships.",
+ src:[["EHN","https://www.ehn.org/amp/indigenous-wildfire-2646171110"],["Lassen News (CalFire)","https://www.lassennews.com/?p=33218"],["Maven's Notebook","https://mavensnotebook.com/2025/01/16/notebook-feature-fire-and-water-how-cultural-burns-boost-streamflows/"]]},
+
+/* ---------- MOUNTAINS ---------- */
+{id:"waru", b:"mtn", name:"Waru waru (raised fields)", where:"Tiwanaku and later Andean peoples, Lake Titicaca basin, about 3,800 m",
+ key:"Canal water stores the day's heat and releases it at night, cutting frost damage to crops.",
+ nodes:[["Canal water","heat store"],["Algae and sediment","nitrogen-rich"],["Raised platform","4–10 m wide"],["Potatoes and quinoa","frost-sensitive crops"]],
+ edges:["grows algae","dredged onto beds","warmed at night by canals","runoff returns to canals"],
+ prox:"Platforms keep roots above flood water; canals hold moisture through droughts, as in Puno's 2023 drought.",
+ status:"Revived since the 1980s.",
+ src:[["IICA","https://aguayagricultura.iica.int/en/tecnologias-1/waru-waru"],["Bulletin IFEA","https://doaj.org/article/7e28ed5366954e579cf101dee6a01daa"],["Tuoi Tre / AFP","https://tuoitrenews.vn/news/international/20240211/andean-farmers-use-ageold-technique-amid-climate-change/78249.html"]]},
+{id:"hani", b:"mtn", name:"Hani rice terraces", where:"Hani and Yi peoples, Ailao mountains, Yunnan, China; about 1,300 years",
+ key:"A four-part system of forest, village, terraces and water, with up to 3,000 terraces on one slope.",
+ nodes:[["Mountain-top forest","water recharge"],["Village","water and forest guards"],["Rice terraces","red rice; winter fish and frogs"],["Red River valley","below"]],
+ edges:["springs flow down","water and cut grass","drains to the river","evaporates, falls as rain"],
+ prox:"The forest above is treated as infrastructure; each village employs guardians to share water fairly.",
+ status:"UNESCO World Heritage (2013).",
+ src:[["UNESCO World Heritage","https://whc.unesco.org/en/list/1111"],["UNESCO decision","https://whc.unesco.org/en/decisions/5152"],["Visit Yunnan","https://visityunnanchina.com/node/404"]]},
+{id:"ifugao", b:"mtn", name:"Ifugao terraces and muyong", where:"Ifugao people, Cordillera, Luzon, Philippines",
+ key:"Each terrace cluster is capped by a family-owned forest that supplies its water.",
+ nodes:[["Muyong woodlot","private forest above"],["Rice terraces","straw left to rot"],["Ifugao households","farm and inherit both"]],
+ edges:["water and erosion control","rice, food, straw","cut trees only when rice needs no labour"],
+ prox:"Forest, terraces, village and sacred grove form one unit, passed down together by inheritance.",
+ status:"UNESCO World Heritage and GIAHS; threatened by conversion to vegetables.",
+ src:[["FAO GIAHS, Ifugao","https://www.fao.org/4/a1122e/a1122e19.pdf"],["UNESCO evaluation","https://whc.unesco.org/document/154107"],["Mongabay","https://news.mongabay.com/2021/08/sustainable-livelihood-offers-a-lifeline-to-philippines-dying-rice-terraces/"]]},
+{id:"alpine", b:"mtn", name:"Alpine transhumance", where:"Swiss, Austrian, Italian, French and other Alpine farmers; documented since the Middle Ages",
+ key:"Ancient DNA in lake mud shows grazing since about 3,500 years ago increased alpine plant diversity.",
+ nodes:[["High alpine pastures","May–October"],["Valley meadows","rest, then cut"],["Winter stables","herds indoors"],["Stable manure","heap"]],
+ edges:["herds away, meadows grow","hay","manure","spread on meadows; herds go up again"],
+ outs:"hay milk and alpine cheese",
+ prox:"Moderate grazing keeps high meadows species-rich and lowers the treeline.",
+ status:"UNESCO Intangible Cultural Heritage (2019 and 2023).",
+ src:[["CIPRA","https://www.cipra.org/en/news/unesco-recognizes-alpine-season-as-cultural-heritage"],["Zetter et al. 2025","https://agris.fao.org/search/zh/records/68515c3d53e52c13fc764095"],["Wikipedia","https://en.wikipedia.org/wiki/Alpine_transhumance"]]},
+
+/* ---------- COASTS ---------- */
+{id:"ahupuaa", b:"coast", name:"Ahupuaʻa: taro and fishponds", where:"Native Hawaiians; ridge-to-reef land divisions; fishponds 600–800 years old",
+ key:"Every stage sits in the order water flows, so each stage's waste is already in place to feed the next.",
+ nodes:[["Forested ridge","rain and streams"],["Taro loʻi","irrigated paddies"],["Fishpond (loko iʻa)","algae feed fish"],["Sea and reef","young fish enter"]],
+ edges:["streams diverted through","nutrient water returns","young fish swim in, grow too big to leave","evaporation and rain"],
+ outs:"taro and fish",
+ prox:"Taro patches and fishponds also filter floodwater and trap sediment before it reaches the reef.",
+ status:"Restoration at Heʻeia and elsewhere.",
+ src:[["The Nature Conservancy","https://www.nature.org/en-us/magazine/magazine-articles/oahu-watershed/"],["NOAA repository","https://repository.library.noaa.gov/view/noaa/43886/noaa_43886_DS1.pdf"]]},
+{id:"clam", b:"coast", name:"Clam gardens", where:"Coast Salish, Kwakwaka'wakw, Tla'amin and other First Nations, Alaska to Washington",
+ key:"Gardens held 4 times as many butter clams and over twice as many littlenecks as unwalled beaches.",
+ nodes:[["Rock wall","at low tide"],["Level terrace","ideal tide height"],["Clams","grow 1.7× faster"],["Harvesters","thin and eat clams"]],
+ edges:["traps sediment","better habitat","harvested","add shell hash, repair wall"],
+ prox:"People and clams benefit together: regular harvest and shell hash improve the beach for the next generation of clams.",
+ status:"Being rebuilt with First Nations partners.",
+ src:[["Groesbeck et al. 2014","https://summit.sfu.ca/item/14942"],["Encyclopedia of Puget Sound","https://www.eopugetsound.org/articles/ancient-clam-gardens-northwest-coast-north-america"]]},
+{id:"budjbim", b:"coast", name:"Budj Bim eel aquaculture", where:"Gunditjmara people, southwest Victoria, Australia; at least 6,600 years",
+ key:"One of the oldest and most extensive aquaculture systems in the world.",
+ nodes:[["Channels and weirs","cut in basalt lava"],["Holding ponds","eels grow"],["Woven basket traps","year-round harvest"],["Stone-house villages","about 300 houses"]],
+ edges:["divert floodwater and eels","harvested","feed settled life; surplus smoked and traded","maintain and extend"],
+ ins:"seasonal floods from Lake Condah",
+ prox:"A reliable eel supply let people settle permanently beside the traps.",
+ status:"UNESCO World Heritage (2019).",
+ src:[["ANSTO","https://www.ansto.gov.au/news/research-supported-world-heritage-listing-for-aboriginal-site"],["Baird Maritime","https://www.bairdmaritime.com/?p=189343"]]},
+{id:"lazybed", b:"coast", name:"Seaweed lazy beds", where:"Irish and Scottish coastal farmers; most extreme on the Aran Islands",
+ key:"On bare limestone, islanders made soil itself from seaweed, sand and manure.",
+ nodes:[["Shore","drift seaweed and sand"],["Made-soil bed","layered on rock"],["Potatoes","main crop"],["Islanders","farm and gather"]],
+ edges:["carried up and layered","decomposes and feeds","harvested","gather more seaweed each autumn"],
+ prox:"Stone walls from field clearance shelter the tiny fields from Atlantic wind.",
+ status:"Partly revived by coastal growers.",
+ src:[["Seaweed.ie","https://www.seaweed.ie/uses_general/driftseaweed.php"],["Longreads","https://longreads.com/2018/08/08/a-british-seaweed-scientist-is-revered-in-japan-as-the-mother-of-the-sea/"]]},
+
+/* ---------- HOUSING ---------- */
+{id:"byre", b:"house", name:"Longhouse and byre-dwelling", where:"Northwest Europe, Scandinavia and the British Isles, Bronze Age to the 19th century",
+ key:"People and animals under one roof shared warmth; a German hall-house still only reached 10–12 °C in winter.",
+ nodes:[["Fields","hay and straw"],["Cattle in the byre","one end of the house"],["Family","living end"],["Midden","outside the gable door"]],
+ edges:["fodder and bedding","body heat warms","muck out the byre channel","spread on fields"],
+ prox:"Sharing a roof also let owners guard livestock from thieves.",
+ status:"Largely abandoned; byres converted to rooms.",
+ src:[["Wikipedia, Housebarn","https://en.wikipedia.org/wiki/Housebarn"],["Dartmoor National Park","https://www.dartmoor.gov.uk/__data/assets/pdf_file/0016/72133/lab-longpost.pdf"],["BME Habitatio","https://habitatio.epitesz.bme.hu/en/?p=4769"]]},
+{id:"kang", b:"house", name:"Kang and ondol", where:"Northern China (at least 2,000 years) and Korea (oldest ondol about 1000 BCE)",
+ key:"About 67 million kangs still warmed roughly 175 million people in rural north China in 2004.",
+ nodes:[["Kitchen stove","daily cooking"],["Flues under the bed","brick or earth mass"],["Sleeping family","warm all night"]],
+ edges:["hot exhaust","stored heat radiates","light the next meal's fire"],
+ ins:"straw, wood or coal",
+ prox:"Kitchen and bedroom sit back to back, so one fire cooks dinner and heats the bed.",
+ status:"Kang common in rural north China; ondol now mostly hot-water or electric.",
+ src:[["Wikipedia, Kang","https://en.wikipedia.org/wiki/Kang_(heated_platform)"],["Futura Sciences","https://www.futura-sciences.com/en/?p=25941"],["Guinness World Records","https://www.guinnessworldrecords.com/world-records/633140-first-underfloor-heating"]]},
+{id:"nightsoil", b:"house", name:"Edo night-soil trade", where:"Edo (Tokyo), Japan; Edo and Meiji periods (1603–1912)",
+ key:"Farmers paid city residents for their waste, keeping Edo's streets and rivers cleaner than many European cities.",
+ nodes:[["City households","about a million people"],["Night-soil peddlers","buy and cart waste"],["Suburban farms","fermented fertilizer"]],
+ edges:["sell excrement","carry it out of town","vegetables sold back to the city"],
+ prox:"Farms ringed the city, so the trip in with vegetables became the trip out with fertilizer.",
+ status:"Faded with chemical fertilizer; Tokyo took over collection by 1936.",
+ src:[["Japan Review","https://nichibun.repo.nii.ac.jp/record/229/files/JN2006.pdf"],["Showa Women's University","https://swu.repo.nii.ac.jp/records/7042"]]},
+{id:"fourinone", b:"house", name:"Four-in-one biogas greenhouse", where:"Rural households in northern China (Liaoning and beyond)",
+ key:"Solar greenhouse warmth lets the biogas digester keep working through harsh winters.",
+ nodes:[["Household and pigs","toilet and pig pen"],["Biogas digester","under the greenhouse"],["Greenhouse crops","vegetables and fruit"]],
+ edges:["manure and toilet waste","slurry fertilizer","food and scraps"],
+ outs:"cooking gas and light; vegetables",
+ prox:"Pigs, people's waste and crops share one sun-heated space, the modern descendant of the byre-house.",
+ status:"About 318,000 households in one count; China had over 30 million household digesters.",
+ src:[["China Ministry of Agriculture","https://archive.iwlearn.net/lwmea.iwlearn.org/lwmea.iwlearn.org/lwmea.iwlearn.org/information-and-publications/training_on_the_mitigation_of_green_house_gas_e/fao_ghg_trainingxianronghao-china_moa081202_3.pdf"],["Eco Tipping Points","https://mail.ecotippingpoints.org/our-stories/indepth/china-biogas.html"],["CETESB","https://cetesb.sp.gov.br/biogas/wp-content/uploads/sites/3/2014/01/jinjing.pdf"]]},
+{id:"windcatcher", b:"house", name:"Windcatcher, qanat and ice house", where:"Persian builders in Yazd and other desert cities, Iran; ice houses mature by about 400 BCE",
+ key:"The same underground water that irrigated fields also cooled houses and made ice for summer.",
+ nodes:[["Mountain groundwater","aquifer"],["Qanat channel","underground"],["House basement pool","windcatcher above"],["Winter ice pools","shaded"],["Yakhchal ice house","domed store"]],
+ edges:["flows by gravity","air drawn over cool water","winter flow frozen","ice cut and stored"], closed:false,
+ prox:"Houses, water channels and ice houses are linked, sharing one water source for cooling, drinking and irrigation.",
+ status:"Many still standing; studied for modern passive cooling.",
+ src:[["CleanTechnica","https://cleantechnica.com/2018/04/28/yakhchals-ab-anbars-wind-catchers-passive-cooling-refrigeration-technologies-of-greater-iran-persia/"],["Ferrovial","https://www.ferrovial.com/blog/en/2022/02/4-modes-passive-cooling-ancient-modern/"]]},
+
+/* ---------- REWILDING ---------- */
+{id:"salmon", b:"rewild", name:"Salmon, bears and forest", where:"North Pacific rim: Alaska, British Columbia, Haida Gwaii",
+ key:"A 20-year experiment moved 217,055 salmon carcasses to one stream bank; spruce there took up marine nitrogen.",
+ nodes:[["Ocean","salmon grow"],["Spawning stream","adults return"],["Bears","eat about half of each fish"],["Riverbank forest","fertilized"],["Young salmon","sheltered in the stream"]],
+ edges:["return upriver","caught","carcasses and dung left in forest","shade and fallen logs","head out to sea"],
+ prox:"Bears carry fish into the woods, moving ocean nutrients onto land where trees grow faster near dense carcasses.",
+ status:"Threatened wherever salmon runs decline.",
+ src:[["Quinn et al. 2018","https://cedar.wwu.edu/esci_facpubs/57"],["BMC Ecology","https://doi.org/10.1186/1472-6785-13-38"],["Outer Shores","https://outershores.ca/?p=43170"]]},
+{id:"beaver", b:"rewild", name:"Beaver reintroduction", where:"Eurasian beavers back in Britain after about 400 years (Devon, Scotland)",
+ key:"Four Devon beaver territories stored over 24 million litres of water; storm flows fell about 30%.",
+ nodes:[["Riverside trees","willow, alder"],["Beavers","fell and coppice"],["Dams and ponds","canals and pools"],["Wetland","silt trapped, water stored"]],
+ edges:["felled and coppiced","build","hold water and silt","wet soil regrows willow"],
+ outs:"habitat for otters, water voles, dragonflies; lower flood peaks",
+ prox:"Downstream villages gain flood protection, though dams can flood adjacent farmland.",
+ status:"Spreading across the UK and Europe.",
+ src:[["Devon Wildlife Trust","https://devonwildlifetrust.org/node/4554"],["Freshwater Biological Association","https://www.fba.org.uk/info-notes/beaver-reintroduction-and-its-effects-on-freshwater-biodiversity-in-britain"],["Stirling News","https://www.stirlingnews.co.uk/news/15418478.researchers-discovers-beavers-ability-to-change-landscapes/"]]},
+{id:"knepp", b:"rewild", name:"Knepp Estate", where:"Former dairy and arable farm, West Sussex, England",
+ key:"Now a breeding hotspot for nightingales and turtle doves.",
+ nodes:[["Free-roaming grazers","pigs, cattle, ponies, deer"],["Dung beetles and worms","soil life"],["Scrub and grass mosaic","shifting patches"]],
+ edges:["dung and rooting","enrich soil","browse and graze"],
+ prox:"Thorny scrub left uneaten shelters oak saplings and nesting birds.",
+ status:"Widely copied rewilding model.",
+ src:[["Australian Community Media","https://www.canberratimes.com.au/story/9188114/how-rewilding-transformed-english-farmland-at-knepp-estate-sussex/"]]},
+{id:"wolves", b:"rewild", name:"Yellowstone wolves", where:"Gray wolves returned to Yellowstone, US, in 1995 after eradication in the 1920s",
+ key:"The cascade is real but contested in strength; park scientists call it multi-predator and context-dependent.",
+ nodes:[["Wolves","returned 1995"],["Elk","fewer, more wary"],["Willow and aspen","regrowth in places"],["Beavers","need tall willow"]],
+ edges:["hunt and move","browse less","food and dam wood"], closed:false,
+ prox:"Hunting, climate and the earlier loss of beavers also shape how much willow returns.",
+ status:"Ongoing research; informs wolf restoration in Colorado.",
+ src:[["US National Park Service","https://www.nps.gov/articles/the-big-scientific-debate-trophic-cascades.htm"],["Bozeman Daily Chronicle","https://www.bozemandailychronicle.com/news/environment/yellowstone-national-park-trophic-cascade-wolf-doug-smith-tom-hobbs/article_3e9bfb24-1708-502b-9944-a0db9631a03f.html"]]},
+{id:"loess", b:"rewild", name:"Loess Plateau restoration", where:"Chinese government, World Bank and local farmers; from 1994; about 35,000 km²",
+ key:"Perennial plant cover rose from 17% to 34%; terraces doubled grain yields.",
+ nodes:[["Farmers","grazing and cutting bans"],["Terraces and check dams","built by hand"],["Replanted slopes","trees and shrubs"],["Held soil and water","less silt downstream"]],
+ edges:["build","free steep slopes","hold soil","better yields and incomes"],
+ prox:"Terraced cropland beside replanted slopes: farmers earned more while the hills recovered.",
+ status:"Completed; model for Ethiopia, Rwanda and others.",
+ src:[["World Bank","https://www.worldbank.org/en/news/feature/2007/03/15/restoring-chinas-loess-plateau"],["UN case study","https://static.un.org/esa/dsd/dsd_aofw_mg/mg_success_stories/csd8/SARD-15.htm"],["CGIAR","https://cgspace.cgiar.org/server/api/core/bitstreams/0cb119fd-2ad0-465a-8219-18aac3044e98/content"]]}
+];
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const bById = Object.fromEntries(BIOMES.map(b => [b.id, b]));
+const color = b => `var(--${b})`;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const SVGNS = "http://www.w3.org/2000/svg";
+function el(tag, attrs = {}, parent){ const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+function wrap(text, max){
+  const words = String(text).split(/\s+/); const lines = []; let cur = "";
+  for (const w of words){ if (!cur) cur = w; else if ((cur + " " + w).length <= max) cur += " " + w; else { lines.push(cur); cur = w; } }
+  if (cur) lines.push(cur); return lines;
+}
+function textLines(parent, lines, x, y, cls, lh, anchor = "middle"){
+  const t = el("text", {class: cls, x, y, "text-anchor": anchor}, parent);
+  lines.forEach((ln, i) => { const s = el("tspan", {x, dy: i ? lh : 0}, t); s.textContent = ln; });
+  return t;
+}
+
+/* ---------- list ---------- */
+let filter = "all", query = "";
+function chainPreview(s){
+  const names = s.nodes.map(n => n[0]);
+  return names.map(esc).join(" → ") + (s.closed === false ? "" : " <b>↻</b>");
+}
+function renderChips(){
+  const c = $("chips");
+  const SHORT = {wet:"Wetlands", trop:"Tropics", dry:"Drylands", temp:"Temperate", mtn:"Mountains", coast:"Coasts", house:"Housing", rewild:"Rewilding"};
+  const items = [{id:"all", name:"All"}].concat(BIOMES.map(b => ({id:b.id, name:SHORT[b.id]})));
+  c.innerHTML = items.map(i => `<button class="chip" data-f="${i.id}" aria-pressed="${filter === i.id}">${i.id !== "all" ? `<span class="dot" style="background:${color(i.id)}"></span>` : ""}${esc(i.name)}</button>`).join("");
+  c.querySelectorAll(".chip").forEach(b => b.onclick = () => { filter = b.dataset.f; renderChips(); renderList(); });
+}
+function visible(){
+  const q = query.trim().toLowerCase();
+  return S.filter(s => (filter === "all" || s.b === filter) && (!q || (s.name + " " + s.where + " " + s.nodes.flat().join(" ")).toLowerCase().includes(q)));
+}
+function renderList(){
+  const vis = visible(); const main = $("list");
+  if (!vis.length){ main.innerHTML = `<p class="empty">No systems match.</p>`; return; }
+  main.innerHTML = BIOMES.filter(b => vis.some(s => s.b === b.id)).map(b => `
+    <section class="biome">
+      <h2><span class="bar" style="background:${color(b.id)}"></span>${esc(b.name)}</h2>
+      <p class="blurb">${esc(b.blurb)}</p>
+      <div class="grid">${vis.filter(s => s.b === b.id).map(s => `
+        <button class="card" style="--c:${color(s.b)}" data-id="${s.id}" aria-label="Open diagram: ${esc(s.name)}">
+          <span class="name">${esc(s.name)}</span>
+          <span class="where">${esc(s.where)}</span>
+          <span class="chain">${chainPreview(s)}</span>
+          <span class="open">View loop diagram →</span>
+        </button>`).join("")}</div>
+    </section>`).join("");
+  main.querySelectorAll(".card").forEach(c => c.onclick = () => openSys(c.dataset.id));
+}
+$("q").addEventListener("input", e => { query = e.target.value; renderList(); });
+
+/* ---------- diagram ---------- */
+function nodeMetrics(n, boxW){
+  const nameLines = wrap(n[0], Math.max(10, Math.floor((boxW - 28) / 8)));
+  const subLines = n[1] ? wrap(n[1], Math.max(12, Math.floor((boxW - 20) / 6.4))) : [];
+  const h = 18 + nameLines.length * 17 + (subLines.length ? 4 + subLines.length * 15 : 0);
+  return {nameLines, subLines, h};
+}
+function drawNode(svg, n, i, cx, cy, boxW, m){
+  const g = el("g", {}, svg);
+  el("rect", {class:"n-box", x: cx - boxW/2, y: cy - m.h/2, width: boxW, height: m.h, rx: 10}, g);
+  el("circle", {class:"n-num", cx: cx - boxW/2 + 2, cy: cy - m.h/2 + 2, r: 10}, g);
+  const nt = el("text", {class:"n-numtxt", x: cx - boxW/2 + 2, y: cy - m.h/2 + 6, "text-anchor":"middle"}, g); nt.textContent = i + 1;
+  const top = cy - m.h/2 + 9 + 14;
+  textLines(g, m.nameLines, cx, top, "n-name", 17);
+  if (m.subLines.length) textLines(g, m.subLines, cx, top + m.nameLines.length * 17 + 3, "n-sub", 15);
+}
+function pill(svg, lines, x, y, anchor){
+  const lh = 15, w = Math.max(...lines.map(l => l.length)) * 6.5 + 16, h = lines.length * lh + 10;
+  const left = anchor === "start" ? x : anchor === "end" ? x - w : x - w/2;
+  el("rect", {class:"e-pill", x: left, y: y - h/2, width: w, height: h, rx: 7}, svg);
+  textLines(svg, lines, left + w/2, y - h/2 + 5 + 11, "e-txt", lh);
+}
+function defs(svg, id){
+  const d = el("defs", {}, svg);
+  const m = el("marker", {id, viewBox:"0 0 10 10", refX:"9", refY:"5", markerWidth:"7", markerHeight:"7", orient:"auto-start-reverse"}, d);
+  el("path", {d:"M0 0L10 5L0 10z", class:"arrowhead"}, m);
+}
+
+function drawRing(host, s, W){
+  const N = s.nodes.length, closed = s.closed !== false;
+  const boxW = 172;
+  const R = N <= 3 ? 165 : N === 4 ? 185 : 210;
+  const ms = s.nodes.map(n => nodeMetrics(n, boxW));
+  const maxH = Math.max(...ms.map(m => m.h));
+  const cx = W / 2, cy = R + maxH/2 + 28;
+  const H = cy + R + maxH/2 + 70;
+  const svg = el("svg", {viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label": s.name + " loop diagram"});
+  defs(svg, "ah");
+  const ang = i => (-90 + i * 360 / N) * Math.PI / 180;
+  const pos = i => [cx + R * Math.cos(ang(i)), cy + R * Math.sin(ang(i))];
+  const inside = (p, i, pad) => { const [x, y] = pos(i); return Math.abs(p[0] - x) < boxW/2 + pad && Math.abs(p[1] - y) < ms[i].h/2 + pad; };
+  const clear = (i, dir) => { for (let t = 0; t < Math.PI; t += 0.004){ const a = ang(i) + dir * t; if (!inside([cx + R*Math.cos(a), cy + R*Math.sin(a)], i, 7)) return t; } return 0.5; };
+  const edgeCount = closed ? N : N - 1;
+  const step = 2 * Math.PI / N;
+  for (let i = 0; i < edgeCount; i++){
+    const j = (i + 1) % N;
+    const a0 = ang(i) + clear(i, 1), a1 = ang(i) + step - clear(j, -1);
+    if (a1 <= a0) continue;
+    const p0 = [cx + R*Math.cos(a0), cy + R*Math.sin(a0)], p1 = [cx + R*Math.cos(a1), cy + R*Math.sin(a1)];
+    el("path", {class: "e-line" + (closed && i === N - 1 ? " ret" : ""), d:`M${p0[0]} ${p0[1]} A${R} ${R} 0 0 1 ${p1[0]} ${p1[1]}`, "marker-end":"url(#ah)"}, svg);
+    // label outside the arc
+    const am = ang(i) + step / 2, c = Math.cos(am), sn = Math.sin(am);
+    const lr = R + 22;
+    const lx = cx + lr * c, ly = cy + lr * sn;
+    const anchor = c > 0.35 ? "start" : c < -0.35 ? "end" : "middle";
+    const lines = wrap(s.edges[i], 22);
+    const hh = (lines.length * 15 + 10) / 2;
+    const ly2 = anchor === "middle" ? ly + (sn > 0 ? hh : -hh) : ly;
+    pill(svg, lines, lx, ly2, anchor);
+  }
+  s.nodes.forEach((n, i) => { const [x, y] = pos(i); drawNode(svg, n, i, x, y, boxW, ms[i]); });
+  // centre caption
+  const cap = closed ? ["↻", "a closed loop"] : ["→", "a one-way chain"];
+  const t = el("text", {x: cx, y: cy - 2, "text-anchor":"middle", class:"ret-txt", style:"font-size:30px"}, svg); t.textContent = cap[0];
+  const t2 = el("text", {x: cx, y: cy + 22, "text-anchor":"middle", class:"ret-txt"}, svg); t2.textContent = cap[1];
+  // fit width to content: expand viewBox if labels spill
+  host.appendChild(svg);
+  const bb = svg.getBBox();
+  const x0 = Math.min(0, bb.x - 8), x1 = Math.max(W, bb.x + bb.width + 8), y0 = Math.min(0, bb.y - 8), y1 = Math.max(H, bb.y + bb.height + 8);
+  svg.setAttribute("viewBox", `${x0} ${y0} ${x1 - x0} ${y1 - y0}`);
+}
+
+function drawStack(host, s, W){
+  const N = s.nodes.length, closed = s.closed !== false;
+  const x0 = 16, boxW = W - x0 - 46, bx = x0 + boxW/2;
+  const ms = s.nodes.map(n => nodeMetrics(n, boxW));
+  const svg = el("svg", {viewBox:`0 0 ${W} 100`, role:"img", "aria-label": s.name + " loop diagram"});
+  defs(svg, "ah2");
+  const labelChars = Math.max(14, Math.floor((boxW - 60) / 6.5));
+  let y = 16; const mids = [];
+  s.nodes.forEach((n, i) => {
+    const m = ms[i];
+    mids.push(y + m.h/2);
+    drawNode(svg, n, i, bx, y + m.h/2, boxW, m);
+    y += m.h;
+    const hasEdge = i < N - 1;
+    if (hasEdge){
+      const lines = wrap(s.edges[i], labelChars);
+      const gap = Math.max(46, lines.length * 15 + 26);
+      const ax = x0 + 30;
+      el("path", {class:"e-line", d:`M${ax} ${y + 4} V${y + gap - 4}`, "marker-end":"url(#ah2)"}, svg);
+      pill(svg, lines, ax + 14, y + gap/2, "start");
+      y += gap;
+    }
+  });
+  if (closed){
+    const last = N - 1, lines = wrap(s.edges[last], labelChars);
+    const xr = x0 + boxW + 24;
+    const lastBottom = y;
+    // return path: from last box bottom, down, right, up, into first box right edge
+    const yb = lastBottom + 18;
+    el("path", {class:"e-line ret", d:`M${bx} ${lastBottom + 2} V${yb} H${xr} V${mids[0]} H${x0 + boxW + 4}`, "marker-end":"url(#ah2)"}, svg);
+    pill(svg, lines, bx - 10, yb + 8 + (lines.length * 15 + 10)/2, "middle");
+    y = yb + lines.length * 15 + 26;
+    const t = el("text", {x: bx, y: y + 10, "text-anchor":"middle", class:"ret-txt"}, svg);
+    t.textContent = "↻ loops back to " + s.nodes[0][0];
+    y += 24;
+  }
+  else {
+    const t = el("text", {x: bx, y: y + 22, "text-anchor":"middle", class:"ret-txt"}, svg);
+    t.textContent = "→ a one-way chain, not a closed loop";
+    y += 34;
+  }
+  svg.setAttribute("viewBox", `0 0 ${W} ${y + 8}`);
+  host.appendChild(svg);
+}
+
+function drawDiagram(s){
+  const host = $("ov-diagram"); host.innerHTML = "";
+  host.style.setProperty("--c", color(s.b));
+  const W = Math.round(host.clientWidth || 600);
+  if (s.closed === false){ drawStack(host, s, Math.min(W, 560)); host.querySelector("svg").style.maxWidth = "560px"; host.querySelector("svg").style.margin = "0 auto"; }
+  else if (W >= 600) drawRing(host, s, Math.min(W, 860)); else drawStack(host, s, W);
+}
+
+/* ---------- overlay ---------- */
+let current = -1, lastFocus = null;
+function openSys(id){
+  const vis = visible(); const idx = vis.findIndex(s => s.id === id);
+  const list = idx >= 0 ? vis : S; const i = idx >= 0 ? idx : S.findIndex(s => s.id === id);
+  current = i; renderOverlay(list);
+  if (!$("ov").classList.contains("open")){
+    lastFocus = document.activeElement;
+    $("ov").classList.add("open"); $("ov").setAttribute("aria-hidden","false");
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(() => { drawDiagram(list[current]); $("ov-close").focus(); });
+  }
+}
+function renderOverlay(list){
+  const s = list[current], b = bById[s.b];
+  $("panel").style.setProperty("--c", color(s.b));
+  $("ov-tag").textContent = b.name;
+  $("ov-title").textContent = s.name;
+  $("ov-where").textContent = s.where;
+  $("ov-key").textContent = s.key;
+  const flows = [];
+  if (s.ins) flows.push(`<span class="flow"><b>Comes in:</b> ${esc(s.ins)}</span>`);
+  if (s.outs) flows.push(`<span class="flow"><b>Goes out:</b> ${esc(s.outs)}</span>`);
+  $("ov-flows").innerHTML = flows.join(""); $("ov-flows").style.display = flows.length ? "" : "none";
+  $("ov-prox").textContent = s.prox;
+  $("ov-status").textContent = s.status;
+  $("ov-src").innerHTML = s.src.map(([t,u]) => `<li><a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a></li>`).join("");
+  const prev = list[(current - 1 + list.length) % list.length], next = list[(current + 1) % list.length];
+  $("ov-prev").textContent = "← " + prev.name; $("ov-next").textContent = next.name + " →";
+  $("ov-prev").onclick = () => step(list, -1); $("ov-next").onclick = () => step(list, 1);
+  if ($("ov").classList.contains("open")) drawDiagram(s);
+  $("ov").scrollTop = 0;
+}
+function step(list, d){ current = (current + d + list.length) % list.length; renderOverlay(list); }
+function closeOv(){
+  $("ov").classList.remove("open"); $("ov").setAttribute("aria-hidden","true");
+  document.body.style.overflow = ""; if (lastFocus) lastFocus.focus();
+}
+$("ov-close").onclick = closeOv;
+$("ov").addEventListener("click", e => { if (e.target === $("ov")) closeOv(); });
+document.addEventListener("keydown", e => {
+  if (!$("ov").classList.contains("open")) return;
+  if (e.key === "Escape") closeOv();
+  if (e.key === "ArrowRight") $("ov-next").click();
+  if (e.key === "ArrowLeft") $("ov-prev").click();
+  if (e.key === "Tab"){
+    const f = [...$("panel").querySelectorAll("button, a[href]")]; if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  }
+});
+let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { if ($("ov").classList.contains("open")){ const list = visible().length ? visible() : S; const s = list[current]; if (s) drawDiagram(s); } }, 120); });
+
+renderChips(); renderList();
+</script>
+</body>
+</html>

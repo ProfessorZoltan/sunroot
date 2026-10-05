@@ -36,6 +36,14 @@ Every season played is logged in the browser: time spent, undos, cards, building
 state. Press **Note** to jot down how a season felt; it is logged with that season. **Keys** (or ?)
 → **Download CSV** saves the log.
 
+## The Regenerative Loops Atlas
+
+`public/learn/regenerative-loops.html` is a standalone page of the real-world systems the game's
+loops come from (docs/research/regenerative-systems.md), each with its loop drawn as a diagram.
+Vite copies it as it is, so it is served at `/learn/regenerative-loops.html` (on the deployed
+site, https://sunroot-sage.vercel.app/learn/regenerative-loops.html), and the game's menu links
+to it.
+
 ## Playing
 
 A run is 12 years of 4 seasons, in 4 eras: Settle, Mend, Flourish and Bloom. At the end the score

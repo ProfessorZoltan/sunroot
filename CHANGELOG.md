@@ -1,5 +1,11 @@
 # Changelog
 
+## The Regenerative Loops Atlas
+
+- The research behind the game's loops, as its own page: 41 farming, housing and rewilding
+  systems from around the world, each with its loop drawn as a diagram and its sources. Open it
+  from the menu (Regenerative Loops Atlas), or at `/learn/regenerative-loops.html`.
+
 ## Lake Gardens, playable (not yet in Root City)
 
 - **The lake's valley**: a broad shallow lake over nearly half the map, deep water in the middle,

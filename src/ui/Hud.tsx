@@ -239,6 +239,17 @@ function GameMenu({
           {item('Almanac', onAlmanac, { 'aria-keyshortcuts': 'A' })}
           {onNote && item('Playtest note', onNote)}
           {item('Keys, sound and playtest log', onHelp, { 'aria-keyshortcuts': '?' })}
+          {/* The research behind the game's loops, as its own page (public/learn). */}
+          <a
+            role="menuitem"
+            class="menu-item"
+            href="learn/regenerative-loops.html"
+            target="_blank"
+            rel="noopener"
+            onClick={() => setOpen(false)}
+          >
+            Regenerative Loops Atlas ↗
+          </a>
           {audio &&
             item(soundOn ? 'Sound off' : 'Sound on', () => {
               audio.unlock();
