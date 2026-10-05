@@ -72,6 +72,8 @@ function pngSize(path: string): [number, number] {
   return [b.readUInt32BE(16), b.readUInt32BE(20)];
 }
 const idOf = (file: string) => file.split('.')[0]!.replace(/-\d+$/, '');
+/** A tile's looks for a state of its own, beside the season's: `shallows.silted.png`. */
+const TILE_STATES: Record<string, string[]> = { shallows: ['silted'] };
 /** A biome's own look for a tile type: `hill.coast.png`, `hill.coast.winter.png`. */
 const lands = new Set(biomes.map((c) => c.land));
 const inDir = (dir: 'tiles' | 'buildings') =>
@@ -261,7 +263,14 @@ try {
       wantCentre: file === `${id}.rotor.png`,
     });
     const land = file.split('.')[1];
-    if (isTile && land !== undefined && !['png', 'winter'].includes(land) && !lands.has(land))
+    // Besides a land's look, a tile's state: shallows silted up with mud (Lake Gardens).
+    if (
+      isTile &&
+      land !== undefined &&
+      !['png', 'winter'].includes(land) &&
+      !lands.has(land) &&
+      !(TILE_STATES[id] ?? []).includes(land)
+    )
       throw new Error(`not a biome's land: tiles/${file}`);
     if (result.centre) centres[id] = result.centre;
     const name = lit ? `${id}.windows.png` : file;

@@ -4,6 +4,7 @@
  * flowing as light into buildings, night with lit windows, and number pops.
  * It reads the timeline only; skipping jumps straight to the end.
  */
+import { snowless } from './lands';
 import { lanternAt } from './keepsakeArt';
 import { Container, Graphics, Text } from 'pixi.js';
 import type { PhaseName, Pop, Timeline } from '../game/timeline';
@@ -246,10 +247,11 @@ export class ResolutionPlayer {
     const evP = this.progress('event');
 
     // The river itself: sandbars when it runs low, ice when it freezes, and in a heatwave (the
-    // Sun Desert) it dries to its bed. The desert's cold nights don't freeze it.
-    const desert = tl.land === 'desert';
+    // Sun Desert) it dries to its bed. The desert's cold nights and the lake's mild winter don't
+    // freeze it.
+    const noSnow = snowless(tl.land);
     const dries = tl.event === 'heatwave';
-    if (tl.event === 'lowRiver' || dries || (tl.event === 'freeze' && !desert)) {
+    if (tl.event === 'lowRiver' || dries || (tl.event === 'freeze' && !noSnow)) {
       tl.river.forEach((h, i) => {
         const c = hexToPixel(h);
         const reach = clamp01(evP * 1.6 - (i / Math.max(1, tl.river.length)) * 0.6);
@@ -306,6 +308,29 @@ export class ResolutionPlayer {
             const y = c.y - 18 + fall * (14 + hash(k + 7, fx.at.q, fx.at.r) * 10);
             g.circle(x, y, 1.8).fill({ color: 0xe0a33b, alpha: a * (fall > 0 ? 1 : 0) });
           }
+          break;
+        }
+        case 'bloomed': {
+          // The lake turns green, tile by tile, flecked with algae.
+          ground.poly(corners).fill({ color: 0x8fbf4a, alpha: 0.5 * a });
+          for (let k = 0; k < 4; k++)
+            ground
+              .ellipse(
+                c.x + (hash(k, fx.at.q, fx.at.r) - 0.5) * 30,
+                c.y + (hash(k + 5, fx.at.q, fx.at.r) - 0.5) * 22,
+                3 + rise * 3,
+                1.8,
+              )
+              .fill({ color: 0x6f9a3a, alpha: 0.8 * a });
+          break;
+        }
+        case 'lowWater': {
+          // The water falls back from the shallows' rim, leaving wet mud.
+          const fall = this.reducedMotion ? 1 : clamp01(age / 700);
+          ground.poly(corners).fill({ color: 0x8b7a5a, alpha: 0.55 * a });
+          ground
+            .poly(hexCorners(c, HEX_RADIUS * (1 - 0.38 * fall)))
+            .fill({ color: 0x8fc0b0, alpha: 0.9 * a });
           break;
         }
         case 'dried': {
@@ -424,8 +449,8 @@ export class ResolutionPlayer {
       return;
     }
     if (event !== 'storm' && event !== 'flood' && event !== 'freeze') return;
-    // The desert's cold nights are clear: no snow.
-    if (desert && event === 'freeze') return;
+    // The desert's cold nights are clear, and the lake's winter mild: no snow.
+    if (snowless(this.timeline.land) && event === 'freeze') return;
     const n = event === 'flood' ? 70 : 110;
     for (let i = 0; i < n; i++) {
       const x0 = b.minX + hash(i, 1, 2) * w;

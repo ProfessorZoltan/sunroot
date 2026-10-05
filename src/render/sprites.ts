@@ -62,8 +62,9 @@ const pick = (...paths: string[]): Texture | null => {
  * `hill.coast.png`), which it takes in place of the shared one.
  */
 /**
- * Lands whose winter is green, not white (the Sun Desert's): the shared art's winter dress has
- * snow, so there a shared tile or building keeps its summer look in winter. The land's own looks
+ * Lands whose winter brings no snow (the Sun Desert's green winter, Lake Gardens' low water;
+ * `SNOWLESS_LANDS`): the shared art's winter dress has snow, so there a shared tile or building
+ * keeps its summer look in winter. The land's own looks
  * (`id.land.winter.png`) and its own tiles' and buildings' winter art are used as delivered.
  */
 const GREEN_WINTER: Record<string, readonly string[]> = {
@@ -89,6 +90,26 @@ const GREEN_WINTER: Record<string, readonly string[]> = {
     'fogFence',
     'restoredArray',
     'solarOasis',
+  ],
+  // Lake Gardens' winter is low water, not snow.
+  lake: [
+    'shallows',
+    'deep',
+    'bed',
+    'chinampa',
+    'mudBoat',
+    'stiltHouse',
+    'wastewaterFishery',
+    'lakeFishery',
+    'mulberryDyke',
+    'silkHouse',
+    'pigPen',
+    'duckHouse',
+    'willowEdge',
+    'floatingSolar',
+    'canalWheel',
+    'riceDuckPaddy',
+    'floatingMarket',
   ],
 };
 
@@ -120,6 +141,16 @@ export function tileTexture(
   }
   const i = Math.floor(tileRandom(`${key}:variant`)() * variants.length);
   return textures.get(variants[i]!)!;
+}
+
+/** Whether the shallows have their own winter art (Lake Gardens' low water). */
+export function hasLowWaterArt(): boolean {
+  return textures.has('tiles/shallows.winter.png');
+}
+
+/** Shallows silted up with mud (Lake Gardens, `shallows.silted.png`), if it has art. */
+export function siltedTexture(): Texture | null {
+  return pick('tiles/shallows.silted.png');
 }
 
 /** The land's dry riverbed (`river.desert.dry.png`), if it has one. */

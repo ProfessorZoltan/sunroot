@@ -5,6 +5,7 @@ import { waterAt } from '../game/waterInfo';
 import { commuteAt } from '../game/commuteInfo';
 import { heatAt } from '../game/heatInfo';
 import { coolAt } from '../game/coolInfo';
+import { lakeAt } from '../game/lakeInfo';
 import {
   AUTO_RECIPE,
   applyCommand,
@@ -627,6 +628,7 @@ export function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
   const walks = commuteAt(store.rules, state, store.commuteForecast, b.at);
   const heat = heatAt(store.rules, state, store.heatForecast, b.at, store.coldForecast);
   const cool = coolAt(store.rules, state, store.coolForecast, b.at, store.hotForecast);
+  const lake = lakeAt(store.rules, state, store.insight.now, b.at);
   const gauge = store.storageOf(b.uid);
   const status: string[] = [];
   const repair = repairCost(store.rules, b);
@@ -683,6 +685,9 @@ export function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
       ))}
       {walks.map((line) => (
         <div class="small walk-line">{line}</div>
+      ))}
+      {lake.map((line) => (
+        <div class="small lake-line">{line}</div>
       ))}
       {cool.map((line) => (
         <div class="small cool-line">{line}</div>

@@ -4,6 +4,8 @@
  * drawn row by row so each row's top covers the side of the row above),
  * river flow, buildings, then the overlay (hover, ghost, preview numbers).
  */
+import { BED_RISE_MS, drawBedRising, drawLake, lakeLook } from './lakeArt';
+import { snowless } from './lands';
 import type { Application } from 'pixi.js';
 import { ColorMatrixFilter, Container, Graphics, Sprite, Text } from 'pixi.js';
 import type { Texture } from 'pixi.js';
@@ -60,6 +62,8 @@ import {
   hasPeopleArt,
   hasWildlifeArt,
   tileTexture,
+  siltedTexture,
+  hasLowWaterArt,
   wildlifeTexture,
   wonderSprite,
   wonderTexture,
@@ -117,6 +121,12 @@ export class MapView {
   private recacheTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly terrain = new Graphics();
   private readonly seasonLayer = new Graphics();
+  /** Lake Gardens' lake: mud, silt, murk and bloom, low water (src/render/lakeArt.ts). */
+  private readonly lakeLayer = new Graphics();
+  private lakeSignature = '';
+  /** Raised beds as last drawn, and the ones just made, rising from the water (rings spread). */
+  private beds: Set<string> | null = null;
+  private risen: { at: Point; t: number }[] = [];
   private readonly flow = new Graphics();
   /** Channel ditches: earthworks, drawn with the ground. */
   private readonly ditches = new Graphics();
@@ -183,7 +193,14 @@ export class MapView {
     this.shaker.addChild(this.world);
     // The ground and the buildings change only with the run, so each is drawn once into
     // a texture (at the current zoom) instead of re-rasterizing every shape each frame.
-    this.ground.addChild(this.terrain, this.tileLayer, this.ditches, this.seasonLayer, this.flow);
+    this.ground.addChild(
+      this.terrain,
+      this.tileLayer,
+      this.lakeLayer,
+      this.ditches,
+      this.seasonLayer,
+      this.flow,
+    );
     this.built.addChild(this.buildingLayer, this.buildings);
     this.world.addChild(
       this.ground,
@@ -292,6 +309,10 @@ export class MapView {
       state.season === 'winter',
       // A river that runs dry (the Sun Desert's summer) shows its bed.
       riverDry(this.content, state),
+      // Silted shallows (Lake Gardens) take their own art.
+      ...Object.entries(state.map.tiles)
+        .filter(([, t]) => t.silted)
+        .map(([k]) => `s${k}`),
       ...Object.values(state.buildings)
         .filter((b) => this.content.byId[b.type]?.water?.channel)
         .map((b) => `~${hexKey(b.at)}`)
@@ -314,6 +335,27 @@ export class MapView {
         this.bounds = boundsOf([...Object.values(state.map.tiles), ...fogHexes(state.map)]);
         this.fit();
       }
+    }
+    const beds = new Set(
+      Object.entries(state.map.tiles)
+        .filter(([, t]) => t.type === 'bed')
+        .map(([k]) => k),
+    );
+    if (this.beds && !this.reducedMotion)
+      for (const k of beds)
+        if (!this.beds.has(k))
+          this.risen.push({ at: hexToPixel(state.map.tiles[k]!), t: this.clock });
+    this.beds = beds;
+    const lake = lakeLook(this.content, state);
+    if ((lake?.signature ?? '') !== this.lakeSignature) {
+      this.lakeSignature = lake?.signature ?? '';
+      if (lake)
+        drawLake(this.lakeLayer, lake, state, {
+          lowWater: hasLowWaterArt(),
+          silted: siltedTexture() !== null,
+        });
+      else this.lakeLayer.clear();
+      this.ground.updateCacheTexture();
     }
     this.state = state;
     this.drawBuildings(state);
@@ -615,8 +657,8 @@ export class MapView {
     const still = this.reducedMotion;
     const k = artScale() * SHOW_SCALE;
     const season = this.state?.season ?? 'spring';
-    // A green winter (the desert's) keeps the summer clothes.
-    const winter = season === 'winter' && this.content.land !== 'desert';
+    // A winter without snow (the desert's, the lake's) keeps the summer clothes.
+    const winter = season === 'winter' && !snowless(this.content.land);
     this.people.forEach(({ body, clothes, look, rolls }, i) => {
       const w = a.walkers[i];
       if (!w) return;
@@ -662,6 +704,9 @@ export class MapView {
         walkers: this.people.length > 0,
         fish: this.fishArt.length > 0,
       });
+    // A raised bed just made: rings spread on the water round it as it rises.
+    this.risen = this.risen.filter((r) => this.clock - r.t < BED_RISE_MS);
+    for (const r of this.risen) drawBedRising(g, r.at, (this.clock - r.t) / BED_RISE_MS);
     for (const d of deer) drawDeer(g, d);
     for (const actor of this.drawnActors)
       drawAnimal(g, actor.kind, poseAt(actor, this.clock, still), this.state?.season);
@@ -943,7 +988,8 @@ export class MapView {
       }
       const texture = own
         ? buildingTexture(own, state.season, this.content.land)
-        : tileTexture(tile.type, key, state.season, this.content.land);
+        : ((tile.silted ? siltedTexture() : null) ??
+          tileTexture(tile.type, key, state.season, this.content.land));
       if (texture) {
         this.tileLayer.addChild(artSprite(texture, c));
         procedural = null;

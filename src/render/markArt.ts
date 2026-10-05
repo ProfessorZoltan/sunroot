@@ -27,6 +27,7 @@ const BADGE: Record<MarkKind, { fill: number; ink: number }> = {
   unpowered: { fill: 0x3b3f46, ink: 0xf2c94c },
   hot: { fill: 0xd9682b, ink: 0xfff3e0 },
   walk: { fill: 0x9a6a3c, ink: 0xfff3e0 },
+  bloom: { fill: 0x6f9a3a, ink: 0xf2f7e4 },
 };
 
 /** Tile washes and outlines, under the buildings. */
@@ -105,6 +106,10 @@ export function drawMarkTiles(g: Graphics, marks: Mark[]): void {
         break;
       case 'damaged':
         g.poly(corners).stroke({ width: 2, color: 0xa3401f, alpha: 0.7 });
+        break;
+      case 'bloom':
+        g.poly(corners).fill({ color: 0x8fbf4a, alpha: 0.25 });
+        dashedLine(g, ring, 5, 4, { width: 2, color: 0x6f9a3a });
         break;
       default:
         break;
@@ -255,6 +260,15 @@ function icon(g: Graphics, kind: MarkKind, p: Point, ink: number): void {
       // Two footprints.
       g.ellipse(x - 1.8, y + 1.5, 1.4, 2.4).fill({ color: ink });
       g.ellipse(x + 1.8, y - 1.5, 1.4, 2.4).fill({ color: ink });
+      break;
+    case 'bloom':
+      // Three specks of algae.
+      for (const [dx, dy] of [
+        [-2.5, 1.5],
+        [2.5, 1],
+        [0, -2.5],
+      ] as const)
+        g.circle(x + dx, y + dy, 1.6).fill({ color: ink });
       break;
     case 'cold':
       for (let i = 0; i < 3; i++) {

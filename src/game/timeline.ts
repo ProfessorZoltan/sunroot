@@ -59,7 +59,10 @@ export type EventFxKind =
   | 'cooled'
   | 'hot'
   /** Dust on a solar canopy's or a mirror's glass in a dust storm. */
-  | 'dusted';
+  | 'dusted'
+  /** Lake Gardens: the lake turning green in a bloom, and the shallows falling in low water. */
+  | 'bloomed'
+  | 'lowWater';
 
 export interface EventFx {
   kind: EventFxKind;
@@ -323,6 +326,33 @@ export function buildTimeline(
       const heat = content.byId[b.type] ? heatDemand(content, after, b, 'night', si) : 0;
       if (heat > 0) fx('chilled', b.at, across(b.at));
     }
+  }
+
+  // Lake Gardens: the bloom spreads across the lake, the shallows fall back in winter's low
+  // water, and mud settles where water came into the lake.
+  if (report.lake) {
+    const water = Object.values(after.map.tiles)
+      .filter((tile) => tile.type === 'shallows' || tile.type === 'deep')
+      .map((tile) => ({ q: tile.q, r: tile.r }));
+    if (report.lake.bloom) {
+      for (const h of water) fx('bloomed', h, across(h));
+      for (const b of Object.values(after.buildings))
+        if (content.byId[b.type]?.fishesLake)
+          pops.push({ t: across(b.at) + 200, at: b.at, text: 'algae bloom', tone: 'bad' });
+    } else if (report.event === 'bloom' && camp && water.length > 0) {
+      const near = [...water].sort((a, b) => dist(a, camp) - dist(b, camp))[0]!;
+      pops.push({ t: ev.start + 400, at: near, text: 'the lake stays clear', tone: 'good' });
+    }
+    if (report.event === 'freeze')
+      for (const h of water)
+        if (after.map.tiles[`${h.q},${h.r}`]?.type === 'shallows') fx('lowWater', h, across(h));
+    for (const [key, n] of Object.entries(report.lake.settled))
+      pops.push({
+        t: settle.start + 100,
+        at: parseHexKey(key),
+        text: `+${n} mud`,
+        tone: 'neutral',
+      });
   }
 
   const litHomes = Object.values(after.buildings).filter(

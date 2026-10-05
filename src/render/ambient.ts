@@ -5,7 +5,8 @@
  * leaping in ponds and the river, citizens walking to work, petals, seeds,
  * leaves or snow on the wind, and clouds' shadows drifting over; in the Sun
  * Desert, heat shimmer over the open sand and gravel in summer, sun glinting
- * on mirrors and panels, and sand on the wind instead of snow. Where each
+ * on mirrors and panels, and sand on the wind instead of snow; by the lake, fish leaping from
+ * the open water and mist lying on it in the cool seasons. Where each
  * lives is plain data from the run (tested); drawing it is a function of the
  * clock, and it holds still when the player prefers reduced motion.
  */
@@ -28,6 +29,8 @@ export interface Ambient {
   shimmer: Point[];
   /** Sun glinting on mirrors and panels (the Sun Desert). */
   glints: Point[];
+  /** Mist lying on the water in the cool seasons (Lake Gardens). */
+  mist: Point[];
   falling: FallingKind;
   clouds: number;
 }
@@ -48,6 +51,7 @@ export const AMBIENT_CAPS = {
   walkers: 6,
   shimmer: 8,
   glints: 8,
+  mist: 6,
 };
 
 /** Sources whose mirrors or panels catch the light in the desert. */
@@ -91,10 +95,18 @@ export function ambientFor(content: Content, state: RunState): Ambient {
       return d.housing > 0 && heatDemand(content, state, b, 'night', si) > 0;
     })
     .map((b) => chimney(hexToPixel(b.at)));
+  const lake = content.rules.lake !== undefined;
   const fish = winter
     ? []
     : [
         ...of('fishPond').map((b) => hexToPixel(b.at)),
+        // The lake's fish leap from the open water and round its fisheries.
+        ...(lake
+          ? [
+              ...buildings.filter((b) => def(b.type)?.fishesLake).map((b) => hexToPixel(b.at)),
+              ...wild(['deep'], tier >= 2 ? 3 : 1, 'fish'),
+            ]
+          : []),
         ...(tier >= 2 ? wild(['river'], 2, 'fish') : []),
       ];
 
@@ -118,12 +130,17 @@ export function ambientFor(content: Content, state: RunState): Ambient {
   const glints = desert
     ? buildings.filter((b) => GLINTING.includes(b.type)).map((b) => hexToPixel(b.at))
     : [];
-  // No snow in the desert: sand on the wind, and in its green winter, seeds.
+  // No snow in the desert: sand on the wind, and in its green winter, seeds. By the lake, the
+  // willows' leaves fall in its mild winter, and mist lies on the water in autumn and winter.
   const falling: FallingKind = desert
     ? winter
       ? 'fluff'
       : 'sand'
-    : (FALLING[state.season] ?? 'petal');
+    : lake && winter
+      ? 'leaf'
+      : (FALLING[state.season] ?? 'petal');
+  const mist =
+    lake && (winter || state.season === 'autumn') ? wild(['deep', 'shallows'], 6, 'mist') : [];
 
   return {
     butterflies: butterflies.slice(0, AMBIENT_CAPS.butterflies),
@@ -133,6 +150,7 @@ export function ambientFor(content: Content, state: RunState): Ambient {
     walkers,
     shimmer: shimmer.slice(0, AMBIENT_CAPS.shimmer),
     glints: glints.slice(0, AMBIENT_CAPS.glints),
+    mist: mist.slice(0, AMBIENT_CAPS.mist),
     falling,
     clouds: 2,
   };
@@ -198,6 +216,21 @@ export function drawAmbient(
         g.stroke({ width: 1.2, color: 0xfff4dc, alpha: 0.45 * Math.sin(Math.PI * p) });
       }
     });
+
+  // Mist on the lake: soft banks drifting slowly along the water, thinning and thickening.
+  a.mist.forEach((c, i) => {
+    const drift = still ? 0 : wave(t / 9000 + i * 1.3) * 14;
+    const breathe = still ? 0.8 : 0.6 + 0.4 * wave(t / 4000 + i);
+    for (const [dx, dy, rx] of [
+      [-10, 2, 22],
+      [8, -2, 18],
+      [0, 6, 26],
+    ] as const)
+      g.ellipse(c.x + dx + drift, c.y + dy, rx, 4.5).fill({
+        color: 0xf6f8f4,
+        alpha: 0.28 * breathe,
+      });
+  });
 
   // Sun glints on mirrors and panels: a brief star now and then.
   a.glints.forEach((c, i) => {

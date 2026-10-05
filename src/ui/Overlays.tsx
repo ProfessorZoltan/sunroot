@@ -4,6 +4,7 @@ import { waterAt } from '../game/waterInfo';
 import { commuteAt } from '../game/commuteInfo';
 import { heatAt } from '../game/heatInfo';
 import { coolAt } from '../game/coolInfo';
+import { lakeAt } from '../game/lakeInfo';
 import { edgesAround } from '../sim/edges';
 import type { AudioEngine } from '../audio/engine';
 import { logToCsv, type PlayLog } from '../game/playlog';
@@ -68,6 +69,7 @@ export function MapTip({ store, view }: { store: GameStore; view: MapView | null
   const walks = commuteAt(store.rules, state, store.commuteForecast, store.hover);
   const heat = heatAt(store.rules, state, store.heatForecast, store.hover, store.coldForecast);
   const cool = coolAt(store.rules, state, store.coolForecast, store.hover, store.hotForecast);
+  const lake = lakeAt(store.rules, state, store.insight.now, store.hover);
   const gauge = b ? store.storageOf(b.uid) : null;
   const math = (b ? (store.insight.now.math[b.uid] ?? []) : []).filter(
     (l) => water.length === 0 || !l.startsWith('water:'),
@@ -108,6 +110,9 @@ export function MapTip({ store, view }: { store: GameStore; view: MapView | null
       ))}
       {cool.map((l) => (
         <div class="small cool-line">{l}</div>
+      ))}
+      {lake.map((l) => (
+        <div class="small lake-line">{l}</div>
       ))}
       {heat.map((l) => (
         <div class="small heat-line">{l}</div>

@@ -272,14 +272,20 @@ function drawDetails(g: Graphics, tile: Tile, c: Point, rand: () => number): voi
       }
       break;
     case 'shallows':
-      // Lily pads and a few reed stems in knee-deep water; mud shows as dark patches.
+      // Lily pads (one in flower) and a few reed stems in knee-deep water. Its mud is drawn over
+      // it (src/render/lakeArt.ts).
       for (let i = 0; i < 2; i++) {
         const p = spot(rand, c);
         g.ellipse(p.x, p.y, 3.5, 2).fill({ color: detail });
+        if (i === 0 && rand() < 0.5) g.circle(p.x + 1, p.y - 1, 1.3).fill({ color: 0xf2c4d6 });
       }
-      for (let i = 0; i < Math.min(4, tile.mud ?? 0); i++) {
-        const p = spot(rand, c, HEX_RADIUS * 0.4);
-        g.ellipse(p.x, p.y, 5, 2.6).fill({ color: 0x6e6248, alpha: 0.55 });
+      {
+        const p = spot(rand, c);
+        g.moveTo(p.x - 2, p.y)
+          .lineTo(p.x - 3, p.y - 7)
+          .moveTo(p.x + 1, p.y)
+          .lineTo(p.x + 1.5, p.y - 8)
+          .stroke({ width: 1.1, color: 0x6a8a5a, cap: 'round' });
       }
       break;
     case 'deep':

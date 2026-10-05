@@ -9,6 +9,7 @@ import { eventOf } from '../sim';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { AudioEngine } from '../audio/engine';
 import { reachSummary } from '../game/marks';
+import { bloomSummary, lakeOutlook } from '../game/lakeInfo';
 import type { GameStore } from '../game/store';
 import { LoopsPanel } from './Combos';
 import { WildlifeStatus } from './Festivals';
@@ -24,7 +25,14 @@ export function ForecastBanner({ store }: { store: GameStore }) {
   const next = eventOf(content, state.forecast.next);
   // "kept dry by levees" in the Reach, "by sea walls" on the coast.
   const levee = store.content.buildings.find((d) => d.levee);
-  const reach = reachSummary(store.marks, levee ? `${levee.name.toLowerCase()}s` : 'levees');
+  const reach = [
+    state.forecast.event === 'bloom'
+      ? bloomSummary(lakeOutlook(store.rules, state, store.insight.now))
+      : '',
+    reachSummary(store.marks, levee ? `${levee.name.toLowerCase()}s` : 'levees'),
+  ]
+    .filter(Boolean)
+    .join(' · ');
   return (
     <div class="forecast-banner" role="note" aria-label="Forecast" title={event.description}>
       <Wind size={18} />

@@ -54,7 +54,9 @@ export type MarkKind =
   /** This season: nothing cools it, so it shuts off hot (the Sun Desert). */
   | 'hot'
   /** This season: its workers walk further than the free distance. */
-  | 'walk';
+  | 'walk'
+  /** Coming: the lake will bloom, and this fishery will make less (Lake Gardens). */
+  | 'bloom';
 
 export interface Mark {
   at: Hex;
@@ -249,6 +251,16 @@ export function mapMarks(content: Content, state: RunState, forecast: SeasonRepo
           `Exposed ${standsOn(state.map.tiles[hexKey(atOf(uid) ?? { q: 0, r: 0 })]?.type)}: the storm could damage it.`,
         );
     }
+  } else if (event === 'bloom' && forecast.lake?.bloom) {
+    const loss = content.rules.lake?.bloom.foodLoss ?? 0;
+    for (const b of Object.values(state.buildings))
+      if (content.byId[b.type]?.fishesLake)
+        add(
+          b.at,
+          'bloom',
+          true,
+          `The algae bloom: the ${name(b.uid)} will make ${loss} less food. Fisheries that eat grey water keep the lake clear.`,
+        );
   } else if (event === 'freeze') {
     const si = SEASONS.indexOf(state.season);
     for (const b of Object.values(state.buildings)) {
@@ -272,5 +284,6 @@ export function reachSummary(marks: Mark[], shelter = 'levees'): string {
   if (count('exposed')) parts.push(`${count('exposed')} buildings exposed`);
   if (count('calm')) parts.push('the Mixed Grid shelters all');
   if (count('cold')) parts.push(`${count('cold')} homes need heat`);
+  if (count('bloom')) parts.push(`${count('bloom')} fisheries make less`);
   return parts.join(' · ');
 }

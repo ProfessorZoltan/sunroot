@@ -1,5 +1,18 @@
 # Changelog
 
+## Lake Gardens on screen
+
+- **The lake in the interface**: a Lake row in the left panel (its grey water, and whether it
+  will bloom), the mud and silt on each shallows tile in its tooltip, where water comes into the
+  lake, a bloom forecast in summer, and a "The lake" section in the season report.
+- **The lake on the map**: mud lying on the shallows, silted shallows thick with sedge, the water
+  greying as grey water gathers and turning green when it blooms, rings spreading round a new
+  raised bed, fish leaping from the open water and mist on it in autumn and winter.
+- **A winter of low water, not snow**: the shallows fall back from the shore, and willow leaves
+  fall instead of snow.
+- **An art guide for the lake**: its tiles, buildings, wonder, animals and festivals, and the
+  Canal Quarter and Water Market for Root City.
+
 ## The whole cast
 
 - **All 12 citizens now walk the map**, each with their own face, build and skin tone, dressed

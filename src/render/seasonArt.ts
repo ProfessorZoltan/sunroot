@@ -4,6 +4,7 @@
  * winter. Wildlife returns as Harmony tiers rise: birds, then deer, then otters.
  * Everything is placed from per-tile random streams, so it never flickers.
  */
+import { snowless } from './lands';
 import type { Graphics } from 'pixi.js';
 import type { Content } from '../sim/content/load';
 import { hexKey } from '../sim/hex';
@@ -41,7 +42,7 @@ const LAND_SPECKS: Record<string, { colors: number[]; per: number; on: string[] 
 };
 
 /** Water the seasons don't wash over. */
-const OPEN_WATER = ['river', 'reservoir', 'oasis', 'sea'];
+const OPEN_WATER = ['river', 'reservoir', 'oasis', 'sea', 'shallows', 'deep'];
 
 const WASH: Record<string, { color: number; alpha: number } | null> = {
   spring: null,
@@ -58,10 +59,13 @@ export function drawSeason(
   hasArt: (key: string) => boolean = () => false,
 ): void {
   g.clear();
-  // The Sun Desert's winter is green, not white: no snow or frost wash there.
-  const green = content.land === 'desert' && state.season === 'winter';
+  // The Sun Desert's winter is green and Lake Gardens' brings low water, not snow: no snow or
+  // frost wash there (flowers in the desert's, turning leaves by the lake).
+  const green = snowless(content.land) && state.season === 'winter';
   const wash = green ? null : WASH[state.season];
-  const specks = green ? LAND_SPECKS.spring! : LAND_SPECKS[state.season]!;
+  const specks = green
+    ? LAND_SPECKS[content.land === 'desert' ? 'spring' : 'autumn']!
+    : LAND_SPECKS[state.season]!;
   const occupied = new Set(Object.values(state.buildings).map((b) => hexKey(b.at)));
   for (const [key, tile] of Object.entries(state.map.tiles)) {
     if (hasArt(key)) continue;

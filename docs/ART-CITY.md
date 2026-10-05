@@ -10,7 +10,8 @@ papercraft style, the same light from the upper left, and the same 512 × 640 fr
 36 asked for, the 14 lit versions and the 4 rotors), delivered as `root-city/` and kept in
 `art/incoming/city/`; and the Sun Quarter at its three tiers (with its lit Sapling and
 Heartwood) and the Glassworks' three edges, which came with the Sun Desert (SD5), their brief
-[below](#the-sun-quarter-and-the-glassworks-sd5). **How it gets in.** The importer takes `art/incoming/city/` (`npx tsx scripts/import-art.ts`,
+[below](#the-sun-quarter-and-the-glassworks-sd5). Asked for next: the Canal Quarter and the Water
+Market for Lake Gardens ([below](#the-canal-quarter-and-the-water-market-lg5)). **How it gets in.** The importer takes `art/incoming/city/` (`npx tsx scripts/import-art.ts`,
 which refuses a name or a frame size that isn't this guide's), and the city screen draws each
 piece it has: the city already stands on the map's hex geometry, so the tiles fit together as on
 the map. Anything without art is still drawn in code (`src/ui/City.tsx`): coloured hexes with a
@@ -169,6 +170,90 @@ code.
 6 images are needed and 2 more are optional, delivered to `art/incoming/city/` with the rest.
 Paint the Sapling first to settle the look, then the Seedling and the Heartwood from it, then the
 Glassworks.
+
+## The Canal Quarter and the Water Market (LG5)
+
+The eighth district and the sixth landmark, coming with Lake Gardens' fifth step
+([proposals/lake-gardens.md](proposals/lake-gardens.md), Root City). Same frame, style, tier
+ladder and file rules as everything above: 512 × 640, late summer, each tile carrying its own
+ground, no winter files. Until the art comes the city draws them in code, as it did the others.
+The importer takes district and landmark names from the game's content, so it accepts these once
+LG5 has added them; art delivered before then waits in `art/incoming/city/`.
+
+### The Canal Quarter
+
+**What it is.** The district a water-led run sends home: one whose food came mostly from
+chinampas, fisheries and fish ponds. It makes fish ponds give food in the colder seasons, and it
+is the quarter that brings the **Mud Boat** to every biome's drafts. It is the lake's way of
+living carried home: canals between long garden beds, houses on stilts over the water, willows in
+rows along the banks, painted boats.
+
+**Match the lake art.** The Chinampa, Stilt House, Mud Boat, Mulberry Dyke, Silk House and
+Floating Market you paint for the map ([ART-EXPANSION.md](ART-EXPANSION.md), Lake Gardens) are
+this district's buildings, grown into a town. Reuse their shapes, materials and proportions.
+
+**Its ground.** Root City is not a lake. Inside the hex paint a canal crossing the tile with
+garden beds on its banks, and let the city's grass come back in a thin band at the rim so the
+tile sits with its green neighbours. The canal meets the middle of two opposite sides (so canals
+in neighbouring districts can seem to join); a path meets the middle of at least one other side.
+
+**Colours.**
+
+| Use                                                       | Colour                                | Source                                                     |
+| --------------------------------------------------------- | ------------------------------------- | ---------------------------------------------------------- |
+| Key colour: doors, shutters, awnings, boat trims, banners | Mulberry purple `#7A4E8A`             | Proposed here; `src/game/districtLook.ts` when it is built |
+| Canal water                                               | Jade green `#8FC0B0`                  | ART-EXPANSION.md, Lake Gardens, palette                    |
+| Garden beds                                               | Dark wet loam `#5A4632`               | ART-EXPANSION.md, Lake Gardens, palette                    |
+| Willows                                                   | Willow green `#7FA35A`                | ART-EXPANSION.md, Lake Gardens, palette                    |
+| Flowers on the beds and boats                             | Marigold `#E89A2C`, magenta `#C23B7A` | ART-EXPANSION.md, Lake Gardens, palette                    |
+
+**Its landmark shape: the stilt house over the canal.** A steep thatched roof on tall stilts,
+standing in the water, the shape that reads at 70 px. Keep it in the same place (the back left of
+the hex) at every tier, growing: one small hut, then a house with a veranda, then the first of a
+row of them linked by a boardwalk.
+
+| Tier      | Built up                                                                                                                                                   | Complexity                                                                                                                                                 | Alive                                                                                                                                  | Height       | Source                                |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------------------------------------- |
+| Seedling  | About a third: a freshly dug canal, one chinampa bed staked out with wattle and young willows, a small hut on stilts, a punt heaped with mud.              | Plain and small: raw timber, wattle, thatch, a heap of mud on the bank.                                                                                    | 1 figure lifting mud with a scoop. No lit windows.                                                                                     | Up to 50 px  | This guide; DESIGN.md, Grafts         |
+| Sapling   | About two thirds: the stilt house finished with a veranda, two beds in crops and marigolds, a fish pond ringed with mulberry, a footbridge over the canal. | The landmark in timber and thatch with mulberry-purple shutters, a painted boat moored, silk skeins drying on a pole, a row of willows along the far bank. | 2 or 3 figures: one poling a boat, one picking mulberry leaves, one on the veranda. Some windows lit at dusk.                          | Up to 110 px | This guide; DESIGN.md, Grafts         |
+| Heartwood | Nearly all, with the canal still open through the middle: stilt houses in a row on a boardwalk, a silk house, beds in flower on every bank.                | Layered: a little floating market of painted boats under awnings at the canal's bend, a water wheel, floating solar panels on a pond at the back, bunting. | 5 to 8 figures: market boats, people on the boardwalk, a child fishing. Most windows and the boats' lanterns lit at dusk. A feast day. | All 168 px   | This guide; proposals/lake-gardens.md |
+
+The same place, grown: the Seedling's hut is still there at Heartwood as the first of the row,
+and its first bed is still the one by the bridge.
+
+**Lit at dusk** (optional, as the others): `canalQuarter.sapling.lit.png` and
+`canalQuarter.heartwood.lit.png` (windows, the boardwalk's and boats' lanterns, their reflections
+painted in the canal). **Rotor** (optional): `canalQuarter.heartwood.rotor.png`, the water wheel,
+with an orange hub.
+
+### The Water Market
+
+**What it is.** The landmark where the Canal Quarter stands next to the Orchard Ward: boats bring
+food in on the water and it keeps longer, so food beyond storage keeps one season longer in every
+biome. Its hint is "Where the canal meets the orchard."
+
+**What it shows.** Along the shared edge: a covered timber landing with a long tiled roof, painted
+boats tied up along it heaped with fruit (apples and pears from the Orchard Ward, in its gold
+`#E0A33B` baskets) and greens from the beds, a cool store dug into the bank with a turf roof, a
+mulberry-purple awning. Each piece is the whole landmark laid along that edge, the landing at the
+edge's middle.
+
+**How it sits.** As the other landmarks: three pieces, one for the tile's east, north-east and
+north-west edge, on the standard frame, across the paper gap and kept within about 60 px of the
+edge. Either district may own the edge, so the piece must read from both sides.
+
+### Files
+
+| File                                                                                  | Needed?  | Count | Source                |
+| ------------------------------------------------------------------------------------- | -------- | ----- | --------------------- |
+| `canalQuarter.seedling.png`, `canalQuarter.sapling.png`, `canalQuarter.heartwood.png` | Yes      | 3     | This guide            |
+| `waterMarket.edge.e.png`, `waterMarket.edge.ne.png`, `waterMarket.edge.nw.png`        | Yes      | 3     | This guide            |
+| `canalQuarter.sapling.lit.png`, `canalQuarter.heartwood.lit.png`                      | Optional | 2     | Dusk (below)          |
+| `canalQuarter.heartwood.rotor.png`                                                    | Optional | 1     | Turning parts (below) |
+
+6 images are needed and 3 more are optional, delivered to `art/incoming/city/` with the rest.
+Paint the Sapling first to settle the look, then the Seedling and the Heartwood from it, then the
+Water Market.
 
 ## Keepsakes in the city
 

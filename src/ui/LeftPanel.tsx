@@ -1,5 +1,6 @@
 /** Left column: stores with this season's change, workers, and what happened last season. */
 import { eventOf } from '../sim';
+import { lakeOutlook } from '../game/lakeInfo';
 import type { GameStore } from '../game/store';
 import { POPULATION_REASONS } from '../game/insight';
 import type { Resource } from '../sim';
@@ -65,6 +66,7 @@ export function LeftPanel({ store, onOverview }: { store: GameStore; onOverview:
         <div class="divider" />
         <WorkersRow store={store} />
         <WaterRow store={store} />
+        <LakeRow store={store} />
         <WalksRow store={store} />
         {open && (
           <div class="quiet small">Numbers on the right: the change by the end of this season.</div>
@@ -194,6 +196,33 @@ function WaterRow({ store }: { store: GameStore }) {
   );
 }
 
+/** Lake Gardens' lake: the grey water it holds, and whether it will bloom this season. */
+function LakeRow({ store }: { store: GameStore }) {
+  const o = lakeOutlook(store.rules, store.state, store.insight.now);
+  if (!o) return null;
+  const status =
+    o.blooms === true
+      ? 'will bloom'
+      : o.silted > 0
+        ? `${o.silted} silted`
+        : o.after > o.above
+          ? 'murky'
+          : 'clear';
+  return (
+    <div
+      class="store-row lake-row"
+      title={`The lake holds ${o.grey} grey water, ${o.after} at the end of this season as things stand; above ${o.above} it blooms in summer. ${o.mud} mud lies on the shallows${o.silted > 0 ? `, and ${o.silted} shallows ${o.silted === 1 ? 'is' : 'are'} silted up` : ''}. Hover the lake for more.`}
+    >
+      <Ripple />
+      <span class="grow">
+        Lake <span class="quiet small">· grey {o.grey}</span>
+      </span>
+      <span class={`strong ${o.blooms ? 'bad' : ''}`}>{status}</span>
+      <span class="delta-num" />
+    </div>
+  );
+}
+
 /** Walks to work this season, as they stand: what long walks cost. */
 function WalksRow({ store }: { store: GameStore }) {
   const c = store.commuteForecast;
@@ -225,6 +254,15 @@ function Feet() {
   );
 }
 
+function Ripple() {
+  return (
+    <svg class="icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+      <ellipse cx="8" cy="9" rx="6.5" ry="3.5" fill="none" stroke="#5d93a8" stroke-width="1.5" />
+      <ellipse cx="8" cy="9" rx="3" ry="1.6" fill="#8fc0b0" />
+    </svg>
+  );
+}
+
 function Drop() {
   return (
     <svg class="icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
@@ -247,6 +285,7 @@ export function LastSeason({ store }: { store: GameStore }) {
   if (r.salted.length)
     lines.push(`Salt on ${r.salted.length} farm${r.salted.length > 1 ? 's' : ''}.`);
   if (r.damaged.length) lines.push(`Damaged: ${r.damaged.map(name).join(', ')}.`);
+  if (r.lake?.bloom) lines.push('The lake bloomed: lake fisheries made less food.');
   if (r.mixedGrid)
     lines.push(
       store.rules.events.storm?.mixedGridShelters

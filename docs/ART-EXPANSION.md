@@ -44,6 +44,9 @@ and the Well with its own icon (`well.icon.png`). All in the game.
 | SD4. The desert on screen    | Yes (done) | Its 5 tiles and the wadi bank's and old array's looks, then the Oasis Garden, Mud-brick House, Wind Tower and Solar Canopy's desert dress | proposals/sun-desert.md, Build plan         |
 | SD5. The desert in Root City | Yes (done) | The Sun Quarter district and the Glassworks landmark ([ART-CITY.md](ART-CITY.md))                                                         | proposals/sun-desert.md, Build plan         |
 | SD6. The desert's wonder     | Yes (done) | The Solar Oasis, 4 animals, 3 festival cards                                                                                              | proposals/sun-desert.md, Build plan         |
+| LG4. The lake on screen      | Yes        | The shallows and deep water, then the Chinampa, Stilt House and Mud Boat                                                                  | proposals/lake-gardens.md, Build plan       |
+| LG5. The lake in Root City   | Yes        | The Canal Quarter district and the Water Market landmark ([ART-CITY.md](ART-CITY.md))                                                     | proposals/lake-gardens.md, Build plan       |
+| LG6. The lake's wonder       | Yes        | The Floating City, 4 animals, 3 festival cards                                                                                            | proposals/lake-gardens.md, Build plan       |
 
 ## The standard frame (reminder)
 
@@ -423,6 +426,107 @@ the rest) keep the Reach's art.
 
 Animals follow the wildlife frame above (128 × 128, bottom-centre anchor, facing right). The
 desert's festivals use the Reach's bunting and lanterns.
+
+## Lake Gardens (LG4 to LG6)
+
+The fifth biome ([proposals/lake-gardens.md](proposals/lake-gardens.md)): a broad shallow lake
+over nearly half the map, deep water in the middle, small islands, a stream or two running in,
+reed fringe on the shore and a drowned town at the water's edge. Players make land here: a
+**chinampa** turns a shallows tile into a raised bed. It is built from the chinampas of
+Xochimilco, the mulberry-dyke fish ponds of the Pearl River Delta, the Vietnamese
+garden-pond-pen (VAC) and the sewage-fed fisheries of East Kolkata, so the look is theirs: green
+canals between long beds of crops and flowers, slender willows standing in rows along the banks,
+painted boats, ponds ringed with mulberry. Everything here is drawn in code until its art comes,
+so any piece can arrive on its own. Same frame, light and file names as everything else: a summer
+`id.png` and a winter `id.winter.png`, delivered to the usual folders of `art/incoming/`.
+
+**The palette.** Soft and humid: jade-green shallows (`#8FC0B0`), the deep lake a cooler
+blue-green (`#5D93A8`), the dark wet loam of the beds (`#5A4632`), willow green (`#7FA35A`), and
+three bright notes from the gardens and the boats: marigold orange (`#E89A2C`), bougainvillea
+magenta (`#C23B7A`) and mulberry purple (`#7A4E8A`, the silk). The air is moist, so the light is
+soft and a little hazy, with reflections in the water under everything that stands in it. Keep
+the papercraft style: the same cut-paper edges, the same light from the upper left.
+
+**Winter is low water, not snow.** These lakes are warm-winter places, so in Lake Gardens the
+shared art's snowy winter is never shown (as in the desert): a shared tile or building keeps its
+summer look in winter unless it has a lake look. The lake's own winter is the dry season: the
+shallows drain to mud with puddles and stranded lily pads, the reeds turn straw-gold, the
+mulberries are cut back to stumps, the willows thin to yellow twigs. No snow, no ice.
+
+The game draws these in code, so don't paint them: the water rising over the reed fringe in
+spring (high water) and falling in winter, the **mud** settling on the shallows (dark patches,
+up to 4 a tile, as the ruins' salvage), a tile that has **silted** up (drawn over the shallows
+until its art comes, below), the green of an **algae bloom** across the lake, mist on the water,
+ripples, fish leaping, a bed rising out of the water as a chinampa is built, lit windows from a
+`.lit.png`, and a wheel's turn from a `.rotor.png`. Paint water still and clear: the bloom and
+the mud are laid over it.
+
+### Tiles
+
+Each new type needs two summer looks and a winter one (`id.png`, `id-2.png`, `id.winter.png`).
+The shared types get the lake's own look as `id.lake.png` and, if you like, `id.lake.winter.png`,
+as the desert's and the glen's; the game uses them in Lake Gardens in place of the Reach's.
+
+| Tile         | Id                    | What it is                            | Notes                                                                                                                                                                                                                                               | Source                    |
+| ------------ | --------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| Shallows     | `shallows`            | Knee-deep water: where beds are made  | Clear jade-green water over a pale bottom you can just see, two or three lily pads (one in flower), a few reed stems at one side. Keep the middle open and plain: mud and silt are drawn on it. Winter: drained to wet mud, puddles, stranded pads. | proposals/lake-gardens.md |
+| Deep water   | `deep`                | The open lake in the middle           | Darker blue-green water, a few soft ripples, nothing growing; it should read as too deep to stand in beside the shallows. Winter: the same, a little greyer.                                                                                        | proposals/lake-gardens.md |
+| Bed          | `bed`                 | A raised bed, land made from the lake | A long bed of dark loam a hand above the water, edged with woven wattle and willow stakes, a strip of wet bank at the rim, a few weeds. Seen where a chinampa is taken down. Winter: covered in a mulch of water hyacinth.                          | proposals/lake-gardens.md |
+| Silted       | `shallows.silted.png` | Optional: shallows filled in with mud | The same water choked with mud banks and thick sedge, only a little standing water: stuck, waiting for a mud boat. Until it comes the game draws the silt over the shallows.                                                                        | proposals/lake-gardens.md |
+| Reed fringe  | `floodplain.lake.png` | The wet shore that high water covers  | Tall reeds and cattails on wet ground, a narrow open channel through them, a heron's footprints in the mud. Winter: the reeds straw-gold.                                                                                                           | proposals/lake-gardens.md |
+| Stream       | `river.lake.png`      | The streams that feed the lake        | Narrower than the Reach's river, between reedy banks, a few stepping stones.                                                                                                                                                                        | proposals/lake-gardens.md |
+| Drowned town | `ruin.lake.png`       | The old town, half under water        | Roofs, a broken arch and the top of a bell tower standing out of shallow water, a rowing boat tied to a window. Salvage, not menace.                                                                                                                | proposals/lake-gardens.md |
+| Willows      | `woodland.lake.png`   | The lake's woodland: ahuejote willows | Four or five tall, slender, column-shaped willows in a row (they are planted, not wild), water at their roots, ferns between.                                                                                                                       | proposals/lake-gardens.md |
+| Meadow       | `meadow.lake.png`     | Optional: the islands' grass          | Lush green grass with marigolds and cosmos, damp.                                                                                                                                                                                                   | proposals/lake-gardens.md |
+
+### Buildings
+
+| Name               | Id                  | What it is                                            | Files                                                                       | Notes                                                                                                                                                                                                                                      | Source                               |
+| ------------------ | ------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ |
+| Chinampa           | `chinampa`          | A raised bed farmed several times a year              | `chinampa.png`, `.winter`                                                   | Carries its own ground: a long bed of dark loam filling the tile, rows of maize, beans and squash with a row of marigolds, willow stakes at the corners, a canoe in the canal along one side. Winter: greens, mud fresh-spread on the bed. | proposals/lake-gardens.md, Buildings |
+| Mud Boat           | `mudBoat`           | Lifts the mud from the lake onto the land             | `mudBoat.png`, `.winter`                                                    | On the bank beside the shallows: a narrow flat-bottomed punt drawn up at a little landing, heaped with dark mud, a long scoop net on a pole, a mound of mud on the bank.                                                                   | proposals/lake-gardens.md, Buildings |
+| Stilt House        | `stiltHouse`        | A home on stilts over the water                       | `stiltHouse.png`, `.winter`, `stiltHouse.lit.png`                           | Groundless (the water shows round it): a timber house on tall stilts, a steep thatched roof, a ladder down to a canoe, washing on a line, a pot of herbs. The lit file lights its windows.                                                 | proposals/lake-gardens.md, Buildings |
+| Wastewater Fishery | `wastewaterFishery` | A fish pond that eats the houses' grey water          | `wastewaterFishery.png`, `.winter`                                          | Groundless, on the shallows: a ring of bamboo stakes and nets round a fish pen, a pipe from the shore spilling into it, rafts of water hyacinth at one side (they clean it), a feeding platform. Clean water: the dirt is drawn in code.   | proposals/lake-gardens.md, Buildings |
+| Lake Fishery       | `lakeFishery`       | Nets and cages out on the deep water                  | `lakeFishery.png`, `.winter`                                                | Groundless, on deep water: a floating wooden platform with a little hut, two round net cages, a boat tied alongside.                                                                                                                       | proposals/lake-gardens.md, Buildings |
+| Mulberry Dyke      | `mulberryDyke`      | A bank of mulberry bushes beside a fish pond          | `mulberryDyke.png`, `.winter`                                               | Carries its own ground: a raised earth bank with rows of low pollarded mulberry bushes, a basket of leaves, purple berries. Winter: the bushes cut back to knuckled stumps.                                                                | proposals/lake-gardens.md, Buildings |
+| Silk House         | `silkHouse`         | Silkworms fed on the leaves; silk spun and dyed       | `silkHouse.png`, `.winter`                                                  | Groundless: a long, low, airy shed with bamboo screens rolled up, racks of trays of silkworms inside, skeins of silk drying on poles outside in mulberry purple, marigold and white.                                                       | proposals/lake-gardens.md, Buildings |
+| Pig Pen            | `pigPen`            | Pigs fed on scraps; their manure for the beds         | `pigPen.png`, `.winter`                                                     | Groundless: a low wattle sty with a tiled roof, two pigs (one black, one pink and black), a trough, a heap of manure under straw.                                                                                                          | proposals/lake-gardens.md, Buildings |
+| Duck House         | `duckHouse`         | Ducks that keep the paddies' weeds and snails down    | `duckHouse.png`, `.winter`                                                  | Groundless: a small coop on short stilts with a ramp down, three or four white and brown ducks.                                                                                                                                            | proposals/lake-gardens.md, Buildings |
+| Willow Edge        | `willowEdge`        | A row of willows along an edge, against the lake wind | `willowEdge.edge.e.png`, `.edge.ne.png`, `.edge.nw.png`, and each `.winter` | Along tile edges, exactly as the Hedgerow's pieces (above): three slender ahuejote willows in a row, their roots woven into a wattle edge, about 110 px high (taller than a hedge). Winter: bare yellow twigs.                             | proposals/lake-gardens.md, Buildings |
+| Floating Solar     | `floatingSolar`     | Solar panels floating on the lake                     | `floatingSolar.png`, `.winter`                                              | Groundless, on water: two or three rows of panels tilted on white floats, a narrow walkway between them, a cable running off one side.                                                                                                     | proposals/lake-gardens.md, Energy    |
+| Canal Wheel        | `canalWheel`        | A small water wheel on the stream                     | `canalWheel.png`, `.winter`, `canalWheel.rotor.png`                         | Beside the stream: a small undershot wooden wheel in a timber frame with a little shed. The rotor turns; give it an orange hub (the importer finds its pivot there).                                                                       | proposals/lake-gardens.md, Energy    |
+
+The shared buildings (workshop, salvage yard, composter, fish pond, rice-fish paddy, reed bed,
+bathhouse and the rest) keep the Reach's art.
+
+### Evolutions (LG3)
+
+| Name            | Id               | Grows from      | What it is                                   | Files                                                     | Notes                                                                                                                                                                                                   | Source                            |
+| --------------- | ---------------- | --------------- | -------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| Rice-Duck Paddy | `riceDuckPaddy`  | Rice-fish Paddy | The paddy with ducks working in it           | `riceDuckPaddy.png`, `.winter`                            | As the Rice-fish Paddy, with ducks swimming between the rows of rice and a little duck shelter at one corner.                                                                                           | proposals/lake-gardens.md, Combos |
+| Floating Market | `floatingMarket` | Commons Plaza   | A market on the water among the stilt houses | `floatingMarket.png`, `.winter`, `floatingMarket.lit.png` | Carries its own ground: a timber jetty square at the water's edge, painted boats moored round it heaped with flowers and fruit under awnings in magenta and marigold. The lit file lights its lanterns. | proposals/lake-gardens.md, Combos |
+
+### With LG6: the wonder, animals and festivals
+
+| Name                  | Id                   | Files                                                                                   | Notes                                                                                                                                                                                                                                                                                                                                                                    | Source                               |
+| --------------------- | -------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ |
+| The Floating City     | `floatingCity`       | `floatingCity.png`, `.winter`, `floatingCity.stage1.png` … `.stage3.png`                | On the Great Water Garden's frame (1536 × 1280): a flower of raised beds and canals over 7 tiles of shallows, round a willow island at the centre with a pavilion. The six outer tiles are long beds in flower separated by canals with boats. Stages: the stakes and wattle marking out the beds in the water; the beds filled, bare; planted, the pavilion's frame up. | proposals/lake-gardens.md, Wonder    |
+| Axolotls              | `axolotls`           | `axolotl.swim.1.png`, `axolotl.swim.2.png`, `axolotl.rest.png`                          | Small pink axolotls with frilly gills, in the clear canals between beds. Swimming frames show the waterline, as the otter's.                                                                                                                                                                                                                                             | proposals/lake-gardens.md, Wildlife  |
+| Herons                | `herons`             | `heron.stand.png`, `heron.fish.png`, `heron.fly.1.png`, `heron.fly.2.png`               | A tall grey heron standing in the reed fringe; stabbing at a fish; flying with its neck folded.                                                                                                                                                                                                                                                                          | proposals/lake-gardens.md, Wildlife  |
+| Kingfishers           | `kingfishers`        | `kingfisher.perch.png`, `kingfisher.dive.png`                                           | A small bright blue and orange bird on a willow twig; diving.                                                                                                                                                                                                                                                                                                            | proposals/lake-gardens.md, Wildlife  |
+| Flamingos             | `flamingos`          | `flamingo.stand.png`, `flamingo.walk.1.png`, `flamingo.walk.2.png`, `flamingo.feed.png` | Pink flamingos on the open shallows, wading in a small flock; feeding with the head down.                                                                                                                                                                                                                                                                                | proposals/lake-gardens.md, Wildlife  |
+| Flower Boats          | `flowerBoats`        | `flowerBoats.card.png`                                                                  | Spring: painted boats piled with flowers on the high water, music, people on the beds waving.                                                                                                                                                                                                                                                                            | proposals/lake-gardens.md, Festivals |
+| Silk Fair             | `silkFair`           | `silkFair.card.png`                                                                     | Summer: lengths of dyed silk hung between the stilt houses, people trading and trying them on.                                                                                                                                                                                                                                                                           | proposals/lake-gardens.md, Festivals |
+| Lanterns on the Water | `lanternsOnTheWater` | `lanternsOnTheWater.card.png`                                                           | Autumn: paper lanterns floating on the dark lake, families on the jetties setting them down.                                                                                                                                                                                                                                                                             | proposals/lake-gardens.md, Festivals |
+
+Animals follow the wildlife frame above (128 × 128, bottom-centre anchor, facing right). The
+lake's festivals use the Reach's bunting and lanterns. Its district and landmark in Root City
+(LG5), the Canal Quarter and the Water Market, are in [ART-CITY.md](ART-CITY.md).
+
+**Paint in this order:** the shallows and deep water (the lake is most of the map), then the
+Chinampa, the Stilt House and the Mud Boat (the first year), the two fisheries, the reed fringe
+and the drowned town; then the rest of the buildings, the lake's other looks and the evolutions;
+the wonder, animals and cards last (LG6).
 
 ## Keepsakes (Seeds)
 

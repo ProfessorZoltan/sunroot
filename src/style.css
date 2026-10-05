@@ -1510,9 +1510,14 @@ ul.projects {
 .cool-line {
   color: #2d6676;
 }
+/* Lake Gardens' lake: lines in the map tooltip. */
+.lake-line {
+  color: #3f6f5a;
+}
 
 /* Walks to work: the left panel's row, and lines in the map tooltip and the inspector. */
 .walks-row .strong,
+.lake-row .strong,
 .water-row .strong {
   white-space: nowrap;
 }
