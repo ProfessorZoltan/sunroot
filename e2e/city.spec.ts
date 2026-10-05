@@ -395,7 +395,7 @@ test('the Highland opens with the fourth district: a run there, then on to the c
   expect(errors).toEqual([]);
 });
 
-test('the Sun Desert opens with the eighth district: a run there, then on to the Highland', async ({
+test('the Sun Desert opens with the eighth district: a run there, then on to the coast', async ({
   page,
 }) => {
   test.setTimeout(180_000);
@@ -449,7 +449,8 @@ test('the Sun Desert opens with the eighth district: a run there, then on to the
     .toBe(10);
   await dialog.getByRole('button', { name: 'Go to Root City' }).click();
 
-  // Back in Root City: the desert run counted, the districts kept; run 11 sets out for the glen.
+  // Back in Root City: the desert run counted, the districts kept; run 11 sets out for the coast
+  // (Lake Gardens, open after 10 runs and not yet visited, takes the Highland's place on offer).
   await expect(page.getByRole('heading', { name: 'Root City' })).toBeVisible();
   const c = await cityNow(page);
   expect(c.runs).toBe(10);
@@ -464,10 +465,85 @@ test('the Sun Desert opens with the eighth district: a run there, then on to the
     const card = page.getByRole('dialog');
     if (await card.isVisible()) await card.getByRole('button', { name: 'Continue' }).click();
   }
-  await next.locator('.card.expedition', { hasText: 'Highland' }).first().click();
+  await expect(next.locator('.card.expedition', { hasText: 'Lake Gardens' })).toHaveCount(1);
+  await next.locator('.card.expedition', { hasText: 'Windswept Coast' }).first().click();
   await next.getByRole('button', { name: 'Set out on run 11' }).click();
   await expect(page.locator('#map-host canvas')).toBeVisible({ timeout: 15_000 });
-  expect(await contentId()).toBe('highland');
+  expect(await contentId()).toBe('windsweptCoast');
+  expect(errors).toEqual([]);
+});
+
+test('Lake Gardens opens after 10 runs: a run there, then on to the desert', async ({ page }) => {
+  test.setTimeout(180_000);
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  const contentId = () =>
+    page.evaluate(() => (window as unknown as Win).sunroot.store!.state.contentId);
+  // A city ten runs in, with eight districts standing: all five biomes are open.
+  const eight = city(
+    [
+      'orchardWard',
+      'millraceQuarter',
+      'mendedCommons',
+      'foundryDistrict',
+      'tidalQuarter',
+      'ridgeQuarter',
+      'sunQuarter',
+      'millraceQuarter',
+    ].flatMap((d, slot) => [
+      { type: 'sendHome', result: { graft: graft(d), earned: 40, spent: 35 } } as CityCommand,
+      { type: 'place', slot } as CityCommand,
+    ]),
+  );
+  const visited = { highland: 1, windsweptCoast: 1, sunDesert: 1 };
+  await seedCity(page, { ...eight, runs: 10, biomeRuns: visited });
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Root City' })).toBeVisible();
+  const next = page.getByRole('region', { name: 'Next expedition' });
+  const lake = next.locator('.card.expedition', { hasText: 'Lake Gardens' });
+  await expect(lake).toHaveCount(1);
+  await lake.click();
+  expect((await cityNow(page)).expedition).toMatchObject({ biome: 'lakeGardens' });
+  await next.getByRole('button', { name: 'Set out on run 11' }).click();
+
+  // Run 11 on the lake: guided, and told what is new there.
+  await expect(page.locator('#map-host canvas'), errors.join('\n')).toBeVisible({
+    timeout: 15_000,
+  });
+  const start = page.getByRole('dialog', { name: /Expedition: |A new Sprout/ });
+  await expect(start).toContainText('New: Lake Gardens');
+  expect(await contentId()).toBe('lakeGardens');
+  await page.keyboard.press('Enter');
+  await playToEnd(page);
+  const dialog = page.getByRole('dialog', { name: 'The run has ended' });
+  await expect(dialog).toBeVisible();
+  const plant = dialog.locator('.card.graft').first();
+  if (await plant.isVisible()) await plant.click();
+  else await dialog.getByRole('button', { name: 'Bank the Seeds' }).click();
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as Win).sunroot.savedCity.runs))
+    .toBe(11);
+  await dialog.getByRole('button', { name: 'Go to Root City' }).click();
+
+  // Back in Root City: the lake run counted, the districts kept; run 12 sets out for the desert.
+  await expect(page.getByRole('heading', { name: 'Root City' })).toBeVisible();
+  const c = await cityNow(page);
+  expect(c.runs).toBe(11);
+  expect((c as CityState).biomeRuns).toEqual({ ...visited, lakeGardens: 1 });
+  expect(c.districts.length).toBeGreaterThanOrEqual(8);
+  const waiting = page.getByRole('region', { name: 'Place the Graft' });
+  if (await waiting.isVisible()) {
+    await page
+      .getByRole('button', { name: /\(place here\)/ })
+      .first()
+      .click();
+    const card = page.getByRole('dialog');
+    if (await card.isVisible()) await card.getByRole('button', { name: 'Continue' }).click();
+  }
+  await next.locator('.card.expedition', { hasText: 'Sun Desert' }).first().click();
+  await next.getByRole('button', { name: 'Set out on run 12' }).click();
+  await expect(page.locator('#map-host canvas')).toBeVisible({ timeout: 15_000 });
+  expect(await contentId()).toBe('sunDesert');
   expect(errors).toEqual([]);
 });
 

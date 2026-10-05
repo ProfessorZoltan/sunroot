@@ -95,6 +95,10 @@ const lake = (changes: { selfCleans?: number } = {}): Content =>
         bloom: { above: 4, seasons: [false, true, false, false], foodLoss: 1, harmonyFactor: 2 },
       };
       r.rules.plantable = ['shallows'];
+      // The Reach's own Mud Boat (the Canal Quarter's card) gives way to the lake's.
+      r.buildings = r.buildings.filter(
+        (b) => !BUILDINGS.some((x) => x.id === (b as { id: string }).id),
+      );
       r.buildings.push(...structuredClone(BUILDINGS));
     },
   });

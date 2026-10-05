@@ -195,7 +195,8 @@ describe('Root City sends expeditions to the desert once 8 districts stand', () 
 
   it('the offers take turns between the four biomes', () => {
     const seen = new Set<string>();
-    for (const runs of [9, 10, 11, 12])
+    // Before the lake opens (after 10 runs).
+    for (const runs of [6, 7, 8, 9])
       for (const o of expeditionOffer(HOME, cityWith(runs, 8))) {
         seen.add(o.biome ?? 'willowReach');
         const c = biomeOf(HOME, o.biome);

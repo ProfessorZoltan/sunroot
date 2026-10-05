@@ -440,8 +440,16 @@ function mixedOffer(content: Content, city: CityState, biomes: string[]): Expedi
   );
   const run = city.runs + 1;
   // Start from a different biome each time, so every biome comes up as the first offer.
-  return Array.from({ length: count }, (_, i) => {
-    const biome = biomes[(i + city.runs + (city.scouted ?? 0)) % biomes.length]!;
+  const slots = Array.from(
+    { length: count },
+    (_, i) => biomes[(i + city.runs + (city.scouted ?? 0)) % biomes.length]!,
+  );
+  // A biome open but never visited (the newest first) is always on offer, in the last place.
+  const fresh = [...biomes]
+    .reverse()
+    .find((id) => id !== content.id && !city.biomeRuns?.[id] && !slots.includes(id));
+  if (fresh && count > 0) slots[count - 1] = fresh;
+  return slots.map((biome, i) => {
     const d = draws.get(biome)!;
     const k = d.used++;
     return {

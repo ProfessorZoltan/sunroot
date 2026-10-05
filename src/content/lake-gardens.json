@@ -911,6 +911,26 @@
       "drinkingWater": true
     },
     {
+      "id": "fogNet",
+      "name": "Fog Net",
+      "cost": 2,
+      "workers": 0,
+      "kind": "water",
+      "requiresWater": true,
+      "floodTolerant": true,
+      "stormProof": true,
+      "drinkingWater": true,
+      "placement": {
+        "tiles": ["barren", "scrub", "hill"],
+        "atEdge": true
+      },
+      "water": {
+        "stores": 2,
+        "fills": [false, false, false, false],
+        "collects": [1, 1, 1, 2]
+      }
+    },
+    {
       "id": "reedBed",
       "name": "Reed Bed",
       "cost": 3,
@@ -2677,6 +2697,83 @@
           "set": -2
         }
       ]
+    },
+    {
+      "id": "droughtYear",
+      "name": "Drought Year",
+      "text": "The stream runs half as high all year: 5 at high water, 2 in summer, 4 in autumn and winter. The Graft is one tier higher.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "water.riverFlow.0",
+          "set": 5
+        },
+        {
+          "target": "rules",
+          "path": "water.riverFlow.1",
+          "set": 2
+        },
+        {
+          "target": "rules",
+          "path": "water.riverFlow.2",
+          "set": 4
+        },
+        {
+          "target": "rules",
+          "path": "water.riverFlow.3",
+          "set": 4
+        }
+      ],
+      "graftTierBonus": 1
+    },
+    {
+      "id": "drySeason",
+      "name": "Dry Season",
+      "text": "The stream stops in summer, and the raised beds need 1 more water then: keep water back in cisterns, or the chinampas run short.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "water.riverFlow.1",
+          "set": 0
+        },
+        {
+          "target": "building",
+          "id": "chinampa",
+          "path": "water.needs.1",
+          "add": 1
+        }
+      ]
+    },
+    {
+      "id": "bloomYear",
+      "name": "Bloom Year",
+      "text": "Warm, still water: the lake blooms above 2 grey water, not 4.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "lake.bloom.above",
+          "set": 2
+        }
+      ]
+    },
+    {
+      "id": "monsoon",
+      "name": "Monsoon",
+      "text": "High water in autumn too, instead of the lake wind, and the raised beds make 1 more food every season. The Graft is one tier higher.",
+      "modifiers": [
+        {
+          "target": "calendar",
+          "path": "2",
+          "set": "flood"
+        },
+        {
+          "target": "building",
+          "id": "chinampa",
+          "path": "yields.food",
+          "add": 1
+        }
+      ],
+      "graftTierBonus": 1
     }
   ],
   "regions": [
@@ -2684,6 +2781,100 @@
       "id": "openLake",
       "name": "Open Lake",
       "text": "The lake as it is: a broad shallow lake over half the valley with deep water in the middle and a few small islands, a stream running in from the north, reed fringe on the shore, a wooded higher shore along one side and the drowned town at the water’s edge."
+    },
+    {
+      "id": "deltaMouth",
+      "name": "Delta Mouth",
+      "text": "The stream comes in as a river: it runs 14 at high water and 10 the rest of the year, and reed fringe lines the whole shore for the high water to cover.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "water.riverFlow.0",
+          "set": 14
+        },
+        {
+          "target": "rules",
+          "path": "water.riverFlow.1",
+          "set": 8
+        },
+        {
+          "target": "rules",
+          "path": "water.riverFlow.2",
+          "set": 10
+        },
+        {
+          "target": "rules",
+          "path": "water.riverFlow.3",
+          "set": 10
+        },
+        {
+          "target": "map",
+          "path": "fringeChance",
+          "set": 1
+        }
+      ]
+    },
+    {
+      "id": "reedMarsh",
+      "name": "Reed Marsh",
+      "text": "Reed fringe two tiles deep round the lake, and little deep water: the shallows reach far out, and high water covers a third of the land. The Graft is one tier higher.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "fringeChance",
+          "set": 0.8
+        },
+        {
+          "target": "map",
+          "path": "fringeDepth",
+          "set": 2
+        },
+        {
+          "target": "map",
+          "path": "deepFrom",
+          "set": 3
+        },
+        {
+          "target": "map",
+          "path": "campLakeDistance.1",
+          "set": 3
+        }
+      ],
+      "graftTierBonus": 1
+    },
+    {
+      "id": "drownedTown",
+      "name": "Drowned Town",
+      "text": "The old town lies along the shore: 7 of its ruins at the water's edge, and fuller (36 salvage each).",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "ruins",
+          "set": 7
+        },
+        {
+          "target": "map",
+          "path": "ruinSalvage",
+          "set": 36
+        }
+      ]
+    },
+    {
+      "id": "islandChain",
+      "name": "Island Chain",
+      "text": "Deep water nearly to the shore, with a chain of small islands out in it: few shallows to make beds on.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "deepFrom",
+          "set": 1
+        },
+        {
+          "target": "map",
+          "path": "islands",
+          "set": 6
+        }
+      ]
     }
   ],
   "eraGoals": [
@@ -2762,6 +2953,12 @@
             "id": "treehouseCommons",
             "path": "demand.heat.night.3",
             "add": 1
+          },
+          {
+            "target": "building",
+            "id": "stiltHouse",
+            "path": "demand.heat.night.3",
+            "add": 1
           }
         ]
       },
@@ -2814,27 +3011,14 @@
         ]
       },
       {
-        "id": "tempestColdAutumns",
-        "name": "Cold Autumns",
-        "text": "Homes need 1 more heat on autumn nights.",
+        "id": "tempestSiltyWater",
+        "name": "Silty Water",
+        "text": "Mud settles twice as fast: 1 for every water that reaches the lake.",
         "modifiers": [
           {
-            "target": "building",
-            "id": "foundersCamp",
-            "path": "demand.heat.night.2",
-            "add": 1
-          },
-          {
-            "target": "building",
-            "id": "cottage",
-            "path": "demand.heat.night.2",
-            "add": 1
-          },
-          {
-            "target": "building",
-            "id": "treehouseCommons",
-            "path": "demand.heat.night.2",
-            "add": 1
+            "target": "rules",
+            "path": "lake.waterPerMud",
+            "set": 1
           }
         ]
       },
@@ -2884,11 +3068,17 @@
       {
         "id": "tempestCrampedHomes",
         "name": "Cramped Homes",
-        "text": "Cottages house 2 citizens instead of 3.",
+        "text": "Cottages and stilt houses house 2 citizens instead of 3.",
         "modifiers": [
           {
             "target": "building",
             "id": "cottage",
+            "path": "housing",
+            "add": -1
+          },
+          {
+            "target": "building",
+            "id": "stiltHouse",
             "path": "housing",
             "add": -1
           }

@@ -1,5 +1,18 @@
 # Changelog
 
+## Lake Gardens in Root City
+
+- **The lake opens after 10 runs**, however many districts stand, and is offered at once.
+  Its first run is guided.
+- **The Canal Quarter**, earned by food from chinampas, fisheries and fish ponds: fish ponds make
+  more food in the cold seasons, and the Mud Boat joins every biome's drafts (lifting silt from
+  the river or a pond beside it as compost).
+- **The Water Market** (the Canal Quarter next to an Orchard Ward): food beyond storage keeps a
+  season before it rots, in every biome.
+- **The lake's regions** (Open Lake, Delta Mouth, Reed Marsh, Drowned Town, Island Chain),
+  **twists** (Dry Season, Bloom Year, Monsoon, and the shared ones that fit) and its own Tempest.
+- The Fog Net reaches the lake with the Sun Quarter, as in the other biomes.
+
 ## Lake Gardens on screen
 
 - **The lake in the interface**: a Lake row in the left panel (its grey water, and whether it

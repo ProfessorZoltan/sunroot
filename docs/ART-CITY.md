@@ -173,12 +173,11 @@ Glassworks.
 
 ## The Canal Quarter and the Water Market (LG5)
 
-The eighth district and the sixth landmark, coming with Lake Gardens' fifth step
+The eighth district and the sixth landmark, in the game since Lake Gardens' fifth step
 ([proposals/lake-gardens.md](proposals/lake-gardens.md), Root City). Same frame, style, tier
 ladder and file rules as everything above: 512 × 640, late summer, each tile carrying its own
 ground, no winter files. Until the art comes the city draws them in code, as it did the others.
-The importer takes district and landmark names from the game's content, so it accepts these once
-LG5 has added them; art delivered before then waits in `art/incoming/city/`.
+Both are in the game since LG5, so the importer already knows their names.
 
 ### The Canal Quarter
 

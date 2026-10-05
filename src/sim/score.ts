@@ -280,6 +280,8 @@ function litSeason(h: { shortfall: number; citizens: number }, minCitizens: numb
 export interface Signature {
   /** Share of built energy (not the Founders' Camp) by source type. */
   energyShare: Record<string, number>;
+  /** Share of food made by building type. */
+  foodShare: Record<string, number>;
   /** Food made per citizen per season. */
   foodPerCitizen: number;
   harmony: number;
@@ -297,9 +299,16 @@ export function runSignature(content: Content, state: RunState): Signature {
   );
   const total = built.reduce((sum, [, n]) => sum + n, 0);
   const seasons = Math.max(1, state.turn);
+  const foodTotal = Object.values(ledger.food ?? {}).reduce((a, b) => a + b, 0);
   return {
     energyShare: Object.fromEntries(
       built.map(([source, n]) => [source, total === 0 ? 0 : n / total]),
+    ),
+    foodShare: Object.fromEntries(
+      Object.entries(ledger.food ?? {}).map(([type, n]) => [
+        type,
+        foodTotal === 0 ? 0 : n / foodTotal,
+      ]),
     ),
     foodPerCitizen: ledger.citizenSeasons === 0 ? 0 : ledger.foodMade / ledger.citizenSeasons,
     harmony: state.harmony,
@@ -338,8 +347,8 @@ export function graftOffer(content: Content, state: RunState, count = 2): GraftO
 export function leanOf(signature: Signature, district: District): number {
   const { metric, full, sources } = district.signature;
   const value =
-    metric === 'energyShare'
-      ? sources.reduce((sum, id) => sum + (signature.energyShare[id] ?? 0), 0)
+    metric === 'energyShare' || metric === 'foodShare'
+      ? sources.reduce((sum, id) => sum + (signature[metric][id] ?? 0), 0)
       : signature[metric];
   return value / full;
 }

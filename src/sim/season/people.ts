@@ -75,7 +75,13 @@ export function feedAndGrow(ctx: SeasonContext): void {
   const kept = Object.values(state.buildings).some(
     (b) => defOf(content, b).stopsRot && ctx.powered.has(b.uid),
   );
-  const rotted = kept ? 0 : Math.max(0, state.stores.food - storage);
+  const over = Math.max(0, state.stores.food - storage);
+  // With the Water Market, food beyond storage keeps a season: only what was already beyond
+  // storage last season rots, and the rest is held over.
+  const keeps = rules.surplusKeeps && !kept;
+  const rotted = kept ? 0 : keeps ? Math.min(over, state.heldOver ?? 0) : over;
+  if (keeps) state.heldOver = over - rotted;
+  else delete state.heldOver;
   state.stores.food -= rotted;
   flow(report.flows, 'food', 'used', 'Rotted (beyond storage)', rotted);
   if (rules.rotsInto === 'biomass') {

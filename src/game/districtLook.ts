@@ -10,6 +10,7 @@ export const DISTRICT_LOOK: Record<string, { color: string; ink: string }> = {
   tidalQuarter: { color: '#2F5E63', ink: '#e6f2f2' },
   ridgeQuarter: { color: '#6B5B4E', ink: '#f4ece2' },
   sunQuarter: { color: '#C8743A', ink: '#fff4e6' },
+  canalQuarter: { color: '#7A4E8A', ink: '#f6eef8' },
 };
 
 export const districtLook = (id: string) =>

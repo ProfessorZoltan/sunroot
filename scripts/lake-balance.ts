@@ -5,9 +5,11 @@
  * the like-for-like row is the Reach without the Great Water Garden.
  *
  *   npx tsx scripts/lake-balance.ts [runs, default 20] [bots, comma-separated] [biome filter]
+ *
+ * EXPEDITIONS=1 plays the lake's regions and twists instead (LG5), each against the open lake.
  */
 import { BIOMES, biomeContent, loadBiome } from '../src/content';
-import { scoreRun, type Content, type RunState } from '../src/sim';
+import { scoreRun, type Content, type RunExpedition, type RunState } from '../src/sim';
 import { BOTS } from '../src/balance/bots';
 import { playRun } from '../src/balance/runner';
 
@@ -28,7 +30,7 @@ function reachWithoutWonder(): Content {
   return loadBiome(raw);
 }
 
-function play(content: Content, bot: string) {
+function play(content: Content, bot: string, expedition?: RunExpedition) {
   const scores: number[] = [];
   const grey: number[] = [];
   const silted: number[] = [];
@@ -44,7 +46,7 @@ function play(content: Content, bot: string) {
         last = s;
         if (s.lastReport?.lake?.bloom) blooms++;
       },
-      run: { water: true },
+      run: { water: true, ...(expedition ? { expedition } : {}) },
     });
     const s = last as unknown as RunState;
     const score = scoreRun(content, s);
@@ -67,6 +69,36 @@ function play(content: Content, bot: string) {
     beds: mean(beds),
     loops: mean(loops),
   };
+}
+
+if (process.env.EXPEDITIONS) {
+  const lake = biomeContent('lakeGardens');
+  const none = { twist: null, request: null };
+  const cases: [string, RunExpedition, number][] = [
+    ['open lake', none, 0],
+    ...lake.regions.map((r): [string, RunExpedition, number] => [
+      `region ${r.id}`,
+      { ...none, region: r.id },
+      r.graftTierBonus,
+    ]),
+    ...lake.twists.map((t): [string, RunExpedition, number] => [
+      `twist ${t.id}`,
+      { ...none, twist: t.id },
+      t.graftTierBonus,
+    ]),
+  ];
+  console.log(
+    '| Bot | Expedition | Graft bonus | Median score | Heartwood | Collapsed | Grey at the end | Silted tiles | Beds |',
+  );
+  console.log('| --- | --- | --- | --- | --- | --- | --- | --- | --- |');
+  for (const bot of BOT_NAMES)
+    for (const [name, expedition, bonus] of cases) {
+      const r = play(lake, bot, expedition);
+      console.log(
+        `| ${bot} | ${name} | ${bonus} | ${r.median} | ${r.heartwood}% | ${r.collapsed} of ${N} | ${r.grey} | ${r.silted} | ${r.beds} |`,
+      );
+    }
+  process.exit(0);
 }
 
 const cases: [string, Content][] = [

@@ -455,6 +455,30 @@
       }
     },
     {
+      "id": "mudBoat",
+      "name": "Mud Boat",
+      "cost": 2,
+      "workers": 1,
+      "kind": "industry",
+      "placement": {
+        "tiles": [
+          "floodplain",
+          "hill",
+          "barren",
+          "scrub",
+          "meadow",
+          "woodland",
+          "saltmarsh",
+          "dune"
+        ],
+        "adjacentTo": ["river", "reservoir"],
+        "adjacentToBuildings": ["fishPond"]
+      },
+      "yields": {
+        "compost": [1, 1, 1, 2]
+      }
+    },
+    {
       "id": "salvageYard",
       "name": "Salvage Yard",
       "cost": 2,

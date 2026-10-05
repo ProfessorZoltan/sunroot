@@ -30,7 +30,9 @@ const drawn = [
 ];
 const byId = { ...DESERT.byId, ...HIGH.byId, ...COAST.byId, ...content.byId };
 /** Buildings drawn in code until their art comes (the art guide asks for it). */
-const AWAITING_ART = new Set(['iceHouse']);
+const AWAITING_ART = new Set(['iceHouse', 'mudBoat']);
+/** Root City pieces drawn in code until their art comes (Lake Gardens' LG5, ART-CITY.md). */
+const CITY_AWAITING_ART = new Set(['canalQuarter', 'waterMarket']);
 /** Tiles drawn in code until their art comes (Lake Gardens, before its art guide). */
 const TILES_AWAITING_ART = new Set(['shallows', 'deep', 'bed']);
 
@@ -167,10 +169,10 @@ describe('hand-made art', () => {
 
   it('has every Root City district at each tier, and each landmark along its three edges', () => {
     const tiers = content.rules.score.tiers.map((t) => t.id);
-    for (const d of content.districts)
+    for (const d of content.districts.filter((x) => !CITY_AWAITING_ART.has(x.id)))
       for (const tier of tiers)
         expect(art(`city/${d.id}.${tier}.png`), `${d.id}.${tier}`).toBe(true);
-    for (const l of content.landmarks)
+    for (const l of content.landmarks.filter((x) => !CITY_AWAITING_ART.has(x.id)))
       for (const side of ['e', 'ne', 'nw'])
         expect(art(`city/${l.id}.edge.${side}.png`), `${l.id}.edge.${side}`).toBe(true);
   });

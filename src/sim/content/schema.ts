@@ -856,6 +856,8 @@ export const RulesSchema = z
     foodPerCitizen: nonNeg,
     /** What food beyond storage turns into: scraps (can become clutter) or biomass (can't). */
     rotsInto: z.enum(['scraps', 'biomass']),
+    /** Food beyond storage keeps one season before it rots (the Water Market). */
+    surplusKeeps: z.boolean().default(false),
     citizensPerScrap: int.min(1),
     landHealth: z.array(TileTypeSchema).min(2),
     /**
@@ -1170,6 +1172,8 @@ const LakeMapSchema = z
     streamRows: nonNeg.default(0),
     /** A shore tile beside the lake is reed fringe by this chance. */
     fringeChance: z.number().min(0).max(1),
+    /** Reed fringe reaches this many tiles in from the water (the Reed Marsh: 2). */
+    fringeDepth: int.min(1).default(1),
     /** Columns of higher shore along one side: hills by `hillChance`, and the woodland. */
     shoreColumns: nonNeg,
     hillChance: z.number().min(0).max(1),
@@ -1456,6 +1460,7 @@ export type EraGoal = z.infer<typeof EraGoalSchema>;
 /** What a run's signature is measured by, for the Graft offer. */
 export const SIGNATURE_METRICS = [
   'energyShare',
+  'foodShare',
   'foodPerCitizen',
   'harmony',
   'industry',
@@ -1473,7 +1478,7 @@ export const DistrictSchema = z
     signature: z.object({
       metric: z.enum(SIGNATURE_METRICS),
       full: z.number().positive(),
-      /** For `energyShare`: the source types whose share of built energy counts. */
+      /** For `energyShare` and `foodShare`: the source types whose share of energy or food counts. */
       sources: z.array(z.string()).default([]),
     }),
     /** The perk at each Graft tier, lowest first: what it says and what it changes in a run. */

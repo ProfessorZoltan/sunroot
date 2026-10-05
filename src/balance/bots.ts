@@ -489,6 +489,13 @@ function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): v
     tendCooling(turn, profile);
   tendIce(turn, profile);
   tendFrost(turn, profile);
+  // A lean start (too few materials for a salvage yard, its workshop and a farm): the farm
+  // first, or the camp starves while the yard waits for its workshop (a chinampa costs 4).
+  const noFarm = !profile.food.some((id) => turn.has(id));
+  const farmCost = Math.min(...profile.food.map((id) => turn.rules.byId[id]?.cost ?? Infinity));
+  const costOf = (id: string) => (turn.has(id) ? 0 : (turn.rules.byId[id]?.cost ?? 0));
+  if (noFarm && turn.state.stores.materials < costOf('salvageYard') + costOf('workshop') + farmCost)
+    for (const id of profile.food) if (turn.build(id)) break;
   if (!turn.has('salvageYard')) turn.build('salvageYard');
   if (!turn.has('workshop')) turn.build('workshop');
   // On the coast, salvage from the strandline as well as the ruins: a beachcombing yard a workshop.

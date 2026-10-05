@@ -180,7 +180,9 @@ describe('Root City sends expeditions to the coast from run 5', () => {
   it('the coast opens at run 5; a city already past it has it at once', () => {
     expect(openBiomes(HOME, cityAt(3))).toEqual(['willowReach']);
     expect(openBiomes(HOME, cityAt(4))).toEqual(['willowReach', 'windsweptCoast']);
-    expect(openBiomes(HOME, cityAt(12))).toEqual(['willowReach', 'windsweptCoast']);
+    expect(openBiomes(HOME, cityAt(9))).toEqual(['willowReach', 'windsweptCoast']);
+    // After 10 runs Lake Gardens opens too, however many districts stand.
+    expect(openBiomes(HOME, cityAt(12))).toEqual(['willowReach', 'windsweptCoast', 'lakeGardens']);
     // Content loaded on its own knows no other biome.
     expect(openBiomes(loadBiome(willowReach), cityAt(12))).toEqual(['willowReach']);
   });

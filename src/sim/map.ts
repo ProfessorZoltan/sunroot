@@ -451,7 +451,12 @@ function generateLake(content: Content, gen: LakeMapGen, seed: string): Generate
   // Reed fringe on the shore.
   for (const k of order) {
     const t = tiles[k]!;
-    if (isLand(t) && t.type !== 'hill' && lakeDistance(t) === 1 && chance(rng, gen.fringeChance))
+    if (
+      isLand(t) &&
+      t.type !== 'hill' &&
+      lakeDistance(t) <= gen.fringeDepth &&
+      chance(rng, gen.fringeChance)
+    )
       t.type = 'floodplain';
   }
 

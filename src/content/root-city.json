@@ -349,6 +349,72 @@
       ],
       "adds": "fogNet",
       "nativeTo": ["sunDesert"]
+    },
+    {
+      "id": "canalQuarter",
+      "name": "Canal Quarter",
+      "earnedBy": "Water-led food",
+      "signature": {
+        "metric": "foodShare",
+        "full": 0.5,
+        "sources": ["chinampa", "wastewaterFishery", "lakeFishery", "fishPond"]
+      },
+      "green": false,
+      "perks": [
+        {
+          "text": "Fish ponds make 1 more food in winter",
+          "modifiers": [
+            {
+              "target": "building",
+              "id": "fishPond",
+              "path": "yields.food.3",
+              "add": 1
+            }
+          ]
+        },
+        {
+          "text": "Fish ponds make 1 more food in autumn and winter",
+          "modifiers": [
+            {
+              "target": "building",
+              "id": "fishPond",
+              "path": "yields.food.2",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "fishPond",
+              "path": "yields.food.3",
+              "add": 1
+            }
+          ]
+        },
+        {
+          "text": "Fish ponds make 1 more food in spring, autumn and winter",
+          "modifiers": [
+            {
+              "target": "building",
+              "id": "fishPond",
+              "path": "yields.food.0",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "fishPond",
+              "path": "yields.food.2",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "fishPond",
+              "path": "yields.food.3",
+              "add": 1
+            }
+          ]
+        }
+      ],
+      "adds": "mudBoat",
+      "nativeTo": ["lakeGardens"]
     }
   ],
   "landmarks": [
@@ -456,6 +522,24 @@
           "id": "solarCanopy",
           "path": "cost",
           "add": -1
+        }
+      ]
+    },
+    {
+      "id": "waterMarket",
+      "name": "Water Market",
+      "district": "canalQuarter",
+      "nextTo": {
+        "districts": ["orchardWard"],
+        "count": 1
+      },
+      "text": "The Canal Quarter next to an Orchard Ward: food beyond storage keeps a season before it rots, in every biome.",
+      "hint": "Where the canal meets the orchard.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "surplusKeeps",
+          "set": true
         }
       ]
     }
@@ -733,6 +817,10 @@
       {
         "id": "sunDesert",
         "fromDistricts": 8
+      },
+      {
+        "id": "lakeGardens",
+        "fromRun": 11
       }
     ],
     "teaching": {

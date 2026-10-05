@@ -301,6 +301,8 @@ export function LastSeason({ store }: { store: GameStore }) {
   }
   if (r.food.unfed) lines.push(`${r.food.unfed} went hungry.`);
   if (r.food.rotted) lines.push(`${r.food.rotted} food rotted (storage full).`);
+  if (state.heldOver)
+    lines.push(`${state.heldOver} food beyond storage kept for a season (the Water Market).`);
   if (r.clutter.fromScraps) lines.push(`${r.clutter.fromScraps} scraps became clutter.`);
   for (const n of state.notices) lines.push(n);
   const wb = r.wellbeing.after - r.wellbeing.before;

@@ -119,6 +119,11 @@ function advance(content: Content, ctx: SeasonContext): RunState {
   const energy = { ...state.ledger.energy };
   for (const [source, amount] of Object.entries(bySource))
     energy[source] = (energy[source] ?? 0) + amount;
+  const food = { ...(state.ledger.food ?? {}) };
+  for (const [uid, y] of Object.entries(report.yields)) {
+    const type = state.buildings[uid]?.type;
+    if (type && (y.food ?? 0) > 0) food[type] = (food[type] ?? 0) + y.food!;
+  }
   let industry = 0;
   for (const uid of Object.keys(report.runs)) industry += report.yields[uid]?.materials ?? 0;
   let heatLocal = 0;
@@ -131,6 +136,7 @@ function advance(content: Content, ctx: SeasonContext): RunState {
   state.ledger = {
     energy,
     foodMade: state.ledger.foodMade + report.food.produced,
+    food,
     foodEaten: state.ledger.foodEaten + report.food.eaten,
     citizenSeasons: state.ledger.citizenSeasons + state.citizens,
     industry: state.ledger.industry + industry,

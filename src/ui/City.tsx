@@ -215,6 +215,22 @@ function Emblem({ id, ink }: { id: string; ink: string }) {
           <rect x="-9" y="-4" width="5" height="2" fill="#C8743A" />
         </g>
       );
+    case 'canalQuarter':
+      // A stilt house over the canal, its water rippling.
+      return (
+        <g>
+          <path d="M-8,-1 L0,-10 L8,-1 Z" fill={ink} />
+          <rect x="-6" y="-1" width="12" height="7" fill={ink} />
+          <line x1="-4" y1="6" x2="-4" y2="10" stroke={ink} stroke-width="1.6" />
+          <line x1="4" y1="6" x2="4" y2="10" stroke={ink} stroke-width="1.6" />
+          <path
+            d="M-12,10 Q-9,8 -6,10 T0,10 T6,10 T12,10"
+            fill="none"
+            stroke="#8fc0b0"
+            stroke-width="1.8"
+          />
+        </g>
+      );
     default:
       return <circle r="9" fill={ink} />;
   }
