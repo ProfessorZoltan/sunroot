@@ -46,7 +46,9 @@ export function lakeAt(
       );
     else if (mud > 0)
       lines.push(
-        `Mud: ${mud} of ${rules.siltAt} (it silts up at ${rules.siltAt}). A mud boat beside it lifts it as compost.`,
+        rules.silts
+          ? `Mud: ${mud} of ${rules.siltAt} (it silts up at ${rules.siltAt}). A mud boat beside it lifts it as compost.`
+          : `Mud: ${mud}; the shallows silt up no more. A mud boat beside it lifts it as compost.`,
       );
   }
   if (tile.type === 'bed' && !b) lines.push('A raised bed, land made from the lake: as meadow.');

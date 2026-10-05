@@ -15,6 +15,7 @@ import { defOf, occupancy, tileAt } from './queries';
 import { addYield, explain, type SeasonContext } from './season/context';
 import type { RunState, WellbeingLine, WildlifeReport } from './types';
 import { waterOn } from './water';
+import { edgeTiles, hedgeRuns } from './edges';
 
 /** The animals this content has (they come with the water system). */
 export function animals(content: Content): Wildlife[] {
@@ -33,6 +34,17 @@ export function habitatOf(
   occ = occupancy(state),
 ): { tiles: string[]; herds: number } {
   const h = animal.habitat;
+  if (h.kind === 'edges') {
+    const runs = hedgeRuns(state)
+      .map((run) =>
+        run.filter((e) =>
+          edgeTiles(e).some((t) => h.nextToTiles.includes(tileAt(state, t)?.type as never)),
+        ),
+      )
+      .filter((run) => run.length > 0);
+    const tiles = [...new Set(runs.flat().flatMap((e) => edgeTiles(e).map(hexKey)))].sort();
+    return { tiles, herds: runs.length };
+  }
   if (h.kind === 'building') {
     const tiles = Object.values(state.buildings)
       .filter(
@@ -47,6 +59,7 @@ export function habitatOf(
       .sort();
     return { tiles, herds: tiles.length };
   }
+  if (h.cleanLake && (state.lake?.grey ?? 0) > 0) return { tiles: [], herds: 0 };
   const fits = new Set(
     Object.keys(state.map.tiles).filter((key) => {
       const t = state.map.tiles[key]!;

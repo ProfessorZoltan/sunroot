@@ -71,6 +71,32 @@ export const YOUNG: readonly Young[] = [
     rests: true,
   },
   { keepsake: 'oryxCalf', animal: 'oryx', variant: 'calf', count: 1, scale: 0.6 },
+  { keepsake: 'axolotlYoung', animal: 'axolotls', variant: 'young', count: 2, scale: 0.55 },
+  {
+    keepsake: 'heronChicks',
+    animal: 'herons',
+    variant: 'chick',
+    count: 2,
+    scale: 0.5,
+    look: 'grey',
+    rests: true,
+  },
+  {
+    keepsake: 'kingfisherFledglings',
+    animal: 'kingfishers',
+    variant: 'young',
+    count: 2,
+    scale: 0.8,
+    rests: true,
+  },
+  {
+    keepsake: 'flamingoChicks',
+    animal: 'flamingos',
+    variant: 'chick',
+    count: 1,
+    scale: 0.55,
+    look: 'grey',
+  },
 ];
 
 /** The art's frame for a young one: the variant after the animal's name (`deer.walk.2` → `deer.white.walk.2`). */

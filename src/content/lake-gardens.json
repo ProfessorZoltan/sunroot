@@ -1460,6 +1460,54 @@
       },
       "placeable": false,
       "draftable": false
+    },
+    {
+      "id": "floatingCity",
+      "name": "Floating City",
+      "cost": 60,
+      "workers": 0,
+      "kind": "food",
+      "draftable": false,
+      "minEra": 3,
+      "requiresWater": true,
+      "floodTolerant": true,
+      "stormProof": true,
+      "placement": {
+        "tiles": ["shallows", "deep"]
+      },
+      "wonder": {
+        "seasons": 4,
+        "alsoCosts": {
+          "biomass": 30
+        },
+        "needsLoops": ["dykeLoop"],
+        "needsBuildings": {
+          "chinampa": 3
+        },
+        "nearWater": false,
+        "mustInclude": ["shallows"],
+        "score": 60,
+        "graftTiers": 1,
+        "modifiers": [
+          {
+            "target": "rules",
+            "path": "lake.silts",
+            "set": false
+          },
+          {
+            "target": "rules",
+            "path": "lake.bloom.above",
+            "set": 1000
+          },
+          {
+            "target": "building",
+            "id": "chinampa",
+            "path": "yields.food",
+            "add": 1
+          }
+        ],
+        "gives": "the lake silts up and blooms no more, chinampas make 1 more food"
+      }
     }
   ],
   "combos": [
@@ -2633,8 +2681,118 @@
       }
     }
   ],
-  "wildlife": [],
-  "festivals": [],
+  "wildlife": [
+    {
+      "id": "axolotls",
+      "name": "Axolotls",
+      "text": "Axolotls come at Harmony 20 to the open canals between chinampas, while the lake holds no grey water. In summer, chinampas within 2 tiles of them make 1 more food: the axolotls eat the pests.",
+      "harmony": 20,
+      "habitat": {
+        "kind": "tiles",
+        "tiles": ["shallows"],
+        "wild": true,
+        "nextToBuildings": ["chinampa"],
+        "cleanLake": true
+      },
+      "effect": {
+        "kind": "nearHabitat",
+        "buildings": ["chinampa"],
+        "range": 2,
+        "food": 1,
+        "seasons": ["summer"]
+      }
+    },
+    {
+      "id": "herons",
+      "name": "Herons",
+      "text": "Herons come at Harmony 40 to the reed fringe beside a fishery. Fisheries and fish ponds within 2 tiles of them make 1 more food: the herons take the weak fish, and the rest grow.",
+      "harmony": 40,
+      "habitat": {
+        "kind": "tiles",
+        "tiles": ["floodplain"],
+        "wild": true,
+        "nextToBuildings": ["wastewaterFishery", "lakeFishery", "fishPond"]
+      },
+      "effect": {
+        "kind": "nearHabitat",
+        "buildings": ["wastewaterFishery", "lakeFishery", "fishPond"],
+        "range": 2,
+        "food": 1
+      }
+    },
+    {
+      "id": "kingfishers",
+      "name": "Kingfishers",
+      "text": "Kingfishers come at Harmony 50 to willow edges beside open water. Each run of willow edges they nest along gives 1 wellbeing every season.",
+      "harmony": 50,
+      "habitat": {
+        "kind": "edges",
+        "nextToTiles": ["shallows", "deep"]
+      },
+      "effect": {
+        "kind": "wellbeing",
+        "perHerd": 1,
+        "group": "pair"
+      }
+    },
+    {
+      "id": "flamingos",
+      "name": "Flamingos",
+      "text": "Flamingos come at Harmony 70 to open shallows of 12 tiles or more, while the lake holds no grey water. Each such stretch of shallows gives 1 wellbeing every season.",
+      "harmony": 70,
+      "habitat": {
+        "kind": "tiles",
+        "tiles": ["shallows"],
+        "wild": true,
+        "minGroup": 12,
+        "cleanLake": true
+      },
+      "effect": {
+        "kind": "wellbeing",
+        "perHerd": 1,
+        "group": "flock"
+      }
+    }
+  ],
+  "festivals": [
+    {
+      "id": "flowerBoats",
+      "name": "Flower Boats",
+      "text": "Painted boats heaped with flowers on the high water, bringing seed and news from the far shore. +3 wellbeing, and a free reroll of the draft.",
+      "season": "spring",
+      "cost": {
+        "food": 5
+      },
+      "wellbeing": 3,
+      "freeRerolls": 1
+    },
+    {
+      "id": "silkFair",
+      "name": "Silk Fair",
+      "text": "Lengths of dyed silk hung between the stilt houses, and buyers from far away. +3 wellbeing, and silk houses may run once more this summer.",
+      "season": "summer",
+      "cost": {
+        "materials": 5
+      },
+      "wellbeing": 3,
+      "extraRuns": {
+        "buildings": ["silkHouse"],
+        "runs": 1
+      }
+    },
+    {
+      "id": "lanternsOnTheWater",
+      "name": "Lanterns on the Water",
+      "text": "Paper lanterns set floating on the dark lake. +3 wellbeing if every night this autumn is powered, and the animals come out to see.",
+      "season": "autumn",
+      "cost": {
+        "materials": 5
+      },
+      "wellbeing": 3,
+      "needsNightPowered": true,
+      "showsWildlife": true
+    }
+  ],
   "twists": [
     {
       "id": "fairWeather",
@@ -2919,6 +3077,13 @@
       },
       "reward": {
         "knowledge": 3
+      },
+      "or": {
+        "text": "Or finish the Floating City.",
+        "goal": {
+          "kind": "wonder",
+          "building": "floatingCity"
+        }
       }
     }
   ],

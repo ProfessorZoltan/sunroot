@@ -7,7 +7,8 @@
  *     order, and make food of it; then the lake cleans a little by itself.
  *  3. In the bloom seasons, a lake still holding more than `bloom.above` grey water blooms.
  *  4. Mud boats lift mud from the shallows beside them, the fullest first, as compost.
- *  5. A shallows tile holding `siltAt` mud is silted up until dredged.
+ *  5. A shallows tile holding `siltAt` mud is silted up until dredged (unless the lake `silts` no
+ *     more: the Floating City).
  *
  * Off (and nothing here runs) without `rules.lake`.
  */
@@ -103,7 +104,7 @@ export function resolveLake(ctx: SeasonContext): void {
   // 5. Shallows full of mud silt up; dredged below that, they open again.
   for (const t of Object.values(state.map.tiles)) {
     if (t.type !== 'shallows') continue;
-    const full = (t.mud ?? 0) >= rules.siltAt;
+    const full = rules.silts && (t.mud ?? 0) >= rules.siltAt;
     if (full) t.silted = true;
     else delete t.silted;
   }

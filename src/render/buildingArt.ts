@@ -473,6 +473,42 @@ export const BUILDING_ART: Record<string, Art> = {
     ] as const)
       g.ellipse(c.x + dx, c.y + dy, r, r * 0.45).fill({ color: 0xffffff, alpha: 0.55 });
   },
+  /** Drawn when its art is missing: long beds in flower on the 6 tiles round a willow island. */
+  floatingCity(g, c) {
+    for (let i = 0; i < 6; i++) {
+      const a = (Math.PI / 3) * i + Math.PI / 6;
+      const x = c.x + Math.cos(a) * 48;
+      const y = c.y + Math.sin(a) * 42;
+      // Two beds on each tile, a canal between them, a canoe now and then.
+      for (const side of [-1, 1]) {
+        const bx = x + Math.cos(a + Math.PI / 2) * 9 * side;
+        const by = y + Math.sin(a + Math.PI / 2) * 8 * side;
+        g.ellipse(bx, by, 13, 5.5)
+          .fill({ color: 0x8fb36a })
+          .stroke({ width: 1.4, color: 0x5a4632 });
+        for (let k = -1; k <= 1; k++)
+          g.circle(bx + k * 6, by - 1, 1.8).fill({
+            color: k === 0 ? COLORS.sunGold : (i + k) % 2 === 0 ? 0xc23b7a : 0xe89a2c,
+          });
+      }
+      if (i % 2 === 0) g.ellipse(x, y, 5, 1.6).fill({ color: 0x8a5a3a });
+    }
+    // The willow island at the centre, with its pavilion.
+    g.circle(c.x, c.y + 2, 17)
+      .fill({ color: 0x7fa35a })
+      .stroke({ width: 1.6, color: 0x5a4632 });
+    for (const [dx, dy] of [
+      [-11, -4],
+      [11, -3],
+      [-6, 9],
+      [8, 9],
+    ] as const) {
+      g.rect(c.x + dx - 1, c.y + dy - 8, 2, 9).fill({ color: COLORS.wood });
+      g.ellipse(c.x + dx, c.y + dy - 12, 3.4, 7).fill({ color: 0x6d9a4a });
+    }
+    g.rect(c.x - 7, c.y - 3, 14, 7).fill({ color: 0xf3e3c3 });
+    g.poly([c.x - 9, c.y - 3, c.x, c.y - 12, c.x + 9, c.y - 3]).fill({ color: 0x7a4e8a });
+  },
   solarOasis(g, c) {
     // A flower of mirrors round a tower, its cooling pool and garden at the foot.
     for (let ring = 0; ring < 2; ring++) {

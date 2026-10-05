@@ -162,6 +162,7 @@ export function wonderGivesText(def: BuildingDef): string {
   const feeds = def.water?.feeds;
   if (feeds)
     parts.push(`${feeds.amount} ${feeds.quality} water a season into the channel beside it`);
+  if (def.wonder?.gives) parts.push(def.wonder.gives);
   return parts.map((p) => `${p}, `).join('');
 }
 

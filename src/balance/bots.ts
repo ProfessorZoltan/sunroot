@@ -643,9 +643,10 @@ function pursueWonder(turn: Turn, profile: Profile): boolean {
     }
     if (state.era < def.minEra || !flowerAt) return false;
     const extra = Object.entries(w.alsoCosts) as [keyof typeof state.stores, number][];
-    const paid =
-      state.stores.materials >= def.cost + profile.reserve &&
-      extra.every(([res, n]) => state.stores[res] >= n);
+    // Saving materials can't pay what else it costs (the Floating City's biomass): short of that,
+    // the town goes on building as usual rather than wait on it.
+    if (!extra.every(([res, n]) => state.stores[res] >= n)) return false;
+    const paid = state.stores.materials >= def.cost + profile.reserve;
     if (paid && turn.apply({ type: 'place', building: def.id, at: flowerAt })) return false;
     // Saving up for it: nothing else is bought this season.
     return true;
@@ -662,9 +663,10 @@ function keptFlower(turn: Turn, def: BuildingDef): Hex | undefined {
   let best: { at: Hex; cost: number; key: string } | undefined;
   for (const t of Object.values(turn.state.map.tiles)) {
     if (wonderSiteProblem(turn.rules, turn.state, def, t)) continue;
-    // Floodplain kept for farms; on the coast, mudflat kept for the oyster reefs it needs.
+    // Floodplain kept for farms; on the coast, mudflat kept for the oyster reefs it needs; on the
+    // lake, shallows kept for the beds and fisheries (the Floating City goes on the deep water).
     const cost = flower(t).filter((h) =>
-      ['floodplain', 'mudflat'].includes(turn.state.map.tiles[hexKey(h)]?.type ?? ''),
+      ['floodplain', 'mudflat', 'shallows'].includes(turn.state.map.tiles[hexKey(h)]?.type ?? ''),
     ).length;
     const key = hexKey(t);
     if (!best || cost < best.cost || (cost === best.cost && key < best.key))

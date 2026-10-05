@@ -158,9 +158,14 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
   for (const a of data.wildlife) {
     const where = `wildlife ${a.id}`;
     const h = a.habitat;
-    (h.kind === 'tiles' ? (h.nextToBuildings ?? []) : h.buildings).forEach((id) =>
-      known(id, where),
-    );
+    (h.kind === 'tiles'
+      ? (h.nextToBuildings ?? [])
+      : h.kind === 'building'
+        ? h.buildings
+        : []
+    ).forEach((id) => known(id, where));
+    if (h.kind === 'edges' && !data.buildings.some((b) => b.edge))
+      problems.push(`${where} lives along edges, but nothing here is built on them`);
     const e = a.effect;
     if (e.kind === 'nextToTiles' || e.kind === 'nearHabitat')
       e.buildings.forEach((id) => known(id, where));
@@ -225,6 +230,9 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
       })),
       ...data.rules.eraModifiers.map((m) => ({ id: `era ${m.era}`, modifiers: m.modifiers })),
       ...data.projects.map((p) => ({ id: p.id, modifiers: p.effect.modifiers })),
+      ...data.buildings
+        .filter((b) => b.wonder && b.wonder.modifiers.length > 0)
+        .map((b) => ({ id: b.id, modifiers: b.wonder!.modifiers })),
       ...data.districts.flatMap((d) =>
         d.perks.map((perk, i) => ({
           id: `${d.id} perk ${i + 1}`,

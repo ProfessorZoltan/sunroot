@@ -622,7 +622,12 @@ export function resolveEnergy(ctx: SeasonContext): void {
     const byRecipe: Record<string, number> = {};
     let runs = 0;
     // The Foundry District's perk: extra runs, on any energy, in the first year.
-    const maxRuns = def.recipes.maxRuns + (state.year === 1 ? def.recipes.firstYearExtraRuns : 0);
+    // A festival's extra runs (the Silk Fair: the silk houses' busiest summer).
+    const fair = festivalThisSeason(content, state)?.extraRuns;
+    const maxRuns =
+      def.recipes.maxRuns +
+      (state.year === 1 ? def.recipes.firstYearExtraRuns : 0) +
+      (fair?.buildings.includes(b.type) ? fair.runs : 0);
     while (runs < maxRuns + def.recipes.nightOnlyRuns) {
       const has = (needs: Partial<Record<Resource, number>>) =>
         Object.entries(needs).every(([res, n]) => state.stores[res as Resource] >= n);

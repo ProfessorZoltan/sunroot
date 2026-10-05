@@ -312,6 +312,10 @@ export const BuildingSchema = z
           .optional(),
         score: nonNeg,
         graftTiers: nonNeg.default(0),
+        /** Finished, it changes the run's rules for good (the Floating City: the lake never silts). */
+        modifiers: z.lazy(() => z.array(ModifierSchema)).default([]),
+        /** What those modifiers do, in a few words for its details and the Almanac. */
+        gives: z.string().optional(),
       })
       .strict()
       .optional(),
@@ -785,6 +789,8 @@ const LakeRulesSchema = z
      * together (the Water First charter). Missing: no limit.
      */
     bedShare: z.number().min(0).max(1).optional(),
+    /** Shallows full of mud silt up (the Floating City, finished, keeps them from it). */
+    silts: z.boolean().default(true),
     /** Grey water the lake cleans by itself each season (sun, reeds, time). */
     selfCleans: nonNeg,
     /** Harmony each unit of grey water the lake holds costs, each season. */
@@ -1680,6 +1686,18 @@ const HabitatSchema = z.discriminatedUnion('kind', [
       minGroup: int.min(1).default(1),
       /** Only tiles at this height or higher (the mountain hares' high meadow). */
       minHeight: nonNeg.default(0),
+      /** Only while the lake holds no grey water (Lake Gardens' axolotls and flamingos). */
+      cleanLake: z.boolean().default(false),
+    })
+    .strict(),
+  /**
+   * The edge building (hedges, willow edges) along an edge with one of these tiles on either
+   * side; each run of them joined end to end is a group (the kingfishers' pairs).
+   */
+  z
+    .object({
+      kind: z.literal('edges'),
+      nextToTiles: z.array(TileTypeSchema).min(1),
     })
     .strict(),
   /** One of these buildings, beside one of these tiles (the beavers' weir by woodland). */
@@ -1793,6 +1811,11 @@ export const FestivalSchema = z
     coolingRelief: nonNeg.default(0),
     /** Homes use this much less energy at night that season (Star Night: the lights out). */
     nightEnergyRelief: nonNeg.default(0),
+    /** These buildings may run their recipe this many more times that season (the Silk Fair). */
+    extraRuns: z
+      .object({ buildings: z.array(z.string()).min(1), runs: int.min(1) })
+      .strict()
+      .optional(),
     requiresWater: z.boolean().default(true),
   })
   .strict();

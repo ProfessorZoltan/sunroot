@@ -35,7 +35,12 @@ export type ActorKind =
   | 'fennec'
   | 'sandgrouse'
   | 'falcon'
-  | 'oryx';
+  | 'oryx'
+  // The lake's, drawn in code until their art comes (drawAnimal).
+  | 'axolotl'
+  | 'heron'
+  | 'kingfisher'
+  | 'flamingo';
 
 export interface Actor {
   kind: ActorKind;
@@ -71,6 +76,10 @@ const KIND: Record<string, ActorKind> = {
   sandgrouse: 'sandgrouse',
   falcons: 'falcon',
   oryx: 'oryx',
+  axolotls: 'axolotl',
+  herons: 'heron',
+  kingfishers: 'kingfisher',
+  flamingos: 'flamingo',
 };
 
 /** How many of each animal show at most, and over how many tiles each moves. */
@@ -91,6 +100,10 @@ const SHOWN: Record<ActorKind, { count: number; steps: number }> = {
   sandgrouse: { count: 3, steps: 2 },
   falcon: { count: 1, steps: 1 },
   oryx: { count: 3, steps: 4 },
+  axolotl: { count: 3, steps: 2 },
+  heron: { count: 1, steps: 2 },
+  kingfisher: { count: 2, steps: 2 },
+  flamingo: { count: 5, steps: 3 },
 };
 
 /** Whether the animals are shown at all this season (bees keep in over winter, but come out on Lantern Night). */
@@ -172,6 +185,10 @@ const PACE: Record<ActorKind, { move: number; rest: number }> = {
   sandgrouse: { move: 3000, rest: 4000 },
   falcon: { move: 9000, rest: 6000 },
   oryx: { move: 10000, rest: 5000 },
+  axolotl: { move: 6000, rest: 5000 },
+  heron: { move: 7000, rest: 8000 },
+  kingfisher: { move: 1500, rest: 5000 },
+  flamingo: { move: 9000, rest: 6000 },
 };
 
 /** Where an animal is at a moment, and which frame it shows. With `still`, it keeps to its first tile. */
@@ -256,16 +273,40 @@ export function poseAt(actor: Actor, clock: number, still: boolean): Pose {
         ? `oryx.walk.${(step % 4) + 1}`
         : `oryx.graze.${(Math.floor(step / 6) % 2) + 1}`;
       break;
+    // The lake's (ART-EXPANSION.md), drawn in code from the same frame names until art comes.
+    case 'axolotl':
+      frame = moving ? `axolotl.swim.${(Math.floor(step / 2) % 2) + 1}` : 'axolotl.rest';
+      break;
+    case 'heron':
+      frame = moving
+        ? `heron.fly.${(Math.floor(step / 4) % 2) + 1}`
+        : Math.floor(step / 12) % 3 === 0
+          ? 'heron.fish'
+          : 'heron.stand';
+      break;
+    case 'kingfisher':
+      frame = moving ? 'kingfisher.dive' : 'kingfisher.perch';
+      break;
+    case 'flamingo':
+      frame = moving
+        ? `flamingo.walk.${(step % 2) + 1}`
+        : Math.floor(step / 10) % 2 === 0
+          ? 'flamingo.feed'
+          : 'flamingo.stand';
+      break;
   }
   return { x, y, frame, flip };
 }
 
-/** The coast's and the Highland's animals, drawn in code at tile scale until their art comes. */
+/** The coast's, the Highland's and the lake's animals, drawn in code at tile scale until their art comes. */
 export function drawAnimal(g: Graphics, kind: ActorKind, pose: Pose, season = 'summer'): void {
   const { x, y } = pose;
   const dir = pose.flip ? -1 : 1;
   const flap = pose.frame.endsWith('.2') ? 1 : 0;
-  const moving = /\.(fly|swim|run|soar)\./.test(pose.frame) || /dolphin\.[23]$/.test(pose.frame);
+  const moving =
+    /\.(fly|swim|run|soar|walk)\./.test(pose.frame) ||
+    /dolphin\.[23]$/.test(pose.frame) ||
+    pose.frame === 'kingfisher.dive';
   switch (kind) {
     case 'tern': {
       // A white bird with a black cap, wings up or down, a little above the dunes.
@@ -353,6 +394,94 @@ export function drawAnimal(g: Graphics, kind: ActorKind, pose: Pose, season = 's
       g.moveTo(x - dir * 3.8, y - 2)
         .quadraticCurveTo(x - dir * 7, y - 1 - arch, x - dir * 8, y - 4)
         .stroke({ width: 1.8, color: 0x5b3a22, cap: 'round' });
+      break;
+    }
+    case 'axolotl': {
+      // A small pink axolotl in the canal, its frilly gills out, its tail swishing as it swims.
+      const swish = moving ? (flap ? 1.2 : -1.2) : 0;
+      g.ellipse(x, y, 4, 1.6).fill({ color: 0xf2a7b8 });
+      g.circle(x + dir * 3.6, y - 0.4, 1.7).fill({ color: 0xf2a7b8 });
+      for (const dy of [-1.6, 0, 1.4])
+        g.moveTo(x + dir * 2.6, y - 0.4 + dy * 0.6)
+          .lineTo(x + dir * 1.4, y - 0.6 + dy * 1.4)
+          .stroke({ width: 0.9, color: 0xd9667f, cap: 'round' });
+      g.moveTo(x - dir * 3.6, y)
+        .lineTo(x - dir * 6.5, y + swish)
+        .stroke({ width: 1.2, color: 0xf2a7b8, cap: 'round' });
+      g.circle(x + dir * 4.2, y - 0.8, 0.4).fill({ color: 0x1e1e1e });
+      break;
+    }
+    case 'heron': {
+      if (moving) {
+        // Flying low over the water, its neck folded, slow wingbeats.
+        const yy = y - 18;
+        g.moveTo(x - 8, yy - 1 - flap * 2)
+          .quadraticCurveTo(x - 3, yy - 3, x, yy)
+          .quadraticCurveTo(x + 3, yy - 3, x + 8, yy - 1 - flap * 2)
+          .stroke({ width: 2, color: 0x8a95a0, cap: 'round', join: 'round' });
+        g.circle(x + dir * 1.8, yy + 0.4, 1.3).fill({ color: 0x8a95a0 });
+        g.moveTo(x + dir * 2.8, yy + 0.6)
+          .lineTo(x + dir * 5.4, yy + 1)
+          .stroke({ width: 0.9, color: 0xe0b23a, cap: 'round' });
+      } else {
+        // Standing in the reeds on long legs; stabbing at a fish now and then.
+        const fish = pose.frame === 'heron.fish';
+        g.moveTo(x - 1, y)
+          .lineTo(x - 1, y - 6)
+          .moveTo(x + 1, y)
+          .lineTo(x + 1, y - 6)
+          .stroke({ width: 0.8, color: 0x6d5a3e });
+        g.ellipse(x, y - 8, 2.6, 3.4).fill({ color: 0x9aa5ae });
+        const hx = x + dir * (fish ? 4 : 1.5);
+        const hy = y - (fish ? 6 : 14);
+        g.moveTo(x + dir * 0.8, y - 10)
+          .lineTo(hx, hy)
+          .stroke({ width: 1.2, color: 0xdfe4e8, cap: 'round' });
+        g.circle(hx, hy, 1.2).fill({ color: 0xdfe4e8 });
+        g.moveTo(hx + dir * 0.8, hy)
+          .lineTo(hx + dir * 3.4, hy + (fish ? 2 : 0.4))
+          .stroke({ width: 0.9, color: 0xe0b23a, cap: 'round' });
+      }
+      break;
+    }
+    case 'kingfisher': {
+      // A small bright bird on a willow twig; now and then a blue streak down to the water.
+      if (moving) {
+        g.moveTo(x - dir * 6, y - 10)
+          .lineTo(x, y - 2)
+          .stroke({ width: 1.6, color: 0x2f8fd0, cap: 'round' });
+        g.circle(x, y - 2, 1.4).fill({ color: 0xe8803a });
+      } else {
+        const yy = y - 10;
+        g.moveTo(x - 4, yy + 2.4)
+          .lineTo(x + 4, yy + 2)
+          .stroke({ width: 0.8, color: 0x7a5a3a });
+        g.ellipse(x, yy, 1.8, 2.2).fill({ color: 0x2f8fd0 });
+        g.ellipse(x + dir * 0.4, yy + 0.6, 1.1, 1.3).fill({ color: 0xe8803a });
+        g.circle(x + dir * 1.2, yy - 2, 1.2).fill({ color: 0x2f8fd0 });
+        g.moveTo(x + dir * 2.2, yy - 2)
+          .lineTo(x + dir * 4.4, yy - 1.8)
+          .stroke({ width: 0.8, color: 0x1e1e1e, cap: 'round' });
+      }
+      break;
+    }
+    case 'flamingo': {
+      // Pink, on long legs in the open shallows; head down to feed, or up.
+      const feed = pose.frame === 'flamingo.feed';
+      const step = moving ? flap * 1.5 : 0;
+      g.moveTo(x - 0.8, y)
+        .lineTo(x - 0.8 + step, y - 6)
+        .moveTo(x + 0.8, y)
+        .lineTo(x + 0.8 - step, y - 6)
+        .stroke({ width: 0.8, color: 0xe57b8c });
+      g.ellipse(x, y - 8, 3, 2).fill({ color: 0xf29aac });
+      const hx = x + dir * (feed ? 3.6 : 1.6);
+      const hy = y - (feed ? 2 : 14);
+      g.moveTo(x + dir * 1.8, y - 8.6)
+        .quadraticCurveTo(x + dir * 3.4, y - 12, hx, hy)
+        .stroke({ width: 1.1, color: 0xf29aac, cap: 'round' });
+      g.circle(hx, hy, 1.1).fill({ color: 0xf29aac });
+      g.circle(hx + dir * 1, hy + 0.4, 0.6).fill({ color: 0x2a2a2a });
       break;
     }
     default:

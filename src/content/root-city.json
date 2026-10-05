@@ -717,6 +717,38 @@
       "animal": "oryx"
     },
     {
+      "id": "axolotlYoung",
+      "name": "Axolotl young",
+      "text": "Tiny axolotls follow the grown ones along the canals.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "axolotls"
+    },
+    {
+      "id": "heronChicks",
+      "name": "Heron chicks",
+      "text": "Grey chicks wait in a nest of reeds for the herons to bring fish.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "herons"
+    },
+    {
+      "id": "kingfisherFledglings",
+      "name": "Kingfisher fledglings",
+      "text": "Fledglings line up on the willow twig beside their parents.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "kingfishers"
+    },
+    {
+      "id": "flamingoChicks",
+      "name": "Flamingo chicks",
+      "text": "Grey, fluffy flamingo chicks wade among the pink flock.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "flamingos"
+    },
+    {
       "id": "cityBanner",
       "name": "The city's banner",
       "text": "A banner over the Founders' Camp in the colour of Root City's first district.",

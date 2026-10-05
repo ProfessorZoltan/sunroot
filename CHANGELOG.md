@@ -1,5 +1,17 @@
 # Changelog
 
+## Lake Gardens: the Floating City, its animals and festivals
+
+- **The Floating City**, the lake's wonder: raised beds in flower round a willow island, out on
+  the water. Finished, the lake silts up and blooms no more and chinampas make 1 more food.
+- **The lake's animals**: axolotls in the canals between beds, herons by the fisheries,
+  kingfishers along the willow edges and flamingos on a wide clean lake; their young ones are
+  keepsakes in Root City.
+- **Its festivals**: Flower Boats, the Silk Fair (silk houses run once more) and Lanterns on the
+  Water.
+- The bots keep the wonder's site out on the deep water, and no longer stop building while they
+  wait on a wonder's biomass or food.
+
 ## Lake Gardens in Root City
 
 - **The lake opens after 10 runs**, however many districts stand, and is offered at once.

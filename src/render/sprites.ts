@@ -110,6 +110,7 @@ const GREEN_WINTER: Record<string, readonly string[]> = {
     'canalWheel',
     'riceDuckPaddy',
     'floatingMarket',
+    'floatingCity',
   ],
 };
 

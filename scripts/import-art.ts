@@ -318,6 +318,10 @@ try {
     'sandgrouse',
     'falcon',
     'oryx',
+    'axolotl',
+    'heron',
+    'kingfisher',
+    'flamingo',
     // The leaping fish (docs/ART-PEOPLE.md): `fish.leap.1`, a land's own `fish.coast.leap.1`.
     'fish',
   ]);

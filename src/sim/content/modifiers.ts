@@ -23,6 +23,8 @@ export interface RunModifierSources {
   era?: number;
   /** Finished projects' modifiers hold too. */
   projects?: { id: string; done: number | null }[];
+  /** And finished wonders' (the Floating City's). */
+  buildings?: Record<string, { type: string; finished?: number }>;
   options?: {
     city?: { districts: Record<string, string>; landmarks: string[] };
     expedition?: { twist: string | null; region?: string | null; tempest?: number };
@@ -44,8 +46,8 @@ const NO_GRID_HEAT: Modifier = { target: 'rules', path: 'localHeat.gridHeat', se
  * The modifiers a run plays under, in order: the water system, commuting
  * and local heat (when the run has them), the expedition's region, the
  * era's harsher seasons, Root City's district perks and landmarks, the
- * expedition's twist, its Tempest level (levels 1 to N), finished projects,
- * then the run's tunings and charters.
+ * expedition's twist, its Tempest level (levels 1 to N), finished projects
+ * and wonders, then the run's tunings and charters.
  */
 export function runModifiers(content: Content, state: RunModifierSources): Modifier[] {
   const city = state.options?.city;
@@ -81,6 +83,9 @@ export function runModifiers(content: Content, state: RunModifierSources): Modif
     ...(state.projects ?? [])
       .filter((p) => p.done !== null)
       .flatMap((p) => content.projects.find((x) => x.id === p.id)?.effect.modifiers ?? []),
+    ...Object.values(state.buildings ?? {})
+      .filter((b) => b.finished !== undefined)
+      .flatMap((b) => content.byId[b.type]?.wonder?.modifiers ?? []),
     ...state.tunings.flatMap((id) => content.tuningById[id]?.modifiers ?? []),
     ...state.charters.flatMap((id) => content.charterById[id]?.modifiers ?? []),
   ];

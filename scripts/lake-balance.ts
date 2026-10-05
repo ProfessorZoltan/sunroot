@@ -1,8 +1,9 @@
 /**
  * Lake Gardens against the Reach (LG3): each bot's median score, Heartwood share and collapses
  * over the same seeds, with water on as their runs have it, and what the lake looked like at the
- * end (grey water, blooms, silted shallows, beds, loops). Until the lake has its wonder (LG6),
- * the like-for-like row is the Reach without the Great Water Garden.
+ * end (grey water, blooms, silted shallows, beds, loops) and how often the wonder was finished.
+ * Since LG6 both biomes have their wonders; NO_WONDERS=1 plays the Reach without its own, as
+ * before the lake had one.
  *
  *   npx tsx scripts/lake-balance.ts [runs, default 20] [bots, comma-separated] [biome filter]
  *
@@ -39,6 +40,7 @@ function play(content: Content, bot: string, expedition?: RunExpedition) {
   let heart = 0;
   let collapsed = 0;
   let blooms = 0;
+  let wonders = 0;
   for (let i = 0; i < N; i++) {
     let last: RunState | null = null;
     playRun(content, BOTS[bot]!, `biome-${i}`, {
@@ -53,6 +55,7 @@ function play(content: Content, bot: string, expedition?: RunExpedition) {
     scores.push(score.total);
     if (score.tier.id === 'heartwood') heart++;
     if (s.status === 'collapsed') collapsed++;
+    if (Object.values(s.buildings).some((b) => b.finished !== undefined)) wonders++;
     const tiles = Object.values(s.map.tiles);
     grey.push(s.lake?.grey ?? 0);
     silted.push(tiles.filter((t) => t.silted).length);
@@ -68,6 +71,7 @@ function play(content: Content, bot: string, expedition?: RunExpedition) {
     silted: mean(silted),
     beds: mean(beds),
     loops: mean(loops),
+    wonders,
   };
 }
 
@@ -102,17 +106,19 @@ if (process.env.EXPEDITIONS) {
 }
 
 const cases: [string, Content][] = [
-  ['Willow Reach, no wonder', reachWithoutWonder()],
+  process.env.NO_WONDERS
+    ? ['Willow Reach, no wonder', reachWithoutWonder()]
+    : ['Willow Reach', biomeContent('willowReach')],
   ['Lake Gardens', biomeContent('lakeGardens')],
 ];
 console.log(
-  '| Bot | Biome | Median score | Heartwood | Collapsed | Grey at the end | Blooms a run | Silted tiles | Beds | Loops |',
+  '| Bot | Biome | Median score | Heartwood | Collapsed | Wonder finished | Grey at the end | Blooms a run | Silted tiles | Beds | Loops |',
 );
-console.log('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
+console.log('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
 for (const bot of BOT_NAMES)
   for (const [name, content] of cases.filter(([n]) => !only || n.includes(only))) {
     const r = play(content, bot);
     console.log(
-      `| ${bot} | ${name} | ${r.median} | ${r.heartwood}% | ${r.collapsed} of ${N} | ${r.grey} | ${r.blooms} | ${r.silted} | ${r.beds} | ${r.loops} |`,
+      `| ${bot} | ${name} | ${r.median} | ${r.heartwood}% | ${r.collapsed} of ${N} | ${r.wonders} of ${N} | ${r.grey} | ${r.blooms} | ${r.silted} | ${r.beds} | ${r.loops} |`,
     );
   }

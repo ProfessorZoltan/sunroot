@@ -9,9 +9,9 @@ Vietnamese garden-pond-pen (VAC), the sewage-fed fisheries of East Kolkata and r
 Everything here is a proposal: the designer's defaults until review, the bots and playtesting
 tune them.
 
-**Status**: started. It joins after 10 runs, however many districts the city has (the
+**Status**: built, LG1 to LG6. It joins after 10 runs, however many districts the city has (the
 playtester). LG1, the lake's rules, LG2, its simulation, LG3, its combos, cards and balance, and
-LG4, the lake on screen with its art guide, are built, and with LG5 Root City sends expeditions there after 10 runs; see DECISIONS.md, Lake Gardens, for where the build differs from
+LG4, the lake on screen with its art guide, are built; with LG5 Root City sends expeditions there after 10 runs, and LG6 brings the Floating City and the lake's animals and festivals; see DECISIONS.md, Lake Gardens, for where the build differs from
 this proposal (the chinampa's numbers among them).
 
 It builds on what the earlier biomes left: water with its three qualities (clean, grey, nutrient),
