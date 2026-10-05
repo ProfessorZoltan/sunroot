@@ -13,6 +13,7 @@ const BADGE: Record<MarkKind, { fill: number; ink: number }> = {
   silt: { fill: 0xe0a33b, ink: 0x5a3a14 },
   salt: { fill: 0xf2f0ea, ink: 0x5b6770 },
   saltBonus: { fill: 0x7f9868, ink: 0xffffff },
+  frost: { fill: 0xd8ecf6, ink: 0x3f6f8c },
   damaged: { fill: 0xa3401f, ink: 0xfff3e8 },
   unstaffed: { fill: 0x8b9386, ink: 0xffffff },
   shade: { fill: 0x5e6b58, ink: 0xf4ebd6 },
@@ -68,6 +69,11 @@ export function drawMarkTiles(g: Graphics, marks: Mark[]): void {
         break;
       case 'saltBonus':
         g.poly(corners).stroke({ width: 2, color: 0x7f9868, alpha: 0.7 });
+        break;
+      case 'frost':
+        // Rime: a pale wash, dashed while it is coming.
+        g.poly(corners).fill({ color: 0xe8f4fa, alpha: m.coming ? 0.18 : 0.32 });
+        if (m.coming) dashedLine(g, ring, 5, 4, { width: 2, color: 0x7fb2d6 });
         break;
       case 'dry':
         g.poly(corners).fill({ color: 0xd9b98a, alpha: 0.35 });
@@ -143,6 +149,15 @@ function icon(g: Graphics, kind: MarkKind, p: Point, ink: number): void {
         [0, -2.5],
       ] as const)
         g.rect(x + dx - 1.4, y + dy - 1.4, 2.8, 2.8).fill({ color: ink });
+      break;
+    case 'frost':
+      // A six-armed frost star.
+      for (let i = 0; i < 3; i++) {
+        const a = (i * Math.PI) / 3;
+        g.moveTo(x - Math.cos(a) * 4, y - Math.sin(a) * 4)
+          .lineTo(x + Math.cos(a) * 4, y + Math.sin(a) * 4)
+          .stroke({ width: 1.4, color: ink, cap: 'round' });
+      }
       break;
     case 'saltBonus':
       // A sprig of samphire.

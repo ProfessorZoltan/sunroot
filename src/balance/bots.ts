@@ -311,6 +311,32 @@ function tendCooling(turn: Turn, profile: Profile): void {
 }
 
 /**
+ * Ice houses (the Sun Desert's yakhchal): in autumn, before the winter that fills them, if last
+ * summer the grid still had to cool homes, one for every 3 homes, where it reaches the most.
+ */
+function tendIce(turn: Turn, profile: Profile): void {
+  const def = turn.rules.byId.iceHouse;
+  if (!def?.ice || turn.state.season !== 'autumn' || !turn.unlocked('iceHouse')) return;
+  const range = turn.rules.rules.cooling.range;
+  const homes = Object.values(turn.state.buildings).filter(
+    (b) => turn.rules.byId[b.type]!.housing > 0,
+  );
+  if (turn.count('iceHouse') * 3 >= homes.length) return;
+  // Only where last summer still needed the grid's cooling: towers and chillers come first.
+  const summer = turn.state.recentReports.find((r) => r.season === 'summer');
+  if (!summer || (summer.energy.day.cool?.gridEnergy ?? 0) === 0) return;
+  if (!turn.canBuild('iceHouse', Math.min(profile.reserve, 2))) return;
+  let best: { at: Hex; score: number } | null = null;
+  for (const t of turn.sites('iceHouse')) {
+    const reached = homes.filter((h) => hexDistance(h.at, t) <= range).length;
+    if (reached < 2) continue;
+    const score = 10 * reached + siteScore(turn, 'iceHouse', t);
+    if (!best || score > best.score) best = { at: { q: t.q, r: t.r }, score };
+  }
+  if (best) turn.apply({ type: 'place', building: 'iceHouse', at: best.at });
+}
+
+/**
  * Hedges along an edge of each building storms could damage (each shelters the tiles on both
  * its sides), until the valley has `max` segments.
  */
@@ -344,6 +370,7 @@ function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): v
   // Hot days (the Sun Desert): a wind tower by the homes before the heat, not grid cooling.
   if (turn.heatAware && (turn.state.season === 'spring' || turn.state.season === 'summer'))
     tendCooling(turn, profile);
+  tendIce(turn, profile);
   if (!turn.has('salvageYard')) turn.build('salvageYard');
   if (!turn.has('workshop')) turn.build('workshop');
   // On the coast, salvage from the strandline as well as the ruins: a beachcombing yard a workshop.
@@ -947,6 +974,7 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'concentratedSolarPlant',
       'sandBattery',
       'absorptionChiller',
+      'iceHouse',
       'palmWindbreak',
     ],
     nightPower: [

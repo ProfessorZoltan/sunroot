@@ -335,6 +335,15 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
       lines.push(`−${penalty} downstream of a weir`);
     }
   }
+  // A late frost struck this farm in spring (the Highland): a smaller harvest all year.
+  const frost = content.events.flood?.frost;
+  if (res === 'food' && frost && b.frostYear === state.year) {
+    const loss = frost.loss[ctx.si] ?? 0;
+    if (loss > 0 && value > 0) {
+      value = Math.max(0, value - loss);
+      lines.push(`−${loss} late frost`);
+    }
+  }
   const nutrient = def.water?.nutrientBonus[res] ?? 0;
   if (nutrient > 0 && water && water.got.nutrient > 0) {
     value += nutrient;

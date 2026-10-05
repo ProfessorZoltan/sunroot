@@ -1,5 +1,16 @@
 # Changelog
 
+## Ice and frost, from the research on regenerative systems
+
+- **The Sun Desert's Ice House**: in winter it freezes the water it draws (beside the river, the
+  oasis, a channel or a qanat), and in summer its ice cools the homes around it before the grid
+  has to. A little melts every season.
+- **A late frost in the Highland**: it comes with the snowmelt, and farms up the slope make 1
+  less food in summer and autumn, unless standing water beside them (a cistern, a fish pond, a
+  reed bed, the stream) keeps it off. The map marks the farms it will strike.
+- **Lake Gardens**, a proposed fifth biome of raised beds, dredged mud and clean water
+  (docs/proposals/lake-gardens.md), for review.
+
 ## Less busywork late in a run
 
 - **Spread compost many times at once**: under Build, choose how many times, and it goes where

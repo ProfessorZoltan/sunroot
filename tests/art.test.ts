@@ -28,6 +28,8 @@ const drawn = [
   ...DESERT.buildings.filter((b) => !content.byId[b.id] && !COAST.byId[b.id] && !HIGH.byId[b.id]),
 ];
 const byId = { ...DESERT.byId, ...HIGH.byId, ...COAST.byId, ...content.byId };
+/** Buildings drawn in code until their art comes (the art guide asks for it). */
+const AWAITING_ART = new Set(['iceHouse']);
 
 const art = (path: string) => existsSync(new URL(`../src/art/${path}`, import.meta.url));
 const info = JSON.parse(readFileSync(new URL('../src/art/art.json', import.meta.url), 'utf8')) as {
@@ -173,8 +175,8 @@ describe('hand-made art', () => {
 
   it('covers every building in summer and winter, with an icon', () => {
     for (const b of drawn) {
-      // Wonders have their own frame (above).
-      if (b.wonder) continue;
+      // Wonders have their own frame (above); some are still drawn in code.
+      if (b.wonder || AWAITING_ART.has(b.id)) continue;
       // A building only on edges (the snow fence) comes as its 3 edge pieces.
       const pieces = ['e', 'ne', 'nw'].flatMap((d) => [
         `buildings/${b.id}.edge.${d}.png`,

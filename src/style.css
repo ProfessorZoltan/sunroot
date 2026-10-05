@@ -1771,6 +1771,9 @@ ul.projects {
 .storage-gauge.heat .gauge-fill {
   background: #c0583a;
 }
+.storage-gauge.ice .gauge-fill {
+  background: #7fb2d6;
+}
 .gauge-after {
   position: absolute;
   top: 0;

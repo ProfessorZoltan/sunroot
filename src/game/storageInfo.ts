@@ -6,7 +6,7 @@ import type { Content } from '../sim/content/load';
 import type { RunState } from '../sim/types';
 
 export interface StorageGauge {
-  holds: 'energy' | 'heat';
+  holds: 'energy' | 'heat' | 'ice';
   capacity: number;
   now: number;
   /** After this season, if it ended as things stand (the season's losses included). */
@@ -25,7 +25,13 @@ export function storageGauge(
   uid: string,
 ): StorageGauge | null {
   const b = state.buildings[uid];
-  const storage = b ? content.byId[b.type]?.storage : undefined;
+  const def = b ? content.byId[b.type] : undefined;
+  // An ice house keeps its ice as a store keeps energy (the Sun Desert).
+  const storage =
+    def?.storage ??
+    (def?.ice
+      ? { holds: 'ice' as const, capacity: def.ice.capacity, carriesOver: true }
+      : undefined);
   if (!b || !storage) return null;
   const trace = asIs.lastReport?.storage?.[uid];
   return {

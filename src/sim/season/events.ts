@@ -1,7 +1,15 @@
 /** Step 3: the season's event. */
 import { hexDistance, hexKey } from '../hex';
 import { nextInt } from '../rng';
-import { defOf, eventOf, occupancy, stormExposed } from '../queries';
+import {
+  defOf,
+  eventOf,
+  heightAt,
+  neighborBuildings,
+  neighborTiles,
+  occupancy,
+  stormExposed,
+} from '../queries';
 import { addYield, type SeasonContext } from './context';
 import { festivalThisSeason, siltBeyond } from '../wildlife';
 
@@ -38,6 +46,31 @@ export function hasMixedGrid(ctx: SeasonContext): boolean {
   if (sum === 0) return false;
   const qualifying = Object.values(totals).filter((v) => v / sum >= minShare).length;
   return qualifying >= minSourceTypes;
+}
+
+/**
+ * A late frost with the flood (the Highland's snowmelt): farmland high enough loses food for the
+ * rest of the year, unless standing water beside it keeps the frost off (waru waru).
+ */
+export function frostFarms(ctx: SeasonContext): void {
+  const { content, state, report } = ctx;
+  const frost = content.events.flood?.frost;
+  if (!frost) return;
+  report.frosted = [];
+  report.frostSpared = [];
+  const occ = occupancy(state);
+  for (const b of Object.values(state.buildings)) {
+    if (!defOf(content, b).farmland || heightAt(state, b.at) < frost.fromHeight) continue;
+    const warm =
+      neighborTiles(state, b.at).some((t) => frost.besideTiles.includes(t.type)) ||
+      neighborBuildings(state, b, occ).some((n) => frost.besideBuildings.includes(n.type));
+    if (warm) {
+      report.frostSpared.push(b.uid);
+      continue;
+    }
+    b.frostYear = state.year;
+    report.frosted.push(b.uid);
+  }
 }
 
 export function applyEvent(ctx: SeasonContext): void {
@@ -98,6 +131,7 @@ export function applyEvent(ctx: SeasonContext): void {
           report.damaged.push(b.uid);
         }
       }
+      frostFarms(ctx);
       // The Flood Fair: the silt reaches farms beyond the water, which does them no harm.
       const rings = festivalThisSeason(content, state)?.siltRings ?? 0;
       for (const uid of siltBeyond(content, state, flooded, rings)) {

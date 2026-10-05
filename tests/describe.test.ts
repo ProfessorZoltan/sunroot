@@ -95,6 +95,7 @@ const DESCRIBED = new Set([
   'requiresPower',
   'cooling',
   'chiller',
+  'ice',
   'shades',
   'water',
   'pump',

@@ -42,6 +42,8 @@ export interface BuildingState {
   /** The turn the king tide salted this farm (the coast), and the time before. */
   saltTurn?: number;
   saltBefore?: number;
+  /** The year a late frost struck this farm (the Highland): it makes less for the rest of it. */
+  frostYear?: number;
   /** The building type it evolved from, and when (Milestone 6). */
   evolvedFrom?: string;
   evolvedTurn?: number;
@@ -516,6 +518,9 @@ export interface SeasonReport {
   sheltered: string[];
   /** Farms the king tide salted (the coast). */
   salted: string[];
+  /** Farms a late frost struck (the Highland's snowmelt), and the ones water kept it off. */
+  frosted?: string[];
+  frostSpared?: string[];
   /** Buildings that lost food to the low river (far from water), or got too little water. */
   dried: string[];
   /** The water system's season, while it is on. */

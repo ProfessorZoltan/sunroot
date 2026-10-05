@@ -27,6 +27,8 @@ export type MarkKind =
   | 'salt'
   /** Lasting: the salt has cleared from this saltmarsh farm, which makes more until the next tide. */
   | 'saltBonus'
+  /** Lasting: a late frost struck this farm in spring (the Highland); coming: it will. */
+  | 'frost'
   /** Lasting: out of action until repaired (flood) or for the season (storm). */
   | 'damaged'
   /** This season: no worker to staff it. */
@@ -97,6 +99,14 @@ export function mapMarks(content: Content, state: RunState, forecast: SeasonRepo
           `The salt has cleared: +${salt.bonus} food this ${state.season} on ${tile}.`,
         );
     }
+    const frost = flood?.frost;
+    if (frost && b.frostYear === state.year && (frost.loss[SEASONS.indexOf(state.season)] ?? 0) > 0)
+      add(
+        b.at,
+        'frost',
+        false,
+        `Struck by the late frost: ${frost.loss[SEASONS.indexOf(state.season)]} less food this ${state.season}.`,
+      );
     if (b.damage) {
       const cost = repairCost(content, b);
       const event = b.damage.cause === 'flood' ? content.events.flood : content.events.storm;
@@ -187,6 +197,18 @@ export function mapMarks(content: Content, state: RunState, forecast: SeasonRepo
     }
     for (const key of forecast.sheltered)
       add(parseHexKey(key), 'sheltered', true, `${leveeName} keeps this tile dry.`);
+    // A late frost comes with the Highland's snowmelt.
+    const frost = flood?.frost;
+    if (frost) {
+      const lost = frost.loss.filter((n) => n > 0);
+      for (const uid of forecast.frosted ?? [])
+        add(
+          atOf(uid),
+          'frost',
+          true,
+          `A late frost will strike the ${name(uid)}: ${lost.join(' and ')} less food in the seasons after. Standing water beside it (a cistern, a pond, the stream) keeps it off.`,
+        );
+    }
   } else if (event === 'lowRiver') {
     for (const uid of forecast.dried)
       add(atOf(uid), 'dry', true, `Low river: the ${name(uid)} is far from water and loses food.`);

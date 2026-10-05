@@ -300,6 +300,12 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
     );
   if (def.shades > 0)
     lines.push(`Shade: a home next to it needs ${def.shades} less cooling by day.`);
+  if (def.ice) {
+    const i = def.ice;
+    lines.push(
+      `In winter it freezes the water it draws: ${i.perWater} ice for each, up to ${i.capacity}. ${i.melt > 0 ? `${i.melt} melts away in each other season; ` : ''}the rest cools buildings within ${reach} tiles that need it, after wind towers and chillers, before the grid.`,
+    );
+  }
 
   // Water (only while the run has it).
   if (w && w.needs.some((n) => n > 0)) {
@@ -458,6 +464,20 @@ function farmland(content: Content, def: BuildingDef): string[] {
     out.push(
       `If the ${flood.name.toLowerCase()} reaches it, salt: ×${flood.salt.factor} food for ${flood.salt.seasons} seasons.`,
     );
+  const frost = flood?.frost;
+  const heights = def.placement.heights;
+  if (frost && (!heights || heights[1] >= frost.fromHeight)) {
+    const lost = SEASONS.map((season, i) => ({ season, n: frost.loss[i] ?? 0 })).filter(
+      (x) => x.n > 0,
+    );
+    const warm = [
+      ...frost.besideBuildings.map((id) => content.byId[id]?.name.toLowerCase()).filter(Boolean),
+      ...frost.besideTiles.map((t) => (t === 'river' ? 'the stream' : tile(t))),
+    ];
+    out.push(
+      `Late frost with the ${flood!.name.toLowerCase()}: at height ${frost.fromHeight} or more, ${lost.map((x) => `−${x.n} food in ${x.season}`).join(' and ')}, unless next to standing water (${warm.join(', ')}).`,
+    );
+  }
   const low = content.events.lowRiver;
   if (low && !content.rules.water.enabled && !def.ignoresLowRiver)
     out.push(

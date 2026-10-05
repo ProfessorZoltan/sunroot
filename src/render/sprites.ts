@@ -82,6 +82,7 @@ const GREEN_WINTER: Record<string, readonly string[]> = {
     'qanat',
     'concentratedSolarPlant',
     'sandBattery',
+    'iceHouse',
     'palmWindbreak',
     'saltWorks',
     'threeLayerGarden',

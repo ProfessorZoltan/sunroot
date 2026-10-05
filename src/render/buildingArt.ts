@@ -1085,6 +1085,21 @@ export const BUILDING_ART: Record<string, Art> = {
     g.rect(c.x - 2, c.y - 16, 4, 18).fill({ color: COLORS.stone });
     g.circle(c.x, c.y - 17, 3.5).fill({ color: COLORS.sunGold });
   },
+  iceHouse(g, c) {
+    // A yakhchal: a stepped mud-brick cone over its pit, with a shade wall to the south.
+    shadow(g, c, 13);
+    g.rect(c.x - 15, c.y - 2, 4, 10).fill({ color: 0xb98a5c });
+    g.moveTo(c.x - 9, c.y + 7)
+      .lineTo(c.x - 2, c.y - 17)
+      .lineTo(c.x + 2, c.y - 17)
+      .lineTo(c.x + 9, c.y + 7)
+      .closePath()
+      .fill({ color: MUD })
+      .stroke({ width: 1.2, color: DARK });
+    for (const y of [-9, -1]) g.moveTo(c.x - 6 + (y + 9) * 0.1, c.y + y).lineTo(c.x + 6, c.y + y);
+    g.stroke({ width: 0.9, color: DARK, alpha: 0.6 });
+    g.ellipse(c.x + 11, c.y + 6, 4, 2).fill({ color: 0xd8ecf6 });
+  },
   sandBattery(g, c) {
     shadow(g, c, 11);
     g.roundRect(c.x - 8, c.y - 12, 16, 20, 4)

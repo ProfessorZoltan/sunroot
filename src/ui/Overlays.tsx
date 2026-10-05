@@ -128,7 +128,7 @@ export function StorageGaugeView({ gauge }: { gauge: StorageGauge }) {
       <div
         class="gauge-bar"
         role="meter"
-        aria-label={`${gauge.holds === 'heat' ? 'Heat' : 'Energy'} stored`}
+        aria-label={`${gauge.holds === 'heat' ? 'Heat' : gauge.holds === 'ice' ? 'Ice' : 'Energy'} stored`}
         aria-valuemin={0}
         aria-valuemax={gauge.capacity}
         aria-valuenow={gauge.now}

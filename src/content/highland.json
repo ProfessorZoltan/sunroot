@@ -226,11 +226,17 @@
   "events": {
     "flood": {
       "name": "Snowmelt",
-      "summary": "melt water floods the glen floor beside the stream",
-      "description": "The snow melts on the tops and the stream floods the glen floor beside it. Buildings there that aren't flood-tolerant are disabled for the season and cost 2 materials to repair. No silt: the melt is cold and fast.",
+      "summary": "melt water floods the glen floor beside the stream; a late frost on the terraces",
+      "description": "The snow melts on the tops and the stream floods the glen floor beside it. Buildings there that aren't flood-tolerant are disabled for the season and cost 2 materials to repair. No silt: the melt is cold and fast. A late frost comes with it: farms at height 1 or more make 1 less food in summer and autumn, unless standing water beside them (a cistern, fish pond, reed bed, rewetted bog, the stream or a reservoir) gives back the day's warmth at night.",
       "siltBonus": 0,
       "siltSeasons": [],
-      "repairCost": 2
+      "repairCost": 2,
+      "frost": {
+        "fromHeight": 1,
+        "loss": [0, 1, 1, 0],
+        "besideTiles": ["river", "reservoir", "bog"],
+        "besideBuildings": ["cistern", "fishPond", "reedBed", "rewettedBog"]
+      }
     },
     "lowRiver": {
       "name": "Dry spell",

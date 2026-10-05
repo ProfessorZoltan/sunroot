@@ -1074,6 +1074,30 @@
       }
     },
     {
+      "id": "iceHouse",
+      "name": "Ice House",
+      "cost": 6,
+      "workers": 0,
+      "kind": "storage",
+      "requiresWater": true,
+      "tall": true,
+      "placement": {
+        "tiles": ["reg", "scrub", "meadow", "woodland", "floodplain", "rock"],
+        "adjacentTo": ["river", "oasis"],
+        "adjacentToBuildings": ["irrigationChannel", "qanat"]
+      },
+      "water": {
+        "needs": [0, 0, 0, 3],
+        "accepts": ["clean"],
+        "besideRiver": true
+      },
+      "ice": {
+        "capacity": 6,
+        "perWater": 2,
+        "melt": 1
+      }
+    },
+    {
       "id": "palmWindbreak",
       "name": "Palm Windbreak",
       "cost": 1,

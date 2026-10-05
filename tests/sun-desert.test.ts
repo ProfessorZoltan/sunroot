@@ -298,3 +298,39 @@ describe('the wadi', () => {
     expect(s.lastReport!.water!.uses[uidAt(s, 4, 1)]!.from).toBe('lake');
   });
 });
+
+describe('the ice house (yakhchal)', () => {
+  // Beside the oasis, within reach of the camp.
+  const iced = () => build(start('winter'), 'iceHouse', [[4, 1]]);
+  const ice = (s: RunState) => s.buildings[uidAt(s, 4, 1)]!.stored ?? 0;
+
+  it('freezes the water it draws in winter, 2 ice for each, up to 6', () => {
+    const s = endSeason(iced(), D);
+    expect(s.lastReport!.water!.uses[uidAt(s, 4, 1)]!.got.clean).toBe(3);
+    expect(ice(s)).toBe(6);
+  });
+
+  it('melts 1 a season, and cools the camp in the summer heatwave before the grid', () => {
+    let s = endSeason(endSeason(iced(), D), D); // winter, then spring
+    expect(ice(s)).toBe(5);
+    s = endSeason(s, D); // summer: 1 more melts, then the camp takes its 2
+    const cool = s.lastReport!.energy.day.cool!;
+    expect(cool.bySource.iceHouse).toBe(2);
+    expect(cool.gridEnergy).toBe(0);
+    expect(ice(s)).toBe(2);
+  });
+
+  it('gives only what the wind towers and chillers leave', () => {
+    let s = endSeason(endSeason(iced(), D), D);
+    s = build(s, 'windTower', [[3, 1]]);
+    s = endSeason(s, D);
+    expect(s.lastReport!.energy.day.cool!.bySource.iceHouse ?? 0).toBe(0);
+    expect(ice(s)).toBe(4);
+  });
+
+  it('can only stand where it can draw water: beside the river, the oasis or a channel', () => {
+    expect(
+      rejects(start('winter'), { type: 'place', building: 'iceHouse', at: at(3, 0) }, D),
+    ).toMatch(/must be next to/);
+  });
+});

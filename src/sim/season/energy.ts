@@ -84,6 +84,22 @@ export function resolveEnergy(ctx: SeasonContext): void {
   // Absorption chillers turn heat into cooling: heat from the heat sources within range, only
   // what no building needs for warmth that slot, and only as much as the homes they reach need.
   const chillers = active.filter((b) => defOf(content, b).chiller);
+  // Ice houses: winter's water frozen, melting a little each season, given out as cooling.
+  const iceHouses = active.filter((b) => defOf(content, b).ice);
+  for (const b of iceHouses) {
+    const ice = defOf(content, b).ice!;
+    const held = b.stored ?? 0;
+    if (state.season === 'winter') {
+      const got = Object.values(report.water?.uses[b.uid]?.got ?? {}).reduce((n, x) => n + x, 0);
+      const frozen = Math.min(ice.capacity, held + got * ice.perWater);
+      if (frozen > held) explain(ctx, b, `froze ${got} water into ${frozen - held} ice`);
+      setStored(b, frozen);
+    } else if (held > 0 && ice.melt > 0) {
+      const left = Math.max(0, held - ice.melt);
+      explain(ctx, b, `${held - left} ice melted`);
+      setStored(b, left);
+    }
+  }
   const heatSources = active.filter((b) => defOf(content, b).heatGeneration);
   const genHeat = (b: BuildingState, slot: Slot) => report.generated[b.uid]?.heat[slot] ?? 0;
   /** Heat each source gave the chillers, by slot: not there for warming anyone. */
@@ -167,6 +183,20 @@ export function resolveEnergy(ctx: SeasonContext): void {
         r.bySource[c.type] = (r.bySource[c.type] ?? 0) + t;
         coolLinks.push({ slot, from: c.uid, to: b.uid, amount: t });
         explain(ctx, b, `${slot}: ${t} cooling from the ${defOf(content, c).name}, made from heat`);
+      }
+      // Then the ice houses within reach, from what they hold.
+      for (const c of iceHouses
+        .filter((x) => hexDistance(x.at, b.at) <= cooling.range)
+        .sort((x, y) => hexDistance(x.at, b.at) - hexDistance(y.at, b.at))) {
+        if (need <= 0) break;
+        const t = Math.min(need, c.stored ?? 0);
+        if (t <= 0) continue;
+        setStored(c, (c.stored ?? 0) - t);
+        need -= t;
+        r.free += t;
+        r.bySource[c.type] = (r.bySource[c.type] ?? 0) + t;
+        coolLinks.push({ slot, from: c.uid, to: b.uid, amount: t });
+        explain(ctx, b, `${slot}: ${t} cooling from the ${defOf(content, c).name}'s ice`);
       }
       if (need > 0) {
         coolLeft[slot].set(b.uid, need);

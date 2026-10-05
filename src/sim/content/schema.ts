@@ -397,6 +397,17 @@ export const BuildingSchema = z
       .object({ coolPerHeat: int.min(1).default(1), maxCoolPerSlot: int.min(1) })
       .strict()
       .optional(),
+    /**
+     * An ice house (the Sun Desert's yakhchal; research: windcatcher, qanat and ice house): in
+     * winter it freezes the water it draws (`water.needs`), `perWater` ice for each, up to
+     * `capacity`; in the other seasons `melt` of it melts away, and what is left cools the
+     * buildings within `rules.cooling.range` that need it, after wind towers and chillers and
+     * before the grid.
+     */
+    ice: z
+      .object({ capacity: int.min(1), perWater: int.min(1), melt: nonNeg })
+      .strict()
+      .optional(),
     /** Shade: a home next to it (or along it, for an edge building) needs this much less cooling. */
     shades: nonNeg.default(0),
     recipes: z
@@ -581,6 +592,21 @@ export const EventsSchema = z
           seasons: int.min(1),
           bonusOn: z.array(TileTypeSchema).default([]),
           bonus: nonNeg.default(0),
+        })
+        .strict()
+        .optional(),
+      /**
+       * A late frost on the spring nights it comes with (the Highland's snowmelt; research:
+       * waru waru): farmland at `fromHeight` or above loses `loss` food in each season of that
+       * year, unless standing water beside it keeps the frost off (it gives back the day's heat
+       * at night): one of `besideTiles`, or one of `besideBuildings`.
+       */
+      frost: z
+        .object({
+          fromHeight: int.min(0),
+          loss: PerSeason,
+          besideTiles: z.array(TileTypeSchema).default([]),
+          besideBuildings: z.array(z.string()).default([]),
         })
         .strict()
         .optional(),
