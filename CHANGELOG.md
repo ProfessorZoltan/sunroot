@@ -1,5 +1,11 @@
 # Changelog
 
+## What would go short
+
+- **Short if it ended now**: a new picker on the map lights up the buildings that would be short
+  of power, heat, water or cooling if the season ended now, and lists them with the reason. The
+  map marks the blackouts and the cold and hot shut-offs too.
+
 ## Ice and frost, from the research on regenerative systems
 
 - **The Sun Desert's Ice House**: in winter it freezes the water it draws (beside the river, the

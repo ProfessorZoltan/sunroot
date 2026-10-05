@@ -24,6 +24,8 @@ const BADGE: Record<MarkKind, { fill: number; ink: number }> = {
   exposed: { fill: 0x5b6770, ink: 0xffffff },
   calm: { fill: 0x3f7a3a, ink: 0xffffff },
   cold: { fill: 0x7fb2d6, ink: 0xffffff },
+  unpowered: { fill: 0x3b3f46, ink: 0xf2c94c },
+  hot: { fill: 0xd9682b, ink: 0xfff3e0 },
   walk: { fill: 0x9a6a3c, ink: 0xfff3e0 },
 };
 
@@ -95,6 +97,12 @@ export function drawMarkTiles(g: Graphics, marks: Mark[]): void {
       case 'cold':
         dashedLine(g, ring, 5, 4, { width: 2, color: 0x7fb2d6 });
         break;
+      case 'unpowered':
+        dashedLine(g, ring, 5, 4, { width: 2, color: 0x3b3f46 });
+        break;
+      case 'hot':
+        dashedLine(g, ring, 5, 4, { width: 2, color: 0xd9682b });
+        break;
       case 'damaged':
         g.poly(corners).stroke({ width: 2, color: 0xa3401f, alpha: 0.7 });
         break;
@@ -157,6 +165,27 @@ function icon(g: Graphics, kind: MarkKind, p: Point, ink: number): void {
         g.moveTo(x - Math.cos(a) * 4, y - Math.sin(a) * 4)
           .lineTo(x + Math.cos(a) * 4, y + Math.sin(a) * 4)
           .stroke({ width: 1.4, color: ink, cap: 'round' });
+      }
+      break;
+    case 'unpowered':
+      // A lightning bolt.
+      g.moveTo(x + 1, y - 5)
+        .lineTo(x - 3, y + 1)
+        .lineTo(x, y + 1)
+        .lineTo(x - 1, y + 5)
+        .lineTo(x + 3, y - 1)
+        .lineTo(x, y - 1)
+        .closePath()
+        .fill({ color: ink });
+      break;
+    case 'hot':
+      // A small sun.
+      g.circle(x, y, 2.2).fill({ color: ink });
+      for (let i = 0; i < 6; i++) {
+        const a = (i * Math.PI) / 3;
+        g.moveTo(x + Math.cos(a) * 3.4, y + Math.sin(a) * 3.4)
+          .lineTo(x + Math.cos(a) * 5, y + Math.sin(a) * 5)
+          .stroke({ width: 1.2, color: ink, cap: 'round' });
       }
       break;
     case 'saltBonus':

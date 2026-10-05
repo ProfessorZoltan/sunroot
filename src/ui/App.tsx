@@ -14,7 +14,7 @@ import { AlmanacModal, RevealCard } from './Combos';
 import { LeftPanel } from './LeftPanel';
 import { Help, MapTip, ResolutionBanner } from './Overlays';
 import { ActionDock, ForecastBanner, RunOverview } from './Hud';
-import { TerrainPicker } from './MapControls';
+import { ShortfallPicker, TerrainPicker } from './MapControls';
 import { PrioritiesPanel } from './Priorities';
 import { EnergyMixDialog } from './EnergyMix';
 import { EndScreen, NewRunDialog, NoteDialog } from './RunUi';
@@ -280,7 +280,10 @@ export function App({
               <ForecastBanner store={store} />
             )}
             <MapTip store={store} view={view()} />
-            <TerrainPicker store={store} />
+            <div class="map-controls">
+              <TerrainPicker store={store} />
+              <ShortfallPicker store={store} />
+            </div>
             {store.inspected && !priorities && !store.tool && (
               <div class="inspector-overlay">
                 <Inspector store={store} ui={ui} />

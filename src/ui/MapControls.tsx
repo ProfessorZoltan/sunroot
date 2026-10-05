@@ -1,4 +1,8 @@
-/** Controls that sit on the map: highlighting one terrain, so tile types stay easy to read. */
+/**
+ * Controls that sit on the map: highlighting one terrain, so tile types stay easy to read, and
+ * the buildings that would go short if the season ended now.
+ */
+import { NEEDS, shortOf, type Need } from '../game/shortfalls';
 import type { GameStore } from '../game/store';
 import type { TileType } from '../sim';
 
@@ -33,5 +37,70 @@ export function TerrainPicker({ store }: { store: GameStore }) {
         ))}
       </select>
     </label>
+  );
+}
+
+const NEED_LABEL: Record<Need | 'any', string> = {
+  any: 'Anything',
+  power: 'Power',
+  heat: 'Heat',
+  water: 'Water',
+  cooling: 'Cooling',
+};
+
+/**
+ * The buildings that would be short of power, heat, water or cooling if the season ended now
+ * (asked for in playtesting): pick one to light them up on the map and list them.
+ */
+export function ShortfallPicker({ store }: { store: GameStore }) {
+  const all = store.shortfalls;
+  const focus = store.shortFocus;
+  const listed = focus ? shortOf(all, focus) : [];
+  const name = (uid: string) =>
+    store.rules.byId[store.state.buildings[uid]?.type ?? '']?.name ?? 'Building';
+  return (
+    <>
+      <label class="map-control shortfall-picker">
+        <span class="small">Short if it ended now</span>
+        <select
+          aria-label="Highlight shortfalls"
+          value={focus ?? ''}
+          onChange={(e) =>
+            store.focusShortfall(
+              ((e.target as HTMLSelectElement).value || null) as Need | 'any' | null,
+            )
+          }
+        >
+          <option value="">
+            {all.length === 0 ? 'Nothing' : `${all.length} building${all.length > 1 ? 's' : ''}`}
+          </option>
+          {(['any', ...NEEDS] as const).map((n) => {
+            const count = shortOf(all, n).length;
+            return (
+              <option value={n} disabled={count === 0 && focus !== n}>
+                {NEED_LABEL[n]} ({count})
+              </option>
+            );
+          })}
+        </select>
+      </label>
+      {focus && (
+        <div
+          class="map-control shortfall-list"
+          role="group"
+          aria-label="Buildings that would go short"
+        >
+          {listed.length === 0 && <span class="small">None this season.</span>}
+          {listed.map((s) => (
+            <button type="button" onClick={() => store.inspect(s.uid)}>
+              <strong>{name(s.uid)}</strong>
+              {s.lines.map((l) => (
+                <span class="small">{l}</span>
+              ))}
+            </button>
+          ))}
+        </div>
+      )}
+    </>
   );
 }

@@ -40,6 +40,7 @@ import { coppiceCombo, coppiceProblem } from '../sim/combos';
 import { edgeKey, hedgeProblem } from '../sim/edges';
 import { computeInsight, type Insight } from './insight';
 import { storageGauge, type StorageGauge } from './storageInfo';
+import { shortfalls, shortOf, type Need, type Shortfall } from './shortfalls';
 import { mapMarks, type Mark } from './marks';
 import type { PhaseName } from './timeline';
 
@@ -699,11 +700,31 @@ export class GameStore {
 
   focusTerrain(type: TileType | null): void {
     this.terrainFocus = type;
+    this.shortFocus = null;
     this.emit();
   }
 
-  /** The tiles of the highlighted terrain. */
+  /** A need whose shortfalls the map highlights instead (power, heat, water, cooling, or any). */
+  shortFocus: Need | 'any' | null = null;
+
+  focusShortfall(need: Need | 'any' | null): void {
+    this.shortFocus = need;
+    this.terrainFocus = null;
+    this.emit();
+  }
+
+  /** What would go short if the season ended now (from the season's preview). */
+  get shortfalls(): Shortfall[] {
+    return shortfalls(this.rules, this.state, this.insight.now);
+  }
+
+  /** The tiles the map highlights: a terrain's, or the buildings short of the chosen need. */
   get terrainTiles(): Hex[] {
+    if (this.shortFocus) {
+      return shortOf(this.shortfalls, this.shortFocus)
+        .map((s) => this.state.buildings[s.uid]?.at)
+        .filter((h): h is Hex => h !== undefined);
+    }
     const type = this.terrainFocus;
     if (!type) return [];
     return Object.values(this.state.map.tiles)

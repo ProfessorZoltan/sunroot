@@ -47,8 +47,12 @@ export type MarkKind =
   | 'exposed'
   /** Coming: the Mixed Grid keeps the storm from damaging anything. */
   | 'calm'
-  /** Coming: the freeze makes this home need heat at night. */
+  /** Coming: the freeze makes this home need heat at night; or nothing heats it, so it shuts off. */
   | 'cold'
+  /** This season: not enough energy, so the blackout shuts it off. */
+  | 'unpowered'
+  /** This season: nothing cools it, so it shuts off hot (the Sun Desert). */
+  | 'hot'
   /** This season: its workers walk further than the free distance. */
   | 'walk';
 
@@ -154,6 +158,27 @@ export function mapMarks(content: Content, state: RunState, forecast: SeasonRepo
           false,
           `Long walk to water: the ${name(uid)} walks ${h.distance - water.freeDistance} tile${h.distance - water.freeDistance > 1 ? 's' : ''} beyond the free ${water.freeDistance}.`,
         );
+    // Shut off this season, as things stand: no power, no heat, no cooling (src/game/shortfalls.ts).
+    const cold = new Set(forecast.cold);
+    const hot = new Set(forecast.hot ?? []);
+    for (const uid of forecast.blackouts) {
+      if (cold.has(uid))
+        add(
+          atOf(uid),
+          'cold',
+          true,
+          `No heat source reaches the ${name(uid)}: it will be shut off cold.`,
+        );
+      else if (hot.has(uid))
+        add(atOf(uid), 'hot', true, `Nothing cools the ${name(uid)}: it will be shut off hot.`);
+      else
+        add(
+          atOf(uid),
+          'unpowered',
+          true,
+          `Not enough energy: the ${name(uid)} will be shut off in the blackout. Prioritize buildings to choose who keeps power.`,
+        );
+    }
     // With water, any season can leave a building thirsty.
     for (const [uid, u] of Object.entries(forecast.water?.uses ?? {}))
       if (u.short)

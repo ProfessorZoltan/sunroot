@@ -194,3 +194,47 @@ test('spreading compost many times, where it gives the most Harmony', async ({ p
   await expect.poll(async () => (await live()).harmony).toBe(before.harmony);
   expect(errors).toEqual([]);
 });
+
+test('what would go short if the season ended now', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/?seed=willow-reach-golden&visions=0&water=1');
+  await expect(page.locator('#map-host canvas')).toBeVisible();
+  type Short = {
+    state: { buildings: Record<string, { type: string; at: Hex }> };
+    legalSites: { at: Hex }[];
+    selectBuilding(id: string | null): void;
+    clickAt(h: Hex): void;
+    shortfalls: { uid: string; needs: string[] }[];
+    inspected: string | null;
+  };
+  // A farm out of the channels' reach: it would go short of water.
+  const farm = await page.evaluate(() => {
+    const s = (window as unknown as { sunroot: { store: Short } }).sunroot.store;
+    s.selectBuilding('floodplainFarm');
+    for (const site of [...s.legalSites].reverse()) {
+      s.clickAt(site.at);
+      const short = s.shortfalls.find((x) => x.needs.includes('water'));
+      if (short) return short.uid;
+    }
+    return null;
+  });
+  expect(farm).not.toBeNull();
+  const picker = page.getByRole('combobox', { name: 'Highlight shortfalls' });
+  await expect(picker.locator('option[value="water"]')).toHaveText(/Water \(\d+\)/);
+  await picker.selectOption('water');
+  const list = page.getByRole('group', { name: 'Buildings that would go short' });
+  await expect(list).toContainText('Floodplain Farm');
+  await expect(list).toContainText(/water/);
+  await list.getByRole('button').first().click();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => (window as unknown as { sunroot: { store: Short } }).sunroot.store.inspected,
+      ),
+    )
+    .not.toBeNull();
+  await picker.selectOption('');
+  await expect(list).toBeHidden();
+  expect(errors).toEqual([]);
+});
