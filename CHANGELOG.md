@@ -1,5 +1,18 @@
 # Changelog
 
+## Rainforest Gardens: combos, cards and balance
+
+- **The forest's combos**: the Midden Loop (dark earth twice a year), the Kihamba Loop, the Milpa
+  Cycle (an old milpa planted with trees becomes an Orchard Garden, and in time a forest garden in
+  three storeys, the land back under forest), Four Storeys, the Subak, the Living Mosaic (enough
+  forest and no fire starts), Pepper on the Tree and Cool Shade.
+- **Eight forest tunings** and two charters, Forest First and Swidden Rights.
+- **Middens are fed first**, before the composters take every scrap.
+- **The bots play the forest**: they grow gardens up a layer at a time, make dark earth, fence
+  the fire's few edges and feed the poorest fields. Over 40 seeds the forest reaches Heartwood as
+  often as the Reach (36%), after forest gardens were cut back.
+- A forest map that found no site for its camp now always finds one.
+
 ## Rainforest Gardens: the forest's simulation
 
 - **The forest's map**: rainforest over most of the land, a river with its floodplain, hills on

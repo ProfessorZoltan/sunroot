@@ -81,6 +81,11 @@ describe('the forest map', () => {
     }
   });
 
+  it('always finds a site for the camp (the balance runs once found a map without one)', () => {
+    for (let i = 0; i < 200; i++)
+      expect(() => createRun(F, { seed: `biome-${i}`, guided: false })).not.toThrow();
+  });
+
   it('puts the camp on a clearing by the forest, near the estate', () => {
     for (const s of maps) {
       const camp = s.buildings.b0!.at;

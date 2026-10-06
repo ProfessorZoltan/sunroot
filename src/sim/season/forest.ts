@@ -4,10 +4,11 @@
  *
  *  - Layers: each grown layer of a forest garden makes its own yields, and helps the layers it
  *    names (`ground` is the garden's own yields, in `computeYield`) while they make any.
- *  - After production: char hearths burn biomass into charcoal; kitchen middens take scraps and,
- *    with charcoal near, come a season nearer to turning a tile into dark earth.
- *  - In the monsoon, every farmed tile nothing covers loses 1 fertility; a field with none left
- *    wears a step down the land-health ladder instead.
+ *  - Before production (so the composters don't take the scraps first): char hearths burn
+ *    biomass into charcoal; kitchen middens take scraps and, with charcoal near, come a season
+ *    nearer to turning a tile into dark earth.
+ *  - After production, in the monsoon, every farmed tile nothing covers loses 1 fertility; a
+ *    field with none left wears a step down the land-health ladder instead.
  *
  * Off (and nothing here runs) without `rules.forest`.
  */
@@ -75,7 +76,7 @@ export function layerYields(ctx: SeasonContext, b: BuildingState): void {
 }
 
 export function resolveForest(ctx: SeasonContext): void {
-  const { content, state, si } = ctx;
+  const { content, state } = ctx;
   const rules = content.rules.forest;
   if (!rules) return;
   const report: ForestReport = {
@@ -86,8 +87,7 @@ export function resolveForest(ctx: SeasonContext): void {
     darkened: [],
   };
   ctx.report.forest = report;
-  const order = byPriority(state);
-  const active = order.filter((b) => ctx.active.has(b.uid));
+  const active = byPriority(state).filter((b) => ctx.active.has(b.uid));
 
   // Char hearths burn biomass into charcoal.
   const burned: BuildingState[] = [];
@@ -144,11 +144,16 @@ export function resolveForest(ctx: SeasonContext): void {
     report.darkened.push(hexKey(tile));
     explain(ctx, b, `turned ${hexKey(tile)} into dark earth`);
   }
+}
 
-  // The monsoon washes fertility out of every farmed tile nothing covers.
-  if (!rules.leaches[si]) return;
+/** After production: the monsoon washes fertility out of every farmed tile nothing covers. */
+export function washFields(ctx: SeasonContext): void {
+  const { content, state, si } = ctx;
+  const rules = content.rules.forest;
+  const report = ctx.report.forest;
+  if (!rules || !report || !rules.leaches[si]) return;
   const ladder = content.rules.landHealth;
-  for (const b of order) {
+  for (const b of byPriority(state)) {
     if (!defOf(content, b).farmland) continue;
     const tile = tileAt(state, b.at)!;
     if (rules.keeps.includes(tile.type) || covered(content, state, b)) continue;

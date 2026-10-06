@@ -346,6 +346,7 @@ export function siteScore(
       score += 3 * touching('oasisGarden', 'wadiFarm');
       score += 3 * touching('riceFishPaddy', 'mushroomCellar');
       score += 3 * touching('chinampa');
+      score += 3 * touching('milpa', 'forestGarden');
       break;
     // Willow Reach v2 (E3): next to what feeds them or what they feed.
     case 'greenhouse':
@@ -472,6 +473,47 @@ export function siteScore(
     case 'levee':
       score += neighborTiles.filter((t) => t.type === 'floodplain').length;
       break;
+    // Rainforest Gardens: a milpa where the ash or dark earth feeds it, a garden that keeps the
+    // forest, and what feeds them beside them.
+    case 'milpa':
+      score += tile.type === 'woodland' ? 4 : tile.type === 'darkEarth' ? 6 : 0;
+      score += 2 * touching('composter', 'apiary', 'beeTree');
+      break;
+    case 'forestGarden':
+      score += tile.type === 'woodland' ? 3 : tile.type === 'darkEarth' ? 2 : 0;
+      score += touching('forestGarden', 'raisedHouse') + 2 * touching('stallBarn', 'beeTree');
+      break;
+    case 'raisedHouse':
+      score += 2 * touching('forestGarden');
+      break;
+    case 'stallBarn':
+      score += 3 * touching('forestGarden');
+      break;
+    case 'beeTree':
+      score += 2 * (nearby('milpa', 2) + nearby('forestGarden', 2));
+      break;
+    case 'kitchenMidden': {
+      // Fields and land within reach to turn to dark earth.
+      const darkens = turn.rules.rules.forest?.darkens ?? [];
+      for (const t of Object.values(state.map.tiles)) {
+        if (hexDistance(t, tile) > 2 || !darkens.includes(t.type)) continue;
+        const on = occ.get(hexKey(t));
+        score += !on ? 1 : on.type === 'milpa' || on.type === 'forestGarden' ? 3 : 0;
+      }
+      break;
+    }
+    case 'charHearth': {
+      // Beside a midden no hearth yet serves.
+      const middens = Object.values(state.buildings).filter((b) => b.type === 'kitchenMidden');
+      const hearths = Object.values(state.buildings).filter((b) => b.type === 'charHearth');
+      if (
+        middens.some(
+          (m) => hexDistance(m.at, tile) <= 2 && !hearths.some((h) => hexDistance(h.at, m.at) <= 2),
+        )
+      )
+        score += 8;
+      break;
+    }
   }
   return score;
 }

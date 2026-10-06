@@ -22,6 +22,8 @@ function play(content: Content, bot: string) {
   const dark: number[] = [];
   const layers: number[] = [];
   const citizens: number[] = [];
+  const harmony: number[] = [];
+  const loops: number[] = [];
   let heart = 0;
   let collapsed = 0;
   let fires = 0;
@@ -44,12 +46,16 @@ function play(content: Content, bot: string) {
     dark.push(tiles.filter((t) => t.type === 'darkEarth').length);
     layers.push(Object.values(s.buildings).reduce((n, b) => n + (b.layers?.length ?? 0), 0));
     citizens.push(s.citizens);
+    harmony.push(s.harmony);
+    loops.push(s.loops.length);
   }
   return {
     median: med(scores),
     heartwood: `${Math.round((heart / N) * 100)}%`,
     collapsed: `${collapsed} of ${N}`,
     citizens: med(citizens),
+    harmony: med(harmony),
+    loops: mean(loops),
     forest: mean(forest),
     darkEarth: mean(dark),
     layers: mean(layers),

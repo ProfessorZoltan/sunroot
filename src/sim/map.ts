@@ -809,6 +809,14 @@ function generateForest(content: Content, gen: ForestMapGen, seed: string): Gene
   };
   let campOptions = order.filter((k) => site(tiles[k]!, true));
   if (campOptions.length === 0) campOptions = order.filter((k) => site(tiles[k]!, false));
+  // Failing that, the forest nearest the estate that isn't on the river's bank.
+  if (campOptions.length === 0) {
+    const land = order.filter(
+      (k) => tiles[k]!.type === 'woodland' && riverDistance(tiles[k]!) >= 2,
+    );
+    const nearestEstate = Math.min(...land.map((k) => estateDistance(tiles[k]!)));
+    campOptions = land.filter((k) => estateDistance(tiles[k]!) === nearestEstate);
+  }
   if (campOptions.length === 0) throw new Error('map has no site for the Founders Camp');
   const campKey = campOptions[nextInt(rng, campOptions.length)]!;
   const camp = tiles[campKey]!;

@@ -31,7 +31,7 @@ import { feedAndGrow, scrapsAndHarmony } from './people';
 import { generate, produce, producePowered, staff } from './production';
 import { resolveWater } from './water';
 import { resolveLake } from './lake';
-import { resolveForest } from './forest';
+import { resolveForest, washFields } from './forest';
 import { assignCommutes } from './commute';
 import { snapshot } from '../snapshot';
 import {
@@ -90,6 +90,7 @@ export function resolveSeason(
   assignCommutes(ctx);
   resolveWater(ctx);
   resolveLake(ctx);
+  resolveForest(ctx);
   generate(ctx); // 4
   mixedGridBonus(ctx);
   produce(ctx);
@@ -98,7 +99,7 @@ export function resolveSeason(
   applyLoopBonuses(ctx);
   applyFormationYields(ctx);
   wildlifeYields(ctx);
-  resolveForest(ctx);
+  washFields(ctx);
   feedAndGrow(ctx); // 8
   scrapsAndHarmony(ctx); // 9
   checkCombos(ctx); // 10

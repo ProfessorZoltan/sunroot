@@ -345,7 +345,7 @@
       },
       "farmland": true,
       "yields": {
-        "food": [1, 2, 2, 1]
+        "food": [1, 2, 2, 0]
       },
       "layers": [
         {
@@ -354,17 +354,17 @@
           "cost": 2,
           "grows": 2,
           "yields": {
-            "materials": [0, 1, 2, 0]
+            "materials": [0, 0, 1, 0]
           }
         },
         {
           "id": "understory",
           "name": "Understory",
-          "cost": 2,
+          "cost": 3,
           "grows": 1,
           "yields": {
-            "food": [1, 1, 1, 1],
-            "biomass": [1, 1, 1, 1]
+            "food": [0, 1, 1, 0],
+            "biomass": [0, 1, 1, 0]
           },
           "helps": [
             {
@@ -377,10 +377,10 @@
         {
           "id": "canopy",
           "name": "Canopy",
-          "cost": 3,
+          "cost": 4,
           "grows": 4,
           "yields": {
-            "food": [0, 2, 3, 1]
+            "food": [0, 1, 2, 0]
           },
           "helps": [
             {
@@ -1624,13 +1624,12 @@
       },
       "effect": {
         "yields": {
-          "food": 2,
-          "materials": 1
+          "food": 1
         },
         "asTile": "woodland",
         "appliesTo": "forestGarden"
       },
-      "text": "A forest garden with all four storeys grown, ground, shrub, understory and canopy: +2 food and +1 materials in a season it makes them, and it counts as rainforest for Harmony.",
+      "text": "A forest garden with all four storeys grown, ground, shrub, understory and canopy: +1 food in a season it makes any, and it counts as rainforest for Harmony.",
       "hint": "Grow a garden all the way up."
     },
     {

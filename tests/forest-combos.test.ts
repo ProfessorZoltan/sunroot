@@ -58,9 +58,9 @@ function garden(s: RunState, col: number, row: number, layers: string[], on?: Ti
 }
 
 describe('the forest’s loops', () => {
-  // Winter and spring: no cyclone to strike the members.
+  // Spring and summer: no cyclone to strike the members, and the gardens bear.
   it('the Midden Loop: garden, house, midden, hearth; +1 food, dark earth twice as fast', () => {
-    let s = start('winter');
+    let s = start('spring');
     const g = garden(s, 2, 3, []);
     put(s, 'raisedHouse', 3, 3);
     const midden = put(s, 'kitchenMidden', 4, 3);
@@ -77,7 +77,7 @@ describe('the forest’s loops', () => {
   });
 
   it('the Kihamba Loop: bee tree, a garden with its understory, a stall barn', () => {
-    const s = start('winter');
+    const s = start('spring');
     put(s, 'beeTree', 2, 3, 'woodland');
     const g = put(s, 'forestGarden', 3, 3);
     const barn = put(s, 'stallBarn', 4, 3);
@@ -124,15 +124,14 @@ describe('the Milpa Cycle', () => {
     expect(b.type).toBe('forestGarden');
     expect(b.layers!.map((l) => l.id)).toEqual(['shrub', 'understory', 'canopy']);
     expect(tile(t, 3, 3).type).toBe('woodland');
-    // Grown at once: next season it stands in four storeys.
-    expect(projectSeason(F, t, t.season, { forecast: true }).math[o]!.join(' ')).not.toMatch(
-      /still growing/,
-    );
+    // Grown at once: it stands in four storeys from the next season.
+    const next = projectSeason(F, t, t.season, { forecast: true });
+    expect(next.combos.find((h) => h.combo === 'fourStoreys')?.members).toEqual([o]);
   });
 });
 
 describe('the forest’s formations', () => {
-  it('Four Storeys: +2 food and +1 materials, and it counts as rainforest for Harmony', () => {
+  it('Four Storeys: +1 food, and it counts as rainforest for Harmony', () => {
     const s = start('summer');
     const g = garden(s, 3, 3, ['shrub', 'understory']);
     const before = computeHarmony(F, s);
@@ -142,8 +141,7 @@ describe('the forest’s formations', () => {
     expect(harmonyLines(F, s).find((l) => l.label.includes('woodland'))?.amount).toBe(2);
     const t = end(s);
     expect(combos(t)).toContain('fourStoreys');
-    expect(t.lastReport!.math[g]).toContain('+2 food from the Four Storeys');
-    expect(t.lastReport!.math[g]).toContain('+1 materials from the Four Storeys');
+    expect(t.lastReport!.math[g]).toContain('+1 food from the Four Storeys');
     expect(made(plain, g)).toBeLessThan(made(t, g));
   });
 
@@ -246,7 +244,7 @@ describe('the forest’s tunings and charters', () => {
     );
     const layers = c.byId.forestGarden!.layers!;
     expect(layers[1]!.helps[0]!.amount).toBe(2);
-    expect(layers[0]!.yields.materials).toEqual([0, 1, 3, 0]);
+    expect(layers[0]!.yields.materials).toEqual([0, 0, 2, 0]);
     expect(layers[2]!.grows).toBe(3);
     expect(c.byId.livingFence!.cost).toBe(0);
     expect(c.byId.forestGarden!.cost).toBe(3);
@@ -261,7 +259,7 @@ describe('the forest’s tunings and charters', () => {
       "the forest may not be cleared: Milpa can't burn woodland",
     );
     expect(canPlace(contentFor(F, s), s, 'milpa', at(3, 0)).ok).toBe(true);
-    expect(contentFor(F, s).byId.forestGarden!.yields.food).toEqual([2, 3, 3, 2]);
+    expect(contentFor(F, s).byId.forestGarden!.yields.food).toEqual([2, 3, 3, 1]);
   });
 
   it('Swidden Rights: free milpas that burn to meadow, but the rain takes fertility in autumn too', () => {

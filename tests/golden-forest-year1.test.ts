@@ -7,13 +7,15 @@
  * beside it (not between it and the camp); the workshop needs a solar canopy's day energy, which
  * has to stand out of the forest's shade, on the estate, where the cyclone finds it, so the autumn
  * plants a living fence along it; and the midden waits all year for a char hearth's charcoal
- * (the guided draft offers the hearth or the fence, and the fence is wanted twice).
+ * (the guided draft offers the hearth or the fence, and the fence is wanted twice). FG3's balance
+ * changed it again (an understory costs 3; a garden bears nothing in the dry season): the
+ * winter's stores run lower, and the banana's mulch shows only from the next summer.
  *
  * | Season | Build                                                              | Materials | Food | Citizens |
  * | Spring | Milpa burned from the rainforest, Salvage Yard, Workshop, Solar Canopy | 12        | 11   | 6        |
  * | Summer | Forest Garden on the rainforest, Raised House on the estate        | 10        | 14   | 7        |
- * | Autumn | Kitchen Midden by the house, understory, living fence by the panel | 10        | 13   | 7        |
- * | Winter | Living fence on the milpa's forest edge, canopy on the garden      | 11        | 9    | 7        |
+ * | Autumn | Kitchen Midden by the house, understory, living fence by the panel | 9         | 13   | 7        |
+ * | Winter | Living fence on the milpa's forest edge, canopy on the garden      | 9         | 6    | 7        |
  */
 import { describe, expect, it } from 'vitest';
 import { biomeContent } from '../src/content';
@@ -114,8 +116,8 @@ describe('Rainforest Gardens, Year 1 (golden, PROPOSED)', () => {
     expect(rows).toEqual([
       { season: 'spring', materials: 12, food: 11, citizens: 6 },
       { season: 'summer', materials: 10, food: 14, citizens: 7 },
-      { season: 'autumn', materials: 10, food: 13, citizens: 7 },
-      { season: 'winter', materials: 11, food: 9, citizens: 7 },
+      { season: 'autumn', materials: 9, food: 13, citizens: 7 },
+      { season: 'winter', materials: 9, food: 6, citizens: 7 },
     ]);
   });
 
@@ -159,7 +161,7 @@ describe('Rainforest Gardens, Year 1 (golden, PROPOSED)', () => {
     ]);
   });
 
-  it('winter: the fire finds cleared edges, but not across the fence; the banana mulches', () => {
+  it('winter: the fire finds cleared edges, but not across the fence; the canopy is slow', () => {
     const winter = year[3]!;
     const r = winter.lastReport!;
     expect(r.event).toBe('fire');
@@ -170,7 +172,9 @@ describe('Rainforest Gardens, Year 1 (golden, PROPOSED)', () => {
     expect(r.fireRisk).not.toContain(fenced);
     expect(r.burned).not.toContain(fenced);
     const garden = find(winter, 'forestGarden');
-    expect(r.math[garden.uid]).toContain('Food: 1 in winter +1 understory = 2');
+    // The dry season: the garden bears nothing; the understory has grown, the canopy hasn't.
+    expect(r.yields[garden.uid]?.food ?? 0).toBe(0);
+    expect(r.math[garden.uid]!.join(' ')).not.toMatch(/Understory: still growing/);
     expect(r.math[garden.uid]).toContain('Canopy: still growing (0/4 seasons)');
   });
 });

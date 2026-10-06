@@ -28,6 +28,7 @@ import { heightAt, neighborBuildings, neighborTiles, stormExposed } from '../sim
 import { wonderSiteProblem } from '../sim/wonder';
 import { SEASONS, type BuildingDef } from '../sim/content/schema';
 import { coppiceProblem } from '../sim/combos';
+import { fertilityOf } from '../sim/forest';
 
 /**
  * How a bot handles water (EXPANSION.md), when the water system is on. The
@@ -463,6 +464,71 @@ function tendLake(turn: Turn, profile: Profile): void {
   }
 }
 
+/**
+ * The forest's cards (no other biome offers them): dark earth and what keeps the gardens before
+ * the bot's own cards, the terraces after them.
+ */
+const FOREST_FIRST = ['kitchenMidden', 'charHearth', 'stallBarn', 'beeTree', 'livingFence'];
+const FOREST_LATER = ['microHydro', 'riceTerrace', 'waterTemple'];
+
+/**
+ * Rainforest Gardens (FG3): grow the gardens up, make dark earth, keep the fire out and feed the
+ * fields. Each forest garden takes its next layer when it can (the understory, then the canopy,
+ * then the shrubs); from the second year, a kitchen midden by the homes and fields and a char
+ * hearth beside it; in the dry season, a living fence on each edge the fire could cross, while
+ * there are few; and spare compost on the poorest fields. All of it waits while salvage waits on
+ * a workshop with no power.
+ */
+function tendForest(turn: Turn, profile: Profile): void {
+  const forest = turn.rules.rules.forest;
+  if (!forest || idleWorkshops(turn) > 0) return;
+  const state = turn.state;
+  const reserve = Math.min(profile.reserve, 2);
+  const layers = turn.rules.byId.forestGarden?.layers ?? [];
+  for (const b of Object.values(state.buildings)) {
+    if (b.type !== 'forestGarden') continue;
+    for (const id of ['understory', 'canopy', 'shrub']) {
+      const cost = layers.find((l) => l.id === id)?.cost ?? Infinity;
+      if (state.stores.materials < cost + reserve) break;
+      if (turn.apply({ type: 'addLayer', uid: b.uid, layer: id })) break;
+    }
+  }
+  // Gardens that grow up rather than fields that wear out: one more each year, while food holds.
+  if (foodGap(turn) === 0 && turn.count('forestGarden') < 1 + state.year)
+    turn.build('forestGarden', reserve);
+  // Dark earth, from the second year: a midden by the homes, a hearth beside each.
+  if (state.year >= 2) {
+    const homes = Object.values(state.buildings).filter(
+      (b) => turn.rules.byId[b.type]!.housing > 0,
+    ).length;
+    if (turn.count('kitchenMidden') < Math.min(3, Math.floor(homes / 2)))
+      turn.build('kitchenMidden', reserve);
+    if (turn.count('charHearth') < turn.count('kitchenMidden')) turn.build('charHearth', reserve);
+  }
+  // The dry season: fence the edges the fire could cross, while there are few of them.
+  const risk = turn.peek()?.report.fireRisk ?? [];
+  if (state.season === 'winter' && risk.length > 0 && risk.length <= 4)
+    for (const key of risk) {
+      const t = state.map.tiles[key]!;
+      for (const n of hexNeighbors(t)) {
+        const from = state.map.tiles[hexKey(n)];
+        if (!from || !(turn.rules.events.fire?.catchesFrom ?? []).includes(from.type)) continue;
+        if (state.stores.materials < reserve + 1) return;
+        turn.apply({ type: 'plantHedge', a: t, b: n });
+      }
+    }
+  // Spare compost on the fields with the least fertility left.
+  const fields = Object.values(state.buildings)
+    .filter((b) => turn.rules.byId[b.type]!.fertilityFood > 0)
+    .map((b) => state.map.tiles[hexKey(b.at)]!)
+    .sort((a, b) => (fertilityOf(turn.rules, a) ?? 0) - (fertilityOf(turn.rules, b) ?? 0));
+  for (const t of fields) {
+    if ((fertilityOf(turn.rules, t) ?? 0) >= 2) break;
+    if (state.stores.compost < turn.rules.rules.compostPerTileStep) break;
+    turn.apply({ type: 'spreadCompost', at: t });
+  }
+}
+
 /** The shared needs-first play of the non-random bots. */
 function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): void {
   // A wonder's tiles are kept free from the start of the run.
@@ -480,7 +546,9 @@ function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): v
         ? ['cistern', ...profile.cards]
         : turn.rules.rules.lake
           ? [...LAKE_FIRST, ...profile.cards, ...LAKE_LATER]
-          : profile.cards,
+          : turn.rules.rules.forest
+            ? [...FOREST_FIRST, ...profile.cards, ...FOREST_LATER]
+            : profile.cards,
   );
   if (turn.waterOn) tendWater(turn, profile, water);
   // The heat layer: energy can't heat, so a heat-minding bot puts a pump by every home first.
@@ -525,6 +593,7 @@ function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): v
 
   // The lake (after power for the workshops, which the dredging would otherwise outbid).
   tendLake(turn, profile);
+  tendForest(turn, profile);
 
   // Long walks to work: a cottage near the far work, when the walks cost wellbeing.
   if (turn.commuteOn && turn.commuteAware && (turn.peek()?.report.commute?.wellbeing ?? 0) < 0)
@@ -547,7 +616,10 @@ function survive(turn: Turn, profile: Profile, water: WaterPolicy = 'fields'): v
 
   // Scraps left at the end of the season become clutter next season.
   const scraps = turn.peek()?.state.stores.scraps ?? 0;
-  const capacity = turn.count('composter') * 3 + turn.count('biogasDigester') * 4;
+  const capacity =
+    turn.count('composter') * 3 +
+    turn.count('biogasDigester') * 4 +
+    turn.count('kitchenMidden') * 2;
   if (scraps > capacity) {
     if (!turn.build('composter')) turn.build('biogasDigester');
   }
