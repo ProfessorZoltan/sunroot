@@ -1355,6 +1355,13 @@ export const BUILDING_ART: Record<string, Art> = {
     g.circle(c.x - 1, c.y + 6, 2).fill({ color: 0x5f8a45 });
     g.circle(c.x + 4, c.y + 7, 1.8).fill({ color: 0x5f8a45 });
   },
+  /** Young fruit trees over the old field's crops. */
+  orchardGarden(g, c) {
+    g.poly(hexCorners(c, 20)).fill({ color: 0xa8935e }).stroke({ width: 1.5, color: 0x7a5a36 });
+    tree(g, c.x - 7, c.y - 3, 5, true);
+    tree(g, c.x + 7, c.y - 1, 5, true);
+    g.ellipse(c.x, c.y + 8, 5, 2.5).fill({ color: 0x5f8a45 });
+  },
   /** A timber house on posts, with a steep thatched roof. */
   raisedHouse(g, c) {
     shadow(g, c, 12, 3.5, 10);

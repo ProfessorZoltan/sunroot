@@ -61,6 +61,12 @@ export function canPlace(
   if (!def.placement.tiles.includes(tile.type)) {
     return { ok: false, reason: `${def.name} can't be built on ${tile.type}` };
   }
+  // Forest First: nothing may burn the forest clear.
+  if (def.burns?.from.includes(tile.type) && content.rules.forest?.clearing === false)
+    return {
+      ok: false,
+      reason: `the forest may not be cleared: ${def.name} can't burn ${tile.type}`,
+    };
   const heights = def.placement.heights;
   if (heights) {
     const h = tile.height ?? 0;

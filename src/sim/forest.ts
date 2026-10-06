@@ -31,8 +31,9 @@ export function layersOf(
   });
 }
 
-/** True if a grown layer covers the building's tile (a canopy): the monsoon leaves it be. */
+/** True if the building's trees, or a grown layer (a canopy), cover its tile from the monsoon. */
 export function covered(content: Content, state: RunState, b: BuildingState): boolean {
+  if (defOf(content, b).covers) return true;
   return layersOf(content, state, b).some((l) => l.grown && l.def.covers);
 }
 

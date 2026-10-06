@@ -13,6 +13,7 @@ import {
 } from '../queries';
 import { addYield, type SeasonContext } from './context';
 import { edgeKey } from '../edges';
+import { fireStopped } from '../combos';
 import { festivalThisSeason, siltBeyond } from '../wildlife';
 
 /**
@@ -238,10 +239,11 @@ function dryFire(ctx: SeasonContext): void {
     )
     .map(hexKey)
     .sort();
-  report.fireRisk = risk;
+  // The Living Mosaic: with enough of the land under forest, no fire starts at all.
+  report.fireRisk = fireStopped(content, state) ? [] : risk;
   if (ctx.forecast) return;
   report.burned = [];
-  let left = risk;
+  let left = report.fireRisk;
   for (let i = 0; i < fire.count && left.length > 0; i++) {
     const key = left[nextInt(state.rng, left.length)]!;
     state.map.tiles[key]!.type = fire.burnsTo;

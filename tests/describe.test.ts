@@ -100,6 +100,7 @@ const DESCRIBED = new Set([
   'eatsGrey',
   'fishesLake',
   'layers',
+  'covers',
   'burns',
   'fertilityFood',
   'midden',

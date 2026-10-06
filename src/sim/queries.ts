@@ -1,6 +1,7 @@
 /** Read-only helpers over run state shared by commands and season resolution. */
 import {
   formationHarmony,
+  formationTiles,
   loopHarmony,
   quietedByFormations,
   shelteredByFormation,
@@ -313,7 +314,8 @@ export function harmonyLines(content: Content, state: RunState): HarmonyLine[] {
   const lines: HarmonyLine[] = [];
   const tileCounts = new Map<string, number>();
   // A building may make its tile count as another type (a Hedgerow on scrub counts as meadow).
-  const asTile = new Map<string, TileType>();
+  // Or a formation it stands in (Four Storeys: a garden counts as rainforest).
+  const asTile = formationTiles(content, state);
   for (const b of Object.values(state.buildings)) {
     const t = defOf(content, b).harmonyAsTile;
     if (t) asTile.set(hexKey(b.at), t);

@@ -74,10 +74,12 @@ export function comboPicture(content: Content, combo: Combo): ComboPicture {
   switch (combo.layer) {
     case 'adjacency': {
       const around = neighbours(content, combo.nextTo);
+      const layer = combo.withLayer ?? combo.nextToLayer;
       return {
         ...base,
         slots: [one(content, combo.building), ...around],
         joins: around.map(() => 'next' as const),
+        note: layer ? `with its ${layer} grown` : undefined,
       };
     }
     case 'chain':
@@ -168,6 +170,30 @@ export function comboPicture(content: Content, combo: Combo): ComboPicture {
             note: ['in a straight line', ...words].join(', '),
           };
         }
+        case 'layered': {
+          const def = content.byId[s.building];
+          const names = s.layers.map(
+            (id) => def?.layers?.find((l) => l.id === id)?.name.toLowerCase() ?? id,
+          );
+          return {
+            ...base,
+            slots: [one(content, s.building)],
+            joins: [],
+            note: `with its ${names.slice(0, -1).join(', ')} and ${names.at(-1)} grown`,
+          };
+        }
+        case 'cover':
+          return {
+            ...base,
+            slots: [
+              {
+                pieces: [...s.tiles, ...s.buildings].map((id) => piece(content, id)),
+                count: 1,
+              },
+            ],
+            joins: [],
+            note: `over ${Math.round(s.share * 100)}% or more of the land`,
+          };
         case 'strip':
           return {
             ...base,
@@ -213,6 +239,13 @@ export function comboPicture(content: Content, combo: Combo): ComboPicture {
             ...base,
             slots: [from, one(content, w.building), into],
             joins: ['placed', 'becomes'],
+          };
+        case 'age':
+          return {
+            ...base,
+            slots: [from, into],
+            joins: ['becomes'],
+            note: `once it has stood ${w.minAge} seasons`,
           };
       }
     }

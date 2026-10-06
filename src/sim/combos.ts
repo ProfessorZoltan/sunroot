@@ -15,7 +15,7 @@
  * for the first time this run. Everything a combo needs is in the data.
  */
 import type { Content } from './content/load';
-import type { Combo } from './content/schema';
+import type { Combo, TileType } from './content/schema';
 import {
   HEX_DIRECTIONS,
   axialToOffset,
@@ -25,7 +25,17 @@ import {
   hexNeighbors,
   type Hex,
 } from './hex';
-import { defOf, heightAt, neighborBuildings, neighborTiles, occupancy, tileAt } from './queries';
+import {
+  defOf,
+  grownLayers,
+  heightAt,
+  isWaterTile,
+  neighborBuildings,
+  neighborTiles,
+  occupancy,
+  plantTile,
+  tileAt,
+} from './queries';
 import { addYield, explain, type FormationEffect, type SeasonContext } from './season/context';
 import type { BuildingState, ComboHit, RunState } from './types';
 import { available, waterOn } from './water';
@@ -178,6 +188,29 @@ export function findFormations(
           .filter((x): x is BuildingState => x !== undefined && shape.of.includes(x.type));
         if (ring.length >= shape.size)
           hits.push({ combo: combo.id, members: ring.map((x) => x.uid), tiles: [hexKey(t)] });
+      }
+    } else if (shape.kind === 'layered') {
+      // A building with every one of the layers grown (Four Storeys).
+      for (const b of Object.values(state.buildings)) {
+        if (b.type !== shape.building) continue;
+        const grown = new Set(grownLayers(content, state, b).map((l) => l.id));
+        if (shape.layers.every((l) => grown.has(l)))
+          hits.push({ combo: combo.id, members: [b.uid] });
+      }
+    } else if (shape.kind === 'cover') {
+      // Enough of the land under these tiles or buildings (the Living Mosaic).
+      const under = new Set(
+        Object.values(state.buildings)
+          .filter((b) => shape.buildings.includes(b.type))
+          .map((b) => hexKey(b.at)),
+      );
+      const land = Object.values(state.map.tiles).filter((t) => !isWaterTile(t.type));
+      const covered = land.filter((t) => shape.tiles.includes(t.type) || under.has(hexKey(t)));
+      if (land.length > 0 && covered.length >= shape.share * land.length) {
+        const members = Object.values(state.buildings)
+          .filter((b) => shape.buildings.includes(b.type))
+          .map((b) => b.uid);
+        hits.push({ combo: combo.id, members });
       }
     } else {
       const strip = findStrip(state, shape.tiles, shape.gaps);
@@ -380,6 +413,27 @@ export function applyFormationYields(ctx: SeasonContext): void {
   }
 }
 
+/** Tiles a standing formation makes count as another type for Harmony (Four Storeys). */
+export function formationTiles(content: Content, state: RunState): Map<string, TileType> {
+  const as = combosOf(content, 'formation').filter((c) => c.effect.asTile);
+  const tiles = new Map<string, TileType>();
+  if (as.length === 0) return tiles;
+  for (const hit of findFormations(content, state, as)) {
+    const t = (content.comboById[hit.combo] as ComboOf<'formation'>).effect.asTile!;
+    for (const uid of hit.members) {
+      const b = state.buildings[uid];
+      if (b) tiles.set(hexKey(b.at), t);
+    }
+  }
+  return tiles;
+}
+
+/** Whether a standing formation keeps the dry season's fire from starting (the Living Mosaic). */
+export function fireStopped(content: Content, state: RunState): boolean {
+  const stops = combosOf(content, 'formation').filter((c) => c.effect.stopsFire);
+  return stops.length > 0 && findFormations(content, state, stops).length > 0;
+}
+
 /** Buildings whose Harmony penalty a standing formation cancels (the Ridge Spires). */
 export function quietedByFormations(content: Content, state: RunState): Set<string> {
   const quiet = combosOf(content, 'formation').filter((c) => c.effect.quiet);
@@ -413,6 +467,10 @@ function worked(ctx: SeasonContext, b: BuildingState): boolean {
   if ((ctx.report.runs[b.uid]?.runs ?? 0) > 0) return true;
   const g = ctx.report.generated[b.uid];
   if (g !== undefined && g.energy.day + g.energy.night > 0) return true;
+  // A char hearth that burned charcoal, or a midden fed (Rainforest Gardens), did its work.
+  const forest = ctx.report.forest;
+  if (forest && (forest.charcoal.includes(b.uid) || forest.middens[b.uid] !== undefined))
+    return true;
   // A kiln or heat well that warmed a neighbour (the Bath Loop) did its work too.
   return ctx.report.neighborHeat.some((l) => l.from === b.uid);
 }
@@ -438,6 +496,8 @@ function runningLoops(ctx: SeasonContext): ComboHit[] {
         return false;
       if (link.powered && !ctx.powered.has(b.uid)) return false;
       if (link.standing && !ctx.active.has(b.uid)) return false;
+      if (link.layer && !grownLayers(ctx.content, state, b).some((l) => l.id === link.layer))
+        return false;
       // A bathhouse, reed bed or desalinator makes nothing a chain counts; its condition is its work.
       return worked(ctx, b) || link.heatFrom || link.cleaned || link.powered || link.standing;
     };
@@ -494,7 +554,7 @@ export function loopBoost(
   content: Content,
   state: RunState,
   uid: string,
-  kind: 'dredgeBonus' | 'greyBonus',
+  kind: 'dredgeBonus' | 'greyBonus' | 'middenBonus',
 ): number {
   let more = 0;
   for (const loop of standingLoops(content, state)) {
@@ -576,9 +636,10 @@ export function evolutionsReady(
         touches(state, b, when.nextTo, occ) &&
         (!when.also || touches(state, b, when.also, occ)) &&
         (when.minHarmony === undefined || state.harmony >= when.minHarmony) &&
-        (when.minAge === undefined || state.turn + 1 - b.builtTurn >= when.minAge)
+        (when.minAge === undefined || state.turn + 1 - since(b) >= when.minAge)
       );
     }
+    if (when.kind === 'age') return state.turn + 1 - since(b) >= when.minAge;
     if (when.kind === 'ruinExhausted') {
       return (
         (tileAt(state, b.at)?.salvage ?? 1) <= 0 &&
@@ -588,6 +649,9 @@ export function evolutionsReady(
     return false;
   });
 }
+
+/** When the building became what it is: built, or evolved since. */
+const since = (b: BuildingState) => b.evolvedTurn ?? b.builtTurn;
 
 /** The coppice action (Coppice Wood), if this run has it. */
 export function coppiceCombo(content: Content): ComboOf<'evolution'> | undefined {
@@ -622,6 +686,27 @@ export function evolve(state: RunState, b: BuildingState, into: string): void {
 }
 
 /**
+ * An evolution taking place: the building becomes its new form, with the layers the evolution
+ * brings already grown, and its tile planted to what the evolution makes of it (never worse).
+ */
+export function evolveBy(
+  content: Content,
+  state: RunState,
+  b: BuildingState,
+  combo: ComboOf<'evolution'>,
+): void {
+  evolve(state, b, combo.into);
+  if (combo.layers.length > 0) {
+    const defs = content.byId[combo.into]?.layers ?? [];
+    b.layers = combo.layers.map((id) => ({
+      id,
+      turn: state.turn - (defs.find((d) => d.id === id)?.grows ?? 0),
+    }));
+  }
+  if (combo.tile) plantTile(content, tileAt(state, b.at)!, combo.tile);
+}
+
+/**
  * Each building that meets one evolution takes it. One that meets two (a branch) waits on
  * the evolution offer until the player picks; there is no declining (DECISIONS.md).
  */
@@ -633,7 +718,7 @@ function evolveAtSeasonEnd(ctx: SeasonContext): void {
     const ready = evolutionsReady(content, state, b, occ);
     if (ready.length === 1) {
       const combo = ready[0]!;
-      evolve(state, b, combo.into);
+      evolveBy(content, state, b, combo);
       report.evolved.push({ uid: b.uid, from: combo.from, into: combo.into });
     } else if (ready.length > 1) {
       state.evolutionOffer = [
@@ -658,12 +743,17 @@ export function checkCombos(ctx: SeasonContext): void {
 
   for (const combo of combosOf(content, 'adjacency')) {
     if (!combo.seasons[si]) continue;
+    const has = (b: BuildingState, layer: string | undefined) =>
+      !layer || grownLayers(content, state, b).some((l) => l.id === layer);
     for (const b of Object.values(state.buildings)) {
       if (b.type !== combo.building || !ctx.active.has(b.uid)) continue;
-      if (!touches(state, b, combo.nextTo, occ)) continue;
+      if (!has(b, combo.withLayer) || !touches(state, b, combo.nextTo, occ)) continue;
       const neighbors = neighborBuildings(state, b, occ);
       if (neighbors.some((n) => combo.notNextTo.includes(n.type))) continue;
-      const partners = neighbors.filter((n) => combo.nextTo.buildings?.includes(n.type));
+      const partners = neighbors.filter(
+        (n) => combo.nextTo.buildings?.includes(n.type) && has(n, combo.nextToLayer),
+      );
+      if (combo.nextToLayer && partners.length === 0) continue;
       hits.push({ combo: combo.id, members: [b.uid, ...partners.map((n) => n.uid)] });
     }
   }

@@ -151,11 +151,12 @@ describe("the forest's seasons", () => {
     expect(made(s, sown) - made(s, old)).toBe(1);
     expect(s.lastReport!.math[sown]!.join(' ')).toMatch(/\+1 sown in the first rains/);
     // Sown in summer, nothing more in autumn: 2, and 1 for the scrub's fertility.
-    let t = place(s, 'milpa', 6, 3, F);
+    // (A forecast, so the cyclone's draw can't strike it.)
+    const t = place(s, 'milpa', 6, 3, F);
     const late = uidAt(t, 6, 3);
-    t = end(t);
-    expect(made(t, late)).toBe(2 + 1);
-    expect(t.lastReport!.math[late]!.join(' ')).not.toMatch(/first rains/);
+    const autumn = projectSeason(F, t, t.season, { forecast: true });
+    expect(autumn.yields[late]!.food).toBe(2 + 1);
+    expect(autumn.math[late]!.join(' ')).not.toMatch(/first rains/);
   });
 
   it('the monsoon washes the bare fields and floods the floodplain: silt in autumn', () => {

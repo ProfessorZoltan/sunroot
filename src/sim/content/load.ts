@@ -281,6 +281,8 @@ function checkCombo(c: Combo, known: (id: string, where: string) => void): void 
       }
       if (c.shape.kind === 'cluster') all(c.shape.buildings);
       if (c.shape.kind === 'line') all(c.shape.sequence);
+      if (c.shape.kind === 'layered') known(c.shape.building, where);
+      if (c.shape.kind === 'cover') all(c.shape.buildings);
       if (c.effect.appliesTo) known(c.effect.appliesTo, where);
       break;
     case 'evolution':

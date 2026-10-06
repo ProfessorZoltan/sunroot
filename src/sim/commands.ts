@@ -12,7 +12,14 @@ import { drawCards, draftSize, isTuning } from './draft';
 import { hexKey } from './hex';
 import { canPlace } from './placement';
 import { edgeBuilding, edgeKey, hedgeProblem } from './edges';
-import { coppiceCombo, coppiceProblem, evolve, hintable, placementEvolution } from './combos';
+import {
+  coppiceCombo,
+  coppiceProblem,
+  evolve,
+  evolveBy,
+  hintable,
+  placementEvolution,
+} from './combos';
 import { effectiveContent } from './content/modifiers';
 import {
   buildingAt,
@@ -90,7 +97,7 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       s.evolutionOffer = s.evolutionOffer.filter((o) => o !== offer);
       const combo = content.comboById[command.combo]!;
       const b = s.buildings[command.uid];
-      if (b && combo.layer === 'evolution' && b.type === combo.from) evolve(s, b, combo.into);
+      if (b && combo.layer === 'evolution' && b.type === combo.from) evolveBy(content, s, b, combo);
       return null;
     }
     case 'coppice': {

@@ -14,9 +14,10 @@
 import { RESOURCES, type Resource } from '../content/schema';
 import { covered, fertilityOf, layersOf } from '../forest';
 import { hexDistance, hexKey } from '../hex';
-import { byPriority, defOf, harmonyMultiplier, tileAt } from '../queries';
+import { byPriority, defOf, harmonyMultiplier, neighborBuildings, tileAt } from '../queries';
 import type { BuildingState, ForestReport } from '../types';
 import { addYield, explain, flow, type SeasonContext } from './context';
+import { loopBoost } from '../combos';
 
 const EPSILON = 1e-9;
 
@@ -49,6 +50,7 @@ export function layerYields(ctx: SeasonContext, b: BuildingState): void {
       explain(ctx, b, `${name}: still growing (${l.age}/${l.def.grows} seasons)`);
       continue;
     }
+    let made = false;
     for (const res of RESOURCES) {
       const base = l.def.yields[res]?.[si] ?? 0;
       if (base <= 0) continue;
@@ -61,6 +63,13 @@ export function layerYields(ctx: SeasonContext, b: BuildingState): void {
       if (h !== 1) parts.push(`× ${h} Harmony`);
       explain(ctx, b, `${parts.join(' ')} = ${amount}`);
       addYield(ctx, b, res, amount, `${defOf(content, b).name} (${name.toLowerCase()})`);
+      made = made || amount > 0;
+    }
+    // Pepper on the tree: a grown layer beside the right neighbour makes more.
+    const by = l.def.besides;
+    if (by && made && neighborBuildings(state, b).some((n) => by.buildings.includes(n.type))) {
+      explain(ctx, b, `${name}: +${by.amount} ${by.resource} beside ${by.buildings.join(' or ')}`);
+      addYield(ctx, b, by.resource, by.amount, `${defOf(content, b).name} (${name.toLowerCase()})`);
     }
   }
 }
@@ -116,7 +125,9 @@ export function resolveForest(ctx: SeasonContext): void {
       );
       continue;
     }
-    b.darkening = Math.min(m.seasons, (b.darkening ?? 0) + 1);
+    // The Midden Loop: a midden in it comes on faster.
+    const step = 1 + loopBoost(content, state, b.uid, 'middenBonus');
+    b.darkening = Math.min(m.seasons, (b.darkening ?? 0) + step);
     report.middens[b.uid] = b.darkening;
     if (b.darkening < m.seasons) {
       explain(ctx, b, `took ${took} scraps and charcoal: ${b.darkening} of ${m.seasons} seasons`);

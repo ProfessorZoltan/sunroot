@@ -330,6 +330,8 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
     lines.push(
       `On ${tiles(def.burns.from)} it burns the forest clear: the tile becomes ${tile(def.burns.to)}, with ${forest.ash} fertility from the ash.`,
     );
+  if (def.covers && forest)
+    lines.push('Its trees cover its field: the rain washes none of its fertility out.');
   if (def.fertilityFood > 0 && forest)
     lines.push(
       `+${def.fertilityFood} food for each point of its field’s fertility (0 to ${forest.maxFertility}), in a season it makes any.`,
@@ -345,6 +347,11 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
       ...(l.covers ? ['the rain washes no fertility from its tile'] : []),
       ...(l.tall ? ['it shades solar beside it'] : []),
       ...(l.shades > 0 ? [`a home beside it needs ${l.shades} less cooling`] : []),
+      ...(l.besides
+        ? [
+            `+${l.besides.amount} ${l.besides.resource} beside a ${l.besides.buildings.map((id) => content.byId[id]?.name.toLowerCase() ?? id).join(' or ')}`,
+          ]
+        : []),
     ];
     lines.push(
       `${l.name}, added later for ${l.cost} materials (one layer a season), grown in ${l.grows} season${l.grows === 1 ? '' : 's'}: ${makes.join(', ')}${grown.length ? `; ${grown.join('; ')}` : ''}.`,

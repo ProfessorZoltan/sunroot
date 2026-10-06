@@ -221,6 +221,18 @@ const LayerSchema = z
     tall: z.boolean().default(false),
     /** Once grown, a home beside it needs this much less cooling, as a building that `shades`. */
     shades: nonNeg.default(0),
+    /**
+     * Once grown, in a season it makes any, this much more of `resource` beside one of
+     * `buildings` (pepper climbing a canopy beside another garden).
+     */
+    besides: z
+      .object({
+        buildings: z.array(z.string()).min(1),
+        resource: ResourceSchema,
+        amount: int.min(1),
+      })
+      .strict()
+      .optional(),
   })
   .strict();
 export type LayerDef = z.infer<typeof LayerSchema>;
@@ -479,6 +491,8 @@ export const BuildingSchema = z
       .object({ from: z.array(TileTypeSchema).min(1), to: TileTypeSchema })
       .strict()
       .optional(),
+    /** Its trees cover its tile: the monsoon washes none of its fertility away (an orchard garden). */
+    covers: z.boolean().default(false),
     /** Food for each point of its tile's fertility, in a season it makes any (the milpa). */
     fertilityFood: nonNeg.default(0),
     /**
@@ -913,6 +927,8 @@ const ForestRulesSchema = z
     darkEarthFood: nonNeg.default(0),
     /** Tiles a midden can turn into dark earth. */
     darkens: z.array(TileTypeSchema).min(1),
+    /** Whether a building may burn the forest clear (Forest First: no). */
+    clearing: z.boolean().default(true),
   })
   .strict();
 export type ForestRules = z.infer<typeof ForestRulesSchema>;
@@ -1394,6 +1410,10 @@ export const ComboSchema = z.discriminatedUnion('layer', [
       nextTo: NextTo,
       notNextTo: z.array(z.string()).default([]),
       seasons: PerSeasonFlags.default([true, true, true, true]),
+      /** Only while the building has this layer grown (a forest garden's canopy). */
+      withLayer: z.string().optional(),
+      /** Only while one of `nextTo`'s buildings has this layer grown (a home by a canopy). */
+      nextToLayer: z.string().optional(),
     })
     .strict(),
   /**
@@ -1421,6 +1441,8 @@ export const ComboSchema = z.discriminatedUnion('layer', [
               powered: z.boolean().default(false),
               /** Its work is to stand, at work (a rewetted bog holding water). */
               standing: z.boolean().default(false),
+              /** It has this layer grown (a forest garden's understory). */
+              layer: z.string().optional(),
             })
             .strict(),
         )
@@ -1435,6 +1457,8 @@ export const ComboSchema = z.discriminatedUnion('layer', [
       dredgeBonus: nonNeg.default(0),
       /** Fisheries in a closed loop of it take this much more grey water (the Clean Lake Loop). */
       greyBonus: nonNeg.default(0),
+      /** Middens in a closed loop of it come this many seasons more nearer dark earth (the Midden Loop). */
+      middenBonus: nonNeg.default(0),
     })
     .strict(),
   /** 3. Formations: hidden shapes. Their effect lasts while the shape stands. */
@@ -1486,6 +1510,22 @@ export const ComboSchema = z.discriminatedUnion('layer', [
           of: z.array(z.string()).min(1),
           size: int.min(1).max(6),
         }),
+        /** A building with every one of these layers grown (a forest garden in four storeys). */
+        z.object({
+          kind: z.literal('layered'),
+          building: z.string(),
+          layers: z.array(z.string()).min(1),
+        }),
+        /**
+         * At least `share` of the land (every tile but water) is one of `tiles`, or under one of
+         * `buildings` (Rainforest Gardens' Living Mosaic: rainforest and gardens).
+         */
+        z.object({
+          kind: z.literal('cover'),
+          tiles: z.array(TileTypeSchema).default([]),
+          buildings: z.array(z.string()).default([]),
+          share: z.number().min(0).max(1),
+        }),
         /** An unbroken strip of these tiles from the river to a side edge of the valley. */
         z.object({
           kind: z.literal('strip'),
@@ -1515,6 +1555,10 @@ export const ComboSchema = z.discriminatedUnion('layer', [
           shelterRadius: nonNeg.default(0),
           /** Its members' Harmony penalty is cancelled (the Ridge Spires). */
           quiet: z.boolean().default(false),
+          /** Its members' tiles count as this type for Harmony (Four Storeys: rainforest). */
+          asTile: TileTypeSchema.optional(),
+          /** No fire starts while it stands (the Living Mosaic). */
+          stopsFire: z.boolean().default(false),
           /** Seasons the wellbeing and the yields apply in (the Hearth Square: winter). */
           seasons: PerSeasonFlags.default([true, true, true, true]),
           appliesTo: z.string().optional(),
@@ -1529,6 +1573,10 @@ export const ComboSchema = z.discriminatedUnion('layer', [
       layer: z.literal('evolution'),
       from: z.string(),
       into: z.string(),
+      /** Layers it comes with, already grown (the Milpa Cycle's forest garden). */
+      layers: z.array(z.string()).default([]),
+      /** What its tile becomes (never worse): the cleared land back under forest. */
+      tile: TileTypeSchema.optional(),
       when: z.discriminatedUnion('kind', [
         z.object({
           kind: z.literal('nextTo'),
@@ -1540,6 +1588,8 @@ export const ComboSchema = z.discriminatedUnion('layer', [
           /** Only once it has stood this many seasons (the Rice-Duck Paddy). */
           minAge: int.min(1).optional(),
         }),
+        /** Once it has stood this many seasons as it is, whatever its neighbours (an orchard garden). */
+        z.object({ kind: z.literal('age'), minAge: int.min(1) }),
         /** Its ruin has no salvage left (and, optionally, it has these neighbours). */
         z.object({ kind: z.literal('ruinExhausted'), nextTo: NextTo.optional() }),
         /** Placing this building on it (a solar canopy on a farm, or on a channel). */
