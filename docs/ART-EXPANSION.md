@@ -47,6 +47,9 @@ and the Well with its own icon (`well.icon.png`). All in the game.
 | LG4. The lake on screen      | Yes (done) | The shallows and deep water, then the Chinampa, Stilt House and Mud Boat                                                                  | proposals/lake-gardens.md, Build plan       |
 | LG5. The lake in Root City   | Yes (done) | The Canal Quarter district and the Water Market landmark ([ART-CITY.md](ART-CITY.md))                                                     | proposals/lake-gardens.md, Build plan       |
 | LG6. The lake's wonder       | Yes (done) | The Floating City, 4 animals, 3 festival cards                                                                                            | proposals/lake-gardens.md, Build plan       |
+| FG4. The forest on screen    | Yes        | The rainforest tile, then the Milpa, Forest Garden and its three layers, and the Raised House                                             | proposals/rainforest-gardens.md, Build plan |
+| FG5. The forest in Root City | Yes        | The Canopy Quarter district and the Seed Forest landmark ([ART-CITY.md](ART-CITY.md))                                                     | proposals/rainforest-gardens.md, Build plan |
+| FG6. The forest's wonder     | Yes        | The Canopy Walk, 4 animals, 3 festival cards                                                                                              | proposals/rainforest-gardens.md, Build plan |
 
 ## The standard frame (reminder)
 
@@ -616,8 +619,8 @@ In the game since FG6, drawn in code until their art comes.
 | Odalan                   | `odalan`        | `odalan.card.png`                                                  | Autumn: the temple festival, offerings and banners at the water temple.                                                                                                        | proposals/rainforest-gardens.md, Festivals |
 
 Animals follow the wildlife frame above (128 × 128, bottom-centre anchor, facing right). The
-forest's district and landmark in Root City (FG5), the Canopy Quarter and the Seed Forest, will
-be in [ART-CITY.md](ART-CITY.md).
+forest's district and landmark in Root City (FG5), the Canopy Quarter and the Seed Forest, are
+in [ART-CITY.md](ART-CITY.md).
 
 **Paint in this order:** the rainforest tile (it is most of the map), then the Milpa, the Forest
 Garden and its three layers, the Raised House (the first year), dark earth and the estate; then
