@@ -116,6 +116,8 @@ test('Root City: place the Graft, find a landmark, raise a district, choose an e
   expect(overrun).toBe(0);
   // A district bringing another biome's building names it (the Tidal Quarter's Tide Mill).
   await expect(guide).toContainText('the Tide Mill blueprint');
+  // Perks don't stack, and the guide says so.
+  await expect(guide).toContainText("Perks don't stack");
   await guide.locator('summary').click();
   const placing = page.getByRole('region', { name: 'Place the Graft' });
   await expect(placing).toContainText('Millrace Quarter, Seedling');

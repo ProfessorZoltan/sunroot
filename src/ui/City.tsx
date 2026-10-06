@@ -1276,6 +1276,10 @@ function DistrictGuide({ content }: { content: Content }) {
       <summary>
         <strong>Districts</strong> <span class="quiet small">what each Graft gives</span>
       </summary>
+      <p class="small quiet">
+        Perks don't stack: only your best district of each kind gives its perk, at its tier. More of
+        a kind still count for landmarks and the Sun Tree.
+      </p>
       {/* Stacked, not a table: the sidebar is too narrow for four columns of prose. */}
       <ul class="district-guide small">
         {content.districts.map((d) => (

@@ -6,6 +6,8 @@
   perk, what it adds to drafts) instead of a four-column table that ran off the card.
 - A district that brings another biome's building names it ("the Tide Mill blueprint", not
   "tideMill").
+- The guide says perks don't stack: only the best district of each kind gives its perk; more
+  of a kind still count for landmarks and the Sun Tree.
 
 ## Priorities by need
 
