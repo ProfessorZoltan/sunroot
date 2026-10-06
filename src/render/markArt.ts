@@ -28,6 +28,8 @@ const BADGE: Record<MarkKind, { fill: number; ink: number }> = {
   hot: { fill: 0xd9682b, ink: 0xfff3e0 },
   walk: { fill: 0x9a6a3c, ink: 0xfff3e0 },
   bloom: { fill: 0x6f9a3a, ink: 0xf2f7e4 },
+  wash: { fill: 0x4f7fa6, ink: 0xeef5fb },
+  fire: { fill: 0xc8501e, ink: 0xfff1d6 },
 };
 
 /** Tile washes and outlines, under the buildings. */
@@ -110,6 +112,14 @@ export function drawMarkTiles(g: Graphics, marks: Mark[]): void {
       case 'bloom':
         g.poly(corners).fill({ color: 0x8fbf4a, alpha: 0.25 });
         dashedLine(g, ring, 5, 4, { width: 2, color: 0x6f9a3a });
+        break;
+      case 'wash':
+        g.poly(corners).fill({ color: 0x6f9fc6, alpha: 0.2 });
+        dashedLine(g, ring, 5, 4, { width: 2, color: 0x4f7fa6 });
+        break;
+      case 'fire':
+        g.poly(corners).fill({ color: 0xe0782e, alpha: 0.25 });
+        dashedLine(g, ring, 5, 4, { width: 2, color: 0xc8501e });
         break;
       default:
         break;
@@ -260,6 +270,21 @@ function icon(g: Graphics, kind: MarkKind, p: Point, ink: number): void {
       // Two footprints.
       g.ellipse(x - 1.8, y + 1.5, 1.4, 2.4).fill({ color: ink });
       g.ellipse(x + 1.8, y - 1.5, 1.4, 2.4).fill({ color: ink });
+      break;
+    case 'wash':
+      // A raindrop.
+      g.moveTo(x, y - 4)
+        .quadraticCurveTo(x + 3.5, y + 1, x, y + 3.5)
+        .quadraticCurveTo(x - 3.5, y + 1, x, y - 4)
+        .fill({ color: ink });
+      break;
+    case 'fire':
+      // A flame.
+      g.moveTo(x, y - 4.5)
+        .quadraticCurveTo(x + 4, y, x + 1.5, y + 3.5)
+        .lineTo(x - 1.5, y + 3.5)
+        .quadraticCurveTo(x - 4, y, x, y - 4.5)
+        .fill({ color: ink });
       break;
     case 'bloom':
       // Three specks of algae.

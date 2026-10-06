@@ -1,6 +1,7 @@
 /** Left column: stores with this season's change, workers, and what happened last season. */
 import { eventOf } from '../sim';
 import { lakeOutlook } from '../game/lakeInfo';
+import { forestOutlook } from '../game/forestInfo';
 import type { GameStore } from '../game/store';
 import { POPULATION_REASONS } from '../game/insight';
 import type { Resource } from '../sim';
@@ -67,6 +68,7 @@ export function LeftPanel({ store, onOverview }: { store: GameStore; onOverview:
         <WorkersRow store={store} />
         <WaterRow store={store} />
         <LakeRow store={store} />
+        <ForestRow store={store} />
         <WalksRow store={store} />
         {open && (
           <div class="quiet small">Numbers on the right: the change by the end of this season.</div>
@@ -250,6 +252,42 @@ function Feet() {
     <svg class="icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
       <ellipse cx="5.5" cy="10" rx="2.2" ry="3.6" fill="#9a6a3c" />
       <ellipse cx="10.5" cy="6" rx="2.2" ry="3.6" fill="#9a6a3c" />
+    </svg>
+  );
+}
+
+/** Rainforest Gardens: the fields' fertility, dark earth made, and the dry season's fire. */
+function ForestRow({ store }: { store: GameStore }) {
+  const o = forestOutlook(store.rules, store.state, store.insight.now);
+  if (!o) return null;
+  const status =
+    o.fireRisk > 0
+      ? `fire risk ${o.fireRisk}`
+      : o.washing > 0
+        ? `${o.washing} washing`
+        : o.bare > 0
+          ? `${o.bare} worn out`
+          : 'fertile';
+  return (
+    <div
+      class="store-row forest-row"
+      title={`${o.fields} fields; ${o.bare} with no fertility left${o.washing > 0 ? `; the monsoon will wash ${o.washing} this season` : ''}. ${o.darkEarth} tiles of dark earth.${o.fireRisk > 0 ? ` The dry season's fire could catch on ${o.fireRisk} tiles of forest.` : ''}${o.fireStopped ? ' The Living Mosaic: no fire can start.' : ''} Hover a field for more.`}
+    >
+      <Leaf />
+      <span class="grow">
+        Forest <span class="quiet small">· dark earth {o.darkEarth}</span>
+      </span>
+      <span class={`strong ${o.fireRisk > 0 || o.bare > 0 ? 'bad' : ''}`}>{status}</span>
+      <span class="delta-num" />
+    </div>
+  );
+}
+
+function Leaf() {
+  return (
+    <svg class="icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+      <path d="M3 13 C3 6 8 2.5 13.5 2.5 C13.5 8 10 13 3 13 Z" fill="#6e9a45" />
+      <path d="M3 13 L10 6" stroke="#3f6a2a" stroke-width="1.2" />
     </svg>
   );
 }

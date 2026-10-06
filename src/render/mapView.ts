@@ -6,6 +6,7 @@
  */
 import { BED_RISE_MS, drawBedRising, drawLake, lakeLook } from './lakeArt';
 import { snowless } from './lands';
+import { drawLayers, layerLooks } from './forestArt';
 import type { Application } from 'pixi.js';
 import { ColorMatrixFilter, Container, Graphics, Sprite, Text } from 'pixi.js';
 import type { Texture } from 'pixi.js';
@@ -1171,6 +1172,8 @@ export class MapView {
         const wind = b.type === 'windSpire' || b.type === 'singingSpire';
         if (!b.damage) this.spinning.set(sprite, wind ? 1.6 : 0.6);
       }
+      // A forest garden's layers, as far grown as they are.
+      if (b.layers?.length) drawLayers(g, c, layerLooks(this.content, state, b));
       if (b.damage) drawCondition(g, c, 'damaged');
       // While the season resolves, blackouts show when night falls.
       else if (report?.blackouts.includes(b.uid) && !this.player) drawCondition(g, c, 'dark');

@@ -530,6 +530,97 @@ Chinampa, the Stilt House and the Mud Boat (the first year), the two fisheries, 
 and the drowned town; then the rest of the buildings, the lake's other looks and the evolutions;
 the wonder, animals and cards last (LG6).
 
+## Rainforest Gardens (FG4 to FG6)
+
+The sixth biome ([proposals/rainforest-gardens.md](proposals/rainforest-gardens.md)): rainforest over most of the map, a river with its seasonal
+floodplain, hills on one side and an old plantation's worn-out estate on the other. Players
+choose between **clearing** (a milpa burned out of the forest: rich for a few years, then washed
+out by the monsoon) and **layering** (a forest garden grown upward, storey by storey). It is
+built from the Chagga home gardens of Kilimanjaro, the Kandyan forest gardens of Sri Lanka, the
+Maya milpa, Amazonian terra preta and the Balinese subak, so the look is theirs: storeys of
+green under tall trees, bananas and coffee, black earth round the houses, terraces with water
+shining in them. Everything here is drawn in code until its art comes, so any piece can arrive
+on its own. Same frame, light and file names as everything else: a summer `id.png` and a winter
+`id.winter.png`, delivered to the usual folders of `art/incoming/`.
+
+**The palette.** Deep and humid: rainforest greens from near-black (`#2F4A24`) to fresh leaf
+(`#8FBF4A`), red laterite earth (`#B5643C`), the black of dark earth (`#4A3A2C`), banana yellow
+(`#E8C547`), coffee-cherry red (`#B8322A`) and heliconia orange (`#E0782E`). The light is steamy
+and dappled, shafts through the canopy. Keep the papercraft style: the same cut-paper edges, the
+same light from the upper left.
+
+**Winter is the dry season, not snow.** In Rainforest Gardens the shared art's snowy winter is
+never shown (as in the desert and the lake): a shared tile or building keeps its summer look in
+winter unless it has a forest look. The forest's own winter is the dry season: the forest a
+little dustier, the fields stubble, the grass brown.
+
+The game draws these in code, so don't paint them: a forest garden's **layers** growing (the
+files below replace the drawn ones when they come), the monsoon's rain running off a bare field,
+**fire** taking a tile of forest in the dry season (flames, then ash), **dark earth** spreading
+from a midden, the haze of the dry season, lit windows from a `.lit.png`. Paint the forest
+unburned and the fields fresh.
+
+### Tiles
+
+Each new type needs two summer looks and a winter one (`id.png`, `id-2.png`, `id.winter.png`).
+The shared types get the forest's own look as `id.forest.png` and, if you like,
+`id.forest.winter.png`, as the desert's and the lake's.
+
+| Tile       | Id                                          | What it is                          | Notes                                                                                                                                                                                                                                                             | Source                                         |
+| ---------- | ------------------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| Rainforest | `woodland.forest.png`                       | Most of the map: old, tall forest   | Layered and dense: tall emergent trees above a closed canopy, palms and tree ferns below, lianas, a glimpse of dark understory. Keep its middle readable: gardens and bee trees stand on it. Dry season: the same, a little dustier, a few red and yellow leaves. | proposals/rainforest-gardens.md, Map           |
+| Clearing   | `meadow.forest.png`, `scrub.forest.png`     | Natural gaps and old fields         | Meadow: bright grass with heliconia and wild ginger at the edge. Scrub: rough regrowth, bracken, a fallen trunk. Dry season: browner.                                                                                                                             | proposals/rainforest-gardens.md, Map           |
+| Old estate | `barren.forest.png`, `ruin.forest.png`      | The worn-out plantation             | Barren: red laterite earth, cracked, a few stumps in straight rows (the old monoculture). Ruin: the estate's collapsed drying shed and a rusted processing machine, vines over them. Salvage, not menace.                                                         | proposals/rainforest-gardens.md, Map           |
+| Dark earth | `darkEarth`                                 | Made by middens: fertile black soil | Black, crumbly soil with flecks of charcoal and potsherds, worms, a few seedlings. Two summer looks and a winter (`darkEarth.png`, `darkEarth-2.png`, `darkEarth.winter.png`). Until it comes the game fills the tile dark brown.                                 | proposals/rainforest-gardens.md, The new rules |
+| River      | `river.forest.png`, `floodplain.forest.png` | The river and its várzea            | A brown, silty river between forested banks; the floodplain wet grass and reeds that the monsoon covers.                                                                                                                                                          | proposals/rainforest-gardens.md, Map           |
+
+### Buildings
+
+| Name           | Id              | What it is                                      | Files                                                                        | Notes                                                                                                                                                                                            | Source                                              |
+| -------------- | --------------- | ----------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------- |
+| Milpa          | `milpa`         | Maize, beans and squash on a burned clearing    | `milpa.png`, `.winter`                                                       | Carries its own ground: dark ashy earth with maize stalks, beans climbing them, squash leaves and orange flowers below, a charred stump at one side. Dry season: stubble and dry stalks.         | proposals/rainforest-gardens.md, Buildings          |
+| Forest Garden  | `forestGarden`  | A garden in the forest, grown in storeys        | `forestGarden.png`, `.winter`                                                | Its ground layer only, in the forest's shade: taro, beans and vegetables in mulched beds, a path. The layers above are separate files (below), drawn over it.                                    | proposals/rainforest-gardens.md, Buildings          |
+| — shrub layer  | `forestGarden`  | Coffee or cacao bushes                          | `forestGarden.shrub.png`, `forestGarden.shrub.young.png`                     | Over the garden, low at the front left: coffee bushes with red cherries (young: small, no fruit). No ground.                                                                                     | proposals/rainforest-gardens.md, The new rules      |
+| — understory   | `forestGarden`  | Banana                                          | `forestGarden.understory.png`, `forestGarden.understory.young.png`           | Over the garden, to the right: a clump of bananas with a hanging bunch (young: a single shoot). No ground.                                                                                       | proposals/rainforest-gardens.md, The new rules      |
+| — canopy       | `forestGarden`  | Jackfruit, mango or coconut                     | `forestGarden.canopy.png`, `forestGarden.canopy.young.png`                   | Over the garden, standing above it: a broad fruit tree with jackfruit on the trunk (young: a sapling with a stake). It should be the tallest thing on the tile and leave the beds below visible. | proposals/rainforest-gardens.md, The new rules      |
+| Orchard Garden | `orchardGarden` | An old milpa planted with fruit trees           | `orchardGarden.png`, `.winter`                                               | Carries its own ground: the milpa's field going over to young fruit trees, beans still among them.                                                                                               | proposals/rainforest-gardens.md, Combos             |
+| Raised House   | `raisedHouse`   | A timber house on posts                         | `raisedHouse.png`, `.winter`, `raisedHouse.lit.png`                          | Groundless: a timber house raised on posts, a steep palm-thatch roof, a ladder, shade and a hammock underneath. The lit file lights its windows.                                                 | proposals/rainforest-gardens.md, Buildings          |
+| Kitchen Midden | `kitchenMidden` | The household's heap: scraps, ash and potsherds | `kitchenMidden.png`, `.winter`                                               | Groundless: a low dark mound of ash, shells, broken pots and peelings, a basket emptied onto it, chickens pecking.                                                                               | proposals/rainforest-gardens.md, Buildings          |
+| Char Hearth    | `charHearth`    | Biomass burned slowly into charcoal             | `charHearth.png`, `.winter`                                                  | Groundless: a small earth-covered kiln mound with a wisp of smoke, sacks of charcoal, cut branches stacked beside.                                                                               | proposals/rainforest-gardens.md, Buildings          |
+| Stall Barn     | `stallBarn`     | Stall-fed cattle and goats                      | `stallBarn.png`, `.winter`                                                   | Groundless: an open-sided shed with a cow and two goats at a manger of cut banana leaves, a heap of manure.                                                                                      | proposals/rainforest-gardens.md, Buildings          |
+| Bee Tree       | `beeTree`       | Stingless bees in a hollow log                  | `beeTree.png`, `.winter`                                                     | Groundless, on the rainforest: a hollow log hive hung in a tree, small bees about it.                                                                                                            | proposals/rainforest-gardens.md, Buildings          |
+| Rice Terrace   | `riceTerrace`   | Paddies stepped down a hill                     | `riceTerrace.png`, `.winter`                                                 | Carries its own ground: three curved terraces of bright young rice with water shining in them. Dry season: stubble and drained steps.                                                            | proposals/rainforest-gardens.md, Buildings          |
+| Water Temple   | `waterTemple`   | The subak's temple at the head of the terraces  | `waterTemple.png`, `.winter`, `waterTemple.lit.png`                          | Groundless: a small tiered thatched shrine on a stone base, offerings, a spout of water running down from it.                                                                                    | proposals/rainforest-gardens.md, Buildings          |
+| Living Fence   | `livingFence`   | Nitrogen-fixing trees along an edge             | `livingFence.edge.e.png`, `.edge.ne.png`, `.edge.nw.png`, and each `.winter` | Along tile edges, exactly as the Hedgerow's pieces: young gliricidia trees in a row, lopped for fodder, about 100 px high.                                                                       | proposals/rainforest-gardens.md, Buildings          |
+| Micro-hydro    | `microHydro`    | A small turbine on the river                    | `microHydro.png`, `.winter`                                                  | Beside the river: a little turbine house with a penstock pipe running down to it and white water at its outfall.                                                                                 | proposals/rainforest-gardens.md, Energy and cooling |
+
+A layer's young file shows it growing; the game swaps it for the grown one when the layer is
+grown. The shared buildings (workshop, salvage yard, composter, cottage and the rest) keep the
+Reach's art.
+
+### With FG6: the wonder, animals and festivals
+
+Coming with FG6, drawn in code until their art comes.
+
+| Name                  | Id                   | Files                                                              | Notes                                                                                                                                                                          | Source                                     |
+| --------------------- | -------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
+| Canopy Walk           | `canopyWalk`         | `canopyWalk.png`, `.winter`, `.stage1.png` … `.stage3.png`         | On the Great Water Garden's frame (1536 × 1280): a flower of forest gardens in all four storeys over 7 tiles, a raised walkway through the crowns, a seed house at the centre. | proposals/rainforest-gardens.md, Wonder    |
+| Hummingbirds          | `hummingbirds`       | `hummingbird.hover.1.png`, `.hover.2.png`, `hummingbird.perch.png` | Tiny iridescent birds at the coffee flowers.                                                                                                                                   | proposals/rainforest-gardens.md, Wildlife  |
+| Fruit bats            | `fruitBats`          | `fruitBat.fly.1.png`, `.fly.2.png`, `fruitBat.hang.png`            | Big-eyed fruit bats, flying at dusk; hanging in a canopy.                                                                                                                      | proposals/rainforest-gardens.md, Wildlife  |
+| Hornbills             | `hornbills`          | `hornbill.perch.png`, `hornbill.fly.png`                           | A great hornbill with its casque, in the rainforest.                                                                                                                           | proposals/rainforest-gardens.md, Wildlife  |
+| Jaguars               | `jaguars`            | `jaguar.walk.1.png`, `.walk.2.png`, `jaguar.rest.png`              | A jaguar padding through the forest; lying on a branch.                                                                                                                        | proposals/rainforest-gardens.md, Wildlife  |
+| First Rains           | `firstRains`         | `firstRains.card.png`                                              | Spring: people planting in the first rain, children out in it.                                                                                                                 | proposals/rainforest-gardens.md, Festivals |
+| Harvest of the Canopy | `harvestOfTheCanopy` | `harvestOfTheCanopy.card.png`                                      | Summer: ladders in the fruit trees, baskets of jackfruit and mango.                                                                                                            | proposals/rainforest-gardens.md, Festivals |
+| Odalan                | `odalan`             | `odalan.card.png`                                                  | Autumn: the temple festival, offerings and banners at the water temple.                                                                                                        | proposals/rainforest-gardens.md, Festivals |
+
+Animals follow the wildlife frame above (128 × 128, bottom-centre anchor, facing right). The
+forest's district and landmark in Root City (FG5), the Canopy Quarter and the Seed Forest, will
+be in [ART-CITY.md](ART-CITY.md).
+
+**Paint in this order:** the rainforest tile (it is most of the map), then the Milpa, the Forest
+Garden and its three layers, the Raised House (the first year), dark earth and the estate; then
+the rest of the buildings and the forest's other looks; the wonder, animals and cards last (FG6).
+
 ## Keepsakes (Seeds)
 
 Keepsakes are bought in Root City with Seeds ([proposals/seed-uses.md](proposals/seed-uses.md))

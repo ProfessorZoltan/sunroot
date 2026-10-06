@@ -1515,9 +1515,14 @@ ul.projects {
   color: #3f6f5a;
 }
 
+.forest-line {
+  color: #4f6b33;
+}
+
 /* Walks to work: the left panel's row, and lines in the map tooltip and the inspector. */
 .walks-row .strong,
 .lake-row .strong,
+.forest-row .strong,
 .water-row .strong {
   white-space: nowrap;
 }

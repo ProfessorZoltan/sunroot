@@ -56,7 +56,11 @@ export type MarkKind =
   /** This season: its workers walk further than the free distance. */
   | 'walk'
   /** Coming: the lake will bloom, and this fishery will make less (Lake Gardens). */
-  | 'bloom';
+  | 'bloom'
+  /** Coming: the monsoon will wash fertility out of this field (Rainforest Gardens). */
+  | 'wash'
+  /** Coming: the dry season's fire could catch on this tile of forest (Rainforest Gardens). */
+  | 'fire';
 
 export interface Mark {
   at: Hex;
@@ -261,6 +265,14 @@ export function mapMarks(content: Content, state: RunState, forecast: SeasonRepo
           true,
           `The algae bloom: the ${name(b.uid)} will make ${loss} less food. Fisheries that eat grey water keep the lake clear.`,
         );
+  } else if (event === 'fire') {
+    for (const key of forecast.fireRisk ?? [])
+      add(
+        parseHexKey(key),
+        'fire',
+        true,
+        'The dry season: fire could catch here from the cleared ground beside it. A living fence along that edge keeps it out.',
+      );
   } else if (event === 'freeze') {
     const si = SEASONS.indexOf(state.season);
     for (const b of Object.values(state.buildings)) {
@@ -269,6 +281,14 @@ export function mapMarks(content: Content, state: RunState, forecast: SeasonRepo
         add(b.at, 'cold', true, `The freeze: the ${name(b.uid)} needs ${heat} heat at night.`);
     }
   }
+  // The monsoon (Rainforest Gardens): the bare fields it will wash, whatever its name.
+  for (const key of forecast.forest?.leached ?? [])
+    add(
+      parseHexKey(key),
+      'wash',
+      true,
+      'The monsoon will wash 1 fertility out of this field: nothing covers it. A canopy over it, or compost after, keeps it fertile.',
+    );
   return marks;
 }
 
@@ -285,5 +305,7 @@ export function reachSummary(marks: Mark[], shelter = 'levees'): string {
   if (count('calm')) parts.push('the Mixed Grid shelters all');
   if (count('cold')) parts.push(`${count('cold')} homes need heat`);
   if (count('bloom')) parts.push(`${count('bloom')} fisheries make less`);
+  if (count('wash')) parts.push(`${count('wash')} fields lose fertility`);
+  if (count('fire')) parts.push(`fire could catch on ${count('fire')} tiles`);
   return parts.join(' · ');
 }

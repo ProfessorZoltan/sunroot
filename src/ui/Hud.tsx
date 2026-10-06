@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import type { AudioEngine } from '../audio/engine';
 import { reachSummary } from '../game/marks';
 import { bloomSummary, lakeOutlook } from '../game/lakeInfo';
+import { forestOutlook, forestSummary } from '../game/forestInfo';
 import type { GameStore } from '../game/store';
 import { LoopsPanel } from './Combos';
 import { WildlifeStatus } from './Festivals';
@@ -28,7 +29,7 @@ export function ForecastBanner({ store }: { store: GameStore }) {
   const reach = [
     state.forecast.event === 'bloom'
       ? bloomSummary(lakeOutlook(store.rules, state, store.insight.now))
-      : '',
+      : forestSummary(forestOutlook(store.rules, state, store.insight.now), state.forecast.event),
     reachSummary(store.marks, levee ? `${levee.name.toLowerCase()}s` : 'levees'),
   ]
     .filter(Boolean)

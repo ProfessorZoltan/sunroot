@@ -6,6 +6,7 @@ import { commuteAt } from '../game/commuteInfo';
 import { heatAt } from '../game/heatInfo';
 import { coolAt } from '../game/coolInfo';
 import { lakeAt } from '../game/lakeInfo';
+import { forestAt, layerChoices } from '../game/forestInfo';
 import {
   AUTO_RECIPE,
   applyCommand,
@@ -629,6 +630,7 @@ export function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
   const heat = heatAt(store.rules, state, store.heatForecast, b.at, store.coldForecast);
   const cool = coolAt(store.rules, state, store.coolForecast, b.at, store.hotForecast);
   const lake = lakeAt(store.rules, state, store.insight.now, b.at);
+  const forest = forestAt(store.rules, state, store.insight.now, b.at);
   const gauge = store.storageOf(b.uid);
   const status: string[] = [];
   const repair = repairCost(store.rules, b);
@@ -689,6 +691,10 @@ export function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
       {lake.map((line) => (
         <div class="small lake-line">{line}</div>
       ))}
+      {forest.map((line) => (
+        <div class="small forest-line">{line}</div>
+      ))}
+      {def.layers && <Layers store={store} uid={b.uid} />}
       {cool.map((line) => (
         <div class="small cool-line">{line}</div>
       ))}
@@ -783,6 +789,38 @@ export function Inspector({ store, ui }: { store: GameStore; ui: Ui }) {
         </div>
       )}
     </section>
+  );
+}
+
+/** A forest garden's layers: those grown or growing, and a button to add each of the others. */
+function Layers({ store, uid }: { store: GameStore; uid: string }) {
+  const choices = layerChoices(store.rules, store.state, uid);
+  return (
+    <div class="small control layers" role="group" aria-label="Layers">
+      Layers
+      {choices.map((c) =>
+        c.added ? (
+          <div class="quiet">
+            {c.name}: {c.grown ? 'grown' : 'growing'}
+          </div>
+        ) : (
+          <div class="row">
+            <button
+              type="button"
+              class="button small-button"
+              disabled={c.problem !== null}
+              title={c.problem ?? undefined}
+              onClick={() => store.dispatch({ type: 'addLayer', uid, layer: c.id })}
+            >
+              Add {c.name.toLowerCase()} · {c.cost} materials
+            </button>
+          </div>
+        ),
+      )}
+      {choices.some((c) => !c.added && c.problem) && (
+        <div class="quiet">{choices.find((c) => !c.added && c.problem)!.problem}</div>
+      )}
+    </div>
   );
 }
 

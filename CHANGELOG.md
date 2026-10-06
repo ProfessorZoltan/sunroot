@@ -1,5 +1,19 @@
 # Changelog
 
+## Rainforest Gardens on screen
+
+- **The forest in the interface**: a field's fertility and what the monsoon will do to it, dark
+  earth, a garden's layers and a midden's progress in the tooltip and the inspector; a Forest
+  row in the left panel; the fields the monsoon will wash and the tiles fire could catch, marked
+  on the map and named in the banner; a "The forest" section in the season report.
+- **Layers from the inspector**: a forest garden's inspector lists its layers, with a button to
+  add each one.
+- **The forest on the map**: a garden's layers drawn over it as they grow; in the season's
+  playback, rain running off the bare fields, fire taking the forest, dark earth spreading, the
+  first rains and the dry season's haze. No snow in the dry season.
+- **An art guide for the forest**: its tiles, buildings and layers, and the wonder, animals and
+  festivals to come.
+
 ## Rainforest Gardens: combos, cards and balance
 
 - **The forest's combos**: the Midden Loop (dark earth twice a year), the Kihamba Loop, the Milpa

@@ -324,6 +324,40 @@ export class ResolutionPlayer {
               .fill({ color: 0x6f9a3a, alpha: 0.8 * a });
           break;
         }
+        case 'washed': {
+          // Rain runs off the bare field in muddy rivulets.
+          ground.poly(corners).fill({ color: 0x8b6a4a, alpha: 0.35 * a });
+          for (let k = 0; k < 4; k++) {
+            const run = this.reducedMotion ? 1 : clamp01((age - k * 80) / 600);
+            const x = c.x + (k - 1.5) * 8;
+            g.moveTo(x, c.y - 10)
+              .lineTo(x + 3, c.y - 10 + run * 20)
+              .stroke({ width: 1.6, color: 0x6f9fc6, alpha: 0.8 * a });
+          }
+          break;
+        }
+        case 'burned': {
+          // Flames flicker over the forest, then leave it ash-grey.
+          const burn = this.reducedMotion ? 1 : clamp01(age / 900);
+          ground.poly(corners).fill({ color: 0x5a5048, alpha: 0.45 * a * burn });
+          const flick = this.reducedMotion ? 1 : 0.6 + 0.4 * Math.sin(age / 70);
+          for (let k = 0; k < 3; k++) {
+            const x = c.x + (k - 1) * 9;
+            const hgt = (8 + hash(k, fx.at.q, fx.at.r) * 6) * (1 - burn * 0.7) * flick;
+            g.moveTo(x - 3, c.y + 4)
+              .quadraticCurveTo(x, c.y + 4 - hgt * 1.4, x + 3, c.y + 4)
+              .fill({ color: 0xe0782e, alpha: 0.85 * a });
+          }
+          break;
+        }
+        case 'darkened': {
+          // Dark earth spreads from the middle of the tile.
+          const grow = this.reducedMotion ? 1 : clamp01(age / 800);
+          ground
+            .poly(hexCorners(c, (HEX_RADIUS - 3) * grow))
+            .fill({ color: 0x4a3a2c, alpha: 0.7 * a });
+          break;
+        }
         case 'lowWater': {
           // The water falls back from the shallows' rim, leaving wet mud.
           const fall = this.reducedMotion ? 1 : clamp01(age / 700);
@@ -437,7 +471,8 @@ export class ResolutionPlayer {
       }
       return;
     }
-    if (event === 'heatwave') {
+    // A heatwave's shimmer, and the forest's dry season.
+    if (event === 'heatwave' || event === 'fire') {
       for (let i = 0; i < 40; i++) {
         const x = b.minX + hash(i, 1, 2) * w;
         const p = (this.t / 1500 + hash(i, 3, 4)) % 1;
@@ -448,10 +483,12 @@ export class ResolutionPlayer {
       }
       return;
     }
-    if (event !== 'storm' && event !== 'flood' && event !== 'freeze') return;
+    if (event !== 'storm' && event !== 'flood' && event !== 'freeze' && event !== 'firstRains')
+      return;
     // The desert's cold nights are clear, and the lake's winter mild: no snow.
     if (snowless(this.timeline.land) && event === 'freeze') return;
-    const n = event === 'flood' ? 70 : 110;
+    // The forest's first rains are light.
+    const n = event === 'flood' ? 70 : event === 'firstRains' ? 35 : 110;
     for (let i = 0; i < n; i++) {
       const x0 = b.minX + hash(i, 1, 2) * w;
       const speed = 0.35 + hash(i, 3, 4) * 0.25;

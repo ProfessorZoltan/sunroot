@@ -62,7 +62,11 @@ export type EventFxKind =
   | 'dusted'
   /** Lake Gardens: the lake turning green in a bloom, and the shallows falling in low water. */
   | 'bloomed'
-  | 'lowWater';
+  | 'lowWater'
+  /** Rainforest Gardens: the monsoon washing a bare field, fire in the dry season, dark earth. */
+  | 'washed'
+  | 'burned'
+  | 'darkened';
 
 export interface EventFx {
   kind: EventFxKind;
@@ -353,6 +357,29 @@ export function buildTimeline(
         text: `+${n} mud`,
         tone: 'neutral',
       });
+  }
+
+  // Rainforest Gardens: the monsoon washes the bare fields as it crosses the valley, fire takes
+  // the forest beside the clearings, the cyclone fells a canopy, and middens darken the ground.
+  if (report.forest) {
+    for (const key of report.forest.leached) {
+      const h = parseHexKey(key);
+      fx('washed', h, across(h), '−1 fertility', 'bad');
+    }
+    for (const key of report.forest.wornOut) {
+      const h = parseHexKey(key);
+      fx('washed', h, across(h), 'worn out', 'bad');
+    }
+    for (const key of report.forest.darkened)
+      fx('darkened', parseHexKey(key), settle.start + 150, 'dark earth', 'good');
+  }
+  for (const key of report.burned ?? []) {
+    const h = parseHexKey(key);
+    fx('burned', h, across(h), 'fire', 'bad');
+  }
+  for (const uid of report.felled ?? []) {
+    const h = at(uid);
+    if (h) pops.push({ t: across(h) + 300, at: h, text: 'canopy felled', tone: 'bad' });
   }
 
   const litHomes = Object.values(after.buildings).filter(

@@ -5,6 +5,7 @@ import { commuteAt } from '../game/commuteInfo';
 import { heatAt } from '../game/heatInfo';
 import { coolAt } from '../game/coolInfo';
 import { lakeAt } from '../game/lakeInfo';
+import { forestAt } from '../game/forestInfo';
 import { edgesAround } from '../sim/edges';
 import type { AudioEngine } from '../audio/engine';
 import { logToCsv, type PlayLog } from '../game/playlog';
@@ -70,6 +71,7 @@ export function MapTip({ store, view }: { store: GameStore; view: MapView | null
   const heat = heatAt(store.rules, state, store.heatForecast, store.hover, store.coldForecast);
   const cool = coolAt(store.rules, state, store.coolForecast, store.hover, store.hotForecast);
   const lake = lakeAt(store.rules, state, store.insight.now, store.hover);
+  const forest = forestAt(store.rules, state, store.insight.now, store.hover);
   const gauge = b ? store.storageOf(b.uid) : null;
   const math = (b ? (store.insight.now.math[b.uid] ?? []) : []).filter(
     (l) => water.length === 0 || !l.startsWith('water:'),
@@ -113,6 +115,9 @@ export function MapTip({ store, view }: { store: GameStore; view: MapView | null
       ))}
       {lake.map((l) => (
         <div class="small lake-line">{l}</div>
+      ))}
+      {forest.map((l) => (
+        <div class="small forest-line">{l}</div>
       ))}
       {heat.map((l) => (
         <div class="small heat-line">{l}</div>

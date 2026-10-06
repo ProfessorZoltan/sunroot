@@ -13,6 +13,7 @@ import { commuteNotes, waterWalkNotes } from '../game/commuteInfo';
 import { heatNotes } from '../game/heatInfo';
 import { coolNotes } from '../game/coolInfo';
 import { lakeNotes } from '../game/lakeInfo';
+import { forestNotes } from '../game/forestInfo';
 import type { GameStore } from '../game/store';
 import {
   energyLedger,
@@ -509,6 +510,17 @@ export function SeasonReportDialog({
                     </ul>
                   </>
                 )}
+                {report.forest &&
+                  forestNotes(report.forest, report.burned, report.felled).length > 0 && (
+                    <>
+                      <h3>The forest</h3>
+                      <ul class="plain small forest-notes">
+                        {forestNotes(report.forest, report.burned, report.felled).map((l) => (
+                          <li>{l}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
                 {report.lake && (
                   <>
                     <h3>The lake</h3>
