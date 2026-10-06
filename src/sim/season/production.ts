@@ -17,7 +17,7 @@ import {
 } from '../queries';
 import type { BuildingState } from '../types';
 import { addHeat, addSupply, addYield, explain, flow, type SeasonContext } from './context';
-import { festivalThisSeason } from '../wildlife';
+import { festivalBoost, festivalThisSeason } from '../wildlife';
 import { hedged } from '../edges';
 import { wonderDone } from '../wonder';
 import { fertilityOf } from '../forest';
@@ -82,8 +82,8 @@ export function generate(ctx: SeasonContext): void {
       const when = effect.generationSlots.length === 1 ? ` by ${effect.generationSlots[0]}` : '';
       notes.push(`in a formation +${effect.generation}${when}`);
     }
-    const boost = festivalThisSeason(content, state)?.boosts;
-    if (boost && boost.generation > 0 && boost.buildings.includes(b.type)) {
+    const boost = festivalBoost(content, state, b);
+    if (boost && boost.generation > 0) {
       adjust += boost.generation;
       notes.push(`${festivalThisSeason(content, state)!.name} +${boost.generation}`);
     }
@@ -302,8 +302,8 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
     }
     // A festival for these farms (Shieling Day).
     const festival = festivalThisSeason(content, state);
-    const boost = festival?.boosts;
-    if (boost && boost.food > 0 && boost.buildings.includes(b.type)) {
+    const boost = festivalBoost(content, state, b);
+    if (boost && boost.food > 0) {
       base += boost.food;
       lines.push(`+${boost.food} ${festival!.name}`);
     }

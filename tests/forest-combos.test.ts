@@ -247,7 +247,7 @@ describe('the forest’s tunings and charters', () => {
     expect(layers[0]!.yields.materials).toEqual([0, 0, 2, 0]);
     expect(layers[2]!.grows).toBe(3);
     expect(c.byId.livingFence!.cost).toBe(0);
-    expect(c.byId.forestGarden!.cost).toBe(3);
+    expect(c.byId.forestGarden!.cost).toBe(4);
     expect(c.byId.raisedHouse!.demand!.cool.day).toEqual([0, 0, 0, 0]);
     expect(c.byId.milpa!.yields.food).toEqual([2, 3, 3, 0]);
     expect(c.byId.charHearth!.charcoal!.biomass).toBe(1);

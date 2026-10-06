@@ -9,7 +9,7 @@ import {
 } from './combos';
 import { edgeBuilding, hedged } from './edges';
 import { finishedProjects } from './projects';
-import { festivalThisSeason } from './wildlife';
+import { festivalThisSeason, hastened } from './wildlife';
 import type { Content } from './content/load';
 import type { BuildingDef, EventId, Events, LayerDef, Season, TileType } from './content/schema';
 import { SEASONS } from './content/schema';
@@ -117,8 +117,13 @@ export function grownLayers(content: Content, state: RunState, b: BuildingState)
   if (!defs || !b.layers) return [];
   return b.layers.flatMap((l) => {
     const d = defs.find((x) => x.id === l.id);
-    return d && state.turn - l.turn >= d.grows ? [d] : [];
+    return d && state.turn - l.turn >= growsIn(content, state, b, d) ? [d] : [];
   });
+}
+
+/** The seasons a layer of `b` takes to grow: its own, sooner where fruit bats spread the seed. */
+export function growsIn(content: Content, state: RunState, b: BuildingState, d: LayerDef): number {
+  return Math.max(0, d.grows - hastened(content, state, b, d.id));
 }
 
 /** Tall: a tall building, or one with a tall layer grown (it shades solar beside it). */

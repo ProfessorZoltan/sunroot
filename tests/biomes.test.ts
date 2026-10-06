@@ -74,7 +74,8 @@ describe('Root City is shared by every biome', () => {
           `${d.id} names ${m.id}`,
         ).toBe(true);
     }
-  });
+    // Loads every biome: a few seconds alone, more with the whole suite running beside it.
+  }, 60_000);
 });
 
 describe('a second biome beside Willow Reach', () => {

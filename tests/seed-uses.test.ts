@@ -103,9 +103,9 @@ describe('keepsakes', () => {
   const buy = (city: CityState, id: string) => apply(city, { type: 'buyKeepsake', id });
   const price = (id: string) => REACH.keepsakes.find((k) => k.id === id)!.cost;
 
-  it('20 young ones at 20 Seeds; 6 settlement ornaments at 30 or 40; 4 city ones at 40 to 60', () => {
+  it('24 young ones at 20 Seeds; 6 settlement ornaments at 30 or 40; 4 city ones at 40 to 60', () => {
     const of = (kind: string) => REACH.keepsakes.filter((k) => k.kind === kind);
-    expect(of('wildlife')).toHaveLength(20);
+    expect(of('wildlife')).toHaveLength(24);
     expect(of('wildlife').every((k) => k.cost === 20)).toBe(true);
     expect(of('settlement').map((k) => k.cost)).toEqual([30, 30, 40, 40, 30, 40]);
     expect(of('city').map((k) => k.cost)).toEqual([50, 40, 60, 40]);

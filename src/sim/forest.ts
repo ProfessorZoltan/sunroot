@@ -6,7 +6,7 @@
 import type { Content } from './content/load';
 import type { LayerDef, TileType } from './content/schema';
 import { hexKey } from './hex';
-import { defOf } from './queries';
+import { defOf, growsIn } from './queries';
 import type { BuildingState, RunState, Tile } from './types';
 
 /** The tile's fertility, or null outside the forest rules. */
@@ -21,13 +21,14 @@ export function layersOf(
   content: Content,
   state: RunState,
   b: BuildingState,
-): { def: LayerDef; turn: number; grown: boolean; age: number }[] {
+): { def: LayerDef; turn: number; grown: boolean; age: number; grows: number }[] {
   const defs = defOf(content, b).layers ?? [];
   return (b.layers ?? []).flatMap((l) => {
     const def = defs.find((d) => d.id === l.id);
     if (!def) return [];
     const age = state.turn - l.turn;
-    return [{ def, turn: l.turn, grown: age >= def.grows, age }];
+    const grows = growsIn(content, state, b, def);
+    return [{ def, turn: l.turn, grown: age >= grows, age, grows }];
   });
 }
 

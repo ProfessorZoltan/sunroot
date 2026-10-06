@@ -20,7 +20,7 @@ export interface LayerLook {
 export function layerLooks(content: Content, state: RunState, b: BuildingState): LayerLook[] {
   return layersOf(content, state, b).map((l) => ({
     id: l.def.id,
-    grown: l.def.grows === 0 ? 1 : Math.min(1, l.age / l.def.grows),
+    grown: l.grows === 0 ? 1 : Math.min(1, l.age / l.grows),
   }));
 }
 

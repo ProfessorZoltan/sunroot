@@ -171,6 +171,7 @@ describe('the forest in the season report and its playback', () => {
         },
         ['5,1'],
         ['g'],
+        ['6,1', '7,1'],
       ),
     ).toEqual([
       'The rain washed 1 fertility out of 2 fields.',
@@ -179,6 +180,7 @@ describe('the forest in the season report and its playback', () => {
       '1 tile turned to dark earth, for good.',
       'Fire burned 1 tile of rainforest to scrub.',
       'The cyclone felled the canopy of 1 forest garden.',
+      "The hornbills dropped seed at the forest's edge: 2 tiles healed a step.",
     ]);
   });
 

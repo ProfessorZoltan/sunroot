@@ -322,6 +322,10 @@ try {
     'heron',
     'kingfisher',
     'flamingo',
+    'hummingbird',
+    'fruitBat',
+    'hornbill',
+    'jaguar',
     // The leaping fish (docs/ART-PEOPLE.md): `fish.leap.1`, a land's own `fish.coast.leap.1`.
     'fish',
   ]);

@@ -541,6 +541,8 @@ export interface WildlifeReport {
   habitat: Record<string, { tiles: string[]; herds: number }>;
   /** Food each building got from animals, by uid: the animal's id and the amount. */
   food: Record<string, { animal: string; amount: number }[]>;
+  /** Tiles the animals healed a step this season (the hornbills), by tile key. */
+  healed?: string[];
 }
 
 /** Heat a source paid for a building this season, while local heat is on. */

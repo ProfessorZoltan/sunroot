@@ -83,7 +83,8 @@ describe('the command', () => {
     const serial = await simulate({ ...options, jobs: 1 });
     const parallel = await simulate({ ...options, jobs: 2 });
     expect(parallel).toEqual(serial);
-  }, 30_000);
+    // About 25 s alone; with the whole suite running beside it, more.
+  }, 90_000);
 
   it('writes runs.csv and report.md with one command', async () => {
     const out = mkdtempSync(join(tmpdir(), 'sunroot-balance-'));

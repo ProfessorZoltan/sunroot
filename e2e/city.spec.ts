@@ -742,7 +742,7 @@ test('keepsakes: bought by mouse, drawn in the city, carried into the next run',
   await expect(page.getByRole('heading', { name: 'Root City' })).toBeVisible();
   const panel = page.getByRole('region', { name: 'Keepsakes' });
   await panel.locator('summary').click();
-  await expect(panel).toContainText('0 of 30');
+  await expect(panel).toContainText('0 of 34');
   await panel.getByRole('button', { name: 'The fountain for 60 Seeds' }).click();
   await panel.getByRole('button', { name: "The city's banner for 30 Seeds" }).click();
   await expect.poll(async () => (await cityNow(page)).seeds).toBe(10);

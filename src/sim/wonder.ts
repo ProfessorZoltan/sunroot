@@ -10,7 +10,7 @@
 import type { Content } from './content/load';
 import type { BuildingDef, Resource } from './content/schema';
 import { hexKey, hexNeighbors, type Hex } from './hex';
-import { defOf, occupancy, tileAt } from './queries';
+import { defOf, grownLayers, occupancy, tileAt } from './queries';
 import type { BuildingState, RunState } from './types';
 import { available, isChannel } from './water';
 import { edgeKey } from './edges';
@@ -76,10 +76,16 @@ export function wonderNeeds(content: Content, state: RunState, def: BuildingDef)
       missing.push(`a closed ${content.comboById[id]?.name ?? id}`);
   }
   for (const [id, n] of Object.entries(w.needsBuildings)) {
-    const have = Object.values(state.buildings).filter((b) => b.type === id).length;
+    // The Canopy Walk's gardens count only grown in all their storeys.
+    const layers = content.byId[id]?.layers?.length ?? 0;
+    const have = Object.values(state.buildings).filter(
+      (b) =>
+        b.type === id && (!w.needsGrownLayers || grownLayers(content, state, b).length === layers),
+    ).length;
     if (have < n) {
       const name = (content.byId[id]?.name ?? id).toLowerCase();
-      missing.push(`${n} ${name}s (${have} now)`);
+      const grown = w.needsGrownLayers ? ' with every layer grown' : '';
+      missing.push(`${n} ${name}s${grown} (${have} now)`);
     }
   }
   return missing.length > 0 ? `the ${def.name} needs ${missing.join(' and ')}` : null;

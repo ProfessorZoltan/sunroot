@@ -336,7 +336,7 @@
     {
       "id": "forestGarden",
       "name": "Forest Garden",
-      "cost": 4,
+      "cost": 5,
       "workers": 1,
       "kind": "food",
       "starter": true,
@@ -581,6 +581,76 @@
       },
       "water": {
         "wheel": true
+      }
+    },
+    {
+      "id": "canopyWalk",
+      "name": "Canopy Walk",
+      "cost": 60,
+      "workers": 0,
+      "kind": "nature",
+      "draftable": false,
+      "minEra": 3,
+      "requiresWater": true,
+      "floodTolerant": true,
+      "stormProof": true,
+      "placement": {
+        "tiles": ["woodland"]
+      },
+      "wonder": {
+        "seasons": 4,
+        "alsoCosts": {
+          "biomass": 30
+        },
+        "needsLoops": ["middenLoop"],
+        "needsBuildings": {
+          "forestGarden": 3
+        },
+        "needsGrownLayers": true,
+        "nearWater": false,
+        "score": 60,
+        "graftTiers": 1,
+        "modifiers": [
+          {
+            "target": "rules",
+            "path": "forest.leaches.0",
+            "set": false
+          },
+          {
+            "target": "rules",
+            "path": "forest.leaches.1",
+            "set": false
+          },
+          {
+            "target": "rules",
+            "path": "forest.leaches.2",
+            "set": false
+          },
+          {
+            "target": "rules",
+            "path": "forest.leaches.3",
+            "set": false
+          },
+          {
+            "target": "building",
+            "id": "forestGarden",
+            "path": "layers.0.grows",
+            "add": -1
+          },
+          {
+            "target": "building",
+            "id": "forestGarden",
+            "path": "layers.1.grows",
+            "add": -1
+          },
+          {
+            "target": "building",
+            "id": "forestGarden",
+            "path": "layers.2.grows",
+            "add": -1
+          }
+        ],
+        "gives": "no field loses fertility in the monsoon, and every layer grows a season sooner"
       }
     },
     {
@@ -2007,7 +2077,7 @@
     {
       "id": "seedExchange",
       "name": "Seed Exchange",
-      "text": "Forest gardens cost 3 instead of 4.",
+      "text": "Forest gardens cost 4 instead of 5.",
       "modifiers": [
         {
           "target": "building",
@@ -2327,8 +2397,126 @@
       }
     }
   ],
-  "wildlife": [],
-  "festivals": [],
+  "wildlife": [
+    {
+      "id": "hummingbirds",
+      "name": "Hummingbirds",
+      "text": "Hummingbirds come at Harmony 20 to a forest garden whose coffee bushes have grown. In spring, gardens and milpas within 2 tiles of them make 1 more food: the hummingbirds carry the pollen.",
+      "harmony": 20,
+      "habitat": {
+        "kind": "building",
+        "buildings": ["forestGarden"],
+        "withLayer": "shrub"
+      },
+      "effect": {
+        "kind": "nearHabitat",
+        "buildings": ["forestGarden", "orchardGarden", "milpa"],
+        "range": 2,
+        "food": 1,
+        "seasons": ["spring"]
+      }
+    },
+    {
+      "id": "fruitBats",
+      "name": "Fruit bats",
+      "text": "Fruit bats come at Harmony 40 to a garden whose canopy has grown beside the rainforest. Canopies within 2 tiles of them grow a season sooner: the bats carry the seed from tree to tree.",
+      "harmony": 40,
+      "habitat": {
+        "kind": "building",
+        "buildings": ["forestGarden"],
+        "withLayer": "canopy",
+        "nextToTiles": ["woodland"]
+      },
+      "effect": {
+        "kind": "layersGrow",
+        "layers": ["canopy"],
+        "range": 2,
+        "seasons": 1
+      }
+    },
+    {
+      "id": "hornbills",
+      "name": "Hornbills",
+      "text": "Hornbills come at Harmony 50 to 6 or more tiles of rainforest together. Each autumn, bare and scrub ground beside the forest heals a step: the hornbills drop the seed of the fruit they eat.",
+      "harmony": 50,
+      "habitat": {
+        "kind": "tiles",
+        "tiles": ["woodland"],
+        "wild": true,
+        "minGroup": 6
+      },
+      "effect": {
+        "kind": "heals",
+        "tiles": ["barren", "scrub"],
+        "season": "autumn"
+      }
+    },
+    {
+      "id": "jaguars",
+      "name": "Jaguars",
+      "text": "Jaguars come at Harmony 70 to 10 or more tiles of rainforest unbroken. Each range of forest they hunt gives 1 wellbeing every season.",
+      "harmony": 70,
+      "habitat": {
+        "kind": "tiles",
+        "tiles": ["woodland"],
+        "wild": true,
+        "minGroup": 10
+      },
+      "effect": {
+        "kind": "wellbeing",
+        "perHerd": 1,
+        "group": "range"
+      }
+    }
+  ],
+  "festivals": [
+    {
+      "id": "rainsFeast",
+      "name": "Feast of the First Rains",
+      "text": "Drums and the smell of wet earth as the first rains come: the milpas are sown together. +3 wellbeing, and every milpa sown this spring makes 1 more food.",
+      "season": "spring",
+      "cost": {
+        "food": 5
+      },
+      "wellbeing": 3,
+      "boosts": {
+        "buildings": ["milpa"],
+        "food": 1,
+        "newOnly": true
+      }
+    },
+    {
+      "id": "canopyHarvest",
+      "name": "Harvest of the Canopy",
+      "text": "Ladders up the jackfruit and mango, baskets passed down hand to hand. +3 wellbeing, and every garden with its canopy grown makes 1 more food this summer.",
+      "season": "summer",
+      "cost": {
+        "materials": 5
+      },
+      "wellbeing": 3,
+      "boosts": {
+        "buildings": ["forestGarden"],
+        "food": 1,
+        "layer": "canopy"
+      }
+    },
+    {
+      "id": "odalan",
+      "name": "Odalan",
+      "text": "The water temple’s festival: offerings of fruit and flowers, gamelan into the night. +3 wellbeing, every rice terrace beside a Water Temple makes 1 more food this autumn, and the animals come out to see.",
+      "season": "autumn",
+      "cost": {
+        "materials": 5
+      },
+      "wellbeing": 3,
+      "boosts": {
+        "buildings": ["riceTerrace"],
+        "food": 1,
+        "nextTo": ["waterTemple"]
+      },
+      "showsWildlife": true
+    }
+  ],
   "twists": [
     {
       "id": "fairWeather",
@@ -2609,6 +2797,13 @@
       },
       "reward": {
         "knowledge": 3
+      },
+      "or": {
+        "text": "Or finish the Canopy Walk.",
+        "goal": {
+          "kind": "wonder",
+          "building": "canopyWalk"
+        }
       }
     }
   ],

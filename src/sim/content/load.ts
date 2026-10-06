@@ -155,6 +155,8 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     data.festivals.map((f) => f.id),
     'festival',
   );
+  const layerIds = (id: string) =>
+    (data.buildings.find((b) => b.id === id)?.layers ?? []).map((l) => l.id);
   for (const a of data.wildlife) {
     const where = `wildlife ${a.id}`;
     const h = a.habitat;
@@ -166,9 +168,20 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
     ).forEach((id) => known(id, where));
     if (h.kind === 'edges' && !data.buildings.some((b) => b.edge))
       problems.push(`${where} lives along edges, but nothing here is built on them`);
+    if (h.kind === 'building' && h.withLayer)
+      if (!h.buildings.some((id) => layerIds(id).includes(h.withLayer!)))
+        problems.push(
+          `${where} lives with a ${h.withLayer} layer, which none of its buildings has`,
+        );
     const e = a.effect;
     if (e.kind === 'nextToTiles' || e.kind === 'nearHabitat')
       e.buildings.forEach((id) => known(id, where));
+    if (e.kind === 'layersGrow') {
+      if (h.kind !== 'building') problems.push(`${where} hastens layers, so lives in a building`);
+      for (const l of e.layers)
+        if (!data.buildings.some((b) => layerIds(b.id).includes(l)))
+          problems.push(`${where} hastens ${l}, which is no building's layer`);
+    }
     if (e.kind === 'evolution') {
       // The animals are what the evolution waits for: it needs the same Harmony.
       const combo = data.combos.find((c) => c.id === e.combo);
@@ -179,6 +192,14 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
           `${where} arrives at Harmony ${a.harmony} but ${e.combo} needs ${combo.when.minHarmony}`,
         );
     }
+  }
+  for (const f of data.festivals) {
+    const b = f.boosts;
+    if (!b) continue;
+    b.buildings.forEach((id) => known(id, `festival ${f.id}`));
+    (b.nextTo ?? []).forEach((id) => known(id, `festival ${f.id}`));
+    if (b.layer && !b.buildings.some((id) => layerIds(id).includes(b.layer!)))
+      problems.push(`festival ${f.id} boosts a ${b.layer} layer, which none of its buildings has`);
   }
   // Rainforest Gardens' soil and layers.
   for (const b of data.buildings) {

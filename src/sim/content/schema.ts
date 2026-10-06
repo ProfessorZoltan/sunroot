@@ -341,6 +341,8 @@ export const BuildingSchema = z
         /** Loops (combo ids) closed and standing, and buildings standing, to start it. */
         needsLoops: z.array(z.string()).default([]),
         needsBuildings: z.record(z.string(), int.min(1)).default({}),
+        /** Those buildings count only with every one of their layers grown (the Canopy Walk). */
+        needsGrownLayers: z.boolean().default(false),
         /** One of its tiles must touch the river, a reservoir or a channel. */
         nearWater: z.boolean().default(true),
         /** Its 7 tiles must include one of each of these (the Tidal Lagoon: mudflat and sea). */
@@ -1901,6 +1903,8 @@ const HabitatSchema = z.discriminatedUnion('kind', [
       kind: z.literal('building'),
       buildings: z.array(z.string()).min(1),
       nextToTiles: z.array(TileTypeSchema).optional(),
+      /** With this layer grown (the hummingbirds' coffee bushes, the fruit bats' canopy). */
+      withLayer: z.string().optional(),
     })
     .strict(),
 ]);
@@ -1927,6 +1931,29 @@ const WildlifeEffectSchema = z.discriminatedUnion('kind', [
       food: int.min(1),
       /** Only in these seasons (missing: every season). */
       seasons: z.array(z.enum(SEASONS)).min(1).optional(),
+    })
+    .strict(),
+  /**
+   * The layers of buildings within `range` tiles of the habitat grow `seasons` sooner (the fruit
+   * bats, spreading the seed). Their habitat is a building.
+   */
+  z
+    .object({
+      kind: z.literal('layersGrow'),
+      layers: z.array(z.string()).min(1),
+      range: int.min(1),
+      seasons: int.min(1),
+    })
+    .strict(),
+  /**
+   * Once a year, as `season` ends, each open tile of these types beside the habitat heals a step
+   * up the land-health ladder (the hornbills, dropping the forest's seed at its edge).
+   */
+  z
+    .object({
+      kind: z.literal('heals'),
+      tiles: z.array(TileTypeSchema).min(1),
+      season: z.enum(SEASONS),
     })
     .strict(),
   /** Their arrival is what an evolution waits for (beavers and the Beaver Dam). */
@@ -1996,6 +2023,12 @@ export const FestivalSchema = z
         buildings: z.array(z.string()).min(1),
         generation: nonNeg.default(0),
         food: nonNeg.default(0),
+        /** Only those with this layer grown (Harvest of the Canopy). */
+        layer: z.string().optional(),
+        /** Only those beside one of these (Odalan: the terraces under a Water Temple). */
+        nextTo: z.array(z.string()).optional(),
+        /** Only those built this season (the Feast of the First Rains: the milpas sown with it). */
+        newOnly: z.boolean().default(false),
       })
       .strict()
       .refine((b) => b.generation > 0 || b.food > 0, 'a boost gives energy or food')

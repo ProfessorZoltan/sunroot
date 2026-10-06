@@ -29,6 +29,7 @@ function play(content: Content, bot: string, expedition?: RunExpedition) {
   let heart = 0;
   let collapsed = 0;
   let fires = 0;
+  let walks = 0;
   for (let i = 0; i < N; i++) {
     let last: RunState | null = null;
     playRun(content, BOTS[bot]!, `biome-${i}`, {
@@ -43,6 +44,7 @@ function play(content: Content, bot: string, expedition?: RunExpedition) {
     scores.push(score.total);
     if (score.tier.id === 'heartwood') heart++;
     if (s.status === 'collapsed') collapsed++;
+    if (Object.values(s.buildings).some((b) => b.finished !== undefined)) walks++;
     const tiles = Object.values(s.map.tiles);
     forest.push(tiles.filter((t) => t.type === 'woodland').length);
     dark.push(tiles.filter((t) => t.type === 'darkEarth').length);
@@ -62,6 +64,7 @@ function play(content: Content, bot: string, expedition?: RunExpedition) {
     darkEarth: mean(dark),
     layers: mean(layers),
     fires: (fires / N).toFixed(1),
+    wonder: `${walks} of ${N}`,
   };
 }
 

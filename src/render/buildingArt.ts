@@ -509,6 +509,54 @@ export const BUILDING_ART: Record<string, Art> = {
     g.rect(c.x - 7, c.y - 3, 14, 7).fill({ color: 0xf3e3c3 });
     g.poly([c.x - 9, c.y - 3, c.x, c.y - 12, c.x + 9, c.y - 3]).fill({ color: 0x7a4e8a });
   },
+  /**
+   * Drawn when its art is missing: six great trees round the flower, garden in storeys under each,
+   * a walkway of planks slung from crown to crown, and the seed house at the centre.
+   */
+  canopyWalk(g, c) {
+    const crowns: Point[] = [];
+    for (let i = 0; i < 6; i++) {
+      const a = (Math.PI / 3) * i + Math.PI / 6;
+      const x = c.x + Math.cos(a) * 48;
+      const y = c.y + Math.sin(a) * 42;
+      crowns.push({ x, y: y - 16 });
+      // The storeys below: a banana, coffee bushes, the beds.
+      g.ellipse(x, y + 8, 18, 7).fill({ color: 0x4a3a2c });
+      palm(g, x - 9, y);
+      for (const dx of [4, 9]) g.circle(x + dx, y + 4, 3).fill({ color: 0x3f6b2e });
+      g.circle(x + 6, y + 2, 1).fill({ color: 0xb8322a });
+      // The great tree.
+      g.rect(x - 2, y - 14, 4, 18).fill({ color: COLORS.wood });
+      g.circle(x, y - 18, 15).fill({ color: 0x2f4a24 });
+      g.circle(x - 5, y - 22, 9).fill({ color: 0x5e8a3a });
+      g.circle(x + 6, y - 14, 2.2).fill({ color: 0xe8c547 });
+    }
+    // The walkway: planks on ropes, sagging between the crowns.
+    for (let i = 0; i < 6; i++) {
+      const p = crowns[i]!;
+      const q = crowns[(i + 1) % 6]!;
+      const mx = (p.x + q.x) / 2;
+      const my = (p.y + q.y) / 2 + 7;
+      g.moveTo(p.x, p.y)
+        .quadraticCurveTo(mx, my, q.x, q.y)
+        .stroke({ width: 2.4, color: 0x9a6a3a, cap: 'round' });
+      for (let k = 1; k < 5; k++) {
+        const t = k / 5;
+        const x = (1 - t) * (1 - t) * p.x + 2 * (1 - t) * t * mx + t * t * q.x;
+        const y = (1 - t) * (1 - t) * p.y + 2 * (1 - t) * t * my + t * t * q.y;
+        g.moveTo(x, y - 2.5)
+          .lineTo(x, y + 2.5)
+          .stroke({ width: 1.2, color: 0xd8c08a });
+      }
+    }
+    // The seed house at the centre, raised on posts, a ladder up to the walk.
+    g.ellipse(c.x, c.y + 10, 16, 5).fill({ color: COLORS.shadow, alpha: 0.16 });
+    for (const dx of [-7, 7])
+      g.moveTo(c.x + dx, c.y + 2)
+        .lineTo(c.x + dx, c.y + 10)
+        .stroke({ width: 1.6, color: COLORS.wood });
+    house(g, c.x, c.y - 4, 1.3, 0x3e6b2e);
+  },
   solarOasis(g, c) {
     // A flower of mirrors round a tower, its cooling pool and garden at the foot.
     for (let ring = 0; ring < 2; ring++) {

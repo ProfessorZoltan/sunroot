@@ -115,9 +115,9 @@ describe('Rainforest Gardens, Year 1 (golden, PROPOSED)', () => {
     }));
     expect(rows).toEqual([
       { season: 'spring', materials: 12, food: 11, citizens: 6 },
-      { season: 'summer', materials: 10, food: 14, citizens: 7 },
-      { season: 'autumn', materials: 9, food: 13, citizens: 7 },
-      { season: 'winter', materials: 9, food: 6, citizens: 7 },
+      { season: 'summer', materials: 9, food: 14, citizens: 7 },
+      { season: 'autumn', materials: 8, food: 13, citizens: 7 },
+      { season: 'winter', materials: 8, food: 6, citizens: 7 },
     ]);
   });
 

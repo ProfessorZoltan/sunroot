@@ -48,7 +48,7 @@ export function layerYields(ctx: SeasonContext, b: BuildingState): void {
   for (const l of layersOf(content, state, b)) {
     const name = l.def.name;
     if (!l.grown) {
-      explain(ctx, b, `${name}: still growing (${l.age}/${l.def.grows} seasons)`);
+      explain(ctx, b, `${name}: still growing (${l.age}/${l.grows} seasons)`);
       continue;
     }
     let made = false;

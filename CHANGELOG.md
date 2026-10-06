@@ -1,5 +1,20 @@
 # Changelog
 
+## Rainforest Gardens: the Canopy Walk, the forest's animals and festivals
+
+- **The Canopy Walk**, the forest's wonder: a walkway slung through the crowns of six great trees
+  over a flower of rainforest, from era 3, once a Midden Loop is closed and 3 forest gardens have
+  grown all their storeys. Finished, no field washes in the monsoon and every layer grows a
+  season sooner; +60, a tier on the Graft, or the Bloom era's goal.
+- **Hummingbirds** (gardens and milpas near their coffee bushes bear more in spring), **fruit
+  bats** (canopies near them grow a season sooner), **hornbills** (each autumn, bare ground and
+  scrub beside the forest heal a step) and **jaguars** (wellbeing for each range of unbroken
+  forest), with their young as keepsakes.
+- **Festivals**: the Feast of the First Rains, the Harvest of the Canopy and Odalan, the water
+  temple's festival.
+- A forest garden costs 5 materials, not 4, to keep the forest level with the other biomes.
+- Bots no longer stop building while a wonder waits on its gardens to grow.
+
 ## Rainforest Gardens in Root City
 
 - **The forest opens once 10 districts stand** in Root City, and is offered at once; its first

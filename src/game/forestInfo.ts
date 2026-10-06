@@ -56,9 +56,7 @@ export function forestAt(
   const layers = layersOf(content, state, b);
   for (const l of layers)
     lines.push(
-      l.grown
-        ? `${l.def.name}: grown.`
-        : `${l.def.name}: growing, ${l.age} of ${l.def.grows} seasons.`,
+      l.grown ? `${l.def.name}: grown.` : `${l.def.name}: growing, ${l.age} of ${l.grows} seasons.`,
     );
   // A midden on its way to dark earth.
   const m = def.midden;
@@ -152,6 +150,7 @@ export function forestNotes(
   r: ForestReport,
   burned: string[] = [],
   felled: string[] = [],
+  healed: string[] = [],
 ): string[] {
   const lines: string[] = [];
   if (r.leached.length > 0)
@@ -168,5 +167,9 @@ export function forestNotes(
     lines.push(`Fire burned ${plural(burned.length, 'tile')} of rainforest to scrub.`);
   if (felled.length > 0)
     lines.push(`The cyclone felled the canopy of ${plural(felled.length, 'forest garden')}.`);
+  if (healed.length > 0)
+    lines.push(
+      `The hornbills dropped seed at the forest's edge: ${plural(healed.length, 'tile')} healed a step.`,
+    );
   return lines;
 }

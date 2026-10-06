@@ -46,7 +46,7 @@ import { dealCharters } from '../draft';
 import { cityRequest, eraGoal, eraGoalMet, goalMet, visionMet } from '../score';
 import { unlockWonders, wonderBrief } from '../wonder';
 import { finishProjects } from '../projects';
-import { festivalThisSeason, updateWildlife, wildlifeYields } from '../wildlife';
+import { festivalThisSeason, updateWildlife, wildlifeHeals, wildlifeYields } from '../wildlife';
 
 export interface ResolveOptions {
   /**
@@ -100,6 +100,7 @@ export function resolveSeason(
   applyFormationYields(ctx);
   wildlifeYields(ctx);
   washFields(ctx);
+  wildlifeHeals(ctx);
   feedAndGrow(ctx); // 8
   scrapsAndHarmony(ctx); // 9
   checkCombos(ctx); // 10

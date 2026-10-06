@@ -511,11 +511,17 @@ export function SeasonReportDialog({
                   </>
                 )}
                 {report.forest &&
-                  forestNotes(report.forest, report.burned, report.felled).length > 0 && (
+                  forestNotes(report.forest, report.burned, report.felled, report.wildlife?.healed)
+                    .length > 0 && (
                     <>
                       <h3>The forest</h3>
                       <ul class="plain small forest-notes">
-                        {forestNotes(report.forest, report.burned, report.felled).map((l) => (
+                        {forestNotes(
+                          report.forest,
+                          report.burned,
+                          report.felled,
+                          report.wildlife?.healed,
+                        ).map((l) => (
                           <li>{l}</li>
                         ))}
                       </ul>

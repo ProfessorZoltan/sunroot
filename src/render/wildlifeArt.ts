@@ -40,7 +40,12 @@ export type ActorKind =
   | 'axolotl'
   | 'heron'
   | 'kingfisher'
-  | 'flamingo';
+  | 'flamingo'
+  // The forest's, drawn in code until their art comes (drawAnimal).
+  | 'hummingbird'
+  | 'fruitBat'
+  | 'hornbill'
+  | 'jaguar';
 
 export interface Actor {
   kind: ActorKind;
@@ -80,6 +85,10 @@ const KIND: Record<string, ActorKind> = {
   herons: 'heron',
   kingfishers: 'kingfisher',
   flamingos: 'flamingo',
+  hummingbirds: 'hummingbird',
+  fruitBats: 'fruitBat',
+  hornbills: 'hornbill',
+  jaguars: 'jaguar',
 };
 
 /** How many of each animal show at most, and over how many tiles each moves. */
@@ -104,6 +113,10 @@ const SHOWN: Record<ActorKind, { count: number; steps: number }> = {
   heron: { count: 1, steps: 2 },
   kingfisher: { count: 2, steps: 2 },
   flamingo: { count: 5, steps: 3 },
+  hummingbird: { count: 3, steps: 2 },
+  fruitBat: { count: 2, steps: 3 },
+  hornbill: { count: 2, steps: 3 },
+  jaguar: { count: 1, steps: 4 },
 };
 
 /** Whether the animals are shown at all this season (bees keep in over winter, but come out on Lantern Night). */
@@ -189,6 +202,10 @@ const PACE: Record<ActorKind, { move: number; rest: number }> = {
   heron: { move: 7000, rest: 8000 },
   kingfisher: { move: 1500, rest: 5000 },
   flamingo: { move: 9000, rest: 6000 },
+  hummingbird: { move: 1200, rest: 3000 },
+  fruitBat: { move: 3500, rest: 6000 },
+  hornbill: { move: 5000, rest: 5000 },
+  jaguar: { move: 8000, rest: 7000 },
 };
 
 /** Where an animal is at a moment, and which frame it shows. With `still`, it keeps to its first tile. */
@@ -294,11 +311,24 @@ export function poseAt(actor: Actor, clock: number, still: boolean): Pose {
           ? 'flamingo.feed'
           : 'flamingo.stand';
       break;
+    // The forest's (ART-EXPANSION.md), drawn in code from the same frame names until art comes.
+    case 'hummingbird':
+      frame = moving ? `hummingbird.hover.${(step % 2) + 1}` : 'hummingbird.perch';
+      break;
+    case 'fruitBat':
+      frame = moving ? `fruitBat.fly.${(Math.floor(step / 2) % 2) + 1}` : 'fruitBat.hang';
+      break;
+    case 'hornbill':
+      frame = moving ? 'hornbill.fly' : 'hornbill.perch';
+      break;
+    case 'jaguar':
+      frame = moving ? `jaguar.walk.${(Math.floor(step / 2) % 2) + 1}` : 'jaguar.rest';
+      break;
   }
   return { x, y, frame, flip };
 }
 
-/** The coast's, the Highland's and the lake's animals, drawn in code at tile scale until their art comes. */
+/** The coast's, the Highland's, the lake's and the forest's animals, drawn in code at tile scale until their art comes. */
 export function drawAnimal(g: Graphics, kind: ActorKind, pose: Pose, season = 'summer'): void {
   const { x, y } = pose;
   const dir = pose.flip ? -1 : 1;
@@ -306,7 +336,9 @@ export function drawAnimal(g: Graphics, kind: ActorKind, pose: Pose, season = 's
   const moving =
     /\.(fly|swim|run|soar|walk)\./.test(pose.frame) ||
     /dolphin\.[23]$/.test(pose.frame) ||
-    pose.frame === 'kingfisher.dive';
+    pose.frame === 'kingfisher.dive' ||
+    pose.frame.startsWith('hummingbird.hover') ||
+    pose.frame === 'hornbill.fly';
   switch (kind) {
     case 'tern': {
       // A white bird with a black cap, wings up or down, a little above the dunes.
@@ -482,6 +514,103 @@ export function drawAnimal(g: Graphics, kind: ActorKind, pose: Pose, season = 's
         .stroke({ width: 1.1, color: 0xf29aac, cap: 'round' });
       g.circle(hx, hy, 1.1).fill({ color: 0xf29aac });
       g.circle(hx + dir * 1, hy + 0.4, 0.6).fill({ color: 0x2a2a2a });
+      break;
+    }
+    case 'hummingbird': {
+      // A tiny green bird with a ruby throat, hovering at the coffee flowers, its wings a blur.
+      const yy = y - (moving ? 13 : 9);
+      if (moving)
+        g.ellipse(x - dir * 0.5, yy - 1.5, 2.6, flap ? 1 : 2.2).fill({
+          color: 0xdff0d8,
+          alpha: 0.6,
+        });
+      g.ellipse(x, yy, 2, 1.2).fill({ color: 0x3a9a5a });
+      g.circle(x + dir * 1.6, yy - 0.6, 0.9).fill({ color: 0x3a9a5a });
+      g.circle(x + dir * 1.4, yy + 0.2, 0.6).fill({ color: 0xc0283c });
+      g.moveTo(x + dir * 2.4, yy - 0.6)
+        .lineTo(x + dir * 5, yy - 0.2)
+        .stroke({ width: 0.6, color: 0x1e1e1e, cap: 'round' });
+      g.moveTo(x - dir * 1.8, yy)
+        .lineTo(x - dir * 3.4, yy + 1)
+        .stroke({ width: 0.8, color: 0x2f6f4a, cap: 'round' });
+      break;
+    }
+    case 'fruitBat': {
+      if (moving) {
+        // Big leathery wings, a dark M against the sky over the canopy.
+        const yy = y - 22;
+        const lift = flap ? -3 : 1;
+        g.moveTo(x - 9, yy + lift)
+          .quadraticCurveTo(x - 5, yy - 3, x - 1, yy + 1)
+          .quadraticCurveTo(x, yy - 1, x + 1, yy + 1)
+          .quadraticCurveTo(x + 5, yy - 3, x + 9, yy + lift)
+          .stroke({ width: 1.8, color: 0x4a3426, cap: 'round', join: 'round' });
+        g.circle(x, yy, 1.6).fill({ color: 0x8a5a36 });
+      } else {
+        // Hanging upside down from a branch, wrapped in its wings.
+        const yy = y - 18;
+        g.moveTo(x - 5, yy)
+          .lineTo(x + 5, yy - 0.6)
+          .stroke({ width: 1, color: 0x6b4a2e });
+        g.ellipse(x, yy + 4, 1.9, 3.4).fill({ color: 0x4a3426 });
+        g.circle(x, yy + 7.6, 1.3).fill({ color: 0x8a5a36 });
+      }
+      break;
+    }
+    case 'hornbill': {
+      const yy = y - (moving ? 22 : 13);
+      if (moving) {
+        // Broad black wings with white trailing edges, slow beats over the forest.
+        g.moveTo(x - 9, yy + 1)
+          .quadraticCurveTo(x - 4, yy - 3, x, yy)
+          .quadraticCurveTo(x + 4, yy - 3, x + 9, yy + 1)
+          .stroke({ width: 2.4, color: 0x1e1e1e, cap: 'round', join: 'round' });
+        g.moveTo(x - 8, yy + 2)
+          .lineTo(x - 4, yy + 1)
+          .moveTo(x + 4, yy + 1)
+          .lineTo(x + 8, yy + 2)
+          .stroke({ width: 0.8, color: 0xf3efe6 });
+      } else {
+        // Perched on a branch: black body, white tail band, the great yellow bill and casque.
+        g.moveTo(x - 6, yy + 3)
+          .lineTo(x + 5, yy + 3.4)
+          .stroke({ width: 1, color: 0x6b4a2e });
+        g.ellipse(x, yy, 2.6, 3).fill({ color: 0x1e1e1e });
+        g.moveTo(x - dir * 2, yy + 2)
+          .lineTo(x - dir * 4, yy + 6)
+          .stroke({ width: 1.6, color: 0xf3efe6, cap: 'round' });
+      }
+      g.circle(x + dir * 2, yy - 2.6, 1.5).fill({ color: 0x1e1e1e });
+      g.poly([x + dir * 3, yy - 3.4, x + dir * 7.5, yy - 1.6, x + dir * 3, yy - 1.4]).fill({
+        color: 0xe8b23a,
+      });
+      g.ellipse(x + dir * 4, yy - 4, 1.8, 0.8).fill({ color: 0xd9822b });
+      break;
+    }
+    case 'jaguar': {
+      // A golden cat padding through the forest, black rosettes, a long low tail; or lying still.
+      const rest = !moving;
+      const yy = y - (rest ? 2 : 4);
+      if (!rest) {
+        const s = flap ? 1.4 : -1.4;
+        g.moveTo(x - 3.5, yy + 1)
+          .lineTo(x - 3.5 + s, yy + 4.6)
+          .moveTo(x + 3, yy + 1)
+          .lineTo(x + 3 - s, yy + 4.6)
+          .stroke({ width: 1.2, color: 0xc98a2e, cap: 'round' });
+      }
+      g.ellipse(x, yy, 5.4, rest ? 1.9 : 2.3).fill({ color: 0xd99a3a });
+      g.circle(x + dir * 5.6, yy - (rest ? 0.6 : 1.4), 1.9).fill({ color: 0xd99a3a });
+      for (const [dx, dy] of [
+        [-3, -0.6],
+        [-0.8, 0.5],
+        [1.6, -0.4],
+        [3.4, 0.6],
+      ] as const)
+        g.circle(x + dir * dx, yy + dy, 0.55).fill({ color: 0x2a1e12 });
+      g.moveTo(x - dir * 5.2, yy)
+        .quadraticCurveTo(x - dir * 8.5, yy + 1, x - dir * 9.5, yy - 2)
+        .stroke({ width: 1, color: 0xd99a3a, cap: 'round' });
       break;
     }
     default:

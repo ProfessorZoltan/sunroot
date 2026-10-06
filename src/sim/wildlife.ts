@@ -11,7 +11,8 @@
 import type { Content } from './content/load';
 import type { Festival, Wildlife } from './content/schema';
 import { hexDistance, hexKey, hexNeighbors } from './hex';
-import { defOf, occupancy, tileAt } from './queries';
+import { defOf, grownLayers, occupancy, tileAt } from './queries';
+import type { BuildingState } from './types';
 import { addYield, explain, type SeasonContext } from './season/context';
 import type { RunState, WellbeingLine, WildlifeReport } from './types';
 import { waterOn } from './water';
@@ -27,11 +28,28 @@ export function festivals(content: Content): Festival[] {
   return content.festivals.filter((f) => !f.requiresWater || waterOn(content));
 }
 
+/**
+ * A layer added to `b` and grown in its own seasons (an animal's habitat asks this; no animal's
+ * hastening counts here). Without the content, a layer added at all.
+ */
+function grownByItself(
+  content: Content | undefined,
+  state: RunState,
+  b: BuildingState,
+  id: string,
+): boolean {
+  const l = b.layers?.find((x) => x.id === id);
+  if (!l) return false;
+  const grows = content?.byId[b.type]?.layers?.find((d) => d.id === id)?.grows ?? 0;
+  return state.turn - l.turn >= grows;
+}
+
 /** An animal's habitat on the map now: its tiles, and its herds (groups big enough). */
 export function habitatOf(
   state: RunState,
   animal: Wildlife,
   occ = occupancy(state),
+  content?: Content,
 ): { tiles: string[]; herds: number } {
   const h = animal.habitat;
   if (h.kind === 'edges') {
@@ -50,6 +68,7 @@ export function habitatOf(
       .filter(
         (b) =>
           h.buildings.includes(b.type) &&
+          (!h.withLayer || grownByItself(content, state, b, h.withLayer)) &&
           (!h.nextToTiles ||
             hexNeighbors(b.at).some((n) =>
               h.nextToTiles!.includes(tileAt(state, n)?.type as never),
@@ -97,8 +116,31 @@ export function habitatOf(
 }
 
 /** Whether an animal could live in the valley now: Harmony at its threshold, habitat on the map. */
-export function welcomes(state: RunState, animal: Wildlife, occ = occupancy(state)): boolean {
-  return state.harmony >= animal.harmony && habitatOf(state, animal, occ).tiles.length > 0;
+export function welcomes(
+  state: RunState,
+  animal: Wildlife,
+  occ = occupancy(state),
+  content?: Content,
+): boolean {
+  return state.harmony >= animal.harmony && habitatOf(state, animal, occ, content).tiles.length > 0;
+}
+
+/** Seasons sooner `b`'s layer grows: animals spreading its seed near it (the fruit bats). */
+export function hastened(
+  content: Content,
+  state: RunState,
+  b: BuildingState,
+  layer: string,
+): number {
+  let sooner = 0;
+  for (const a of animals(content)) {
+    const e = a.effect;
+    if (e.kind !== 'layersGrow' || !e.layers.includes(layer) || !state.wildlife.includes(a.id))
+      continue;
+    const tiles = habitatOf(state, a, occupancy(state), content).tiles;
+    if (tiles.some((k) => hexDistance(state.map.tiles[k]!, b.at) <= e.range)) sooner += e.seasons;
+  }
+  return sooner;
 }
 
 /**
@@ -110,7 +152,7 @@ export function updateWildlife(content: Content, state: RunState, notices = true
   const present: string[] = [];
   for (const a of animals(content)) {
     const was = state.wildlife.includes(a.id);
-    const here = welcomes(state, a, occ);
+    const here = welcomes(state, a, occ, content);
     if (here) present.push(a.id);
     if (!notices || was === here) continue;
     if (here) state.notices.push(`${a.name} have come to the ${content.land}`);
@@ -136,7 +178,7 @@ export function wildlifeYields(ctx: SeasonContext): void {
   const season = state.season;
   for (const a of list) {
     if (!state.wildlife.includes(a.id)) continue;
-    const habitat = habitatOf(state, a, occ);
+    const habitat = habitatOf(state, a, occ, content);
     report.habitat[a.id] = habitat;
     const e = a.effect;
     if (e.kind !== 'nextToTiles' && e.kind !== 'nearHabitat') continue;
@@ -166,6 +208,37 @@ export function wildlifeYields(ctx: SeasonContext): void {
   }
 }
 
+/**
+ * As its season ends, once a year: each open tile of the animals' healing kinds beside their
+ * habitat heals a step up the land-health ladder (the hornbills, dropping the forest's seed).
+ */
+export function wildlifeHeals(ctx: SeasonContext): void {
+  const { content, state } = ctx;
+  const ladder = content.rules.landHealth;
+  const occ = occupancy(state);
+  for (const a of animals(content)) {
+    const e = a.effect;
+    if (e.kind !== 'heals' || e.season !== state.season || !state.wildlife.includes(a.id)) continue;
+    const habitat = new Set(habitatOf(state, a, occ, content).tiles);
+    const edge = Object.keys(state.map.tiles)
+      .filter((key) => {
+        const t = state.map.tiles[key]!;
+        if (!e.tiles.includes(t.type) || occ.has(key) || habitat.has(key)) return false;
+        return hexNeighbors(t).some((n) => habitat.has(hexKey(n)));
+      })
+      .sort();
+    for (const key of edge) {
+      const t = state.map.tiles[key]!;
+      const at = ladder.indexOf(t.type);
+      if (at < 0 || at >= ladder.length - 1) continue;
+      t.type = ladder[at + 1]!;
+      // Healed land takes its own fertility (Rainforest Gardens), not what it had as scrub.
+      delete t.fertility;
+      if (ctx.report.wildlife) (ctx.report.wildlife.healed ??= []).push(key);
+    }
+  }
+}
+
 const plural = (word: string) => (word.endsWith('y') ? `${word.slice(0, -1)}ies` : `${word}s`);
 
 /** Wellbeing from the animals: each herd of deer. */
@@ -174,7 +247,8 @@ export function wildlifeWellbeing(ctx: SeasonContext): WellbeingLine[] {
   const occ = occupancy(ctx.state);
   for (const a of animals(ctx.content)) {
     if (a.effect.kind !== 'wellbeing' || !ctx.state.wildlife.includes(a.id)) continue;
-    const herds = ctx.report.wildlife?.habitat[a.id]?.herds ?? habitatOf(ctx.state, a, occ).herds;
+    const herds =
+      ctx.report.wildlife?.habitat[a.id]?.herds ?? habitatOf(ctx.state, a, occ, ctx.content).herds;
     if (herds === 0) continue;
     lines.push({
       kind: 'wildlife',
@@ -195,7 +269,7 @@ export function wildlifeWater(
   for (const a of animals(content)) {
     const e = a.effect;
     if (e.kind !== 'waters' || !state.wildlife.includes(a.id)) continue;
-    const near = habitatOf(state, a, occ).tiles.map((k) => state.map.tiles[k]!);
+    const near = habitatOf(state, a, occ, content).tiles.map((k) => state.map.tiles[k]!);
     for (const uid of state.priority) {
       const b = state.buildings[uid]!;
       if (!e.buildings.includes(b.type) || b.damage) continue;
@@ -211,6 +285,29 @@ export function festivalThisSeason(content: Content, state: RunState): Festival 
   return festivals(content).find(
     (f) => f.season === state.season && state.festivals[f.id] === state.year,
   );
+}
+
+/**
+ * The festival's boost for `b` this season, if it gets one: a building it names, with the layer
+ * grown it asks (Harvest of the Canopy) and beside what it asks (Odalan's Water Temple).
+ */
+export function festivalBoost(
+  content: Content,
+  state: RunState,
+  b: BuildingState,
+): NonNullable<Festival['boosts']> | undefined {
+  const boost = festivalThisSeason(content, state)?.boosts;
+  if (!boost || !boost.buildings.includes(b.type)) return undefined;
+  if (boost.newOnly && b.builtTurn !== state.turn) return undefined;
+  if (boost.layer && !grownLayers(content, state, b).some((l) => l.id === boost.layer))
+    return undefined;
+  const near = boost.nextTo;
+  if (near) {
+    const occ = occupancy(state);
+    if (!hexNeighbors(b.at).some((n) => near.includes(occ.get(hexKey(n))?.type ?? '')))
+      return undefined;
+  }
+  return boost;
 }
 
 /** Why this festival can't be held now, or null if it can. */

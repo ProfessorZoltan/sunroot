@@ -905,6 +905,38 @@
       "animal": "flamingos"
     },
     {
+      "id": "hummingbirdNestlings",
+      "name": "Hummingbird nestlings",
+      "text": "Two nestlings no bigger than a bean wait in a cup of moss on a coffee branch.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "hummingbirds"
+    },
+    {
+      "id": "fruitBatPup",
+      "name": "Fruit bat pup",
+      "text": "A pup clings under its mother's wing as she hangs from the canopy.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "fruitBats"
+    },
+    {
+      "id": "hornbillChick",
+      "name": "Hornbill chick",
+      "text": "A chick peers out of the sealed nest hole while a hornbill brings it figs.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "hornbills"
+    },
+    {
+      "id": "jaguarCubs",
+      "name": "Jaguar cubs",
+      "text": "Two spotted cubs tumble after their mother along the forest's edge.",
+      "kind": "wildlife",
+      "cost": 20,
+      "animal": "jaguars"
+    },
+    {
       "id": "cityBanner",
       "name": "The city's banner",
       "text": "A banner over the Founders' Camp in the colour of Root City's first district.",

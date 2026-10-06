@@ -97,6 +97,24 @@ export const YOUNG: readonly Young[] = [
     scale: 0.55,
     look: 'grey',
   },
+  {
+    keepsake: 'hummingbirdNestlings',
+    animal: 'hummingbirds',
+    variant: 'young',
+    count: 2,
+    scale: 0.6,
+    rests: true,
+  },
+  { keepsake: 'fruitBatPup', animal: 'fruitBats', variant: 'pup', count: 1, scale: 0.5 },
+  {
+    keepsake: 'hornbillChick',
+    animal: 'hornbills',
+    variant: 'chick',
+    count: 1,
+    scale: 0.55,
+    rests: true,
+  },
+  { keepsake: 'jaguarCubs', animal: 'jaguars', variant: 'cub', count: 2, scale: 0.55 },
 ];
 
 /** The art's frame for a young one: the variant after the animal's name (`deer.walk.2` → `deer.white.walk.2`). */

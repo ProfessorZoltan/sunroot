@@ -481,7 +481,7 @@
     {
       "id": "forestGarden",
       "name": "Forest Garden",
-      "cost": 4,
+      "cost": 5,
       "workers": 1,
       "kind": "food",
       "placement": {

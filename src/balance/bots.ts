@@ -25,7 +25,7 @@ import { pick, nextFloat, nextInt } from '../sim/rng';
 import { lowGround, siteScore, type Turn } from './turn';
 import { edgeBuilding } from '../sim/edges';
 import { heightAt, neighborBuildings, neighborTiles, stormExposed } from '../sim/queries';
-import { wonderSiteProblem } from '../sim/wonder';
+import { wonderNeeds, wonderSiteProblem } from '../sim/wonder';
 import { SEASONS, type BuildingDef } from '../sim/content/schema';
 import { coppiceProblem } from '../sim/combos';
 import { fertilityOf } from '../sim/forest';
@@ -715,6 +715,8 @@ function pursueWonder(turn: Turn, profile: Profile): boolean {
       while (turn.count(id) < n) if (!turn.build(id, profile.reserve)) return false;
     }
     if (state.era < def.minEra || !flowerAt) return false;
+    // Still waiting on what it needs (the Canopy Walk's gardens growing their storeys): no saving.
+    if (wonderNeeds(turn.rules, state, def)) return false;
     const extra = Object.entries(w.alsoCosts) as [keyof typeof state.stores, number][];
     // Saving materials can't pay what else it costs (the Floating City's biomass): short of that,
     // the town goes on building as usual rather than wait on it.
