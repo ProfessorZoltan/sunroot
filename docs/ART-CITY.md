@@ -254,6 +254,87 @@ edge. Either district may own the edge, so the piece must read from both sides.
 Paint the Sapling first to settle the look, then the Seedling and the Heartwood from it, then the
 Water Market.
 
+## The Canopy Quarter and the Seed Forest (FG5)
+
+The ninth district and the seventh landmark, in the game since Rainforest Gardens' fifth step
+([proposals/rainforest-gardens.md](proposals/rainforest-gardens.md), Root City). Same frame,
+style, tier ladder and file rules as everything above: 512 × 640, late summer, each tile carrying
+its own ground, no winter files. Until the art comes the city draws them in code, as it did the
+others. Both are in the game since FG5, so the importer already knows their names.
+
+### The Canopy Quarter
+
+**What it is.** The district a run of layered food sends home: one whose food came mostly from
+forest gardens (all their layers) and orchard gardens. It makes orchards and forest gardens give
+food in the colder seasons, and it is the quarter that brings the **Forest Garden** to every
+biome's drafts. It is the forest garden's way of living carried home: a town under its own trees,
+storeys of green over the roofs, black earth in the yards.
+
+**Match the forest art.** The Forest Garden and its layers, the Raised House, the Kitchen Midden,
+the Char Hearth and the Orchard Garden you paint for the map ([ART-EXPANSION.md](ART-EXPANSION.md),
+Rainforest Gardens) are this district's buildings, grown into a town. Reuse their shapes,
+materials and proportions.
+
+**Its ground.** Root City is not a rainforest. Inside the hex paint garden ground under trees:
+dark earth in the beds and yards, a mulched path, and let the city's grass come back in a thin
+band at the rim so the tile sits with its green neighbours. A path meets the middle of at least
+two sides.
+
+**Colours.**
+
+| Use                                                     | Colour                                 | Source                                          |
+| ------------------------------------------------------- | -------------------------------------- | ----------------------------------------------- |
+| Key colour: doors, shutters, awnings, baskets, banners  | Canopy green `#3E6B2E`                 | `src/game/districtLook.ts`                      |
+| Leaves, from the shade under the canopy to the new leaf | Deep `#2F4A24` to fresh leaf `#8FBF4A` | ART-EXPANSION.md, Rainforest Gardens, palette   |
+| Dark earth in the beds and yards                        | Dark earth `#4A3A2C`                   | ART-EXPANSION.md, Rainforest Gardens, palette   |
+| Fruit: bananas, coffee cherries, heliconia              | `#E8C547`, `#B8322A`, `#E0782E`        | ART-EXPANSION.md, Rainforest Gardens, palette   |
+| Raised houses' timber and thatch                        | As the Raised House on the map         | ART-EXPANSION.md, Rainforest Gardens, Buildings |
+
+**Its landmark shape: the tall fruit tree.** A broad jackfruit or mango standing above everything
+else on the tile, the shape that reads at 70 px. Keep it in the same place (the back right of the
+hex) at every tier, growing: a staked sapling, then a young tree over a shrub layer, then the
+crown over a whole garden in its four storeys.
+
+| Tier      | Built up                                                                                                                                                     | Complexity                                                                                                                                             | Alive                                                                                                                                          | Height       | Source                                      |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------------------------------------------- |
+| Seedling  | About a third: one raised house, a garden bed of taro and beans, a staked fruit sapling, a kitchen midden heaped by the door with a basket emptied onto it.  | Plain and small: raw timber, palm thatch, mulch, a little dark earth round the midden.                                                                 | 1 figure planting out a seedling. No lit windows.                                                                                              | Up to 50 px  | This guide; DESIGN.md, Grafts               |
+| Sapling   | About two thirds: the house with a veranda, the fruit tree half grown, coffee bushes and a clump of bananas under it, a char hearth smoking, a bee log hung. | The landmark over two storeys of garden, canopy-green shutters, dark earth in every bed, baskets of coffee cherries drying on a mat.                   | 2 or 3 figures: one picking coffee, one cutting a banana bunch, one at the hearth. Some windows lit at dusk.                                   | Up to 110 px | This guide; DESIGN.md, Grafts               |
+| Heartwood | Nearly all, the paths still open between the gardens: raised houses round a shared yard, every garden in its four storeys, a water channel along one edge.   | Layered: the great tree's crown over everything, pepper vines up its trunk, an open-sided market shed with fruit and coffee, hornbill-feather bunting. | 5 to 8 figures: children in the yard, a market, someone up a ladder in the tree. Most windows lit at dusk, lanterns in the trees. A feast day. | All 168 px   | This guide; proposals/rainforest-gardens.md |
+
+The same place, grown: the Seedling's sapling is the Heartwood's great tree, and its first bed is
+still the one by the door.
+
+**Lit at dusk** (optional, as the others): `canopyQuarter.sapling.lit.png` and
+`canopyQuarter.heartwood.lit.png` (windows, the hearth's glow, lanterns hung in the trees).
+
+### The Seed Forest
+
+**What it is.** The landmark where the Canopy Quarter stands next to the Mended Commons: the
+city's own nursery of the forest, seed trees and young saplings that go out with every Sprout, so
+woodland is worth 1 more Harmony a tile in every biome. Its hint is "Where the gardens meet the
+commons."
+
+**What it shows.** Along the shared edge: a row of tall seed trees (one in flower, one in fruit),
+under them nursery beds of seedlings in pots and leaf cones under a shade cloth of palm fronds, a
+seed store with a canopy-green door, and baskets of seeds labelled with tags. Each piece is the
+whole landmark laid along that edge, the seed store at the edge's middle.
+
+**How it sits.** As the other landmarks: three pieces, one for the tile's east, north-east and
+north-west edge, on the standard frame, across the paper gap and kept within about 60 px of the
+edge. Either district may own the edge, so the piece must read from both sides.
+
+### Files
+
+| File                                                                                     | Needed?  | Count | Source       |
+| ---------------------------------------------------------------------------------------- | -------- | ----- | ------------ |
+| `canopyQuarter.seedling.png`, `canopyQuarter.sapling.png`, `canopyQuarter.heartwood.png` | Yes      | 3     | This guide   |
+| `seedForest.edge.e.png`, `seedForest.edge.ne.png`, `seedForest.edge.nw.png`              | Yes      | 3     | This guide   |
+| `canopyQuarter.sapling.lit.png`, `canopyQuarter.heartwood.lit.png`                       | Optional | 2     | Dusk (below) |
+
+6 images are needed and 2 more are optional, delivered to `art/incoming/city/` with the rest.
+Paint the Sapling first to settle the look, then the Seedling and the Heartwood from it, then the
+Seed Forest.
+
 ## Keepsakes in the city
 
 Root City's keepsakes ([proposals/seed-uses.md](proposals/seed-uses.md)): lanterns on the paths

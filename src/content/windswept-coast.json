@@ -479,6 +479,72 @@
       }
     },
     {
+      "id": "forestGarden",
+      "name": "Forest Garden",
+      "cost": 4,
+      "workers": 1,
+      "kind": "food",
+      "placement": {
+        "tiles": ["meadow", "woodland"]
+      },
+      "farmland": true,
+      "yields": {
+        "food": [1, 2, 2, 0]
+      },
+      "layers": [
+        {
+          "id": "shrub",
+          "name": "Shrub layer",
+          "cost": 2,
+          "grows": 2,
+          "yields": {
+            "materials": [0, 0, 1, 0]
+          }
+        },
+        {
+          "id": "understory",
+          "name": "Understory",
+          "cost": 3,
+          "grows": 1,
+          "yields": {
+            "food": [0, 1, 1, 0],
+            "biomass": [0, 1, 1, 0]
+          },
+          "helps": [
+            {
+              "layer": "ground",
+              "resource": "food",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "canopy",
+          "name": "Canopy",
+          "cost": 4,
+          "grows": 4,
+          "yields": {
+            "food": [0, 1, 2, 0]
+          },
+          "helps": [
+            {
+              "layer": "shrub",
+              "resource": "materials",
+              "amount": 1
+            }
+          ],
+          "covers": true,
+          "tall": true,
+          "shades": 1,
+          "besides": {
+            "buildings": ["forestGarden"],
+            "resource": "materials",
+            "amount": 1
+          }
+        }
+      ]
+    },
+    {
       "id": "salvageYard",
       "name": "Salvage Yard",
       "cost": 2,

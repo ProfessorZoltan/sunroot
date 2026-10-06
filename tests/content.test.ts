@@ -6,7 +6,8 @@ import { loadBiome } from '../src/content';
 const HEAT_PROPOSAL = ['heatPump', 'solarThermalCollector'];
 /** Blueprints only a Root City district adds to the draft (the Cider Press). */
 // Cards only a Root City district adds: the Orchard Ward's Cider Press, the Ridge Quarter's Bothy.
-const CITY_CARDS = ['ciderPress', 'bothy', 'mudBoat'];
+// The Canal Quarter's Mud Boat, the Canopy Quarter's Forest Garden.
+const CITY_CARDS = ['ciderPress', 'bothy', 'mudBoat', 'forestGarden'];
 
 const clone = () => structuredClone(willowReach) as typeof willowReach;
 

@@ -415,6 +415,144 @@
       ],
       "adds": "mudBoat",
       "nativeTo": ["lakeGardens"]
+    },
+    {
+      "id": "canopyQuarter",
+      "name": "Canopy Quarter",
+      "earnedBy": "Layered food",
+      "signature": {
+        "metric": "foodShare",
+        "full": 0.5,
+        "sources": ["forestGarden", "orchardGarden"]
+      },
+      "green": true,
+      "perks": [
+        {
+          "text": "Orchards and forest gardens make 1 more food in winter",
+          "modifiers": [
+            {
+              "target": "building",
+              "id": "orchard",
+              "path": "yields.food.3",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "forestGarden",
+              "path": "yields.food.3",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "orchardGarden",
+              "path": "yields.food.3",
+              "add": 1
+            }
+          ]
+        },
+        {
+          "text": "Orchards and forest gardens make 1 more food in autumn and winter",
+          "modifiers": [
+            {
+              "target": "building",
+              "id": "orchard",
+              "path": "yields.food.2",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "forestGarden",
+              "path": "yields.food.2",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "orchardGarden",
+              "path": "yields.food.2",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "orchard",
+              "path": "yields.food.3",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "forestGarden",
+              "path": "yields.food.3",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "orchardGarden",
+              "path": "yields.food.3",
+              "add": 1
+            }
+          ]
+        },
+        {
+          "text": "Orchards and forest gardens make 1 more food in spring, autumn and winter",
+          "modifiers": [
+            {
+              "target": "building",
+              "id": "orchard",
+              "path": "yields.food.0",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "forestGarden",
+              "path": "yields.food.0",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "orchardGarden",
+              "path": "yields.food.0",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "orchard",
+              "path": "yields.food.2",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "forestGarden",
+              "path": "yields.food.2",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "orchardGarden",
+              "path": "yields.food.2",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "orchard",
+              "path": "yields.food.3",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "forestGarden",
+              "path": "yields.food.3",
+              "add": 1
+            },
+            {
+              "target": "building",
+              "id": "orchardGarden",
+              "path": "yields.food.3",
+              "add": 1
+            }
+          ]
+        }
+      ],
+      "adds": "forestGarden",
+      "nativeTo": ["rainforestGardens"]
     }
   ],
   "landmarks": [
@@ -540,6 +678,24 @@
           "target": "rules",
           "path": "surplusKeeps",
           "set": true
+        }
+      ]
+    },
+    {
+      "id": "seedForest",
+      "name": "Seed Forest",
+      "district": "canopyQuarter",
+      "nextTo": {
+        "districts": ["mendedCommons"],
+        "count": 1
+      },
+      "text": "The Canopy Quarter next to the Mended Commons: woodland is worth 1 more Harmony a tile, in every biome.",
+      "hint": "Where the gardens meet the commons.",
+      "modifiers": [
+        {
+          "target": "rules",
+          "path": "harmony.perTile.woodland",
+          "add": 1
         }
       ]
     }
@@ -853,6 +1009,10 @@
       {
         "id": "lakeGardens",
         "fromRun": 11
+      },
+      {
+        "id": "rainforestGardens",
+        "fromDistricts": 10
       }
     ],
     "teaching": {

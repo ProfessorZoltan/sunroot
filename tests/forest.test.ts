@@ -80,7 +80,7 @@ const BUILDINGS = [
   },
 ];
 
-type Raw = { rules: Record<string, unknown>; buildings: unknown[] };
+type Raw = { rules: Record<string, unknown>; buildings: { id: string }[] };
 function forest(edit?: (raw: Raw) => void): Content {
   const raw = structuredClone(willowReach) as unknown as Raw;
   raw.rules.forest = {
@@ -94,7 +94,9 @@ function forest(edit?: (raw: Raw) => void): Content {
     darkens: ['barren', 'scrub', 'meadow'],
   };
   (raw.rules.harmony as { perTile: Record<string, number> }).perTile.darkEarth = 1;
-  raw.buildings.push(...structuredClone(BUILDINGS));
+  // The Reach has its own Forest Garden now (a Canopy Quarter card): the forest's replaces it.
+  const ids = new Set(BUILDINGS.map((b) => b.id));
+  raw.buildings = [...raw.buildings.filter((b) => !ids.has(b.id)), ...structuredClone(BUILDINGS)];
   edit?.(raw);
   return loadBiome(raw as unknown as typeof willowReach);
 }
@@ -141,7 +143,7 @@ describe('the forest rules are off without them', () => {
     ).toThrow(/milpa needs rules.forest/);
     expect(() =>
       forest((raw) => {
-        const garden = raw.buildings.find((b) => (b as { id: string }).id === 'forestGarden') as {
+        const garden = raw.buildings.find((b) => b.id === 'forestGarden') as unknown as {
           layers: { helps: { layer: string }[] }[];
         };
         garden.layers[2]!.helps[0]!.layer = 'vines';

@@ -231,6 +231,17 @@ function Emblem({ id, ink }: { id: string; ink: string }) {
           />
         </g>
       );
+    case 'canopyQuarter':
+      // A tall tree over a shrub, a cacao pod hanging from the trunk.
+      return (
+        <g>
+          <rect x="-1.5" y="-2" width="3" height="13" fill={ink} />
+          <circle cy="-7" r="7" fill={ink} />
+          <circle cx="-7" cy="6" r="4.5" fill={ink} opacity="0.8" />
+          <circle cx="7" cy="7" r="3.5" fill={ink} opacity="0.8" />
+          <ellipse cx="3" cy="3" rx="1.6" ry="2.6" fill="#C8743A" />
+        </g>
+      );
     default:
       return <circle r="9" fill={ink} />;
   }

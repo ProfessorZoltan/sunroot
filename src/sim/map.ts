@@ -699,8 +699,9 @@ function generateValley(content: Content, gen: ValleyMapGen, seed: string): Gene
  * A rainforest (Rainforest Gardens): rainforest over most of the map, a river winding down it
  * with a seasonal floodplain beside it, hills along one side, an old plantation (barren ground
  * round the ruins of the estate) on the other, a few clearings of scrub and meadow, and the camp
- * between the river and the plantation with the forest beside it. The forest is wild land: what
- * its tiles give beyond the starting Harmony is `wild`, so Harmony starts where the others do.
+ * between the river and the plantation with the forest beside it. In the Swidden Mosaic some of
+ * the clearings are dark earth, left by old gardens. The forest is wild land: what its tiles give
+ * beyond the starting Harmony is `wild`, so Harmony starts where the others do.
  */
 function generateForest(content: Content, gen: ForestMapGen, seed: string): GeneratedMap {
   const rng = createRng(`${seed}:map`);
@@ -738,7 +739,11 @@ function generateForest(content: Content, gen: ForestMapGen, seed: string): Gene
   // The seasonal floodplain: the monsoon's várzea.
   for (const key of order) {
     const t = tiles[key]!;
-    if (t.type === 'woodland' && riverDistance(t) === 1 && chance(rng, gen.floodplainChance))
+    if (
+      t.type === 'woodland' &&
+      riverDistance(t) <= gen.floodplainWidth &&
+      chance(rng, gen.floodplainChance)
+    )
       t.type = 'floodplain';
   }
 
@@ -848,6 +853,11 @@ function generateForest(content: Content, gen: ForestMapGen, seed: string): Gene
       t.type = 'meadow';
       glade.push(t);
     }
+  }
+  // Old gardens long gone (the Swidden Mosaic): some of the clearings are dark earth.
+  if (gen.oldGardens > 0) {
+    const open = order.filter((k) => ['scrub', 'meadow'].includes(tiles[k]!.type) && k !== campKey);
+    for (const k of shuffled(rng, open).slice(0, gen.oldGardens)) tiles[k]!.type = 'darkEarth';
   }
 
   // The forest as it stands is where Harmony starts from.

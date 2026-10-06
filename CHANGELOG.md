@@ -1,5 +1,22 @@
 # Changelog
 
+## Rainforest Gardens in Root City
+
+- **The forest opens once 10 districts stand** in Root City, and is offered at once; its first
+  run is guided.
+- **The Canopy Quarter**, a new district earned by layered food (forest gardens and orchard
+  gardens): orchards and forest gardens make more food in the colder seasons, and it brings the
+  **Forest Garden**, layers and all, to every biome's drafts.
+- **The Seed Forest**, a new landmark where the Canopy Quarter meets the Mended Commons:
+  woodland is worth 1 more Harmony a tile, in every biome.
+- **The forest's regions**: Old Plantation (a restoration run on a worn-out estate), River
+  Forest (a floodplain two tiles wide), Volcano Slopes (hills over half the land) and Swidden
+  Mosaic (twice the clearings, and dark earth from old gardens).
+- **Its own twists**: Long Rains (the monsoon twice a year), El Niño (a dry summer, fire risk in
+  summer too and a low river) and Leaf Blight (the bananas bear nothing). Set from the bots' runs,
+  River Forest lifts the Graft a tier; the others lift nothing.
+- Scavengers' text in the forest gave the Reach's numbers; it now says 42 instead of 30.
+
 ## Rainforest Gardens on screen
 
 - **The forest in the interface**: a field's fertility and what the monsoon will do to it, dark

@@ -30,9 +30,9 @@ const drawn = [
 ];
 const byId = { ...DESERT.byId, ...HIGH.byId, ...COAST.byId, ...content.byId };
 /** Buildings drawn in code until their art comes (the art guide asks for it). */
-const AWAITING_ART = new Set(['iceHouse', 'mudBoat']);
-/** Root City pieces drawn in code until their art comes (Lake Gardens' LG5, ART-CITY.md). */
-const CITY_AWAITING_ART = new Set(['canalQuarter', 'waterMarket']);
+const AWAITING_ART = new Set(['iceHouse', 'mudBoat', 'forestGarden']);
+/** Root City pieces drawn in code until their art comes (Lake Gardens' LG5, Rainforest Gardens' FG5, ART-CITY.md). */
+const CITY_AWAITING_ART = new Set(['canalQuarter', 'waterMarket', 'canopyQuarter', 'seedForest']);
 /** Tiles drawn in code until their art comes (Lake Gardens, before its art guide). */
 const TILES_AWAITING_ART = new Set(['shallows', 'deep', 'bed', 'darkEarth']);
 

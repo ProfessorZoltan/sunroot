@@ -1329,8 +1329,9 @@ const ForestMapSchema = z
     width: int.min(8),
     height: int.min(6),
     riverColumns: z.tuple([nonNeg, nonNeg]),
-    /** A tile beside the river is floodplain by this chance. */
+    /** A tile within `floodplainWidth` of the river is floodplain by this chance. */
     floodplainChance: z.number().min(0).max(1),
+    floodplainWidth: int.min(1).default(1),
     /** Columns of hills along the side away from the plantation, by `hillChance`. */
     hillColumns: nonNeg,
     hillChance: z.number().min(0).max(1),
@@ -1341,6 +1342,8 @@ const ForestMapSchema = z
     /** Natural clearings: `clearingSize` tiles of scrub and meadow each. */
     clearings: nonNeg,
     clearingSize: int.min(1),
+    /** Old gardens long gone: this many tiles of the clearings left as dark earth. */
+    oldGardens: nonNeg.default(0),
     startingHarmony: nonNeg,
     campRiverDistance: z.tuple([int.min(1), int.min(1)]),
     /** The camp stands this close to the plantation, at most. */

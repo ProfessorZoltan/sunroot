@@ -2403,7 +2403,7 @@
     {
       "id": "scavengers",
       "name": "Scavengers' Valley",
-      "text": "Ruins hold 12 more salvage each (36 instead of 24), but every clutter costs 2 Harmony.",
+      "text": "Ruins hold 12 more salvage each (42 instead of 30), but every clutter costs 2 Harmony.",
       "modifiers": [
         {
           "target": "map",
@@ -2416,6 +2416,64 @@
           "set": -2
         }
       ]
+    },
+    {
+      "id": "longRains",
+      "name": "Long Rains",
+      "text": "The monsoon comes again in autumn instead of the cyclone: the rain washes fertility out of the fields twice a year.",
+      "modifiers": [
+        {
+          "target": "calendar",
+          "path": "2",
+          "set": "flood"
+        },
+        {
+          "target": "rules",
+          "path": "forest.leaches.2",
+          "set": true
+        }
+      ]
+    },
+    {
+      "id": "elNino",
+      "name": "El Niño",
+      "text": "No monsoon: the summer is dry, and fire can catch from the fields in summer as well as in the dry season. The river runs at half its flow all year.",
+      "modifiers": [
+        {
+          "target": "calendar",
+          "path": "1",
+          "set": "fire"
+        },
+        {
+          "target": "rules",
+          "path": "forest.leaches.1",
+          "set": false
+        },
+        {
+          "target": "rules",
+          "path": "water.riverFlow",
+          "multiply": 0.5
+        }
+      ]
+    },
+    {
+      "id": "leafBlight",
+      "name": "Leaf Blight",
+      "text": "Blight in the bananas: a forest garden’s understory bears no food, though it still feeds the ground below it and makes biomass.",
+      "modifiers": [
+        {
+          "target": "building",
+          "id": "forestGarden",
+          "path": "layers.1.yields.food.1",
+          "set": 0
+        },
+        {
+          "target": "building",
+          "id": "forestGarden",
+          "path": "layers.1.yields.food.2",
+          "set": 0
+        }
+      ]
     }
   ],
   "regions": [
@@ -2423,6 +2481,90 @@
       "id": "deepForest",
       "name": "Deep Forest",
       "text": "The forest as it is: rainforest over most of the land, a river winding through it with its floodplain, hills along one side, a few clearings, and the old plantation’s worn-out estate on the other."
+    },
+    {
+      "id": "oldPlantation",
+      "name": "Old Plantation",
+      "text": "The old estate spreads over a third of the land, its rows worn to bare red earth, and little forest is left: a restoration run. 6 ruins, 36 salvage each.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "plantation",
+          "set": 40
+        },
+        {
+          "target": "map",
+          "path": "ruins",
+          "set": 6
+        },
+        {
+          "target": "map",
+          "path": "ruinSalvage",
+          "set": 36
+        },
+        {
+          "target": "map",
+          "path": "clearings",
+          "set": 1
+        }
+      ]
+    },
+    {
+      "id": "riverForest",
+      "name": "River Forest",
+      "text": "A broad river forest: floodplain two tiles wide on both banks, all of it under water every monsoon, and rich land when it drains. The Graft is one tier higher.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "floodplainWidth",
+          "set": 2
+        },
+        {
+          "target": "map",
+          "path": "floodplainChance",
+          "set": 0.9
+        }
+      ],
+      "graftTierBonus": 1
+    },
+    {
+      "id": "volcanoSlopes",
+      "name": "Volcano Slopes",
+      "text": "The forest climbs a volcano’s slopes: hills over half the land, with room for terraces stepped down them, as on Kilimanjaro.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "hillColumns",
+          "set": 5
+        },
+        {
+          "target": "map",
+          "path": "hillChance",
+          "set": 0.85
+        }
+      ]
+    },
+    {
+      "id": "swiddenMosaic",
+      "name": "Swidden Mosaic",
+      "text": "Forest, clearings and old fields at every stage of growing back: twice the clearings, and 3 of their tiles dark earth left by old gardens.",
+      "modifiers": [
+        {
+          "target": "map",
+          "path": "clearings",
+          "set": 6
+        },
+        {
+          "target": "map",
+          "path": "clearingSize",
+          "set": 3
+        },
+        {
+          "target": "map",
+          "path": "oldGardens",
+          "set": 3
+        }
+      ]
     }
   ],
   "eraGoals": [

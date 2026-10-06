@@ -182,7 +182,8 @@ export function loadContent(raw: unknown, options: { checkModifiers?: boolean } 
   }
   // Rainforest Gardens' soil and layers.
   for (const b of data.buildings) {
-    const forest = b.layers || b.burns || b.fertilityFood > 0 || b.midden || b.charcoal;
+    // A forest garden's layers grow anywhere (the Canopy Quarter's card); its soil is the forest's.
+    const forest = b.burns || b.fertilityFood > 0 || b.midden || b.charcoal;
     if (forest && !data.rules.forest) problems.push(`${b.id} needs rules.forest`);
     const ids = (b.layers ?? []).map((l) => l.id);
     if (new Set(ids).size !== ids.length) problems.push(`${b.id}.layers has a layer twice`);
