@@ -1,5 +1,20 @@
 # Changelog
 
+## Rainforest Gardens: the forest's simulation
+
+- **The forest's map**: rainforest over most of the land, a river with its floodplain, hills on
+  one side, a few clearings, and an old plantation's worn-out estate with four ruins. Harmony
+  starts at 12, counted from the forest as it stood: clearing it costs, healing gains.
+- **Its seasons**: the first rains (a milpa sown with them makes more in summer), the monsoon
+  (fertility washes from bare fields; the river floods), the cyclone (it fells a garden's
+  canopy) and the dry season, when fire may catch where a field or scrub meets the forest
+  unless a living fence runs between.
+- **Its buildings**: the milpa, forest garden, raised house, kitchen midden, char hearth, stall
+  barn, bee tree, rice terrace, water temple, living fence and micro-hydro, drawn in code. Homes
+  need cooling on summer days, which a grown canopy beside them gives; nothing needs heat.
+- `?biome=rainforestGardens` opens it; Root City offers it later. A Year 1 walkthrough is
+  proposed as its golden test.
+
 ## Rainforest Gardens: the forest's rules
 
 - **Rainforest Gardens** is the sixth biome, joining once 10 districts stand in Root City. Its

@@ -19,6 +19,9 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
     return [
       `Planted along the edge between two tiles (not water), ${def.cost} materials a segment.`,
       'Storms can’t damage the buildings on either side of it.',
+      ...(content.events.fire
+        ? [`The ${content.events.fire.name.toLowerCase()}’s fire can’t cross it.`]
+        : []),
       ...(def.shades > 0
         ? [`Shade: a home along it needs ${def.shades} less cooling by day.`]
         : []),
@@ -321,6 +324,41 @@ export function describeBuilding(content: Content, def: BuildingDef): string[] {
       `Fishes the lake: in an algae bloom it makes ${content.rules.lake.bloom.foodLoss} less food.`,
     );
 
+  // Rainforest Gardens' soil and layers.
+  const forest = content.rules.forest;
+  if (def.burns && forest)
+    lines.push(
+      `On ${tiles(def.burns.from)} it burns the forest clear: the tile becomes ${tile(def.burns.to)}, with ${forest.ash} fertility from the ash.`,
+    );
+  if (def.fertilityFood > 0 && forest)
+    lines.push(
+      `+${def.fertilityFood} food for each point of its field’s fertility (0 to ${forest.maxFertility}), in a season it makes any.`,
+    );
+  for (const l of def.layers ?? []) {
+    const makes = Object.entries(l.yields).map(([res, v]) => `${res} ${SEASON_LIST(v)}`);
+    const helps = l.helps.map(
+      (h) =>
+        `+${h.amount} ${h.resource} to ${h.layer === 'ground' ? 'its own crop' : `the ${def.layers!.find((x) => x.id === h.layer)?.name.toLowerCase() ?? h.layer}`}`,
+    );
+    const grown = [
+      ...helps,
+      ...(l.covers ? ['the rain washes no fertility from its tile'] : []),
+      ...(l.tall ? ['it shades solar beside it'] : []),
+      ...(l.shades > 0 ? [`a home beside it needs ${l.shades} less cooling`] : []),
+    ];
+    lines.push(
+      `${l.name}, added later for ${l.cost} materials (one layer a season), grown in ${l.grows} season${l.grows === 1 ? '' : 's'}: ${makes.join(', ')}${grown.length ? `; ${grown.join('; ')}` : ''}.`,
+    );
+  }
+  if (def.midden && forest)
+    lines.push(
+      `Takes ${def.midden.scraps} scraps a season. Fed, with charcoal burned within ${def.midden.range}, every ${def.midden.seasons} seasons it turns the nearest ${tiles(forest.darkens)} within ${def.midden.range} into dark earth, fields first.`,
+    );
+  if (def.charcoal)
+    lines.push(
+      `Burns ${def.charcoal.biomass} biomass a season into charcoal, for kitchen middens near it.`,
+    );
+
   // Water (only while the run has it).
   if (w && w.needs.some((n) => n > 0)) {
     const from = w.fromPond
@@ -495,6 +533,13 @@ function farmland(content: Content, def: BuildingDef): string[] {
     out.push(
       `Late frost with the ${flood!.name.toLowerCase()}: at height ${frost.fromHeight} or more, ${lost.map((x) => `−${x.n} food in ${x.season}`).join(' and ')}, unless next to standing water (${warm.join(', ')}).`,
     );
+  }
+  const forest = content.rules.forest;
+  if (forest) {
+    out.push(
+      `Its field holds fertility: in ${seasonNames(forest.leaches)} the rain washes 1 out unless a canopy covers it; with none left it makes ×${forest.bareFactor} food and wears a step down. Compost adds 1.`,
+    );
+    if (forest.darkEarthFood > 0) out.push(`+${forest.darkEarthFood} food on dark earth.`);
   }
   const low = content.events.lowRiver;
   if (low && !content.rules.water.enabled && !def.ignoresLowRiver)

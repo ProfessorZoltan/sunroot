@@ -216,6 +216,14 @@ export function goalProgress(content: Content, state: RunState, goal: Goal): Vis
           : `the ${def.name}: ${p.built} of ${p.seasons} seasons built`,
       };
     }
+    case 'tiles': {
+      const n = Object.values(state.map.tiles).filter((t) => t.type === goal.tile).length;
+      const name = goal.tile.replace(/[A-Z]/g, (c) => ` ${c.toLowerCase()}`);
+      return {
+        share: Math.min(1, n / goal.count),
+        text: `${n} of ${goal.count} tiles of ${name}`,
+      };
+    }
   }
 }
 

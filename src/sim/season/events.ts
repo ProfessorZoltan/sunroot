@@ -1,5 +1,5 @@
 /** Step 3: the season's event. */
-import { hexDistance, hexKey } from '../hex';
+import { hexDistance, hexKey, hexNeighbors } from '../hex';
 import { nextInt } from '../rng';
 import {
   defOf,
@@ -9,8 +9,10 @@ import {
   neighborTiles,
   occupancy,
   stormExposed,
+  tileAt,
 } from '../queries';
 import { addYield, type SeasonContext } from './context';
+import { edgeKey } from '../edges';
 import { festivalThisSeason, siltBeyond } from '../wildlife';
 
 /**
@@ -184,6 +186,12 @@ export function applyEvent(ctx: SeasonContext): void {
         const hit = exposed[nextInt(state.rng, exposed.length)]!;
         hit.damage = { cause: 'storm', turn: state.turn };
         report.damaged.push(hit.uid);
+        // A cyclone fells the canopy of a garden it strikes.
+        const fells = storm.fellsLayers;
+        if (hit.layers?.some((l) => fells.includes(l.id))) {
+          hit.layers = hit.layers.filter((l) => !fells.includes(l.id));
+          (report.felled ??= []).push(hit.uid);
+        }
       }
       break;
     }
@@ -193,5 +201,51 @@ export function applyEvent(ctx: SeasonContext): void {
     case 'bloom':
       // The lake's own step decides whether it blooms (resolveLake).
       break;
+    case 'firstRains':
+      // The milpas sown with the rains make more next season (computeYield).
+      break;
+    case 'fire':
+      dryFire(ctx);
+      break;
+  }
+}
+
+/**
+ * The dry season's fire (Rainforest Gardens): open forest beside cleared ground (open, or a field)
+ * may catch, unless an edge building (a living fence) runs between them. A forecast names the tiles at risk; the
+ * season burns `count` of them, by chance, to `burnsTo`.
+ */
+function dryFire(ctx: SeasonContext): void {
+  const { content, state, report } = ctx;
+  const fire = eventOf(content, 'fire');
+  const occ = occupancy(state);
+  const risk = Object.values(state.map.tiles)
+    .filter(
+      (t) =>
+        fire.burns.includes(t.type) &&
+        !occ.has(hexKey(t)) &&
+        hexNeighbors(t).some((n) => {
+          const from = tileAt(state, n);
+          // Open ground and fields burn; the ground under a house or a workshop is kept clear.
+          const on = occ.get(hexKey(n));
+          return (
+            from !== undefined &&
+            fire.catchesFrom.includes(from.type) &&
+            (!on || defOf(content, on).farmland) &&
+            !state.hedges.includes(edgeKey(t, n))
+          );
+        }),
+    )
+    .map(hexKey)
+    .sort();
+  report.fireRisk = risk;
+  if (ctx.forecast) return;
+  report.burned = [];
+  let left = risk;
+  for (let i = 0; i < fire.count && left.length > 0; i++) {
+    const key = left[nextInt(state.rng, left.length)]!;
+    state.map.tiles[key]!.type = fire.burnsTo;
+    report.burned.push(key);
+    left = left.filter((k) => k !== key);
   }
 }

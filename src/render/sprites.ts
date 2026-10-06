@@ -112,6 +112,8 @@ const GREEN_WINTER: Record<string, readonly string[]> = {
     'floatingMarket',
     'floatingCity',
   ],
+  // Rainforest Gardens' winter is the dry season: the shared art keeps its summer look.
+  forest: [],
 };
 
 /** The season whose art a shared tile or building wears in this land (no snow in the desert). */

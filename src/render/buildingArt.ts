@@ -1328,6 +1328,115 @@ export const BUILDING_ART: Record<string, Art> = {
         color: col,
       });
   },
+  // Rainforest Gardens (FG2): drawn in code until hand-made art comes.
+  /** Maize stalks with beans climbing them and squash leaves below, on burned ground. */
+  milpa(g, c) {
+    g.poly(hexCorners(c, 21)).fill({ color: 0xb08a5a }).stroke({ width: 1.5, color: 0x7a5a36 });
+    for (const [dx, dy] of [
+      [-9, 2],
+      [-2, -4],
+      [6, 3],
+      [10, -5],
+    ] as const) {
+      g.moveTo(c.x + dx, c.y + dy + 6)
+        .lineTo(c.x + dx, c.y + dy - 7)
+        .stroke({ width: 1.5, color: 0x7a9a3a });
+      g.circle(c.x + dx + 1.5, c.y + dy - 2, 1.4).fill({ color: COLORS.sunGold });
+    }
+    g.ellipse(c.x - 4, c.y + 9, 5, 2.5).fill({ color: 0x5f8a45 });
+    g.circle(c.x + 3, c.y + 9, 2).fill({ color: 0xe5a03a });
+  },
+  /** A garden under fruit trees: low crops, a banana, a crown above. */
+  forestGarden(g, c) {
+    shadow(g, c, 14, 4, 10);
+    g.ellipse(c.x, c.y + 6, 13, 5).fill({ color: 0x7fa255 });
+    palm(g, c.x - 7, c.y - 1);
+    tree(g, c.x + 6, c.y - 4, 6, true);
+    g.circle(c.x - 1, c.y + 6, 2).fill({ color: 0x5f8a45 });
+    g.circle(c.x + 4, c.y + 7, 1.8).fill({ color: 0x5f8a45 });
+  },
+  /** A timber house on posts, with a steep thatched roof. */
+  raisedHouse(g, c) {
+    shadow(g, c, 12, 3.5, 10);
+    for (const dx of [-6, -2, 2, 6])
+      g.moveTo(c.x + dx, c.y + 2)
+        .lineTo(c.x + dx, c.y + 10)
+        .stroke({ width: 1.4, color: COLORS.wood });
+    house(g, c.x, c.y - 4, 0.9, 0xc9a35c);
+  },
+  /** A low heap of shells, potsherds and ash. */
+  kitchenMidden(g, c) {
+    shadow(g, c, 11, 3.5, 7);
+    g.ellipse(c.x, c.y + 3, 11, 6).fill({ color: 0x4a3a2c });
+    g.circle(c.x - 4, c.y + 1, 1.6).fill({ color: 0xf3e6cf });
+    g.circle(c.x + 3, c.y + 3, 1.4).fill({ color: 0xc9724a });
+    g.circle(c.x + 6, c.y - 1, 1.2).fill({ color: 0xf3e6cf });
+  },
+  /** A small domed hearth with a wisp of smoke. */
+  charHearth(g, c) {
+    shadow(g, c, 10);
+    g.ellipse(c.x, c.y + 2, 9, 7).fill({ color: COLORS.stone });
+    g.ellipse(c.x, c.y + 5, 3.5, 2.5).fill({ color: 0x2b211a });
+    g.moveTo(c.x + 2, c.y - 5)
+      .quadraticCurveTo(c.x + 6, c.y - 10, c.x + 3, c.y - 15)
+      .stroke({ width: 1.4, color: 0xd8d0c4 });
+  },
+  /** A shed with a goat at the door. */
+  stallBarn(g, c) {
+    shadow(g, c, 13);
+    house(g, c.x - 2, c.y, 1, 0x9a6a3a);
+    g.ellipse(c.x + 10, c.y + 6, 4, 2.5).fill({ color: 0xf3e6cf });
+    g.circle(c.x + 13, c.y + 4, 1.6).fill({ color: 0xf3e6cf });
+  },
+  /** A hollow log in the trees, bees about it. */
+  beeTree(g, c) {
+    shadow(g, c, 10);
+    tree(g, c.x, c.y - 5, 7);
+    g.roundRect(c.x - 6, c.y + 2, 12, 5, 2).fill({ color: COLORS.wood });
+    g.circle(c.x - 6, c.y + 4.5, 2).fill({ color: DARK });
+    g.circle(c.x + 9, c.y - 3, 1.2).fill({ color: 0xf6d98a });
+    g.circle(c.x + 11, c.y + 1, 1.2).fill({ color: 0xf6d98a });
+  },
+  /** Stepped paddies down the slope. */
+  riceTerrace(g, c) {
+    for (const [i, dy] of [-8, -1, 6].entries())
+      g.roundRect(c.x - 13 + i * 2, c.y + dy, 26 - i * 4, 6, 2)
+        .fill({ color: 0x9fd0c0 })
+        .stroke({ width: 1.2, color: 0x6e8a3e });
+    for (const dx of [-8, -3, 2, 7]) g.rect(c.x + dx, c.y - 7, 1, 3).fill({ color: 0x5f8a45 });
+  },
+  /** A tiered shrine roof over a water spout. */
+  waterTemple(g, c) {
+    shadow(g, c, 12);
+    g.rect(c.x - 6, c.y - 2, 12, 9).fill({ color: COLORS.stone });
+    for (const [w, dy] of [
+      [11, -3],
+      [8, -7],
+      [5, -11],
+    ] as const)
+      g.poly([c.x - w, c.y + dy, c.x, c.y + dy - 4, c.x + w, c.y + dy]).fill({ color: 0x5a4a3a });
+    g.ellipse(c.x, c.y + 9, 5, 2).fill({ color: COLORS.water });
+  },
+  /** Young nitrogen-fixing trees along the edge. */
+  livingFence(g, c) {
+    shadow(g, c, 15, 3.5, 7);
+    for (const dx of [-10, -3, 4, 11]) {
+      g.moveTo(c.x + dx, c.y + 6)
+        .lineTo(c.x + dx, c.y - 3)
+        .stroke({ width: 1.6, color: COLORS.wood });
+      g.circle(c.x + dx, c.y - 5, 3.5).fill({ color: 0x6e9a45 });
+    }
+  },
+  /** A small turbine house with a pipe down to it. */
+  microHydro(g, c) {
+    shadow(g, c, 11);
+    g.moveTo(c.x - 12, c.y - 10)
+      .lineTo(c.x - 3, c.y)
+      .stroke({ width: 2.4, color: COLORS.stone });
+    g.rect(c.x - 4, c.y - 3, 12, 9).fill({ color: WALL });
+    g.circle(c.x + 2, c.y + 1.5, 3).stroke({ width: 1.3, color: DARK });
+    g.ellipse(c.x + 4, c.y + 9, 7, 2).fill({ color: COLORS.water });
+  },
 };
 
 /** Damaged buildings get a grey veil and a crack; blacked-out ones a dim veil. */

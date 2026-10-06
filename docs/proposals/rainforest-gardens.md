@@ -8,7 +8,7 @@ the Chagga home gardens of Kilimanjaro, the Kandyan forest gardens of Sri Lanka,
 milpa-forest garden cycle, Amazonian terra preta and the Balinese subak. Everything here is a
 proposal: the designer's defaults until review, the bots and playtesting tune them.
 
-**Status**: started. Decided by the playtester: the biome is called Rainforest Gardens; it joins once 10 districts stand in Root City; the other open questions take the proposal's defaults (layers inside one building, coffee and pepper as materials, fire as a risk only).
+**Status**: started. Decided by the playtester: the biome is called Rainforest Gardens; it joins once 10 districts stand in Root City; the other open questions take the proposal's defaults (layers inside one building, coffee and pepper as materials, fire as a risk only). FG1 (the rules) and FG2 (the simulation) are in; see DECISIONS.md, Rainforest Gardens.
 
 It builds on what the earlier biomes left: the land-health ladder (barren, scrub, meadow,
 woodland) and compost; evolutions with an age (`when.minAge`, the Rice-Duck Paddy); per-tile

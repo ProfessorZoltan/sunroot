@@ -11,6 +11,7 @@ import {
   neighborBuildings,
   neighborTiles,
   occupancy,
+  standsTall,
   tileAt,
   waterDistance,
 } from '../queries';
@@ -88,7 +89,7 @@ export function generate(ctx: SeasonContext): void {
     }
     if (def.shading && !effect?.ignoresShade) {
       const casters = [
-        ...neighbors.filter((n) => defOf(content, n).tall).map((n) => hexKey(n.at)),
+        ...neighbors.filter((n) => standsTall(content, state, n)).map((n) => hexKey(n.at)),
         ...neighborTiles(state, b.at)
           .filter((t) => t.type === 'woodland')
           .map((t) => hexKey(t)),
@@ -291,6 +292,13 @@ export function computeYield(ctx: SeasonContext, b: BuildingState, res: Resource
         base += pasture.amount;
         lines.push(`+${pasture.amount} next to ${n} ${pasture.tiles.join(' or ')}`);
       }
+    }
+    // The first rains (Rainforest Gardens): a milpa sown with them makes more the season after.
+    const rains = content.events.firstRains;
+    const sown = content.calendar[(ctx.si + 3) % 4] === 'firstRains';
+    if (rains && sown && def.fertilityFood > 0 && b.builtTurn === state.turn - 1) {
+      base += rains.sownBonus;
+      lines.push(`+${rains.sownBonus} sown in the first rains`);
     }
     // A festival for these farms (Shieling Day).
     const festival = festivalThisSeason(content, state);

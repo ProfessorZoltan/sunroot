@@ -8,7 +8,9 @@ import type { Content } from './content/load';
 import type {
   CoastMapGen,
   DesertMapGen,
+  ForestMapGen,
   HighlandMapGen,
+  MapGen,
   LakeMapGen,
   TileType,
   ValleyMapGen,
@@ -28,6 +30,7 @@ export function generateMap(content: Content, seed: string): GeneratedMap {
   if (gen.kind === 'highland') return generateHighland(content, gen, seed);
   if (gen.kind === 'desert') return generateDesert(content, gen, seed);
   if (gen.kind === 'lake') return generateLake(content, gen, seed);
+  if (gen.kind === 'forest') return generateForest(content, gen, seed);
   return generateValley(content, gen, seed);
 }
 
@@ -693,6 +696,170 @@ function generateValley(content: Content, gen: ValleyMapGen, seed: string): Gene
 }
 
 /**
+ * A rainforest (Rainforest Gardens): rainforest over most of the map, a river winding down it
+ * with a seasonal floodplain beside it, hills along one side, an old plantation (barren ground
+ * round the ruins of the estate) on the other, a few clearings of scrub and meadow, and the camp
+ * between the river and the plantation with the forest beside it. The forest is wild land: what
+ * its tiles give beyond the starting Harmony is `wild`, so Harmony starts where the others do.
+ */
+function generateForest(content: Content, gen: ForestMapGen, seed: string): GeneratedMap {
+  const rng = createRng(`${seed}:map`);
+  const tiles: Record<string, Tile> = {};
+  const order: string[] = [];
+  for (let row = 0; row < gen.height; row++) {
+    for (let col = 0; col < gen.width; col++) {
+      const h = offsetToAxial(col, row);
+      const key = hexKey(h);
+      tiles[key] = { ...h, type: 'woodland' };
+      order.push(key);
+    }
+  }
+  const tile = (h: Hex) => tiles[hexKey(h)];
+  const colOf = (key: string) => order.indexOf(key) % gen.width;
+
+  // The river: one tile a row, wandering a column either way, as the Reach's.
+  const [minCol, maxCol] = gen.riverColumns;
+  let col = minCol + nextInt(rng, maxCol - minCol + 1);
+  const river: string[] = [];
+  for (let row = 0; row < gen.height; row++) {
+    const h = offsetToAxial(col, row);
+    const t = tiles[hexKey(h)]!;
+    t.type = 'river';
+    t.riverIndex = row;
+    river.push(hexKey(h));
+    const down = row % 2 === 0 ? [col - 1, col] : [col, col + 1];
+    const options = down.filter((c) => c >= minCol && c <= maxCol);
+    col = options.length > 0 ? options[nextInt(rng, options.length)]! : col;
+  }
+  const riverHexes = river.map((k) => tiles[k]!);
+  const riverDistance = (h: Hex) => Math.min(...riverHexes.map((r) => hexDistance(h, r)));
+  const riverMid = colOf(river[Math.floor(river.length / 2)]!);
+
+  // The seasonal floodplain: the monsoon's várzea.
+  for (const key of order) {
+    const t = tiles[key]!;
+    if (t.type === 'woodland' && riverDistance(t) === 1 && chance(rng, gen.floodplainChance))
+      t.type = 'floodplain';
+  }
+
+  // The plantation on the wider side of the river, the hills on the other.
+  const east = gen.width - 1 - riverMid >= riverMid;
+  const hillSide = (c: number) => (east ? c < gen.hillColumns : c >= gen.width - gen.hillColumns);
+  for (const key of order) {
+    const t = tiles[key]!;
+    if (t.type === 'woodland' && hillSide(colOf(key)) && riverDistance(t) >= 2)
+      if (chance(rng, gen.hillChance)) t.type = 'hill';
+  }
+  const farSide = (key: string) => (east ? colOf(key) > riverMid : colOf(key) < riverMid);
+  const seeds = order.filter((k) => {
+    const t = tiles[k]!;
+    return t.type === 'woodland' && farSide(k) && riverDistance(t) >= 3;
+  });
+  const fallback = order.filter(
+    (k) => tiles[k]!.type === 'woodland' && riverDistance(tiles[k]!) >= 2,
+  );
+  const pool = seeds.length > 0 ? seeds : fallback;
+  const estate: Tile[] = [tiles[pool[nextInt(rng, pool.length)]!]!];
+  while (estate.length < gen.plantation) {
+    const grow = [
+      ...new Set(
+        estate
+          .flatMap((h) => hexNeighbors(h))
+          .map((n) => tile(n))
+          .filter(
+            (n): n is Tile =>
+              n !== undefined &&
+              n.type === 'woodland' &&
+              riverDistance(n) >= 2 &&
+              !estate.includes(n),
+          ),
+      ),
+    ];
+    if (grow.length === 0) break;
+    estate.push(grow[nextInt(rng, grow.length)]!);
+  }
+  for (const t of estate) t.type = 'barren';
+  // The estate's ruins, apart where the estate has room, side by side where it hasn't.
+  let ruinsLeft = gen.ruins;
+  const sites = shuffled(rng, estate);
+  for (const apart of [true, false])
+    for (const t of sites) {
+      if (ruinsLeft === 0 || t.type === 'ruin') continue;
+      if (apart && hexNeighbors(t).some((n) => tile(n)?.type === 'ruin')) continue;
+      t.type = 'ruin';
+      t.salvage = gen.ruinSalvage;
+      ruinsLeft--;
+    }
+  const estateHexes = estate.map((t) => ({ q: t.q, r: t.r }));
+  const estateDistance = (h: Hex) => Math.min(...estateHexes.map((e) => hexDistance(h, e)));
+
+  // The Founders' Camp: a clearing between the river and the estate, the forest beside it.
+  const [nearest, farthest] = gen.campRiverDistance;
+  const midRows = (r: number) => r >= gen.height / 4 && r < (gen.height * 3) / 4;
+  const site = (t: Tile, rows: boolean) => {
+    const d = riverDistance(t);
+    return (
+      t.type === 'woodland' &&
+      d >= nearest &&
+      d <= farthest &&
+      estateDistance(t) <= gen.campPlantationDistance &&
+      (!rows || midRows(t.r)) &&
+      hexNeighbors(t).some((n) => tile(n)?.type === 'woodland')
+    );
+  };
+  let campOptions = order.filter((k) => site(tiles[k]!, true));
+  if (campOptions.length === 0) campOptions = order.filter((k) => site(tiles[k]!, false));
+  if (campOptions.length === 0) throw new Error('map has no site for the Founders Camp');
+  const campKey = campOptions[nextInt(rng, campOptions.length)]!;
+  const camp = tiles[campKey]!;
+  camp.type = 'scrub';
+
+  // Natural clearings in the forest: scrub, with meadow round it.
+  for (let i = 0; i < gen.clearings; i++) {
+    const options = order.filter((k) => {
+      const t = tiles[k]!;
+      return (
+        t.type === 'woodland' &&
+        riverDistance(t) >= 2 &&
+        estateDistance(t) >= 2 &&
+        hexDistance(t, camp) >= 2 &&
+        hexNeighbors(t).every((n) => tile(n)?.type !== 'scrub' && tile(n)?.type !== 'meadow')
+      );
+    });
+    if (options.length === 0) break;
+    const first = tiles[options[nextInt(rng, options.length)]!]!;
+    first.type = 'scrub';
+    const glade = [first];
+    while (glade.length < gen.clearingSize) {
+      const grow = glade
+        .flatMap((h) => hexNeighbors(h))
+        .map((n) => tile(n))
+        .filter((n): n is Tile => n !== undefined && n.type === 'woodland' && n !== camp);
+      if (grow.length === 0) break;
+      const t = grow[nextInt(rng, grow.length)]!;
+      t.type = 'meadow';
+      glade.push(t);
+    }
+  }
+
+  // The forest as it stands is where Harmony starts from.
+  const perTile = content.rules.harmony.perTile;
+  const given = order.reduce((sum, k) => sum + (perTile[tiles[k]!.type] ?? 0), 0);
+  const wild = Math.max(0, given - gen.startingHarmony);
+
+  const floodOrder = order
+    .filter((k) => tiles[k]!.type === 'floodplain')
+    .map((k) => ({ k, d: riverDistance(tiles[k]!) }))
+    .sort((a, b) => a.d - b.d)
+    .map((x) => x.k);
+
+  return {
+    map: { width: gen.width, height: gen.height, tiles, river, floodOrder, wild },
+    camp: { q: camp.q, r: camp.r },
+  };
+}
+
+/**
  * A coast (the Windswept Coast): the sea along the east edge with a wandering
  * shore, headlands reaching out into it, mudflat or dunes on the shore with
  * saltmarsh behind the mudflat, a stream from the west edge down to the sea
@@ -860,7 +1027,7 @@ function placeGreenLand(
   order: string[],
   campKey: string,
 ): void {
-  const gen = content.map;
+  const gen = content.map as Exclude<MapGen, ForestMapGen>;
   const perTile = content.rules.harmony.perTile;
   const woodValue = perTile.woodland ?? 0;
   const meadowValue = perTile.meadow ?? 0;

@@ -217,6 +217,10 @@ const LayerSchema = z
       .default([]),
     /** Once grown, it covers the tile: the monsoon washes none of its fertility away. */
     covers: z.boolean().default(false),
+    /** Once grown, it stands tall: it shades solar beside it, as a tall building does. */
+    tall: z.boolean().default(false),
+    /** Once grown, a home beside it needs this much less cooling, as a building that `shades`. */
+    shades: nonNeg.default(0),
   })
   .strict();
 export type LayerDef = z.infer<typeof LayerSchema>;
@@ -724,6 +728,8 @@ export const EventsSchema = z
        * is exposed only with one of them beside it. Empty: from anywhere.
        */
       exposedFacing: z.array(TileTypeSchema).default([]),
+      /** A building the storm damages loses these layers, if it has them (a cyclone's canopy). */
+      fellsLayers: z.array(z.string()).default([]),
     }).optional(),
     freeze: EventBase.optional(),
     /**
@@ -741,6 +747,21 @@ export const EventsSchema = z
       solarPenalty: nonNeg.default(0),
       evaporationFactor: int.min(1).default(1),
     }).optional(),
+    /**
+     * The first rains (Rainforest Gardens' spring): a building with `fertilityFood` (a milpa)
+     * sown this season makes `sownBonus` more food the season after.
+     */
+    firstRains: EventBase.extend({ sownBonus: nonNeg }).optional(),
+    /**
+     * The dry season's fire (Rainforest Gardens' winter): `count` open tiles of `burns` beside
+     * one of `catchesFrom` catch and burn to `burnsTo`, unless an edge building stands between.
+     */
+    fire: EventBase.extend({
+      count: nonNeg,
+      burns: z.array(TileTypeSchema).min(1),
+      catchesFrom: z.array(TileTypeSchema).min(1),
+      burnsTo: TileTypeSchema,
+    }).optional(),
   })
   .strict();
 export type Events = z.infer<typeof EventsSchema>;
@@ -752,6 +773,8 @@ export const EVENT_IDS = [
   'freeze',
   'heatwave',
   'bloom',
+  'firstRains',
+  'fire',
 ] as const;
 export type EventId = (typeof EVENT_IDS)[number];
 
@@ -1278,14 +1301,47 @@ const LakeMapSchema = z
   })
   .strict();
 
+/**
+ * A rainforest (Rainforest Gardens, proposals/rainforest-gardens.md, Map): rainforest over most
+ * of it, a river winding through with a seasonal floodplain, a few clearings, hills along one
+ * side and an old plantation (barren ground and ruins) on the other. The forest as it stands
+ * counts as the starting Harmony: clearing it costs, healing gains (`MapState.wild`).
+ */
+const ForestMapSchema = z
+  .object({
+    kind: z.literal('forest'),
+    width: int.min(8),
+    height: int.min(6),
+    riverColumns: z.tuple([nonNeg, nonNeg]),
+    /** A tile beside the river is floodplain by this chance. */
+    floodplainChance: z.number().min(0).max(1),
+    /** Columns of hills along the side away from the plantation, by `hillChance`. */
+    hillColumns: nonNeg,
+    hillChance: z.number().min(0).max(1),
+    /** Tiles of old plantation, barren, grown from one spot away from the river. */
+    plantation: int.min(1),
+    ruins: nonNeg,
+    ruinSalvage: int.min(1),
+    /** Natural clearings: `clearingSize` tiles of scrub and meadow each. */
+    clearings: nonNeg,
+    clearingSize: int.min(1),
+    startingHarmony: nonNeg,
+    campRiverDistance: z.tuple([int.min(1), int.min(1)]),
+    /** The camp stands this close to the plantation, at most. */
+    campPlantationDistance: int.min(1),
+  })
+  .strict();
+
 export const MapGenSchema = z.union([
   CoastMapSchema,
   HighlandMapSchema,
   DesertMapSchema,
   LakeMapSchema,
+  ForestMapSchema,
   ValleyMapSchema,
 ]);
 export type LakeMapGen = z.infer<typeof LakeMapSchema>;
+export type ForestMapGen = z.infer<typeof ForestMapSchema>;
 export type DesertMapGen = z.infer<typeof DesertMapSchema>;
 export type HighlandMapGen = z.infer<typeof HighlandMapSchema>;
 export type MapGen = z.infer<typeof MapGenSchema>;
@@ -1524,6 +1580,8 @@ export const GoalSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('harmony'), harmony: int.min(1) }),
   /** This wonder finished (E5). */
   z.object({ kind: z.literal('wonder'), building: z.string() }),
+  /** At least this many tiles of this type (Rainforest Gardens: dark earth made). */
+  z.object({ kind: z.literal('tiles'), tile: TileTypeSchema, count: int.min(1) }),
 ]);
 export type Goal = z.infer<typeof GoalSchema>;
 

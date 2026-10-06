@@ -36,6 +36,12 @@ export interface MapState {
   river: string[];
   /** Floodplain tile keys, lowest ground first; a weir floods only the first part. */
   floodOrder: string[];
+  /**
+   * Harmony the wild land gave when the map was made, beyond its starting Harmony (Rainforest
+   * Gardens): the forest as it stood is where Harmony starts from, so clearing it costs and
+   * healing gains, as elsewhere. Missing: 0.
+   */
+  wild?: number;
 }
 
 export type Stores = Record<Resource, number>;
@@ -635,6 +641,12 @@ export interface SeasonReport {
   discoveries: string[];
   /** In a forecast: buildings the storm could disable (one of them will be, by chance). */
   atRisk: string[];
+  /** The dry season's fire (Rainforest Gardens): the forest tiles that could catch, by key. */
+  fireRisk?: string[];
+  /** The tiles it burned, by key. */
+  burned?: string[];
+  /** Buildings the storm damaged that lost layers with it (a cyclone's felled canopy), by uid. */
+  felled?: string[];
   /** Buildings that evolved at the end of this season. */
   evolved: { uid: string; from: string; into: string }[];
   /** The run's vision was achieved this season. */

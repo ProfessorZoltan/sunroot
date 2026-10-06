@@ -10,7 +10,7 @@ import { edgeBuilding, hedged } from './edges';
 import { finishedProjects } from './projects';
 import { festivalThisSeason } from './wildlife';
 import type { Content } from './content/load';
-import type { BuildingDef, EventId, Events, Season, TileType } from './content/schema';
+import type { BuildingDef, EventId, Events, LayerDef, Season, TileType } from './content/schema';
 import { SEASONS } from './content/schema';
 import { hexDistance, hexKey, hexNeighbors, type Hex } from './hex';
 import type { BuildingState, RunState, Tile } from './types';
@@ -100,10 +100,29 @@ export function coolDemand(
   // A courtyard: the right neighbours keep it cool whatever the weather.
   if (def.coolingFreeNextTo && touches(state, b, def.coolingFreeNextTo)) return 0;
   let shade = 0;
-  for (const n of neighborBuildings(state, b)) shade = Math.max(shade, defOf(content, n).shades);
+  for (const n of neighborBuildings(state, b)) {
+    shade = Math.max(shade, defOf(content, n).shades);
+    // A forest garden's grown canopy shades as a building does.
+    for (const l of grownLayers(content, state, n)) shade = Math.max(shade, l.shades);
+  }
   const edge = edgeBuilding(content);
   if (edge && edge.shades > 0 && hedged(state, b.at)) shade = Math.max(shade, edge.shades);
   return Math.max(0, need - shade);
+}
+
+/** The layers added to `b` that have grown (a forest garden's canopy, once it stands). */
+export function grownLayers(content: Content, state: RunState, b: BuildingState): LayerDef[] {
+  const defs = defOf(content, b).layers;
+  if (!defs || !b.layers) return [];
+  return b.layers.flatMap((l) => {
+    const d = defs.find((x) => x.id === l.id);
+    return d && state.turn - l.turn >= d.grows ? [d] : [];
+  });
+}
+
+/** Tall: a tall building, or one with a tall layer grown (it shades solar beside it). */
+export function standsTall(content: Content, state: RunState, b: BuildingState): boolean {
+  return defOf(content, b).tall || grownLayers(content, state, b).some((l) => l.tall);
 }
 
 const occupancyCache = new WeakMap<object, { size: number; map: Map<string, BuildingState> }>();
@@ -307,6 +326,8 @@ export function harmonyLines(content: Content, state: RunState): HarmonyLine[] {
     const each = harmony.perTile[type as TileType]!;
     lines.push({ label: `${n} ${type} tiles${each !== 1 ? ` × ${each}` : ''}`, amount: n * each });
   }
+  // The wild forest as the map began counts as where Harmony starts (Rainforest Gardens).
+  if (state.map.wild) lines.push({ label: 'the forest as it stood', amount: -state.map.wild });
   const byBuilding = new Map<string, { n: number; amount: number }>();
   const penalties = new Map<string, { n: number; amount: number }>();
   const occ = occupancy(state);

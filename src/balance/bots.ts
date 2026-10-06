@@ -118,8 +118,9 @@ const FARMS = [
   'oasisGarden',
   'wadiFarm',
   'chinampa',
+  'milpa',
 ];
-const ORCHARDS = ['orchard'];
+const ORCHARDS = ['orchard', 'forestGarden'];
 /** Whether one of these buildings could stand on the tile by its type and height. */
 const fitsAny = (turn: Turn, ids: readonly string[], t: Tile) =>
   ids.some((id) => {
@@ -988,7 +989,7 @@ function spend(turn: Turn, profile: Profile, options: readonly string[], limit =
 }
 
 /** Homes, in the order a bot builds them: the Highland's bothy where there are no cottages yet. */
-const HOMES = ['cottage', 'mudBrickHouse', 'bothy', 'stiltHouse'];
+const HOMES = ['raisedHouse', 'cottage', 'mudBrickHouse', 'bothy', 'stiltHouse'];
 const buildHome = (turn: Turn, reserve = 0) => HOMES.some((id) => turn.build(id, reserve));
 
 const growHousing = (turn: Turn) =>
@@ -1024,6 +1025,7 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
   greedyFood: {
     cards: [
       'orchard',
+      'forestGarden',
       'fishPond',
       'riceFishPaddy',
       'greenhouse',
@@ -1054,6 +1056,7 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'oasisGarden',
       'wadiFarm',
       'chinampa',
+      'milpa',
       'lakeFishery',
       'shieling',
       'riceFishPaddy',
@@ -1061,6 +1064,7 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'kelpFarm',
       'oysterReef',
       'orchard',
+      'forestGarden',
       'greenhouse',
     ],
     reserve: 4,
@@ -1073,12 +1077,14 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
         'oasisGarden',
         'wadiFarm',
         'chinampa',
+        'milpa',
         'lakeFishery',
         'shieling',
         'fishPond',
         'kelpFarm',
         'oysterReef',
         'orchard',
+        'forestGarden',
         'apiary',
         'greenhouse',
       ];
@@ -1150,11 +1156,13 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'oasisGarden',
       'wadiFarm',
       'chinampa',
+      'milpa',
       'lakeFishery',
       'fishPond',
       'kelpFarm',
       'greenhouse',
       'orchard',
+      'forestGarden',
     ],
     reserve: 3,
     extras(turn, profile) {
@@ -1174,6 +1182,7 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'riverWheel',
       'pollinatorMeadow',
       'orchard',
+      'forestGarden',
       'treeNursery',
       'heatWell',
       'fishPond',
@@ -1214,12 +1223,14 @@ const profiles: Record<'greedyFood' | 'greedyEnergy' | 'balanced', Profile> = {
       'oasisGarden',
       'wadiFarm',
       'chinampa',
+      'milpa',
       'lakeFishery',
       'shieling',
       'fishPond',
       'kelpFarm',
       'oysterReef',
       'orchard',
+      'forestGarden',
       'greenhouse',
     ],
     reserve: 5,
