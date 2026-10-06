@@ -6,7 +6,7 @@
   reed fringe, streams, willows and drowned town, every lake building and evolution, the
   Floating City at each stage, axolotls, herons, kingfishers and flamingos with their young, the
   festival cards, and the Canal Quarter (its water wheel turning) and Water Market in Root City.
-- **Citizens wrap up for winter**: coats, scarves and hats, wherever winter brings snow.
+- **Citizens wrap up for winter**: padded, quilted tops and coats, wherever winter brings snow.
 
 ## Rainforest Gardens: the Canopy Walk, the forest's animals and festivals
 
