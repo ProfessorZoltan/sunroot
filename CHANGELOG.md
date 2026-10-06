@@ -1,5 +1,13 @@
 # Changelog
 
+## Lake Gardens in hand-made art, and winter coats
+
+- **Lake Gardens is drawn in its own art**: the shallows, deep water and raised beds, the lake's
+  reed fringe, streams, willows and drowned town, every lake building and evolution, the
+  Floating City at each stage, axolotls, herons, kingfishers and flamingos with their young, the
+  festival cards, and the Canal Quarter (its water wheel turning) and Water Market in Root City.
+- **Citizens wrap up for winter**: coats, scarves and hats, wherever winter brings snow.
+
 ## Rainforest Gardens: the Canopy Walk, the forest's animals and festivals
 
 - **The Canopy Walk**, the forest's wonder: a walkway slung through the crowns of six great trees

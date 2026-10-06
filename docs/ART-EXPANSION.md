@@ -44,9 +44,9 @@ and the Well with its own icon (`well.icon.png`). All in the game.
 | SD4. The desert on screen    | Yes (done) | Its 5 tiles and the wadi bank's and old array's looks, then the Oasis Garden, Mud-brick House, Wind Tower and Solar Canopy's desert dress | proposals/sun-desert.md, Build plan         |
 | SD5. The desert in Root City | Yes (done) | The Sun Quarter district and the Glassworks landmark ([ART-CITY.md](ART-CITY.md))                                                         | proposals/sun-desert.md, Build plan         |
 | SD6. The desert's wonder     | Yes (done) | The Solar Oasis, 4 animals, 3 festival cards                                                                                              | proposals/sun-desert.md, Build plan         |
-| LG4. The lake on screen      | Yes        | The shallows and deep water, then the Chinampa, Stilt House and Mud Boat                                                                  | proposals/lake-gardens.md, Build plan       |
-| LG5. The lake in Root City   | Yes        | The Canal Quarter district and the Water Market landmark ([ART-CITY.md](ART-CITY.md))                                                     | proposals/lake-gardens.md, Build plan       |
-| LG6. The lake's wonder       | Yes        | The Floating City, 4 animals, 3 festival cards                                                                                            | proposals/lake-gardens.md, Build plan       |
+| LG4. The lake on screen      | Yes (done) | The shallows and deep water, then the Chinampa, Stilt House and Mud Boat                                                                  | proposals/lake-gardens.md, Build plan       |
+| LG5. The lake in Root City   | Yes (done) | The Canal Quarter district and the Water Market landmark ([ART-CITY.md](ART-CITY.md))                                                     | proposals/lake-gardens.md, Build plan       |
+| LG6. The lake's wonder       | Yes (done) | The Floating City, 4 animals, 3 festival cards                                                                                            | proposals/lake-gardens.md, Build plan       |
 
 ## The standard frame (reminder)
 
@@ -436,8 +436,10 @@ reed fringe on the shore and a drowned town at the water's edge. Players make la
 Xochimilco, the mulberry-dyke fish ponds of the Pearl River Delta, the Vietnamese
 garden-pond-pen (VAC) and the sewage-fed fisheries of East Kolkata, so the look is theirs: green
 canals between long beds of crops and flowers, slender willows standing in rows along the banks,
-painted boats, ponds ringed with mulberry. Everything here is drawn in code until its art comes,
-so any piece can arrive on its own. Same frame, light and file names as everything else: a summer
+painted boats, ponds ringed with mulberry. **Status: delivered and in the game** (`lake-gardens/`,
+sorted into the usual folders when imported): every tile, look, building, evolution, the wonder,
+the animals and their young, the cards, and the Canal Quarter and Water Market. Mulberry Dyke and
+Floating Market carry their own ground as asked, on whichever land they stand. Same frame, light and file names as everything else: a summer
 `id.png` and a winter `id.winter.png`, delivered to the usual folders of `art/incoming/`.
 
 **The palette.** Soft and humid: jade-green shallows (`#8FC0B0`), the deep lake a cooler
@@ -508,7 +510,7 @@ bathhouse and the rest) keep the Reach's art.
 
 ### With LG6: the wonder, animals and festivals
 
-In the game since LG6, drawn in code until their art comes.
+In the game since LG6; their art is delivered and in the game.
 
 | Name                  | Id                   | Files                                                                                   | Notes                                                                                                                                                                                                                                                                                                                                                                                              | Source                               |
 | --------------------- | -------------------- | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |

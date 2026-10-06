@@ -10,8 +10,9 @@ papercraft style, the same light from the upper left, and the same 512 × 640 fr
 36 asked for, the 14 lit versions and the 4 rotors), delivered as `root-city/` and kept in
 `art/incoming/city/`; and the Sun Quarter at its three tiers (with its lit Sapling and
 Heartwood) and the Glassworks' three edges, which came with the Sun Desert (SD5), their brief
-[below](#the-sun-quarter-and-the-glassworks-sd5). Asked for next: the Canal Quarter and the Water
-Market for Lake Gardens ([below](#the-canal-quarter-and-the-water-market-lg5)). **How it gets in.** The importer takes `art/incoming/city/` (`npx tsx scripts/import-art.ts`,
+[below](#the-sun-quarter-and-the-glassworks-sd5). The Canal Quarter and the Water
+Market for Lake Gardens ([below](#the-canal-quarter-and-the-water-market-lg5)) came with the
+lake's art, the Canal Quarter's Heartwood with a turning water wheel. **How it gets in.** The importer takes `art/incoming/city/` (`npx tsx scripts/import-art.ts`,
 which refuses a name or a frame size that isn't this guide's), and the city screen draws each
 piece it has: the city already stands on the map's hex geometry, so the tiles fit together as on
 the map. Anything without art is still drawn in code (`src/ui/City.tsx`): coloured hexes with a
@@ -176,7 +177,7 @@ Glassworks.
 The eighth district and the sixth landmark, in the game since Lake Gardens' fifth step
 ([proposals/lake-gardens.md](proposals/lake-gardens.md), Root City). Same frame, style, tier
 ladder and file rules as everything above: 512 × 640, late summer, each tile carrying its own
-ground, no winter files. Until the art comes the city draws them in code, as it did the others.
+ground, no winter files. **Delivered and in the game** with the lake's art.
 Both are in the game since LG5, so the importer already knows their names.
 
 ### The Canal Quarter

@@ -21,20 +21,24 @@ import { content } from './helpers';
 const COAST = biomeContent('windsweptCoast');
 const HIGH = biomeContent('highland');
 const DESERT = biomeContent('sunDesert');
+const LAKE = biomeContent('lakeGardens');
 /** Buildings of every biome, each once. */
 const drawn = [
   ...content.buildings,
   ...COAST.buildings.filter((b) => !content.byId[b.id]),
   ...HIGH.buildings.filter((b) => !content.byId[b.id] && !COAST.byId[b.id]),
   ...DESERT.buildings.filter((b) => !content.byId[b.id] && !COAST.byId[b.id] && !HIGH.byId[b.id]),
+  ...LAKE.buildings.filter(
+    (b) => !content.byId[b.id] && !COAST.byId[b.id] && !HIGH.byId[b.id] && !DESERT.byId[b.id],
+  ),
 ];
-const byId = { ...DESERT.byId, ...HIGH.byId, ...COAST.byId, ...content.byId };
+const byId = { ...LAKE.byId, ...DESERT.byId, ...HIGH.byId, ...COAST.byId, ...content.byId };
 /** Buildings drawn in code until their art comes (the art guide asks for it). */
-const AWAITING_ART = new Set(['iceHouse', 'mudBoat', 'forestGarden']);
-/** Root City pieces drawn in code until their art comes (Lake Gardens' LG5, Rainforest Gardens' FG5, ART-CITY.md). */
-const CITY_AWAITING_ART = new Set(['canalQuarter', 'waterMarket', 'canopyQuarter', 'seedForest']);
-/** Tiles drawn in code until their art comes (Lake Gardens, before its art guide). */
-const TILES_AWAITING_ART = new Set(['shallows', 'deep', 'bed', 'darkEarth']);
+const AWAITING_ART = new Set(['iceHouse', 'forestGarden']);
+/** Root City pieces drawn in code until their art comes (Rainforest Gardens' FG5, ART-CITY.md). */
+const CITY_AWAITING_ART = new Set(['canopyQuarter', 'seedForest']);
+/** Tiles drawn in code until their art comes (Rainforest Gardens' dark earth). */
+const TILES_AWAITING_ART = new Set(['darkEarth']);
 
 const art = (path: string) => existsSync(new URL(`../src/art/${path}`, import.meta.url));
 const info = JSON.parse(readFileSync(new URL('../src/art/art.json', import.meta.url), 'utf8')) as {
@@ -114,6 +118,10 @@ describe('hand-made art', () => {
       'falcon.fly.1',
       'falcon.fly.2',
       'falcon.perch',
+      // The lake's (ART-EXPANSION.md), the same all year: its winter is low water, not snow.
+      ...['axolotl.rest', 'axolotl.swim.1', 'axolotl.swim.2', 'heron.stand', 'heron.fish']
+        .concat(['heron.fly.1', 'heron.fly.2', 'kingfisher.perch', 'kingfisher.dive'])
+        .concat(['flamingo.stand', 'flamingo.feed', 'flamingo.walk.1', 'flamingo.walk.2']),
     ];
     for (const f of frames) expect(art(`wildlife/${f}.png`), f).toBe(true);
     for (const f of [
@@ -121,6 +129,7 @@ describe('hand-made art', () => {
       ...COAST.festivals,
       ...HIGH.festivals,
       ...DESERT.festivals,
+      ...LAKE.festivals,
     ])
       expect(art(`festivals/${f.id}.card.webp`), f.id).toBe(true);
     for (const f of ['bunting', 'lantern', 'lantern.lit'])
@@ -145,6 +154,11 @@ describe('hand-made art', () => {
       'sandgrouse.chick': ['1', '2'],
       'falcon.chick': ['perch'],
       'oryx.calf': ['walk.1', 'walk.2', 'walk.3', 'walk.4', 'graze.1', 'graze.2'],
+      'axolotl.young': ['rest', 'swim.1', 'swim.2'],
+      // The heron chicks and the kingfisher fledglings stay put (keepsakes.ts): one frame each.
+      'heron.chick': ['stand'],
+      'kingfisher.young': ['perch'],
+      'flamingo.chick': ['stand', 'feed', 'walk.1', 'walk.2'],
     };
     for (const [name, frames] of Object.entries(young))
       for (const f of frames) expect(art(`wildlife/${name}.${f}.png`), `${name}.${f}`).toBe(true);
@@ -152,7 +166,7 @@ describe('hand-made art', () => {
       expect(art(`keepsakes/${f}.png`), f).toBe(true);
   });
 
-  it('has the leaping fish of each land, and the whole cast of citizens (ART-PEOPLE.md)', () => {
+  it('has the leaping fish of each land, and the whole cast of citizens in summer and winter (ART-PEOPLE.md)', () => {
     for (const land of ['', 'coast.', 'glen.', 'desert.'])
       for (const n of [1, 2, 3])
         expect(art(`wildlife/fish.${land}leap.${n}.png`), `fish.${land}leap.${n}`).toBe(true);
@@ -160,7 +174,8 @@ describe('hand-made art', () => {
       // Citizen 7 goes about in a wheelchair: rolling frames, not walking ones.
       const moving = c === 7 ? ['roll.1', 'roll.2'] : ['walk.1', 'walk.2', 'walk.3', 'walk.4'];
       for (const f of [...moving, 'stand', 'work'])
-        for (const layer of ['', '.clothes'])
+        // Each frame with its clothes, and its winter clothes (worn where winter brings snow).
+        for (const layer of ['', '.clothes', '.winter.clothes'])
           expect(art(`people/citizen.${c}.${f}${layer}.png`), `citizen.${c}.${f}${layer}`).toBe(
             true,
           );
@@ -257,22 +272,26 @@ describe('hand-made art', () => {
     expect(info.ground).toEqual([
       'batRoost',
       'beaverDam',
+      'chinampa',
       'concentratedSolarPlant',
       'coppiceRegrowth',
       'coppiceWood',
       'croft',
       'estuaryTurbine',
+      'floatingMarket',
       'glenFarm',
       'hangingGarden',
       'lighthouse',
       'lookout',
       'machairCroft',
+      'mulberryDyke',
       'oasisGarden',
       'oldWorldArchive',
       'pumpedReservoir',
       'restoredArray',
       'rewettedBog',
       'rewildedRuin',
+      'riceDuckPaddy',
       'riceFishPaddy',
       'rockPool',
       'saltWorks',
@@ -288,6 +307,8 @@ describe('hand-made art', () => {
       const def = byId[id]!;
       // A croft's strips are its ground, on whichever land it is dug (ART-EXPANSION.md).
       if (def.farmland) continue;
+      // The lake's dug pond and its market's jetty and boats are their own ground on any land.
+      if (['mulberryDyke', 'floatingMarket'].includes(id)) continue;
       expect(def.placement.tiles, id).toHaveLength(1);
     }
   });
