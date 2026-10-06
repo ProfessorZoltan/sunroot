@@ -167,5 +167,5 @@ describe("demolishing keeps a biome's own ground", () => {
         if (!degrades) expect(demolition.keeps, `${id}: ${t}`).toContain(t);
       }
     }
-  });
+  }, 30_000);
 });

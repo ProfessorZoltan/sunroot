@@ -22,7 +22,8 @@ const STORES: { res: Resource; label: string; always?: boolean }[] = [
 
 const OPEN_KEY = 'sunroot:ui:stores';
 
-function remembered(key: string, fallback: boolean): boolean {
+/** A choice remembered in the browser (`1` or `0`), or the fallback. */
+export function remembered(key: string, fallback: boolean): boolean {
   try {
     const v = localStorage.getItem(key);
     return v === null ? fallback : v === '1';
@@ -31,16 +32,21 @@ function remembered(key: string, fallback: boolean): boolean {
   }
 }
 
+/** Remembers a choice in the browser; blocked storage keeps it for this visit only. */
+export function remember(key: string, v: boolean): void {
+  try {
+    localStorage.setItem(key, v ? '1' : '0');
+  } catch {
+    // Blocked storage: the choice lasts for this visit only.
+  }
+}
+
 /** A section's open state, remembered in the browser between visits. */
 export function useRemembered(key: string, fallback = true): [boolean, (open: boolean) => void] {
   const [open, setOpenState] = useState(() => remembered(key, fallback));
   const setOpen = (v: boolean) => {
     setOpenState(v);
-    try {
-      localStorage.setItem(key, v ? '1' : '0');
-    } catch {
-      // Blocked storage: the choice lasts for this visit only.
-    }
+    remember(key, v);
   };
   return [open, setOpen];
 }

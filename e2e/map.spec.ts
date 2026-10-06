@@ -92,3 +92,36 @@ test('sandbox: every building is on the palette', async ({ page }) => {
   // cards), plus the compost tool.
   await expect(page.locator('.palette .tool')).toHaveCount(30);
 });
+
+test('building needs: toggled on, X/Y over each building with a need; off, none', async ({
+  page,
+}) => {
+  await page.goto('/?seed=willow-reach-golden&sandbox');
+  await expect(page.locator('#map-host canvas')).toBeVisible();
+  await page.waitForFunction(() => 'sunroot' in window);
+  // A cottage: it needs energy at night.
+  await page
+    .locator('.palette')
+    .getByRole('button', { name: /Cottage/ })
+    .click();
+  const meadow = await tileOf(page, 'meadow');
+  await page.mouse.click(meadow.x, meadow.y);
+  await page.keyboard.press('Escape');
+  const shown = () =>
+    page.evaluate(
+      () =>
+        (window as unknown as { sunroot: { view: { needsShown: number } } }).sunroot.view
+          .needsShown,
+    );
+  const toggle = page.getByRole('checkbox', { name: 'Show building needs' });
+  await expect(toggle).not.toBeChecked();
+  expect(await shown()).toBe(0);
+  await toggle.check();
+  await expect.poll(shown).toBeGreaterThan(0);
+  await toggle.uncheck();
+  await expect.poll(shown).toBe(0);
+  // Remembered between visits.
+  await toggle.check();
+  await page.reload();
+  await expect(page.getByRole('checkbox', { name: 'Show building needs' })).toBeChecked();
+});

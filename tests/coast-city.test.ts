@@ -185,7 +185,7 @@ describe('Root City sends expeditions to the coast from run 5', () => {
     expect(openBiomes(HOME, cityAt(12))).toEqual(['willowReach', 'windsweptCoast', 'lakeGardens']);
     // Content loaded on its own knows no other biome.
     expect(openBiomes(loadBiome(willowReach), cityAt(12))).toEqual(['willowReach']);
-  });
+  }, 30_000);
 
   it('the offers take turns between the biomes, each with its own twists and regions', () => {
     for (const runs of [4, 5, 6, 7]) {

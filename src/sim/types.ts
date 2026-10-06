@@ -545,6 +545,15 @@ export interface WildlifeReport {
   healed?: string[];
 }
 
+/** The needs the map can show above a building: water, energy by day and by night, heat, cooling. */
+export type NeedKind = 'water' | 'dayEnergy' | 'nightEnergy' | 'heat' | 'cooling';
+
+/** How much of a need a building got this season, out of what it needed. */
+export interface NeedMet {
+  got: number;
+  need: number;
+}
+
 /** Heat a source paid for a building this season, while local heat is on. */
 export interface HeatLink {
   slot: Slot;
@@ -628,6 +637,11 @@ export interface SeasonReport {
   forage: number;
   improvedTiles: string[];
   blackouts: string[];
+  /**
+   * What each working building needed this season and got, by uid: only the needs it has. A
+   * building shut off (in a blackout, cold or hot) gets none of its energy, heat or cooling.
+   */
+  needs: Record<string, Partial<Record<NeedKind, NeedMet>>>;
   food: { produced: number; eaten: number; unfed: number; rotted: number; storage: number };
   population: { before: number; change: number; after: number; reason: PopulationReason };
   wellbeing: { before: number; after: number; lines: WellbeingLine[] };

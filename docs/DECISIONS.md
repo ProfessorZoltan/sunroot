@@ -1376,6 +1376,22 @@ The bots over the same 40 seeds, water on, both biomes with their wonders (`npx 
 
 Pooled, the forest reaches Heartwood in 42% of runs and the Reach in 36%: within 10 points, as the lake was at LG6. The bots never keep Harmony high enough for long enough to meet the hornbills or the jaguars (the balanced bot ends near 60), so the animals' effects are measured only by the unit tests.
 
+## Building needs on the map
+
+Asked for in playtesting: a toggle on the map, **Show building needs**, under the two pickers.
+On, every working building with a need this season carries a stack of small labels, one per
+need, each what it gets out of what it needs (X/Y); off, none. Read from the season's preview
+(if it ended now), as the shortfalls are.
+
+| Topic         | Decision                                                                                                                                                                                                                                                 | Source                     |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| The needs     | Water, day energy, night energy, heat and cooling, in that order, written `water 1/2`, `day 1/1`, `night 1/1`, `heat 2/2`, `cool 1/1`; green when met, brick-red when short. A need of 0 this season is left out, and a building with none has no label. | `src/game/needs.ts`        |
+| Energy        | The building's own use in each slot (after Star Night's relief). Flexible runs (workshops, kilns, silk houses) use only spare energy, so they are not needs; heat and cooling paid from the grid count under heat and cooling, not energy.               | `report.needs`             |
+| Heat, cooling | Day and night together: what the building needs, from any source.                                                                                                                                                                                        | `report.needs`             |
+| Got           | While a building is on, it gets all of its energy, heat and cooling (the grid or a source pays the rest); once shut off (a blackout, cold or hot) it gets none of them. Water is what the water step gave it, so it can be part of the need.             | `tests/needs.test.ts`      |
+| The report    | The season's report keeps each working building's needs and what it got (`needs`), so the labels show exactly what the season does. Nothing in the rules changed: no golden or balance numbers move.                                                     | `src/sim/season/energy.ts` |
+| On screen     | Over the building, growing upward from just above the tile's centre, sized with the map; hidden while a season plays out. The toggle is remembered in the browser between visits; off by default.                                                        | `e2e/map.spec.ts`          |
+
 ## Deferred to later milestones
 
 - The world map that heals as runs are completed, Tempest levels, and biome unlocks (Highland,

@@ -42,6 +42,7 @@ import { computeInsight, type Insight } from './insight';
 import { storageGauge, type StorageGauge } from './storageInfo';
 import { shortfalls, shortOf, type Need, type Shortfall } from './shortfalls';
 import { mapMarks, type Mark } from './marks';
+import { needLabels, type NeedLabel } from './needs';
 import type { PhaseName } from './timeline';
 
 /** A building to place, spreading compost on a tile, or coppicing woodland (Coppice Wood). */
@@ -59,6 +60,8 @@ export interface Placement {
 }
 
 export const COMPOST_TOOL = 'compost';
+/** No needs labels: one array, so the map can tell nothing changed. */
+const NO_NEEDS: NeedLabel[] = [];
 
 /** A card shown after a season plays out: a combo new to the Almanac, a new era, a vision met. */
 export type Reveal =
@@ -598,6 +601,25 @@ export class GameStore {
       if (side >= 0) this.hedgeSide = side;
       this.emit();
     }
+  }
+
+  /** Whether the map shows each building's needs this season (X/Y), toggled by the player. */
+  showNeeds = false;
+
+  setShowNeeds(on: boolean): void {
+    if (on === this.showNeeds) return;
+    this.showNeeds = on;
+    this.emit();
+  }
+
+  private needsCache: { state: RunState; labels: NeedLabel[] } | null = null;
+
+  /** The needs labels for the map: every building with a need this season, while shown. */
+  get needLabels(): NeedLabel[] {
+    if (!this.showNeeds) return NO_NEEDS;
+    if (this.needsCache?.state !== this.state)
+      this.needsCache = { state: this.state, labels: needLabels(this.state, this.insight.now) };
+    return this.needsCache.labels;
   }
 
   private marksCache: { state: RunState; marks: Mark[] } | null = null;

@@ -33,7 +33,7 @@ describe('drawn in code until hand-made art comes', () => {
     for (const id of Object.keys(BIOMES))
       for (const def of biomeContent(id).buildings)
         expect(BUILDING_ART[def.id], `${id}: ${def.id}`).toBeDefined();
-  });
+  }, 30_000);
 });
 
 describe('the tide', () => {

@@ -117,6 +117,7 @@ export function emptyReport(state: RunState): SeasonReport {
     forage: 0,
     improvedTiles: [],
     blackouts: [],
+    needs: {},
     food: { produced: 0, eaten: 0, unfed: 0, rotted: 0, storage: 0 },
     population: { before: state.citizens, change: 0, after: state.citizens, reason: 'grew' },
     wellbeing: { before: state.wellbeing, after: state.wellbeing, lines: [] },

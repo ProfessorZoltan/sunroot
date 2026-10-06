@@ -11,6 +11,7 @@ import type { Application } from 'pixi.js';
 import { ColorMatrixFilter, Container, Graphics, Sprite, Text } from 'pixi.js';
 import type { Texture } from 'pixi.js';
 import { keepsakesIn, youngFrame } from '../game/keepsakes';
+import { needText, type NeedLabel } from '../game/needs';
 import { drawKites, drawOrnament, keepsakeProps, kiteAnchors } from './keepsakeArt';
 import { castOf, fishName, fishPose, walkerLook, walkerPose, type WalkerLook } from './peopleArt';
 import type { PhaseName, Timeline } from '../game/timeline';
@@ -140,6 +141,9 @@ export class MapView {
   private readonly marksUnder = new Graphics();
   private readonly marksOver = new Graphics();
   private marks: Mark[] = [];
+  /** What each building gets of its needs this season (X/Y), while the player shows them. */
+  private readonly needsLayer = new Container();
+  private needs: NeedLabel[] = [];
   private readonly underFx = new Container();
   /** Buildings, back to front: hand-made sprites or procedural drawings. */
   private readonly buildingLayer = new Container();
@@ -215,6 +219,7 @@ export class MapView {
       this.wildlife,
       this.animalLayer,
       this.peopleLayer,
+      this.needsLayer,
       this.overFx,
       this.overlay,
       this.edgeCursor,
@@ -269,6 +274,7 @@ export class MapView {
     this.player = player;
     if (this.state) this.drawBuildings(this.state);
     this.drawMarks();
+    this.drawNeeds();
     // Setting up can take a while on a slow machine: the season's clock starts now, not at the
     // last frame, so the first frame doesn't skip ahead by the setup time.
     this.lastTick = performance.now();
@@ -294,6 +300,7 @@ export class MapView {
     this.player = null;
     if (this.state) this.drawBuildings(this.state);
     this.drawMarks();
+    this.drawNeeds();
   }
 
   /** Redraws whatever changed in the run state. */
@@ -391,6 +398,49 @@ export class MapView {
     if (marks === this.marks) return;
     this.marks = marks;
     this.drawMarks();
+  }
+
+  /** How many buildings carry a needs label now (for tests). */
+  get needsShown(): number {
+    return this.needsLayer.children.length > 0 ? this.needs.length : 0;
+  }
+
+  /** The needs labels to show above the buildings (none while they are toggled off). */
+  setNeeds(needs: NeedLabel[]): void {
+    if (needs === this.needs) return;
+    this.needs = needs;
+    this.drawNeeds();
+  }
+
+  /** Stacked pills over each building, one per need, green when met and brick when short. */
+  private drawNeeds(): void {
+    for (const child of this.needsLayer.removeChildren()) child.destroy();
+    if (this.player || this.needs.length === 0) return;
+    const LINE = 10;
+    for (const label of this.needs) {
+      const c = hexToPixel(label.at);
+      // The stack's bottom just above the tile's centre, growing upward over the building.
+      const top = c.y + 2 - label.lines.length * LINE;
+      label.lines.forEach((line, i) => {
+        const text = new Text({
+          text: needText(line),
+          style: {
+            fontFamily: '"Sunroot Numbers", "Nunito Variable", system-ui, sans-serif',
+            fontSize: 7.5,
+            fontWeight: '700',
+            fill: line.short ? COLORS.bad : COLORS.good,
+          },
+          resolution: 8,
+        });
+        const y = top + i * LINE;
+        const pill = new Graphics()
+          .roundRect(c.x - text.width / 2 - 3, y, text.width + 6, LINE - 1, 4)
+          .fill({ color: 0xfffbf0, alpha: 0.95 })
+          .stroke({ width: line.short ? 1.2 : 0.7, color: line.short ? 0xd9a08c : 0x9dbb79 });
+        text.position.set(c.x - text.width / 2, y + (LINE - 1 - text.height) / 2);
+        this.needsLayer.addChild(pill, text);
+      });
+    }
   }
 
   private drawMarks(): void {

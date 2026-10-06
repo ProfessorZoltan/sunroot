@@ -1,8 +1,9 @@
 /**
- * Controls that sit on the map: highlighting one terrain, so tile types stay easy to read, and
- * the buildings that would go short if the season ended now.
+ * Controls that sit on the map: highlighting one terrain, so tile types stay easy to read, the
+ * buildings that would go short if the season ended now, and each building's needs.
  */
 import { NEEDS, shortOf, type Need } from '../game/shortfalls';
+import { remember } from './LeftPanel';
 import type { GameStore } from '../game/store';
 import type { TileType } from '../sim';
 
@@ -124,5 +125,29 @@ export function ShortfallPicker({ store }: { store: GameStore }) {
         </div>
       )}
     </>
+  );
+}
+
+/** Where the browser remembers whether the building needs are shown. */
+export const NEEDS_KEY = 'sunroot:ui:needs';
+
+/**
+ * Shows over each building what it gets of its needs this season out of what it needs (X/Y):
+ * water, day and night energy, heat and cooling. Remembered in the browser between visits.
+ */
+export function NeedsToggle({ store }: { store: GameStore }) {
+  return (
+    <label class="map-control needs-toggle">
+      <input
+        type="checkbox"
+        checked={store.showNeeds}
+        onChange={(e) => {
+          const on = (e.target as HTMLInputElement).checked;
+          store.setShowNeeds(on);
+          remember(NEEDS_KEY, on);
+        }}
+      />
+      <span class="small">Show building needs</span>
+    </label>
   );
 }

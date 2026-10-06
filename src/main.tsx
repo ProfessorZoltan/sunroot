@@ -50,6 +50,8 @@ import {
   type RunState,
 } from './sim';
 import { App } from './ui/App';
+import { remembered } from './ui/LeftPanel';
+import { NEEDS_KEY } from './ui/MapControls';
 import { CityScreen } from './ui/City';
 
 const randomSeed = (prefix: string) => `${prefix}-${Math.floor(Math.random() * 1e9).toString(36)}`;
@@ -220,6 +222,8 @@ async function start() {
     intro,
   });
   sound = connectAudio(audio, store);
+  // The building needs on the map, if the player left them shown.
+  store.showNeeds = remembered(NEEDS_KEY, false);
   store.message = resumeNote;
   log.begin(store.state);
 
@@ -337,6 +341,7 @@ async function start() {
     view!.setWater(r ? r.report.water : store.waterForecast);
     view!.setWalks(store.walkLines, store.heatLines);
     view!.setMarks(store.marks);
+    view!.setNeeds(store.needLabels);
     view!.setEdgeCursor(store.hoverEdge);
     view!.setOverlay(
       store.hover,

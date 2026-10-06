@@ -211,12 +211,14 @@ export function resolveEnergy(ctx: SeasonContext): void {
 
   // Star Night: homes keep their lights out, using less at night.
   const lightsOut = festivalThisSeason(content, state)?.nightEnergyRelief ?? 0;
-  const energyOf = (b: BuildingState, slot: Slot) => {
+  /** A building's own energy use in a slot, before any grid cooling. */
+  const ownEnergyOf = (b: BuildingState, slot: Slot) => {
     const def = defOf(content, b);
     const own = def.demand?.energy[slot][si] ?? 0;
     const relief = slot === 'night' && def.housing > 0 ? lightsOut : 0;
-    return Math.max(0, own - relief) + gridCoolOf(b, slot);
+    return Math.max(0, own - relief);
   };
+  const energyOf = (b: BuildingState, slot: Slot) => ownEnergyOf(b, slot) + gridCoolOf(b, slot);
   const heatOf = (b: BuildingState, slot: Slot) => heatNeed(content, state, b, slot, si);
   const pumps = active.filter((b) => defOf(content, b).heatPump);
   const freeHeat = perSlot();
@@ -767,6 +769,27 @@ export function resolveEnergy(ctx: SeasonContext): void {
     }
   }
   for (const b of active) if (!off.has(b.uid)) ctx.powered.add(b.uid);
+  // What each building needed of energy, heat and cooling, and got: all of it while it is on
+  // (the grid, or a source, paid the rest), none once it is shut off.
+  for (const b of active) {
+    const on = !off.has(b.uid);
+    const total = (of: (b: BuildingState, slot: Slot) => number) =>
+      SLOTS.reduce((n, slot) => n + of(b, slot), 0);
+    const amounts = {
+      dayEnergy: ownEnergyOf(b, 'day'),
+      nightEnergy: ownEnergyOf(b, 'night'),
+      heat: total(heatOf),
+      cooling: total((x, slot) => coolNeed(content, state, x, slot, si)),
+    } as const;
+    for (const [kind, need] of Object.entries(amounts) as [keyof typeof amounts, number][])
+      if (need > 0) (report.needs[b.uid] ??= {})[kind] = { got: on ? need : 0, need };
+  }
+  // Water, as the water step shared it out.
+  for (const [uid, use] of Object.entries(report.water?.uses ?? {})) {
+    if (use.need <= 0) continue;
+    const got = Object.values(use.got).reduce((n, x) => n + x, 0);
+    (report.needs[uid] ??= {}).water = { got: Math.min(got, use.need), need: use.need };
+  }
   // The grid's cooling, for the buildings it kept on.
   if (cooling.gridCool)
     for (const slot of SLOTS)

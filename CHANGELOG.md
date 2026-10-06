@@ -1,5 +1,11 @@
 # Changelog
 
+## Building needs on the map
+
+- **Show building needs**, a new toggle on the map: over each building that needs anything this
+  season, what it gets out of what it needs (X/Y) of water, day energy, night energy, heat and
+  cooling; green when met, red when short. Off by default, and remembered between visits.
+
 ## Lake Gardens in hand-made art, and winter coats
 
 - **Lake Gardens is drawn in its own art**: the shallows, deep water and raised beds, the lake's
