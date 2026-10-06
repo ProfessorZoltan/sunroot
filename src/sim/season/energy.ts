@@ -466,7 +466,12 @@ export function resolveEnergy(ctx: SeasonContext): void {
    * Without grid heat: pumps near a heat well turn spare energy into heat for it, at their
    * ratio, up to what they could still make. Returns the heat made.
    */
-  const pumpInto = (well: BuildingState, slot: Slot, want: number): number => {
+  const pumpInto = (
+    well: BuildingState,
+    slot: Slot,
+    want: number,
+    phase: 'wellsReserved' | 'wellsCharged',
+  ): number => {
     let made = 0;
     for (const p of pumps.filter((x) => near(x, well)).sort(nearestTo(well))) {
       if (made >= want) break;
@@ -479,6 +484,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
       pumpLeft[slot].set(p.uid, (pumpLeft[slot].get(p.uid) ?? 0) - h);
       report.energy[slot].heat.pumped += h;
       report.energy[slot].heat.pumpEnergy += units;
+      report.energy[slot].heat[phase] = (report.energy[slot].heat[phase] ?? 0) + units;
       made += h;
       explain(ctx, p, `${slot}: ${h} heat into a heat well with ${units} spare energy`);
     }
@@ -495,6 +501,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
       directLeft[slot].set(b.uid, 0);
       wellLinks.push({ slot, from: well.uid, to: b.uid, amount: t });
       report.energy[slot].storageDischarged += t;
+      report.energy[slot].heat.fromWells = (report.energy[slot].heat.fromWells ?? 0) + t;
       heatPaid[slot] += t;
     }
   };
@@ -563,7 +570,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
       const fromHeat = Math.min(want, spareNear(w, 'day'));
       takeSpare(w, 'day', fromHeat);
       spareHeat.day -= fromHeat;
-      const fromPumps = pumpInto(w, 'day', want - fromHeat);
+      const fromPumps = pumpInto(w, 'day', want - fromHeat, 'wellsReserved');
       setStored(w, (w.stored ?? 0) + fromHeat + fromPumps);
       report.energy.day.heat.stored += fromHeat + fromPumps;
       payWhole(w, 'night');
@@ -707,7 +714,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
         report.energy[slot].heat.stored += heat;
         if (!gridHeat) {
           // Energy becomes heat only through a pump.
-          const pumped = pumpInto(b, slot, room(b));
+          const pumped = pumpInto(b, slot, room(b), 'wellsCharged');
           setStored(b, (b.stored ?? 0) + pumped);
           report.energy[slot].heat.stored += pumped;
           continue;
@@ -756,7 +763,8 @@ export function resolveEnergy(ctx: SeasonContext): void {
     r.unused = spare[slot];
     r.heat.unused = spareHeat[slot];
     if (short[slot] === 0) continue;
-    const available = r.supply + r.storageDischarged;
+    // Energy to pay the slot's demand: heat the wells paid homes straight from their store is none.
+    const available = r.supply + r.storageDischarged - (r.heat.fromWells ?? 0);
     let gap = settle(slot, off).demand - available;
     for (const b of [...active].reverse()) {
       if (gap <= 0) break;

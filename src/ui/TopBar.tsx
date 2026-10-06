@@ -1,6 +1,13 @@
 /** The top bar: the year strip of 8 energy slots, and Harmony, wellbeing and citizens. */
 import type { GameStore } from '../game/store';
-import { POPULATION_REASONS, type SeasonView, type SlotView } from '../game/insight';
+import {
+  POPULATION_REASONS,
+  energyDischarged,
+  energyMade,
+  energyUsed,
+  type SeasonView,
+  type SlotView,
+} from '../game/insight';
 import { FULL_DURATIONS, type PhaseName } from '../game/timeline';
 import { harmonyMultiplier, type Content, type Season, type SeasonReport, type Slot } from '../sim';
 import { Heart, Leaf, Moon, People, Sun } from './icons';
@@ -79,11 +86,11 @@ export function TopBar({
 /** The season as it actually went (the forecast didn't know the storm's target). */
 function actual(sv: SeasonView, report: SeasonReport): SeasonView {
   const slot = (s: Slot): SlotView => ({
-    supply: report.energy[s].supply + report.energy[s].storageDischarged,
-    demand: report.energy[s].demand,
+    supply: energyMade(report, s),
+    demand: energyUsed(report, s),
     shortfall: report.energy[s].shortfall,
     bySource: report.energy[s].bySource,
-    discharged: report.energy[s].storageDischarged,
+    discharged: energyDischarged(report, s),
     report,
   });
   return { ...sv, day: slot('day'), night: slot('night') };
@@ -272,7 +279,8 @@ function EnergyTip({
     label: name(id),
     amount: n,
   }));
-  if (r.storageDischarged) supply.push({ label: 'From storage', amount: r.storageDischarged });
+  const discharged = energyDischarged(view.report!, slot);
+  if (discharged) supply.push({ label: 'From storage', amount: discharged });
   // Energy use, by what uses it; heat is apart below, except the energy turned into heat.
   const demand: Row[] = Object.entries(r.demandBy).map(([id, n]) => ({
     label: name(id),
@@ -280,14 +288,21 @@ function EnergyTip({
   }));
   const intoHeat = r.heat.direct + (r.heat.gridLoss ?? 0);
   if (intoHeat) demand.push({ label: 'Turned into heat, 1 for 1', amount: -intoHeat });
-  if (r.heat.pumpEnergy) demand.push({ label: 'Heat pumps', amount: -r.heat.pumpEnergy });
+  // Heat pumps paying heat directly; what they put into heat wells is set aside or charged, below.
+  const wellsReserved = r.heat.wellsReserved ?? 0;
+  const wellsCharged = r.heat.wellsCharged ?? 0;
+  const pumping = r.heat.pumpEnergy - wellsReserved - wellsCharged;
+  if (pumping) demand.push({ label: 'Heat pumps', amount: -pumping });
   const heat = heatRows(r, name);
   const cool = coolRows(r, name);
   const other: Row[] = [];
   if (r.reserved) other.push({ label: 'Set aside for the night', amount: -r.reserved });
+  if (wellsReserved)
+    other.push({ label: 'Heat pumps filling heat wells for the night', amount: -wellsReserved });
   if (r.sponges) other.push({ label: 'Workshop and kiln runs', amount: -r.sponges });
   if (r.storageCharged - r.reserved > 0)
     other.push({ label: 'Charged into storage', amount: -(r.storageCharged - r.reserved) });
+  if (wellsCharged) other.push({ label: 'Heat pumps filling heat wells', amount: -wellsCharged });
   if (r.unused) other.push({ label: 'Spare, unused', amount: r.unused, tone: 'quiet' });
   const blackouts = view.report!.blackouts.length;
   return (
@@ -295,7 +310,7 @@ function EnergyTip({
       <TipTable
         title={title}
         rows={supply}
-        total={{ label: 'Supply', amount: r.supply + r.storageDischarged }}
+        total={{ label: 'Supply', amount: r.supply + discharged }}
       />
       <TipTable rows={demand} total={{ label: 'Demand', amount: -r.demand }} />
       {other.length > 0 && <TipTable rows={other} />}

@@ -1,5 +1,13 @@
 # Changelog
 
+## The season card's spare energy is real
+
+- The season card no longer counts heat that heat wells give out (without grid heat) as energy
+  made, and counts as used the energy set aside for the night, so the spare it shows is what
+  workshops and kilns can run on.
+- Fixed: a slot short of energy could keep buildings on with the heat wells' heat, as if it
+  were energy.
+
 ## Building needs on the map
 
 - **Show building needs**, a new toggle on the map: over each building that needs anything this

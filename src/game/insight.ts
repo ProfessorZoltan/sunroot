@@ -57,6 +57,31 @@ export interface Insight {
   foodStorage: number;
 }
 
+/**
+ * Energy a slot makes, with what storage gives back; heat the heat wells paid straight from their
+ * store is not energy, so it is left out (it had looked like spare energy, asked in playtesting).
+ */
+export function energyMade(report: SeasonReport, slot: Slot): number {
+  const e = report.energy[slot];
+  return e.supply + energyDischarged(report, slot);
+}
+
+/** Energy storage gave back into a slot (not the heat wells' heat). */
+export function energyDischarged(report: SeasonReport, slot: Slot): number {
+  const e = report.energy[slot];
+  return e.storageDischarged - (e.heat.fromWells ?? 0);
+}
+
+/**
+ * Energy a slot uses before any workshop or kiln runs: its buildings' demand, and what is set aside
+ * for tonight (into energy storage, or by heat pumps into heat wells). What is left is truly spare,
+ * for the runs (asked for in playtesting: wells filling for the night had looked like spare).
+ */
+export function energyUsed(report: SeasonReport, slot: Slot): number {
+  const e = report.energy[slot];
+  return e.demand + e.reserved + (e.heat.wellsReserved ?? 0);
+}
+
 export function computeInsight(base: Content, state: RunState, asIs: RunState): Insight {
   // The numbers as this run plays them: Root City, the twist, tunings and charters.
   const content = effectiveContent(base, state);
@@ -79,11 +104,11 @@ export function computeInsight(base: Content, state: RunState, asIs: RunState): 
     // projectSeason applies the run's modifiers itself: it takes the base content.
     const report = i === current ? now : projectSeason(base, state, season, { forecast: true });
     const slot = (s: Slot): SlotView => ({
-      supply: report.energy[s].supply + report.energy[s].storageDischarged,
-      demand: report.energy[s].demand,
+      supply: energyMade(report, s),
+      demand: energyUsed(report, s),
       shortfall: report.energy[s].shortfall,
       bySource: report.energy[s].bySource,
-      discharged: report.energy[s].storageDischarged,
+      discharged: energyDischarged(report, s),
       report,
     });
     return {

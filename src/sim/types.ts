@@ -329,6 +329,20 @@ export interface HeatReport {
   neighbor: number;
   /** Heat no source could pay, without grid heat: its buildings were shut off, cold. */
   cold: number;
+  /**
+   * Of `pumpEnergy`, the spare energy heat pumps spent filling heat wells, apart from the heat
+   * they paid directly (which is in the slot's demand): set aside for tonight's heat before any
+   * workshop runs (`wellsReserved`, without grid heat), and from what was left after them
+   * (`wellsCharged`). Missing in older saves.
+   */
+  wellsReserved?: number;
+  wellsCharged?: number;
+  /**
+   * Heat the heat wells paid buildings straight from their store, without grid heat. It is in the
+   * slot's `storageDischarged` (the ledger counts heat and energy alike), but it is no energy: no
+   * building can run on it. Missing in older saves.
+   */
+  fromWells?: number;
 }
 
 /** Cooling in a slot (the Sun Desert): needed, given by cooling sources, paid by the grid. */

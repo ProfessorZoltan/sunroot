@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { waterLedger, waterNotes } from '../game/waterInfo';
 import { commuteNotes, waterWalkNotes } from '../game/commuteInfo';
 import { heatNotes } from '../game/heatInfo';
+import { energyDischarged } from '../game/insight';
 import { coolNotes } from '../game/coolInfo';
 import { lakeNotes } from '../game/lakeInfo';
 import { forestNotes } from '../game/forestInfo';
@@ -133,14 +134,21 @@ function Energy({ content, report }: { content: Content; report: SeasonReport })
               <strong>+{v}</strong>
             </li>
           ))}
-          {e.storageDischarged > 0 && (
+          {energyDischarged(report, slot) > 0 && (
             <li>
               <span>From storage</span>
-              <strong>+{e.storageDischarged}</strong>
+              <strong>+{energyDischarged(report, slot)}</strong>
             </li>
           )}
         </ul>
-        <div class="small strong">Used {e.demand + e.sponges + e.storageCharged}</div>
+        <div class="small strong">
+          Used{' '}
+          {e.demand +
+            e.sponges +
+            e.storageCharged +
+            (e.heat.wellsReserved ?? 0) +
+            (e.heat.wellsCharged ?? 0)}
+        </div>
         <ul class="plain flow">
           {demand.map(([n, v]) => (
             <li>
