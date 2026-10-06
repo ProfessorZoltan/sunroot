@@ -11,7 +11,7 @@ import type { Application } from 'pixi.js';
 import { ColorMatrixFilter, Container, Graphics, Sprite, Text } from 'pixi.js';
 import type { Texture } from 'pixi.js';
 import { keepsakesIn, youngFrame } from '../game/keepsakes';
-import { needText, type NeedLabel } from '../game/needs';
+import { needText, spareText, type NeedLabel } from '../game/needs';
 import { drawKites, drawOrnament, keepsakeProps, kiteAnchors } from './keepsakeArt';
 import { castOf, fishName, fishPose, walkerLook, walkerPose, type WalkerLook } from './peopleArt';
 import type { PhaseName, Timeline } from '../game/timeline';
@@ -412,31 +412,50 @@ export class MapView {
     this.drawNeeds();
   }
 
-  /** Stacked pills over each building, one per need, green when met and brick when short. */
+  /**
+   * Stacked pills over each building, one per need, green when met and brick when short; below
+   * them, what its runs use of spare energy, on a cool slate pill of its own (no "out of").
+   */
   private drawNeeds(): void {
     for (const child of this.needsLayer.removeChildren()) child.destroy();
     if (this.player || this.needs.length === 0) return;
     const LINE = 10;
     for (const label of this.needs) {
       const c = hexToPixel(label.at);
-      // The stack's bottom just above the tile's centre, growing upward over the building.
-      const top = c.y + 2 - label.lines.length * LINE;
-      label.lines.forEach((line, i) => {
-        const text = new Text({
+      const rows = [
+        ...label.lines.map((line) => ({
           text: needText(line),
+          ink: line.short ? COLORS.bad : COLORS.good,
+          fill: 0xfffbf0,
+          edge: line.short ? 0xd9a08c : 0x9dbb79,
+          width: line.short ? 1.2 : 0.7,
+        })),
+        ...label.spare.map((line) => ({
+          text: spareText(line),
+          ink: 0x3d5466,
+          fill: 0xe3ecf3,
+          edge: 0x9fb3c4,
+          width: 0.7,
+        })),
+      ];
+      // The stack's bottom just above the tile's centre, growing upward over the building.
+      const top = c.y + 2 - rows.length * LINE;
+      rows.forEach((row, i) => {
+        const text = new Text({
+          text: row.text,
           style: {
             fontFamily: '"Sunroot Numbers", "Nunito Variable", system-ui, sans-serif',
             fontSize: 7.5,
             fontWeight: '700',
-            fill: line.short ? COLORS.bad : COLORS.good,
+            fill: row.ink,
           },
           resolution: 8,
         });
         const y = top + i * LINE;
         const pill = new Graphics()
           .roundRect(c.x - text.width / 2 - 3, y, text.width + 6, LINE - 1, 4)
-          .fill({ color: 0xfffbf0, alpha: 0.95 })
-          .stroke({ width: line.short ? 1.2 : 0.7, color: line.short ? 0xd9a08c : 0x9dbb79 });
+          .fill({ color: row.fill, alpha: 0.95 })
+          .stroke({ width: row.width, color: row.edge });
         text.position.set(c.x - text.width / 2, y + (LINE - 1 - text.height) / 2);
         this.needsLayer.addChild(pill, text);
       });

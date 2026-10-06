@@ -2,11 +2,12 @@
  * The map's needs labels (src/game/needs.ts): what each working building gets this season of
  * water, day and night energy, heat and cooling, out of what it needs (X/Y). The season's report
  * keeps each building's needs (`report.needs`); the labels are read from the season's preview.
+ * Buildings that run on spare energy say what they use, with no "out of".
  */
 import { describe, expect, it } from 'vitest';
 import { forecastSeason, type Content, type RunState, type Season } from '../src/sim';
 import type willowReach from '../src/content/willow-reach.json';
-import { needLabels, needText } from '../src/game/needs';
+import { needLabels, needText, spareText } from '../src/game/needs';
 import { GameStore } from '../src/game/store';
 import { content, place, scenario, uidAt, withWater } from './helpers';
 
@@ -66,7 +67,7 @@ describe('building needs', () => {
       0,
       W,
     );
-    const label = needLabels(s, now(s, W)).find((l) => l.uid === uidAt(s, 1, 0))!;
+    const label = needLabels(W, s, now(s, W)).find((l) => l.uid === uidAt(s, 1, 0))!;
     expect(label.lines).toEqual([{ kind: 'water', got: 0, need: 1, short: true }]);
     expect(needText(label.lines[0]!)).toBe('water 0/1');
   });
@@ -102,20 +103,48 @@ describe('building needs', () => {
     // No cooling needed in spring: no label at all.
     const C = hot(true);
     const spring = at(C, 'spring');
-    expect(needLabels(spring, now(spring, C))).toEqual([]);
+    expect(needLabels(C, spring, now(spring, C))).toEqual([]);
   });
 
-  it('one label per building with a need, in priority order; none for those without', () => {
+  it('one label per building with a need or spare runs, in priority order; none for others', () => {
     let s = place(scenario(LAND, { season: 'winter' }), 'cottage', 3, 0);
     s = place(s, 'pollinatorMeadow', 4, 0);
     s = place(s, 'workshop', 5, 0);
     const report = now(s);
-    const labels = needLabels(s, report);
-    expect(labels.map((l) => l.uid)).toEqual(s.priority.filter((uid) => report.needs[uid]));
+    const labels = needLabels(content, s, report);
+    expect(labels.map((l) => l.uid)).toEqual(
+      s.priority.filter((uid) => report.needs[uid] || report.runs[uid]),
+    );
     expect(labels.map((l) => l.uid)).toContain(uidAt(s, 5, 0));
     expect(labels.map((l) => l.uid)).not.toContain(uidAt(s, 4, 0));
     const cottage = labels.find((l) => l.uid === uidAt(s, 3, 0))!;
     expect(cottage.lines.map((l) => l.kind)).toEqual(['nightEnergy', 'heat']);
+  });
+
+  it('runs on spare energy: what they use, with no "out of"; 0 when they get none', () => {
+    // Salvage to work and a solar canopy's spare day energy: the workshop runs on it.
+    const spare = place(
+      place(scenario(LAND, { stores: { salvage: 10 } }), 'solarCanopy', 4, 0),
+      'workshop',
+      3,
+      0,
+    );
+    const busy = needLabels(content, spare, now(spare)).find((l) => l.uid === uidAt(spare, 3, 0))!;
+    const used = now(spare).runs[uidAt(spare, 3, 0)]!.energy.day;
+    expect(used).toBeGreaterThan(0);
+    expect(busy.spare).toEqual([{ slot: 'day', used }]);
+    expect(spareText(busy.spare[0]!)).toBe(`uses ${used} day`);
+    // Its own need for day energy stays a need, X/Y.
+    expect(busy.lines.map(needText)).toEqual(['day 1/1']);
+    // Nothing to work: no runs, and it says so.
+    const idle = place(scenario(LAND, { stores: { salvage: 0, clutter: 0 } }), 'workshop', 3, 0);
+    const none = needLabels(content, idle, now(idle)).find((l) => l.uid === uidAt(idle, 3, 0))!;
+    expect(none.spare.map(spareText)).toEqual(['uses 0 day']);
+    // Buildings that don't run on spare energy have none.
+    const cottage = place(scenario(LAND), 'cottage', 3, 0);
+    expect(
+      needLabels(content, cottage, now(cottage)).find((l) => l.uid === uidAt(cottage, 3, 0))!.spare,
+    ).toEqual([]);
   });
 
   it('shown on the map only while the player toggles them on', () => {

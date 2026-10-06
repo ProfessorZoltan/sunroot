@@ -614,11 +614,17 @@ export class GameStore {
 
   private needsCache: { state: RunState; labels: NeedLabel[] } | null = null;
 
-  /** The needs labels for the map: every building with a need this season, while shown. */
+  /**
+   * The needs labels for the map: every building with a need this season, or that runs on spare
+   * energy, while shown.
+   */
   get needLabels(): NeedLabel[] {
     if (!this.showNeeds) return NO_NEEDS;
     if (this.needsCache?.state !== this.state)
-      this.needsCache = { state: this.state, labels: needLabels(this.state, this.insight.now) };
+      this.needsCache = {
+        state: this.state,
+        labels: needLabels(this.rules, this.state, this.insight.now),
+      };
     return this.needsCache.labels;
   }
 

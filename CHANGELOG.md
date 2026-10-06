@@ -5,6 +5,8 @@
 - **Show building needs**, a new toggle on the map: over each building that needs anything this
   season, what it gets out of what it needs (X/Y) of water, day energy, night energy, heat and
   cooling; green when met, red when short. Off by default, and remembered between visits.
+- With it, what workshops, kilns, silk houses and digesters use of spare energy (`uses 2 day`),
+  on a slate-blue label of its own: no "out of", as it isn't a need they can go short of.
 
 ## Lake Gardens in hand-made art, and winter coats
 
