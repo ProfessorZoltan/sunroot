@@ -1276,26 +1276,26 @@ function DistrictGuide({ content }: { content: Content }) {
       <summary>
         <strong>Districts</strong> <span class="quiet small">what each Graft gives</span>
       </summary>
-      <table class="keys small">
-        <thead>
-          <tr>
-            <th>District</th>
-            <th>Earned by</th>
-            <th>Perk ({tiers.map((t) => t.name).join(' → ')})</th>
-            <th>Adds to drafts</th>
-          </tr>
-        </thead>
-        <tbody>
-          {content.districts.map((d) => (
-            <tr>
-              <th>{d.name}</th>
-              <td>{d.earnedBy}</td>
-              <td>{d.perks.map((p) => p.text).join(' → ')}</td>
-              <td>{cardLabel(content, d.adds)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* Stacked, not a table: the sidebar is too narrow for four columns of prose. */}
+      <ul class="district-guide small">
+        {content.districts.map((d) => (
+          <li>
+            <strong>{d.name}</strong>
+            <dl>
+              <dt>Earned by</dt>
+              <dd>{d.earnedBy}</dd>
+              {d.perks.map((p, i) => (
+                <>
+                  <dt>{tiers[i]?.name ?? `Tier ${i + 1}`}</dt>
+                  <dd>{p.text}</dd>
+                </>
+              ))}
+              <dt>Adds to drafts</dt>
+              <dd>{cardLabel(content, d.adds)}</dd>
+            </dl>
+          </li>
+        ))}
+      </ul>
     </details>
   );
 }

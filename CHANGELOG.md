@@ -1,5 +1,12 @@
 # Changelog
 
+## Root City's district guide fits its card
+
+- The Districts guide in Root City's sidebar lists each district stacked (earned by, each tier's
+  perk, what it adds to drafts) instead of a four-column table that ran off the card.
+- A district that brings another biome's building names it ("the Tide Mill blueprint", not
+  "tideMill").
+
 ## Priorities by need
 
 - **Prioritize buildings** has a list for each need besides the main one: workers, energy,

@@ -363,7 +363,10 @@ export function EndScreen({
 export function cardLabel(content: Content, id: string): string {
   if (content.tuningById[id]) return `the ${content.tuningById[id].name} tuning`;
   if (content.charterById[id]) return `the ${content.charterById[id].name} charter`;
-  return `the ${content.byId[id]?.name ?? id} blueprint`;
+  // A building from another biome (the Tidal Quarter brings the coast's Tide Mill).
+  const def =
+    content.byId[id] ?? Object.values(content.atlas ?? {}).find((c) => c.byId[id])?.byId[id];
+  return `the ${def?.name ?? id} blueprint`;
 }
 
 /** Asks before abandoning the run in progress. */

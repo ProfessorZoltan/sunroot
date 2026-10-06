@@ -104,6 +104,19 @@ test('Root City: place the Graft, find a landmark, raise a district, choose an e
   );
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Root City' })).toBeVisible();
+  // The district guide fits the sidebar: nothing in it runs past its card's right edge.
+  const guide = page.locator('details', { hasText: 'what each Graft gives' });
+  await guide.locator('summary').click();
+  await expect(guide.locator('.district-guide li').first()).toBeVisible();
+  const overrun = await guide.evaluate((el) => {
+    const right = el.getBoundingClientRect().right;
+    return [...el.querySelectorAll('*')].filter((c) => c.getBoundingClientRect().right > right + 1)
+      .length;
+  });
+  expect(overrun).toBe(0);
+  // A district bringing another biome's building names it (the Tidal Quarter's Tide Mill).
+  await expect(guide).toContainText('the Tide Mill blueprint');
+  await guide.locator('summary').click();
   const placing = page.getByRole('region', { name: 'Place the Graft' });
   await expect(placing).toContainText('Millrace Quarter, Seedling');
   // Choosing an expedition waits until the Graft is placed.
