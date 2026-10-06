@@ -6,10 +6,15 @@
  * a building on the map or in the list highlights it in both. Several can be
  * chosen (their boxes, Shift for a run of them, or a whole kind) and moved
  * together, and presets sort the list by kind of building.
+ *
+ * Workers, energy, water, heat and cooling can each have a list of their own
+ * (asked for after): a tab for each shows its order, the main list's until it is
+ * rearranged there, and "Use the main list" lets it follow the main one again.
  */
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { KIND_NAMES, PRESETS, applyPreset, moveGroup, nudge, toEnd } from '../game/priorities';
 import type { GameStore } from '../game/store';
+import { priorityFor, waterOn, type PriorityKind } from '../sim';
 import type { BuildingKind } from '../sim/content/schema';
 import type { MapView } from '../render/mapView';
 import type { Ui } from './RightPanel';
@@ -31,8 +36,21 @@ export function PrioritiesPanel({
   const [chosen, setChosen] = useState<Set<string>>(new Set());
   const [anchor, setAnchor] = useState<string | null>(null);
   const list = useRef<HTMLOListElement>(null);
+  const [kind, setKind] = useState<PriorityKind | null>(null);
   const now = store.insight.now;
-  const order = state.priority;
+  // The needs this run has: water with the water layer, heat and cooling where anything needs it.
+  const needed = (of: 'heat' | 'cool') =>
+    store.rules.buildings.some((d) =>
+      (['day', 'night'] as const).some((slot) => d.demand?.[of][slot].some((n) => n > 0)),
+    );
+  const needs = LISTS.filter(
+    (l) =>
+      (l.kind !== 'water' || waterOn(store.rules)) &&
+      (l.kind !== 'heat' || needed('heat')) &&
+      (l.kind !== 'cooling' || needed('cool')),
+  );
+  const own = kind !== null && state.priorities?.[kind] !== undefined;
+  const order = kind ? priorityFor(state, kind) : state.priority;
   const kindOf = (uid: string): BuildingKind | undefined => {
     const b = state.buildings[uid];
     return b ? store.rules.byId[b.type]?.kind : undefined;
@@ -43,8 +61,9 @@ export function PrioritiesPanel({
     order.some((uid, i) => i > 0 && kindOf(uid) === k),
   );
   const setOrder = (next: string[]) => {
-    if (next.some((uid, i) => uid !== order[i]))
-      store.dispatch({ type: 'setPriority', order: next });
+    if (!next.some((uid, i) => uid !== order[i])) return;
+    if (kind) store.dispatch({ type: 'setPriority', order: next, kind });
+    else store.dispatch({ type: 'setPriority', order: next });
   };
   /** Ticks a box; with Shift, every row from the last box ticked to this one. */
   const toggle = (uid: string, range: boolean) => {
@@ -89,7 +108,7 @@ export function PrioritiesPanel({
     const next = [...order];
     next.splice(from, 1);
     next.splice(target, 0, uid);
-    store.dispatch({ type: 'setPriority', order: next });
+    setOrder(next);
   };
   const select = (uid: string) => {
     store.inspect(uid);
@@ -105,10 +124,52 @@ export function PrioritiesPanel({
           Done
         </button>
       </div>
+      <div class="priority-tools priority-lists" role="tablist" aria-label="Priority list">
+        <span class="small">List:</span>
+        {[{ kind: null, name: 'Main' } as const, ...needs].map((l) => {
+          const on = kind === l.kind;
+          const custom = l.kind !== null && state.priorities?.[l.kind] !== undefined;
+          return (
+            <button
+              key={l.kind ?? 'main'}
+              type="button"
+              role="tab"
+              class={`chip${on ? ' on' : ''}`}
+              aria-selected={on}
+              title={l.kind ? `${LIST_TEXT[l.kind]}${custom ? '' : ' Follows the main list.'}` : ''}
+              onClick={() => setKind(l.kind)}
+            >
+              {l.name}
+              {custom && <span aria-label=" (its own order)"> •</span>}
+            </button>
+          );
+        })}
+      </div>
       <div class="quiet small">
-        Drag to rearrange. Higher buildings are staffed first, shut off last in a blackout, and take
-        water first when it's shared. Click a building here or on the map to find it. Tick several
-        (Shift for a run of them) to move them together.
+        {kind === null ? (
+          <>
+            Drag to rearrange. Higher buildings are staffed first, shut off last in a blackout, and
+            take water, heat and cooling first, unless that need has a list of its own. Click a
+            building here or on the map to find it. Tick several (Shift for a run of them) to move
+            them together.
+          </>
+        ) : own ? (
+          <>
+            {LIST_TEXT[kind]} Its own order: the main list no longer decides it.{' '}
+            <button
+              type="button"
+              class="link small"
+              onClick={() => store.dispatch({ type: 'setPriority', kind, order: null })}
+            >
+              Use the main list
+            </button>
+          </>
+        ) : (
+          <>
+            {LIST_TEXT[kind]} It follows the main list; rearrange it here to give it an order of its
+            own.
+          </>
+        )}
       </div>
       <div class="priority-tools" role="group" aria-label="Presets">
         <span class="small">Sort:</span>
@@ -177,6 +238,9 @@ export function PrioritiesPanel({
           const notes = [
             now.unstaffed.includes(uid) ? 'no worker' : null,
             now.blackouts.includes(uid) ? 'shut off' : null,
+            kind === 'water' && now.water?.uses[uid]?.short ? 'short of water' : null,
+            kind === 'heat' && now.cold.includes(uid) ? 'cold' : null,
+            kind === 'cooling' && (now.hot ?? []).includes(uid) ? 'hot' : null,
             b.damage ? 'damaged' : null,
           ].filter((n) => n !== null);
           return (
@@ -263,3 +327,21 @@ export function PrioritiesPanel({
     </aside>
   );
 }
+
+/** The needs with a list of their own, in the order the tabs show them. */
+const LISTS: { kind: PriorityKind; name: string }[] = [
+  { kind: 'workers', name: 'Workers' },
+  { kind: 'energy', name: 'Energy' },
+  { kind: 'water', name: 'Water' },
+  { kind: 'heat', name: 'Heat' },
+  { kind: 'cooling', name: 'Cooling' },
+];
+
+/** What each need's list decides. */
+const LIST_TEXT: Record<PriorityKind, string> = {
+  workers: 'Who is staffed first when there are too few workers.',
+  energy: 'Who is shut off last in a blackout, and whose runs use spare energy first.',
+  water: 'Who takes water first when it is shared at the same distance.',
+  heat: 'Who is warmed first when heat is short: the last go cold.',
+  cooling: 'Who is cooled first when cooling is short: the last go hot.',
+};

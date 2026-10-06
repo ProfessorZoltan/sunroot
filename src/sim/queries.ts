@@ -14,7 +14,7 @@ import type { Content } from './content/load';
 import type { BuildingDef, EventId, Events, LayerDef, Season, TileType } from './content/schema';
 import { SEASONS } from './content/schema';
 import { hexDistance, hexKey, hexNeighbors, type Hex } from './hex';
-import type { BuildingState, RunState, Tile } from './types';
+import type { BuildingState, PriorityKind, RunState, Tile } from './types';
 
 export function defOf(content: Content, b: BuildingState): BuildingDef {
   const def = content.byId[b.type];
@@ -158,9 +158,40 @@ export function buildingAt(state: RunState, h: Hex): BuildingState | undefined {
   );
 }
 
-/** Buildings in priority order, highest first. */
-export function byPriority(state: RunState): BuildingState[] {
-  return state.priority.map((uid) => state.buildings[uid]!).filter(Boolean);
+/** The needs that can have a priority list of their own, in the order the interface shows them. */
+export const PRIORITY_KINDS: PriorityKind[] = ['workers', 'energy', 'water', 'heat', 'cooling'];
+
+/**
+ * The order for one need: the player's own list for it, or the main list. Buildings gone from the
+ * run are left out; one the list doesn't have yet (built since) goes just after the building
+ * before it in the main list, so a new home still comes where homes do.
+ */
+export function priorityFor(state: RunState, kind?: PriorityKind): string[] {
+  const own = kind ? state.priorities?.[kind] : undefined;
+  if (!own) return state.priority;
+  const main = state.priority;
+  const standing = new Set(main);
+  const out = own.filter((uid) => standing.has(uid));
+  const has = new Set(out);
+  main.forEach((uid, i) => {
+    if (has.has(uid)) return;
+    let at = 0;
+    for (let j = i - 1; j >= 0; j--)
+      if (has.has(main[j]!)) {
+        at = out.indexOf(main[j]!) + 1;
+        break;
+      }
+    out.splice(at, 0, uid);
+    has.add(uid);
+  });
+  return out;
+}
+
+/** Buildings in priority order, highest first: the main order, or one need's own. */
+export function byPriority(state: RunState, kind?: PriorityKind): BuildingState[] {
+  return priorityFor(state, kind)
+    .map((uid) => state.buildings[uid]!)
+    .filter(Boolean);
 }
 
 export function neighborBuildings(

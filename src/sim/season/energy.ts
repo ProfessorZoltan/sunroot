@@ -74,7 +74,11 @@ export function resolveEnergy(ctx: SeasonContext): void {
     else trace.given += before - value;
     b.stored = value;
   };
-  const active = byPriority(state).filter((b) => ctx.active.has(b.uid));
+  const active = byPriority(state, 'energy').filter((b) => ctx.active.has(b.uid));
+  // Heat and cooling go to buildings in their own order, if the player made one (each need's
+  // list, DECISIONS.md, Priorities by need); energy, blackouts and runs in energy's.
+  const heatActive = byPriority(state, 'heat').filter((b) => ctx.active.has(b.uid));
+  const coolActive = byPriority(state, 'cooling').filter((b) => ctx.active.has(b.uid));
 
   // Cooling (the Sun Desert, heat's mirror): cooling sources within range pay the buildings
   // that need it, in priority order, nearest source first. The grid pays the rest at its cost
@@ -154,7 +158,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
       chillLeft.set(c.uid, chillLeft.get(c.uid)! - made);
       return made;
     };
-    for (const b of active) {
+    for (const b of coolActive) {
       let need = coolNeed(content, state, b, slot, si);
       if (need <= 0) continue;
       r.demand += need;
@@ -220,7 +224,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
   };
   const energyOf = (b: BuildingState, slot: Slot) => ownEnergyOf(b, slot) + gridCoolOf(b, slot);
   const heatOf = (b: BuildingState, slot: Slot) => heatNeed(content, state, b, slot, si);
-  const pumps = active.filter((b) => defOf(content, b).heatPump);
+  const pumps = heatActive.filter((b) => defOf(content, b).heatPump);
   const freeHeat = perSlot();
   for (const slot of SLOTS) {
     freeHeat[slot] =
@@ -241,12 +245,12 @@ export function resolveEnergy(ctx: SeasonContext): void {
   const gridHeat = local.gridHeat;
   const near = (a: BuildingState, b: BuildingState) =>
     range === Infinity || hexDistance(a.at, b.at) <= range;
-  const rank = new Map(active.map((b, i) => [b.uid, i]));
+  const rank = new Map(heatActive.map((b, i) => [b.uid, i]));
   /** Nearest to `to` first, ties (and everything, with no range) by priority. */
   const nearestTo = (to: BuildingState) => (x: BuildingState, y: BuildingState) =>
     (range === Infinity ? 0 : hexDistance(x.at, to.at) - hexDistance(y.at, to.at)) ||
     rank.get(x.uid)! - rank.get(y.uid)!;
-  const collectors = active.filter((b) => defOf(content, b).heatGeneration);
+  const collectors = heatActive.filter((b) => defOf(content, b).heatGeneration);
   const occ = occupancy(state);
 
   // Heat from a neighbour (the Bathhouse): a staffed kiln next to it warms it for free; a heat
@@ -265,7 +269,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
     explain(ctx, b, `${slot}: ${t} heat from the ${defOf(content, n).name} next to it`);
   };
   for (const pass of ['sources', 'relays'] as const) {
-    for (const b of active) {
+    for (const b of heatActive) {
       const from = defOf(content, b).heatFromNeighbors;
       if (!from) continue;
       const kind = (n: BuildingState) => {
@@ -306,7 +310,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
 
   /** What the buildings that are still on need in a slot. `links` records who heated whom. */
   const settle = (slot: Slot, off: Set<string>, links?: HeatLink[]): Settlement => {
-    const on = active.filter((b) => !off.has(b.uid));
+    const on = heatActive.filter((b) => !off.has(b.uid));
     const energy = on.reduce((sum, b) => sum + energyOf(b, slot), 0) + demolition[slot];
     const consumers = on.filter((b) => heatOf(b, slot) > 0);
     const left = new Map(consumers.map((b) => [b.uid, owedOf(b, slot)]));
@@ -431,13 +435,13 @@ export function resolveEnergy(ctx: SeasonContext): void {
 
   /** Heat still owed by the buildings a heat well reaches. */
   const reachable = (well: BuildingState, slot: Slot) =>
-    active
+    heatActive
       .filter((b) => directLeft[slot].has(b.uid) && near(well, b))
       .reduce((sum, b) => sum + directLeft[slot].get(b.uid)!, 0);
   /** A heat well pays `amount` of the heat owed by the buildings it reaches, nearest first. */
   const payFromWell = (well: BuildingState, slot: Slot, amount: number) => {
     let paying = amount;
-    for (const b of active
+    for (const b of heatActive
       .filter((x) => directLeft[slot].has(x.uid) && near(well, x))
       .sort(nearestTo(well))) {
       const t = Math.min(paying, directLeft[slot].get(b.uid)!);
@@ -492,7 +496,7 @@ export function resolveEnergy(ctx: SeasonContext): void {
   };
   /** Without grid heat: a heat well pays whole buildings' heat from its store, nearest first. */
   const payWhole = (well: BuildingState, slot: Slot) => {
-    for (const b of active
+    for (const b of heatActive
       .filter((x) => (directLeft[slot].get(x.uid) ?? 0) > 0 && near(well, x))
       .sort(nearestTo(well))) {
       const t = directLeft[slot].get(b.uid)!;

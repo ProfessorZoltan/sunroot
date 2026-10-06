@@ -180,6 +180,12 @@ export interface RunState {
   forecast: { event: EventId; next: EventId };
   /** Building uids, highest priority first: staffed first, shut off last. */
   priority: string[];
+  /**
+   * The player's own order for one need, in place of `priority` for it (asked for in playtesting):
+   * who is staffed first, kept on longest in a blackout, takes water, heat or cooling first. A need
+   * without one follows `priority`, as does everything else (repairs, events, animals).
+   */
+  priorities?: Partial<Record<PriorityKind, string[]>>;
   /** Energy supplied by source type in recent seasons (for the Mixed Grid bonus). */
   energyHistory: Record<string, number>[];
   /** Combos discovered this run, in order. */
@@ -294,7 +300,9 @@ export type Command =
   | { type: 'demolish'; uid: string }
   | { type: 'setRecipe'; uid: string; recipe: string }
   | { type: 'setDigesterSlot'; uid: string; slot: Slot }
-  | { type: 'setPriority'; order: string[] }
+  /** The main order, or with `kind` that need's own (`null` to follow the main order again). */
+  | { type: 'setPriority'; order: string[]; kind?: undefined }
+  | { type: 'setPriority'; order: string[] | null; kind: PriorityKind }
   /** Whether a damaged building is repaired automatically at the start of a season (the default). */
   | { type: 'setAutoRepair'; uid: string; auto: boolean }
   /** Repairs a damaged building now, for its repair cost in materials. */
@@ -558,6 +566,9 @@ export interface WildlifeReport {
   /** Tiles the animals healed a step this season (the hornbills), by tile key. */
   healed?: string[];
 }
+
+/** The needs that can have a priority list of their own (`RunState.priorities`). */
+export type PriorityKind = 'workers' | 'energy' | 'water' | 'heat' | 'cooling';
 
 /** The needs the map can show above a building: water, energy by day and by night, heat, cooling. */
 export type NeedKind = 'water' | 'dayEnergy' | 'nightEnergy' | 'heat' | 'cooling';

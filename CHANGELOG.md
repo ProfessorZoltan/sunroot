@@ -1,5 +1,11 @@
 # Changelog
 
+## Priorities by need
+
+- **Prioritize buildings** has a list for each need besides the main one: workers, energy,
+  water, heat and cooling. Rearrange a need's list to decide who is staffed, kept on, watered,
+  warmed or cooled first; "Use the main list" puts it back.
+
 ## The season card's spare energy is real
 
 - The season card no longer counts heat that heat wells give out (without grid heat) as energy

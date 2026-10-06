@@ -30,7 +30,7 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 /** Assigns citizens as workers in priority order. Damaged buildings don't operate. */
 export function staff(ctx: SeasonContext): void {
   let workers = ctx.state.citizens;
-  for (const b of byPriority(ctx.state)) {
+  for (const b of byPriority(ctx.state, 'workers')) {
     if (b.damage) continue;
     // Resting this season (Siesta's summer): no work, no workers.
     if (defOf(ctx.content, b).restsIn[ctx.si]) {

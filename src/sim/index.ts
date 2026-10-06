@@ -122,7 +122,7 @@ export { compostPlan } from './compost';
 export { demolishCheck, type DemolishCheck } from './demolish';
 export { energyLedger, SHORT, type EnergyLedger } from './energyLedger';
 export { finishedProjects, projectBlocked } from './projects';
-export { buildingAt, eventOf } from './queries';
+export { buildingAt, eventOf, priorityFor, PRIORITY_KINDS } from './queries';
 export {
   finishedWonders,
   flower,

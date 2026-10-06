@@ -97,7 +97,8 @@ export function resolveWater(ctx: SeasonContext): void {
     add(report.out, 'into the lake', n);
   };
 
-  const order = byPriority(state);
+  // Water's own order, if the player made one (DECISIONS.md, Priorities by need).
+  const order = byPriority(state, 'water');
   const rank = new Map(order.map((b, i) => [b.uid, i]));
   const works = (b: BuildingState) => ctx.active.has(b.uid);
   const lakes = lakeTiles(state);

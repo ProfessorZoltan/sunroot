@@ -344,13 +344,26 @@ function mutate(content: Content, s: RunState, command: Command): string | null 
       return null;
     }
     case 'setPriority': {
+      // A need's own list, or back to the main one.
+      if (command.kind && command.order === null) {
+        if (s.priorities) {
+          delete s.priorities[command.kind];
+          if (Object.keys(s.priorities).length === 0) delete s.priorities;
+        }
+        return null;
+      }
+      const order = command.order!;
       const current = new Set(s.priority);
-      const given = new Set(command.order);
-      if (given.size !== command.order.length || given.size !== current.size) {
+      const given = new Set(order);
+      if (given.size !== order.length || given.size !== current.size) {
         return 'priority must list every building once';
       }
-      for (const uid of command.order) if (!current.has(uid)) return `unknown building ${uid}`;
-      s.priority = [...command.order];
+      for (const uid of order) if (!current.has(uid)) return `unknown building ${uid}`;
+      if (command.kind) {
+        s.priorities = { ...s.priorities, [command.kind]: [...order] };
+        return null;
+      }
+      s.priority = [...order];
       return null;
     }
     case 'setAutoRepair': {

@@ -150,6 +150,25 @@ test('building details over the map, the priority list and the terrain highlight
     }, i);
   await panel.getByRole('button', { name: 'Food first' }).click();
   await expect.poll(() => kindAt(1)).toBe('food');
+  // A list of its own for energy: rearranging under its tab leaves the main list as it was.
+  const lists = () =>
+    page.evaluate(() => {
+      const s = (window as unknown as { sunroot: { store: { state: Record<string, unknown> } } })
+        .sunroot.store.state;
+      return {
+        main: s.priority as string[],
+        own: s.priorities as Record<string, string[]> | undefined,
+      };
+    });
+  const main = (await lists()).main;
+  await panel.getByRole('tab', { name: 'Energy' }).click();
+  await expect(panel.getByText('It follows the main list')).toBeVisible();
+  await rows.nth(2).dragTo(rows.nth(1));
+  await expect.poll(async () => (await lists()).own?.energy).toEqual([main[0], main[2], main[1]]);
+  expect((await lists()).main).toEqual(main);
+  await panel.getByRole('button', { name: 'Use the main list' }).click();
+  await expect.poll(async () => (await lists()).own).toBeUndefined();
+  await panel.getByRole('tab', { name: 'Main' }).click();
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/priorities.png` });
   await panel.getByRole('button', { name: 'Done' }).click();
   await expect(panel).toBeHidden();

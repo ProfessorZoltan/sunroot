@@ -27,7 +27,8 @@ export function assignCommutes(ctx: SeasonContext): void {
   const { content, state } = ctx;
   const rules = content.rules.commute;
   if (!rules.enabled) return;
-  const order = byPriority(state);
+  // Workplaces in staffing order: the workers' own list, if the player made one.
+  const order = byPriority(state, 'workers');
   const camp = state.buildings.b0 ?? order.find((b) => isHome(defOf(content, b)));
   const homes = order.filter((b) => isHome(defOf(content, b)));
 

@@ -34,6 +34,13 @@ export function snapshot(state: SeasonSnapshot): SeasonSnapshot {
     draft: { ...state.draft, offer: [...state.draft.offer] },
     forecast: { ...state.forecast },
     priority: [...state.priority],
+    ...(state.priorities
+      ? {
+          priorities: Object.fromEntries(
+            Object.entries(state.priorities).map(([k, v]) => [k, [...v]]),
+          ),
+        }
+      : {}),
     energyHistory: state.energyHistory,
     discoveries: [...state.discoveries],
     loops: state.loops,
