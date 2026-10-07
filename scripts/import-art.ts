@@ -262,7 +262,8 @@ try {
           (file === `${id}.edge.e.png` && !files.some((f) => f.file === `${id}.png`))),
       wantCentre: file === `${id}.rotor.png`,
     });
-    const land = file.split('.')[1];
+    // A land's look may come in more than one (`woodland.forest-2.png`).
+    const land = file.split('.')[1]?.replace(/-\d+$/, '');
     // Besides a land's look, a tile's state: shallows silted up with mud (Lake Gardens).
     if (
       isTile &&

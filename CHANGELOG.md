@@ -1,5 +1,15 @@
 # Changelog
 
+## Rainforest Gardens' art
+
+- Rainforest Gardens is drawn in its own art: the rainforest in two looks, its clearings, river,
+  old estate and dark earth, every building, the forest garden's shrub, understory and canopy
+  growing from young to grown, the Canopy Walk at each stage, the hummingbirds, fruit bats,
+  hornbills and jaguars with their young, the three festival cards, and the Canopy Quarter and
+  Seed Forest in Root City.
+- The forest's dry season shows its own art; shared buildings keep their summer look there.
+- The woodland reads as one canopy: deep shade fills the gaps between neighbouring trees' tiles.
+
 ## Root City's district guide fits its card
 
 - The Districts guide in Root City's sidebar lists each district stacked (earned by, each tier's

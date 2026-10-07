@@ -6,7 +6,7 @@
  */
 import { BED_RISE_MS, drawBedRising, drawLake, lakeLook } from './lakeArt';
 import { snowless } from './lands';
-import { drawLayers, layerLooks } from './forestArt';
+import { drawCanopyShade, drawLayers, layerLooks } from './forestArt';
 import type { Application } from 'pixi.js';
 import { ColorMatrixFilter, Container, Graphics, Sprite, Text } from 'pixi.js';
 import type { Texture } from 'pixi.js';
@@ -58,6 +58,7 @@ import {
   hasGround,
   rotorSprite,
   rotorTexture,
+  layerTexture,
   propTexture,
   keepsakeTexture,
   peopleTexture,
@@ -1010,6 +1011,16 @@ export class MapView {
         .filter((b) => this.content.byId[b.type]?.water?.channel)
         .map((b) => [hexKey(b.at), hasArms(b.type) ? b.type : ditch]),
     );
+    // The rainforest's woodland art lets light through at its edges, onto the gutters between
+    // tiles: the canopy's shade beneath every tile, so the gaps read as forest, not as the page.
+    if (this.content.land === 'forest') {
+      const shade = new Graphics();
+      drawCanopyShade(
+        shade,
+        tiles.map(([, t]) => t).filter((t) => t.type === 'woodland'),
+      );
+      this.tileLayer.addChild(shade);
+    }
     let procedural: Graphics | null = null;
     const dry = riverDry(this.content, state);
     for (const [key, tile] of tiles) {
@@ -1241,8 +1252,21 @@ export class MapView {
         const wind = b.type === 'windSpire' || b.type === 'singingSpire';
         if (!b.damage) this.spinning.set(sprite, wind ? 1.6 : 0.6);
       }
-      // A forest garden's layers, as far grown as they are.
-      if (b.layers?.length) drawLayers(g, c, layerLooks(this.content, state, b));
+      // A forest garden's layers, as far grown as they are: their art, back to front (the canopy
+      // tree, the banana, the coffee bushes in front), or drawn in code until it comes.
+      if (b.layers?.length) {
+        const looks = layerLooks(this.content, state, b);
+        const drawn = LAYER_ORDER.flatMap((id) => {
+          const look = looks.find((l) => l.id === id);
+          const tex = look ? layerTexture(b.type, id, look.grown >= 1) : null;
+          if (!tex) return [];
+          this.buildingLayer.addChild(artSprite(tex, c));
+          procedural = null;
+          return [id];
+        });
+        const rest = looks.filter((l) => !drawn.includes(l.id));
+        if (rest.length) drawLayers(g, c, rest);
+      }
       if (b.damage) drawCondition(g, c, 'damaged');
       // While the season resolves, blackouts show when night falls.
       else if (report?.blackouts.includes(b.uid) && !this.player) drawCondition(g, c, 'dark');
@@ -1429,6 +1453,9 @@ function nearestSide(h: Hex, p: Point): number {
   });
   return best;
 }
+
+/** A forest garden's layers in the order they are drawn, back to front. */
+const LAYER_ORDER = ['canopy', 'understory', 'shrub'];
 
 /**
  * Animals and festival props are drawn half as big again as the tile scale

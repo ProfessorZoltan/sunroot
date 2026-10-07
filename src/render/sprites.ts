@@ -62,8 +62,8 @@ const pick = (...paths: string[]): Texture | null => {
  * `hill.coast.png`), which it takes in place of the shared one.
  */
 /**
- * Lands whose winter brings no snow (the Sun Desert's green winter, Lake Gardens' low water;
- * `SNOWLESS_LANDS`): the shared art's winter dress has snow, so there a shared tile or building
+ * Lands whose winter brings no snow (the Sun Desert's green winter, Lake Gardens' low water,
+ * Rainforest Gardens' dry season; `SNOWLESS_LANDS`): the shared art's winter dress has snow, so there a shared tile or building
  * keeps its summer look in winter. The land's own looks
  * (`id.land.winter.png`) and its own tiles' and buildings' winter art are used as delivered.
  */
@@ -112,8 +112,24 @@ const GREEN_WINTER: Record<string, readonly string[]> = {
     'floatingMarket',
     'floatingCity',
   ],
-  // Rainforest Gardens' winter is the dry season: the shared art keeps its summer look.
-  forest: [],
+  // Rainforest Gardens' winter is the dry season: the shared art keeps its summer look; the
+  // forest's own tiles and buildings wear their dry-season art.
+  forest: [
+    'darkEarth',
+    'milpa',
+    'forestGarden',
+    'orchardGarden',
+    'raisedHouse',
+    'kitchenMidden',
+    'charHearth',
+    'stallBarn',
+    'beeTree',
+    'riceTerrace',
+    'waterTemple',
+    'livingFence',
+    'microHydro',
+    'canopyWalk',
+  ],
 };
 
 /** The season whose art a shared tile or building wears in this land (no snow in the desert). */
@@ -129,9 +145,13 @@ export function tileTexture(
   land?: string,
 ): Texture | null {
   if (land && textures.has(`tiles/${type}.${land}.png`)) {
-    return shown === 'winter'
-      ? pick(`tiles/${type}.${land}.winter.png`, `tiles/${type}.${land}.png`)
-      : pick(`tiles/${type}.${land}.png`);
+    if (shown === 'winter')
+      return pick(`tiles/${type}.${land}.winter.png`, `tiles/${type}.${land}.png`);
+    // A land's look may come in more than one (`woodland.forest-2.png`): the same every time.
+    const looks = [`tiles/${type}.${land}.png`, `tiles/${type}.${land}-2.png`].filter((p) =>
+      textures.has(p),
+    );
+    return textures.get(looks[Math.floor(tileRandom(`${key}:variant`)() * looks.length)]!)!;
   }
   const season = artSeason(type, shown, land);
   const variants = [`tiles/${type}.png`, `tiles/${type}-2.png`, `tiles/${type}-3.png`].filter((p) =>
@@ -171,6 +191,15 @@ export function buildingTexture(id: string, shown: Season, land?: string): Textu
   return season === 'winter'
     ? pick(`buildings/${id}.winter.png`, `buildings/${id}.png`)
     : pick(`buildings/${id}.png`);
+}
+
+/**
+ * A forest garden's layer (Rainforest Gardens, ART-EXPANSION.md): `forestGarden.shrub.png` grown,
+ * `forestGarden.shrub.young.png` while it grows (the grown one if no young one came).
+ */
+export function layerTexture(building: string, layer: string, grown: boolean): Texture | null {
+  const own = `buildings/${building}.${layer}`;
+  return grown ? pick(`${own}.png`) : pick(`${own}.young.png`, `${own}.png`);
 }
 
 export function rotorTexture(id: string, season: Season): Texture | null {

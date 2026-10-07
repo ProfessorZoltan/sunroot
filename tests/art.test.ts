@@ -22,6 +22,7 @@ const COAST = biomeContent('windsweptCoast');
 const HIGH = biomeContent('highland');
 const DESERT = biomeContent('sunDesert');
 const LAKE = biomeContent('lakeGardens');
+const FOREST = biomeContent('rainforestGardens');
 /** Buildings of every biome, each once. */
 const drawn = [
   ...content.buildings,
@@ -31,14 +32,29 @@ const drawn = [
   ...LAKE.buildings.filter(
     (b) => !content.byId[b.id] && !COAST.byId[b.id] && !HIGH.byId[b.id] && !DESERT.byId[b.id],
   ),
+  ...FOREST.buildings.filter(
+    (b) =>
+      !content.byId[b.id] &&
+      !COAST.byId[b.id] &&
+      !HIGH.byId[b.id] &&
+      !DESERT.byId[b.id] &&
+      !LAKE.byId[b.id],
+  ),
 ];
-const byId = { ...LAKE.byId, ...DESERT.byId, ...HIGH.byId, ...COAST.byId, ...content.byId };
+const byId = {
+  ...FOREST.byId,
+  ...LAKE.byId,
+  ...DESERT.byId,
+  ...HIGH.byId,
+  ...COAST.byId,
+  ...content.byId,
+};
 /** Buildings drawn in code until their art comes (the art guide asks for it). */
-const AWAITING_ART = new Set(['iceHouse', 'forestGarden']);
-/** Root City pieces drawn in code until their art comes (Rainforest Gardens' FG5, ART-CITY.md). */
-const CITY_AWAITING_ART = new Set(['canopyQuarter', 'seedForest']);
-/** Tiles drawn in code until their art comes (Rainforest Gardens' dark earth). */
-const TILES_AWAITING_ART = new Set(['darkEarth']);
+const AWAITING_ART = new Set(['iceHouse']);
+/** Root City pieces drawn in code until their art comes (ART-CITY.md): none now. */
+const CITY_AWAITING_ART = new Set<string>();
+/** Tiles drawn in code until their art comes: none now. */
+const TILES_AWAITING_ART = new Set<string>();
 
 const art = (path: string) => existsSync(new URL(`../src/art/${path}`, import.meta.url));
 const info = JSON.parse(readFileSync(new URL('../src/art/art.json', import.meta.url), 'utf8')) as {
@@ -122,6 +138,10 @@ describe('hand-made art', () => {
       ...['axolotl.rest', 'axolotl.swim.1', 'axolotl.swim.2', 'heron.stand', 'heron.fish']
         .concat(['heron.fly.1', 'heron.fly.2', 'kingfisher.perch', 'kingfisher.dive'])
         .concat(['flamingo.stand', 'flamingo.feed', 'flamingo.walk.1', 'flamingo.walk.2']),
+      // The forest's, the same all year: its winter is the dry season.
+      ...['hummingbird.hover.1', 'hummingbird.hover.2', 'hummingbird.perch', 'fruitBat.fly.1']
+        .concat(['fruitBat.fly.2', 'fruitBat.hang', 'hornbill.perch', 'hornbill.fly'])
+        .concat(['jaguar.walk.1', 'jaguar.walk.2', 'jaguar.rest']),
     ];
     for (const f of frames) expect(art(`wildlife/${f}.png`), f).toBe(true);
     for (const f of [
@@ -130,6 +150,7 @@ describe('hand-made art', () => {
       ...HIGH.festivals,
       ...DESERT.festivals,
       ...LAKE.festivals,
+      ...FOREST.festivals,
     ])
       expect(art(`festivals/${f.id}.card.webp`), f.id).toBe(true);
     for (const f of ['bunting', 'lantern', 'lantern.lit'])
@@ -159,6 +180,10 @@ describe('hand-made art', () => {
       'heron.chick': ['stand'],
       'kingfisher.young': ['perch'],
       'flamingo.chick': ['stand', 'feed', 'walk.1', 'walk.2'],
+      'hummingbird.young': ['perch', 'hover.1', 'hover.2'],
+      'fruitBat.pup': ['hang', 'fly.1', 'fly.2'],
+      'hornbill.chick': ['perch', 'fly'],
+      'jaguar.cub': ['walk.1', 'walk.2', 'rest'],
     };
     for (const [name, frames] of Object.entries(young))
       for (const f of frames) expect(art(`wildlife/${name}.${f}.png`), `${name}.${f}`).toBe(true);
@@ -284,15 +309,18 @@ describe('hand-made art', () => {
       'lighthouse',
       'lookout',
       'machairCroft',
+      'milpa',
       'mulberryDyke',
       'oasisGarden',
       'oldWorldArchive',
+      'orchardGarden',
       'pumpedReservoir',
       'restoredArray',
       'rewettedBog',
       'rewildedRuin',
       'riceDuckPaddy',
       'riceFishPaddy',
+      'riceTerrace',
       'rockPool',
       'saltWorks',
       'salvageYard',
@@ -311,6 +339,15 @@ describe('hand-made art', () => {
       if (['mulberryDyke', 'floatingMarket'].includes(id)) continue;
       expect(def.placement.tiles, id).toHaveLength(1);
     }
+  });
+
+  it("has a forest garden's three layers, grown and growing (Rainforest Gardens)", () => {
+    for (const layer of ['shrub', 'understory', 'canopy'])
+      for (const f of ['', '.young'])
+        expect(art(`buildings/forestGarden.${layer}${f}.png`), `${layer}${f}`).toBe(true);
+    // The rainforest tile comes in two looks.
+    for (const f of ['woodland.forest.png', 'woodland.forest-2.png', 'woodland.forest.winter.png'])
+      expect(art(`tiles/${f}`), f).toBe(true);
   });
 
   it('is imported from everything delivered', () => {

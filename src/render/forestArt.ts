@@ -1,13 +1,14 @@
 /**
  * Rainforest Gardens on the map (FG4): a forest garden's layers drawn over it, each as far grown
- * as it is (coffee bushes, a banana, a canopy crown that widens over its seasons), until
- * hand-made art comes. Pure drawing from what `forestLook` reads off the run.
+ * as it is (coffee bushes, a banana, a canopy crown that widens over its seasons), for any layer
+ * whose art is missing; and the canopy's shade under the woodland art. Pure drawing.
  */
 import type { Graphics } from 'pixi.js';
 import type { Content } from '../sim/content/load';
 import { layersOf } from '../sim/forest';
 import type { BuildingState, RunState } from '../sim/types';
-import type { Point } from './layout';
+import { hexKey, hexNeighbors, type Hex } from '../sim/hex';
+import { HEX_RADIUS, hexCorners, hexToPixel, type Point } from './layout';
 import { COLORS } from './palette';
 
 export interface LayerLook {
@@ -64,5 +65,47 @@ export function drawLayers(g: Graphics, c: Point, layers: LayerLook[]): void {
         [5, -11],
       ] as const)
         g.circle(c.x + dx, c.y + dy, 1.4).fill({ color: COLORS.fruit });
+  }
+}
+
+/** Deep shade under the rainforest's woodland (the art guide's forest green). */
+export const CANOPY_SHADE = 0x2f4a24;
+
+/**
+ * The canopy closed over the woodland: deep shade under each woodland tile, across the gutter
+ * between two woodland tiles and over the corner where three meet. Drawn beneath every tile, so
+ * it shows only where the trees let light through; gutters beside other land stay as they are.
+ */
+export function drawCanopyShade(g: Graphics, woodland: Hex[]): void {
+  const at = new Set(woodland.map(hexKey));
+  const corners = (h: Hex, r: number) => {
+    const flat = hexCorners(hexToPixel(h), r);
+    return Array.from({ length: flat.length / 2 }, (_, i) => ({
+      x: flat[2 * i]!,
+      y: flat[2 * i + 1]!,
+    }));
+  };
+  // A tile's corner nearest a point: where its side or corner faces a neighbour's.
+  const nearest = (h: Hex, p: Point) =>
+    corners(h, HEX_RADIUS - 0.5).sort(
+      (a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y),
+    );
+  const fill = (pts: Point[]) => g.poly(pts.flatMap((p) => [p.x, p.y])).fill(CANOPY_SHADE);
+  for (const h of woodland) {
+    g.poly(hexCorners(hexToPixel(h), HEX_RADIUS)).fill(CANOPY_SHADE);
+    const near = hexNeighbors(h).filter((n) => at.has(hexKey(n)));
+    for (const n of near) {
+      if (hexKey(n) < hexKey(h)) continue;
+      const [a1, a2] = nearest(h, hexToPixel(n));
+      fill([a1!, a2!, nearest(n, a2!)[0]!, nearest(n, a1!)[0]!]);
+      // The corner shared with a third woodland tile beside both.
+      for (const m of near) {
+        if (hexKey(m) <= hexKey(n) || !hexNeighbors(n).some((x) => hexKey(x) === hexKey(m)))
+          continue;
+        const [p, q, r] = [h, n, m].map(hexToPixel);
+        const mid = { x: (p!.x + q!.x + r!.x) / 3, y: (p!.y + q!.y + r!.y) / 3 };
+        fill([h, n, m].map((t) => nearest(t, mid)[0]!));
+      }
+    }
   }
 }

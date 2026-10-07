@@ -27,6 +27,9 @@ and the Well with its own icon (`well.icon.png`). All in the game.
 
 **Delivered (the Highland and the Sun Desert):** all of both, in the game (their sections below).
 
+**Delivered (Lake Gardens and Rainforest Gardens):** all of both, in the game (their sections
+below).
+
 ## Order
 
 | Milestone                    | Needs art? | What to draw first                                                                                                                        | Source                                      |
@@ -47,9 +50,9 @@ and the Well with its own icon (`well.icon.png`). All in the game.
 | LG4. The lake on screen      | Yes (done) | The shallows and deep water, then the Chinampa, Stilt House and Mud Boat                                                                  | proposals/lake-gardens.md, Build plan       |
 | LG5. The lake in Root City   | Yes (done) | The Canal Quarter district and the Water Market landmark ([ART-CITY.md](ART-CITY.md))                                                     | proposals/lake-gardens.md, Build plan       |
 | LG6. The lake's wonder       | Yes (done) | The Floating City, 4 animals, 3 festival cards                                                                                            | proposals/lake-gardens.md, Build plan       |
-| FG4. The forest on screen    | Yes        | The rainforest tile, then the Milpa, Forest Garden and its three layers, and the Raised House                                             | proposals/rainforest-gardens.md, Build plan |
-| FG5. The forest in Root City | Yes        | The Canopy Quarter district and the Seed Forest landmark ([ART-CITY.md](ART-CITY.md))                                                     | proposals/rainforest-gardens.md, Build plan |
-| FG6. The forest's wonder     | Yes        | The Canopy Walk, 4 animals, 3 festival cards                                                                                              | proposals/rainforest-gardens.md, Build plan |
+| FG4. The forest on screen    | Yes (done) | The rainforest tile, then the Milpa, Forest Garden and its three layers, and the Raised House                                             | proposals/rainforest-gardens.md, Build plan |
+| FG5. The forest in Root City | Yes (done) | The Canopy Quarter district and the Seed Forest landmark ([ART-CITY.md](ART-CITY.md))                                                     | proposals/rainforest-gardens.md, Build plan |
+| FG6. The forest's wonder     | Yes (done) | The Canopy Walk, 4 animals, 3 festival cards                                                                                              | proposals/rainforest-gardens.md, Build plan |
 
 ## The standard frame (reminder)
 
@@ -544,8 +547,11 @@ out by the monsoon) and **layering** (a forest garden grown upward, storey by st
 built from the Chagga home gardens of Kilimanjaro, the Kandyan forest gardens of Sri Lanka, the
 Maya milpa, Amazonian terra preta and the Balinese subak, so the look is theirs: storeys of
 green under tall trees, bananas and coffee, black earth round the houses, terraces with water
-shining in them. Everything here is drawn in code until its art comes, so any piece can arrive
-on its own. Same frame, light and file names as everything else: a summer `id.png` and a winter
+shining in them. **Status: delivered and in the game** (`rainforest/`, sorted into the usual
+folders when imported): every tile with the rainforest's second look (`woodland.forest-2.png`),
+dark earth, every building, the forest garden's three layers grown and young, the evolution, the
+wonder, the animals and their young, the cards, and the Canopy Quarter and Seed Forest. The
+Milpa, Orchard Garden and Rice Terrace carry their own ground as asked. Same frame, light and file names as everything else: a summer `id.png` and a winter
 `id.winter.png`, delivered to the usual folders of `art/incoming/`.
 
 **The palette.** Deep and humid: rainforest greens from near-black (`#2F4A24`) to fresh leaf
@@ -559,8 +565,8 @@ never shown (as in the desert and the lake): a shared tile or building keeps its
 winter unless it has a forest look. The forest's own winter is the dry season: the forest a
 little dustier, the fields stubble, the grass brown.
 
-The game draws these in code, so don't paint them: a forest garden's **layers** growing (the
-files below replace the drawn ones when they come), the monsoon's rain running off a bare field,
+The game draws these in code, so don't paint them: a forest garden's **layers** growing (their
+files, below, replace the drawn ones), the monsoon's rain running off a bare field,
 **fire** taking a tile of forest in the dry season (flames, then ash), **dark earth** spreading
 from a midden, the haze of the dry season, lit windows from a `.lit.png`. Paint the forest
 unburned and the fields fresh.
@@ -576,7 +582,7 @@ The shared types get the forest's own look as `id.forest.png` and, if you like,
 | Rainforest | `woodland.forest.png`                       | Most of the map: old, tall forest   | Layered and dense: tall emergent trees above a closed canopy, palms and tree ferns below, lianas, a glimpse of dark understory. Keep its middle readable: gardens and bee trees stand on it. Dry season: the same, a little dustier, a few red and yellow leaves. | proposals/rainforest-gardens.md, Map           |
 | Clearing   | `meadow.forest.png`, `scrub.forest.png`     | Natural gaps and old fields         | Meadow: bright grass with heliconia and wild ginger at the edge. Scrub: rough regrowth, bracken, a fallen trunk. Dry season: browner.                                                                                                                             | proposals/rainforest-gardens.md, Map           |
 | Old estate | `barren.forest.png`, `ruin.forest.png`      | The worn-out plantation             | Barren: red laterite earth, cracked, a few stumps in straight rows (the old monoculture). Ruin: the estate's collapsed drying shed and a rusted processing machine, vines over them. Salvage, not menace.                                                         | proposals/rainforest-gardens.md, Map           |
-| Dark earth | `darkEarth`                                 | Made by middens: fertile black soil | Black, crumbly soil with flecks of charcoal and potsherds, worms, a few seedlings. Two summer looks and a winter (`darkEarth.png`, `darkEarth-2.png`, `darkEarth.winter.png`). Until it comes the game fills the tile dark brown.                                 | proposals/rainforest-gardens.md, The new rules |
+| Dark earth | `darkEarth`                                 | Made by middens: fertile black soil | Black, crumbly soil with flecks of charcoal and potsherds, worms, a few seedlings. Two summer looks and a winter (`darkEarth.png`, `darkEarth-2.png`, `darkEarth.winter.png`).                                                                                    | proposals/rainforest-gardens.md, The new rules |
 | River      | `river.forest.png`, `floodplain.forest.png` | The river and its várzea            | A brown, silty river between forested banks; the floodplain wet grass and reeds that the monsoon covers.                                                                                                                                                          | proposals/rainforest-gardens.md, Map           |
 
 ### Buildings
@@ -605,7 +611,7 @@ Reach's art.
 
 ### With FG6: the wonder, animals and festivals
 
-In the game since FG6, drawn in code until their art comes.
+In the game since FG6; their art is delivered and in the game.
 
 | Name                     | Id              | Files                                                              | Notes                                                                                                                                                                          | Source                                     |
 | ------------------------ | --------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
