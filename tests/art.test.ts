@@ -49,8 +49,8 @@ const byId = {
   ...COAST.byId,
   ...content.byId,
 };
-/** Buildings drawn in code until their art comes (the art guide asks for it). */
-const AWAITING_ART = new Set(['iceHouse']);
+/** Buildings drawn in code until their art comes (the art guide asks for it): none now. */
+const AWAITING_ART = new Set<string>();
 /** Root City pieces drawn in code until their art comes (ART-CITY.md): none now. */
 const CITY_AWAITING_ART = new Set<string>();
 /** Tiles drawn in code until their art comes: none now. */
@@ -306,6 +306,7 @@ describe('hand-made art', () => {
       'floatingMarket',
       'glenFarm',
       'hangingGarden',
+      'iceHouse',
       'lighthouse',
       'lookout',
       'machairCroft',
@@ -335,8 +336,9 @@ describe('hand-made art', () => {
       const def = byId[id]!;
       // A croft's strips are its ground, on whichever land it is dug (ART-EXPANSION.md).
       if (def.farmland) continue;
-      // The lake's dug pond and its market's jetty and boats are their own ground on any land.
-      if (['mulberryDyke', 'floatingMarket'].includes(id)) continue;
+      // The lake's dug pond and its market's jetty and boats, and the desert's ice house on its
+      // reg, are their own ground on any land.
+      if (['mulberryDyke', 'floatingMarket', 'iceHouse'].includes(id)) continue;
       expect(def.placement.tiles, id).toHaveLength(1);
     }
   });

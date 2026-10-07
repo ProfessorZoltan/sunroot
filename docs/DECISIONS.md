@@ -1389,7 +1389,18 @@ Delivered as `rainforest/` (92 files):
 | Green winter           | The forest's own buildings, dark earth, the living fence, the micro-hydro and the Canopy Walk show their delivered dry-season art in winter; shared art keeps its summer look there, as in the desert and the lake.                                                                                                                                                                               | `GREEN_WINTER` in `sprites.ts` |
 | The canopy's shade     | The rainforest's art doesn't quite fill its edges, so the page showed through in slivers where the trees didn't reach over the gutter between tiles. Deep forest green (`#2F4A24`, the guide's darkest) is drawn under every woodland tile and across the gutters and corners between two woodland tiles, so the woodland reads as one canopy. Gutters beside other land stay as everywhere else. | `drawCanopyShade`              |
 | Drawn in code          | Nothing of the forest is any longer: the art test checks its tiles, buildings, layers, wonder, animals, young ones and cards as it does the other biomes'. Fire, the monsoon's wash, dark earth spreading and the dry season's haze stay drawn over the tiles, as decided above.                                                                                                                  | `tests/art.test.ts`            |
-| Still awaiting art     | Only the desert's Ice House, of everything the game has.                                                                                                                                                                                                                                                                                                                                          | `AWAITING_ART`                 |
+| Still awaiting art     | Only the desert's Ice House, of everything the game has. It came next (below).                                                                                                                                                                                                                                                                                                                    |
+
+### The Ice House's art
+
+Delivered on its own, a summer and a winter picture: the summer pool dry, the winter one iced
+over, as the guide asked.
+
+| Topic         | Decision                                                                                                                                                                                  | Source              |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| Own ground    | It carries its own reg ground on whichever tile it stands (it may stand on six kinds), as the guide asked; the art test lets it, as it lets the lake's Mulberry Dyke and Floating Market. | `tests/art.test.ts` |
+| Green winter  | Its winter picture is its own and shown in the desert's winter, as listed in `GREEN_WINTER`.                                                                                              | `sprites.ts`        |
+| Drawn in code | Nothing the game has is any longer: the art test's lists of buildings, tiles and Root City pieces awaiting art are all empty.                                                             | `tests/art.test.ts` |
 
 ## Building needs on the map
 

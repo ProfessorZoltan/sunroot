@@ -1,5 +1,10 @@
 # Changelog
 
+## The Ice House's art
+
+- The Sun Desert's Ice House is drawn in its own art: a stepped mud-brick dome beside its
+  freezing pool, dry in summer and iced over in winter. Every building in the game now has art.
+
 ## Rainforest Gardens' art
 
 - Rainforest Gardens is drawn in its own art: the rainforest in two looks, its clearings, river,

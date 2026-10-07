@@ -345,7 +345,7 @@ array. Everything here is drawn in code until its art comes, so any piece can ar
 looks, its own look for the shared floodplain, meadow, scrub, woodland, ruin and river (and the
 dry riverbed), every desert building, evolution and edge piece, the qanat's hub and arms, the
 sandy solar canopy, the Solar Oasis at its 3 stages, the four animals and the three festival
-cards; the guide stays as the reference for changes. Same frame, light and file names as
+cards, and the Ice House (added later, delivered on its own); the guide stays as the reference for changes. Same frame, light and file names as
 everything else: a summer `id.png` and a winter `id.winter.png`, delivered to the usual folders
 of `art/incoming/`.
 
